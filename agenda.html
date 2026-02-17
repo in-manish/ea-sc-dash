@@ -1,0 +1,1768 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Management Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+        }
+
+        body {
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            z-index: 1000;
+            backdrop-filter: blur(8px);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-item.active {
+            background-color: #eff6ff;
+            color: #1d4ed8;
+            border-right: 4px solid #1d4ed8;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .view-section {
+            display: none;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        .person-card {
+            transition: all 0.2s ease;
+        }
+
+        .person-card:hover {
+            border-color: #3b82f6;
+            background-color: #fff;
+        }
+
+        /* Thick border for partner logo cropper */
+        .partner-logo-cropper .cropper-view-box,
+        .partner-logo-cropper .cropper-face {
+            border: 4px solid #2563eb !important;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3) !important;
+        }
+
+        .partner-logo-cropper .cropper-line {
+            background-color: #2563eb !important;
+            opacity: 0.5;
+        }
+
+        .partner-logo-cropper .cropper-point {
+            background-color: #2563eb !important;
+            width: 12px !important;
+            height: 12px !important;
+            border: 2px solid #ffffff !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        .partner-logo-cropper .cropper-point.point-se {
+            cursor: nwse-resize !important;
+        }
+
+        .partner-logo-cropper .cropper-point.point-sw {
+            cursor: nesw-resize !important;
+        }
+
+        .partner-logo-cropper .cropper-point.point-nw {
+            cursor: nwse-resize !important;
+        }
+
+        .partner-logo-cropper .cropper-point.point-ne {
+            cursor: nesw-resize !important;
+        }
+
+        .partner-logo-cropper .cropper-point.point-n,
+        .partner-logo-cropper .cropper-point.point-s {
+            cursor: ns-resize !important;
+        }
+
+        .partner-logo-cropper .cropper-point.point-e,
+        .partner-logo-cropper .cropper-point.point-w {
+            cursor: ew-resize !important;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col h-screen sticky top-0 shrink-0">
+        <div class="p-6 border-b">
+            <h1 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                        d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z">
+                    </path>
+                </svg>
+                EventHub
+            </h1>
+        </div>
+        <nav class="flex-1 p-4 space-y-1">
+            <button onclick="switchView('agenda')" id="menu-agenda"
+                class="sidebar-item active w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors hover:bg-slate-50 text-slate-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                    </path>
+                </svg>
+                Agenda Manager
+            </button>
+        </nav>
+        <div class="p-4 border-t">
+            <button onclick="openConfig()"
+                class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                API Settings
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto h-screen custom-scrollbar relative">
+        <!-- API Config Overlay -->
+        <div id="setupModal" class="modal active">
+            <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md border border-slate-200">
+                <h2 class="text-2xl font-bold mb-6 text-slate-800">API Configuration</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Base URL</label>
+                        <input type="text" id="baseUrlInput"
+                            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            value="https://reconnect.eventapp-reconnect.fairfest.in">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Event ID</label>
+                        <input type="number" id="eventIdInput"
+                            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            value="22">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Auth Token</label>
+                        <input type="password" id="tokenInput"
+                            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            placeholder="Enter Token">
+                    </div>
+                    <button onclick="saveConfig()"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition-colors">
+                        Save and Continue
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agenda Section -->
+        <section id="view-agenda" class="view-section active p-8">
+            <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <div>
+                    <h1 class="text-3xl font-extrabold text-slate-900">Agenda Manager</h1>
+                    <p class="text-slate-500 mt-1" id="configBadge">Connecting...</p>
+                </div>
+                <button onclick="openAgendaModal()"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add Agenda
+                </button>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <span class="text-xs font-bold uppercase text-slate-400 tracking-wider">Total Sessions</span>
+                    <p id="totalSessions" class="text-2xl font-bold">0</p>
+                </div>
+                <div class="md:col-span-2">
+                    <input type="text" id="searchInput" oninput="filterAgendas()"
+                        placeholder="Search by title, location or track..."
+                        class="w-full h-full px-4 py-2 border rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+            </div>
+
+            <div id="agendaList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="col-span-full py-20 text-center text-slate-500 italic">Load configuration to see agenda.
+                </div>
+            </div>
+
+            <!-- Pagination Controls -->
+            <div id="paginationControls"
+                class="mt-10 flex flex-col md:flex-row items-center justify-between gap-4 border-t border-slate-200 pt-6 hidden">
+                <div class="text-sm text-slate-500">
+                    Showing <span id="showingStart" class="font-medium text-slate-900">0</span> - <span id="showingEnd"
+                        class="font-medium text-slate-900">0</span> of <span id="totalResults"
+                        class="font-medium text-slate-900">0</span> results
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="changePage(-1)" id="prevPageBtn"
+                        class="px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 font-medium text-slate-600">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                        Previous
+                    </button>
+                    <div class="flex items-center gap-1 px-4 py-2 bg-slate-50 rounded-lg border border-slate-200">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Page</span>
+                        <span id="currentPageNum" class="text-sm font-bold text-blue-600">1</span>
+                    </div>
+                    <button onclick="changePage(1)" id="nextPageBtn"
+                        class="px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 font-medium text-slate-600">
+                        Next
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Agenda Form Modal -->
+    <div id="agendaModal" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col m-4">
+            <div class="p-6 border-b flex justify-between items-center bg-slate-50 rounded-t-xl">
+                <h2 id="modalTitle" class="text-2xl font-bold text-slate-800">Add New Agenda</h2>
+                <button onclick="closeAgendaModal()"
+                    class="text-slate-400 hover:text-slate-600 bg-white p-2 rounded-full border shadow-sm transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <form id="agendaForm"
+                class="p-8 overflow-y-auto custom-scrollbar flex-1 grid grid-cols-1 md:grid-cols-12 gap-8">
+                <input type="hidden" id="agendaId">
+
+                <!-- Left Column: Core Details -->
+                <div class="md:col-span-4 space-y-6">
+                    <div class="space-y-4">
+                        <h3 class="font-bold text-slate-900 border-b pb-2 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Basic Information
+                        </h3>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Title</label>
+                            <input type="text" name="title" required
+                                class="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Location</label>
+                            <input type="text" name="location"
+                                class="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Description</label>
+                            <textarea name="description" rows="3"
+                                class="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                placeholder="Session description..."></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Information</label>
+                            <textarea name="information" rows="3"
+                                class="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                placeholder="Additional information..."></textarea>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Date</label>
+                                <input type="date" name="date" required
+                                    class="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Track</label>
+                                <input type="text" name="track_title"
+                                    class="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Start</label>
+                                <input type="time" name="start" required
+                                    class="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">End</label>
+                                <input type="time" name="end" required
+                                    class="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <h3 class="font-bold text-slate-900 border-b pb-2 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                </path>
+                            </svg>
+                            Media & Access
+                        </h3>
+                        <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                            <label class="block text-sm font-semibold text-blue-900 mb-2">Partner Logo</label>
+                            <div class="flex items-center gap-3">
+                                <input type="file" id="partnerLogoFile" accept="image/*"
+                                    class="text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer"
+                                    onchange="handlePartnerLogoUpload(this)">
+                                <div class="relative group">
+                                    <img id="logoPreview" src=""
+                                        class="hidden w-12 h-12 rounded border-2 border-white shadow-sm object-cover bg-white">
+                                    <button type="button" id="editLogoBtn" onclick="editPartnerLogo()"
+                                        class="hidden ml-2 px-3 py-1 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">Edit</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <label
+                                class="flex items-center gap-2 cursor-pointer p-2 hover:bg-slate-50 rounded-lg transition-colors">
+                                <input type="checkbox" name="enrollable"
+                                    class="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500">
+                                <span class="text-sm font-medium">Enrollable</span>
+                            </label>
+                            <label
+                                class="flex items-center gap-2 cursor-pointer p-2 hover:bg-slate-50 rounded-lg transition-colors">
+                                <input type="checkbox" name="admin" checked
+                                    class="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500">
+                                <span class="text-sm font-medium">Admin Access</span>
+                            </label>
+                            <label
+                                class="flex items-center gap-2 cursor-pointer p-2 hover:bg-slate-50 rounded-lg transition-colors">
+                                <input type="checkbox" name="force_attendance"
+                                    class="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500">
+                                <span class="text-sm font-medium">Force Attendance</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Speakers & Moderators -->
+                <div class="md:col-span-8 space-y-8">
+                    <div>
+                        <div class="flex flex-col gap-2 mb-4 bg-slate-800 text-white p-3 rounded-xl">
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-bold text-sm uppercase tracking-widest">Speakers List</h3>
+                                <button type="button" onclick="addPersonField('speaker')"
+                                    class="px-4 py-1.5 bg-blue-500 text-white text-xs font-bold rounded-lg hover:bg-blue-400 transition-all shadow-md shadow-blue-900/20">
+                                    + Add Speaker
+                                </button>
+                            </div>
+                            <div class="flex gap-4 text-xs font-medium pt-2 border-t border-slate-700">
+                                <label
+                                    class="flex items-center gap-2 cursor-pointer hover:text-blue-300 transition-colors">
+                                    <input type="radio" name="speakerSort" value="alpha" checked
+                                        onchange="toggleSpeakerSort(true)"
+                                        class="text-blue-500 focus:ring-offset-slate-800">
+                                    Sort By Alpha (Default)
+                                </label>
+                                <label
+                                    class="flex items-center gap-2 cursor-pointer hover:text-blue-300 transition-colors">
+                                    <input type="radio" name="speakerSort" value="order"
+                                        onchange="toggleSpeakerSort(false)"
+                                        class="text-blue-500 focus:ring-offset-slate-800">
+                                    Sort By Order (Manual)
+                                </label>
+                            </div>
+                        </div>
+                        <div id="speakerList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-4 bg-slate-600 text-white p-3 rounded-xl">
+                            <h3 class="font-bold text-sm uppercase tracking-widest">Moderators List</h3>
+                            <button type="button" onclick="addPersonField('moderator')"
+                                class="px-4 py-1.5 bg-blue-500 text-white text-xs font-bold rounded-lg hover:bg-blue-400 transition-all shadow-md shadow-blue-900/20">
+                                + Add Moderator
+                            </button>
+                        </div>
+                        <div id="moderatorList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                    </div>
+                </div>
+            </form>
+
+            <div class="p-6 border-t bg-slate-50 flex justify-end gap-3 rounded-b-xl">
+                <button onclick="closeAgendaModal()"
+                    class="px-6 py-2 border bg-white rounded-lg hover:bg-slate-50 transition-all text-slate-600 font-medium">Cancel</button>
+                <button onclick="submitAgenda()" id="saveBtn"
+                    class="px-10 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all">Save
+                    Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Editor Modal -->
+    <div id="imageEditorModal" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl flex flex-col m-4 max-h-[95vh]">
+            <div class="p-4 border-b flex justify-between items-center bg-slate-50 rounded-t-xl shrink-0">
+                <h3 class="font-bold text-slate-800">Edit Image</h3>
+                <button type="button" onclick="closeImageEditor()" class="text-slate-400 hover:text-slate-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto custom-scrollbar flex-1">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Main Cropper -->
+                    <div class="space-y-4">
+                        <div id="cropperContainer"
+                            class="bg-slate-100 rounded-lg overflow-hidden border-2 border-dashed border-slate-200 relative"
+                            style="min-height: 400px;">
+                            <img id="cropperImage" src="" class="max-w-full block">
+                        </div>
+                        <div id="cropDimensionsPanel" class="bg-white p-4 rounded-lg border border-slate-200 hidden">
+                            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Crop Dimensions
+                            </h4>
+                            <div class="grid grid-cols-2 gap-3 mb-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Width (px)</label>
+                                    <input type="number" id="cropWidth" min="50" max="2000" value="400"
+                                        class="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                        onchange="updateCropSize()">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Height (px)</label>
+                                    <input type="number" id="cropHeight" min="50" max="2000" value="400"
+                                        class="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                        onchange="updateCropSize()">
+                                </div>
+                            </div>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="lockAspectRatio"
+                                    class="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500">
+                                <span class="text-xs font-medium text-slate-600">Lock Aspect Ratio</span>
+                            </label>
+                        </div>
+                        <div id="transparencyPanel" class="bg-white p-4 rounded-lg border border-slate-200 hidden">
+                            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Transparency</h4>
+                            <p class="text-xs text-slate-600 mb-3">This image has transparency. Choose how to handle it:
+                            </p>
+                            <div class="space-y-2">
+                                <label
+                                    class="flex items-center gap-2 cursor-pointer p-2 hover:bg-slate-50 rounded-lg transition-colors">
+                                    <input type="radio" name="transparencyOption" value="keep" checked
+                                        class="w-4 h-4 text-blue-600 border-slate-300 focus:ring-blue-500"
+                                        onchange="updateTransparencyOption()">
+                                    <span class="text-xs font-medium text-slate-700">Keep Transparency (PNG)</span>
+                                </label>
+                                <label
+                                    class="flex items-center gap-2 cursor-pointer p-2 hover:bg-slate-50 rounded-lg transition-colors">
+                                    <input type="radio" name="transparencyOption" value="white"
+                                        class="w-4 h-4 text-blue-600 border-slate-300 focus:ring-blue-500"
+                                        onchange="updateTransparencyOption()">
+                                    <span class="text-xs font-medium text-slate-700">Add White Background (JPEG)</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 justify-center">
+                            <button type="button" onclick="cropper.zoom(0.1)"
+                                class="p-2 bg-slate-100 rounded-lg hover:bg-slate-200" title="Zoom In"><svg
+                                    class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 4v16m8-8H4" />
+                                </svg></button>
+                            <button type="button" onclick="cropper.zoom(-0.1)"
+                                class="p-2 bg-slate-100 rounded-lg hover:bg-slate-200" title="Zoom Out"><svg
+                                    class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M20 12H4" />
+                                </svg></button>
+                            <button type="button" onclick="cropper.rotate(-90)"
+                                class="p-2 bg-slate-100 rounded-lg hover:bg-slate-200" title="Rotate Left"><svg
+                                    class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                                </svg></button>
+                            <button type="button" onclick="cropper.rotate(90)"
+                                class="p-2 bg-slate-100 rounded-lg hover:bg-slate-200" title="Rotate Right"><svg
+                                    class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 10H11a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6" />
+                                </svg></button>
+                        </div>
+                    </div>
+
+                    <!-- Preview and Stats -->
+                    <div class="space-y-6">
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Live Preview</h4>
+                            <div class="w-40 h-40 mx-auto rounded-lg overflow-hidden border-4 border-white shadow-lg bg-white mb-4"
+                                style="aspect-ratio: var(--preview-aspect, 1);">
+                                <canvas id="cropPreviewCanvas" width="400" height="400"
+                                    class="w-full h-full object-contain"></canvas>
+                            </div>
+                            <div class="grid grid-cols-1 gap-3">
+                                <div class="bg-white p-3 rounded-lg border border-slate-100 shadow-sm">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase">File Size</span>
+                                    <p id="estimatedSize" class="text-sm font-bold text-slate-700">Calculating...</p>
+                                </div>
+                                <div class="bg-white p-3 rounded-lg border border-slate-100 shadow-sm">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase">Aspect Ratio</span>
+                                    <p id="aspectRatio" class="text-sm font-bold text-slate-700">1:1</p>
+                                </div>
+                                <div class="bg-white p-3 rounded-lg border border-slate-100 shadow-sm">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase">Resolution</span>
+                                    <p id="cropResolution" class="text-sm font-bold text-slate-700">400 × 400 pixels</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div
+                            class="p-4 bg-blue-50 rounded-xl border border-blue-100 text-[11px] text-blue-700 leading-relaxed">
+                            <strong class="block mb-1">Editing Tips:</strong>
+                            • Drag corners/edges to resize independently (or lock aspect ratio).<br>
+                            • Enter width/height values manually for precise dimensions.<br>
+                            • Use the mouse wheel to zoom in/out.<br>
+                            • Drag the box to position the crop area.<br>
+                            • Size is automatically optimized to 30-60 KB.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 border-t bg-slate-50 flex justify-end gap-3 rounded-b-xl shrink-0">
+                <button type="button" onclick="closeImageEditor()"
+                    class="px-6 py-2 text-slate-600 font-bold hover:bg-slate-100 rounded-lg transition-colors">Cancel</button>
+                <button type="button" onclick="saveCroppedImage()"
+                    class="px-8 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all">Save
+                    & Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Feedback -->
+    <div id="toast"
+        class="fixed bottom-8 right-8 bg-slate-900 text-white px-6 py-3 rounded-xl shadow-2xl transform translate-y-20 opacity-0 transition-all duration-300 z-[2000] flex items-center gap-3">
+        <span id="toastMessage"></span>
+    </div>
+
+    <script>
+        let agendas = [];
+        let config = { baseUrl: '', token: '', eventId: '', expiry: 0 };
+        let cropper = null;
+        let speakerSortable = null;
+        let speakerDefaultAlphaSort = true;
+        let currentEditorTarget = null; // { previewId: string, callback: function, type: 'person' | 'partner_logo', originalFilename?: string }
+        const imageBlobs = new Map(); // Stores {blob, filename} objects
+
+        // Pagination & Search State
+        let currentPage = 1;
+        const pageSize = 20;
+        let totalRecords = 0;
+        let searchTimeout = null;
+
+        window.onload = () => {
+            const savedConfig = localStorage.getItem('agendaConfig');
+            if (savedConfig) {
+                const parsed = JSON.parse(savedConfig);
+                if (Date.now() < parsed.expiry) {
+                    config = parsed;
+                    document.getElementById('setupModal').classList.remove('active');
+                    updateUIConfig();
+                    fetchAgendas();
+                }
+            }
+        };
+
+        function switchView(viewName) {
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.sidebar-item').forEach(m => m.classList.remove('active'));
+            document.getElementById(`view-${viewName}`).classList.add('active');
+            document.getElementById(`menu-${viewName}`).classList.add('active');
+        }
+
+        function updateUIConfig() {
+            const badge = document.getElementById('configBadge');
+            if (badge) badge.innerText = `Event #${config.eventId} | Active`;
+            document.getElementById('baseUrlInput').value = config.baseUrl;
+            document.getElementById('eventIdInput').value = config.eventId;
+            document.getElementById('tokenInput').value = config.token;
+        }
+
+        function saveConfig() {
+            const baseUrl = document.getElementById('baseUrlInput').value.trim();
+            const token = document.getElementById('tokenInput').value.trim();
+            const eventId = document.getElementById('eventIdInput').value.trim();
+            if (!baseUrl || !token || !eventId) return showToast("Required fields missing");
+            config = { baseUrl: baseUrl.replace(/\/$/, ''), token, eventId, expiry: Date.now() + (24 * 60 * 60 * 1000) };
+            localStorage.setItem('agendaConfig', JSON.stringify(config));
+            document.getElementById('setupModal').classList.remove('active');
+            updateUIConfig();
+            fetchAgendas();
+        }
+
+        function openConfig() { document.getElementById('setupModal').classList.add('active'); }
+
+        async function fetchAgendas() {
+            if (!config.token) return;
+            const searchQ = document.getElementById('searchInput').value;
+            try {
+                const response = await fetch(`${config.baseUrl}/events/${config.eventId}/agenda/list/?page=${currentPage}&size=${pageSize}&search=${encodeURIComponent(searchQ)}`, {
+                    headers: { 'Authorization': `Token ${config.token}` }
+                });
+                const data = await response.json();
+                agendas = data.results || [];
+                totalRecords = data.count || data.total || agendas.length;
+                renderAgendas(agendas);
+                updatePaginationUI();
+                document.getElementById('totalSessions').innerText = totalRecords;
+            } catch (err) { showToast("Fetch Error"); }
+        }
+
+        function updatePaginationUI() {
+            const paginationControls = document.getElementById('paginationControls');
+            if (totalRecords <= pageSize && currentPage === 1) {
+                paginationControls.classList.add('hidden');
+                return;
+            }
+
+            paginationControls.classList.remove('hidden');
+
+            const totalPages = Math.ceil(totalRecords / pageSize);
+            document.getElementById('currentPageNum').innerText = currentPage;
+            document.getElementById('totalResults').innerText = totalRecords;
+
+            const start = ((currentPage - 1) * pageSize) + 1;
+            const end = Math.min(currentPage * pageSize, totalRecords);
+
+            document.getElementById('showingStart').innerText = totalRecords === 0 ? 0 : start;
+            document.getElementById('showingEnd').innerText = end;
+
+            document.getElementById('prevPageBtn').disabled = (currentPage === 1);
+            document.getElementById('nextPageBtn').disabled = (currentPage >= totalPages);
+        }
+
+        function changePage(direction) {
+            const nextP = currentPage + direction;
+            const totalPages = Math.ceil(totalRecords / pageSize);
+
+            if (nextP >= 1 && nextP <= totalPages) {
+                currentPage = nextP;
+                fetchAgendas();
+                document.querySelector('main').scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function renderAgendas(list) {
+            const container = document.getElementById('agendaList');
+            if (list.length === 0) {
+                container.innerHTML = `<div class="col-span-full py-20 text-center text-slate-400 italic">No agendas.</div>`;
+                return;
+            }
+            container.innerHTML = list.map(item => {
+                const speakers = item.speaker || [];
+                const moderators = item.moderator || [];
+                return `
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl transition-all group flex flex-col h-full relative overflow-hidden">
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="text-[10px] font-bold uppercase px-3 py-1 bg-blue-50 text-blue-600 rounded-full border border-blue-100">${item.track_title || 'General'}</span>
+                            <div class="flex gap-2">
+                                <button onclick="editAgenda(${item.id})" class="p-1.5 rounded-lg bg-slate-50 hover:bg-blue-50 text-slate-400 hover:text-blue-600 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <h3 class="font-bold text-slate-900 mb-3 line-clamp-2 leading-snug text-lg">${item.title}</h3>
+                        <div class="space-y-2 text-xs text-slate-500 mb-5">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" stroke-width="2"/></svg>
+                                <span>${item.location || 'Online'}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <span>${item.date} • ${item.start} - ${item.end}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between pt-4 border-t border-slate-50 mt-auto">
+                            <div class="flex items-center gap-2">
+                                ${item.partner_logo ? `<img src="${item.partner_logo}" class="h-6 max-w-[100px] object-contain">` : ''}
+                            </div>
+                            ${item.enrollable ? `<span class="bg-green-100 text-green-700 text-[9px] font-bold px-2 py-0.5 rounded">Joinable</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterAgendas() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                currentPage = 1; // Reset to page 1 on search
+                fetchAgendas();
+            }, 400); // 400ms debounce
+        }
+
+        // --- Agenda Modal Logic ---
+        function openAgendaModal(isEdit = false) {
+            imageBlobs.clear();
+            document.getElementById('agendaModal').classList.add('active');
+            document.getElementById('agendaForm').reset();
+            document.getElementById('speakerList').innerHTML = '';
+            document.getElementById('moderatorList').innerHTML = '';
+            document.getElementById('logoPreview').classList.add('hidden');
+            document.getElementById('editLogoBtn').classList.add('hidden');
+            document.getElementById('partnerLogoFile').value = '';
+            imageBlobs.delete('partner_logo');
+            document.getElementById('modalTitle').innerText = isEdit ? "Edit Agenda Session" : "Create New Agenda Session";
+
+            // Reset Sorting
+            speakerDefaultAlphaSort = true;
+            document.querySelector('input[name="speakerSort"][value="alpha"]').checked = true;
+            toggleSpeakerSort(true);
+
+            if (!isEdit) {
+                document.getElementById('agendaId').value = "";
+                addPersonField('speaker');
+                addPersonField('moderator');
+            }
+        }
+
+        function closeAgendaModal() { document.getElementById('agendaModal').classList.remove('active'); }
+
+        function handleImagePreview(input, imgId) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const preview = document.getElementById(imgId);
+                    preview.src = e.target.result;
+                    preview.classList.remove('hidden');
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function addPersonField(type, data = null) {
+            const container = document.getElementById(`${type}List`);
+            const index = container.children.length;
+            const div = document.createElement('div');
+            const personId = `${type}_${Date.now()}_${Math.floor(Math.random() * 1000)}_${index}`;
+            div.className = `p-4 bg-slate-50 rounded-xl border border-slate-200 relative group-${type} shadow-sm person-card group`;
+
+            const existingImg = data?.speaker_image || data?.moderator_image || data?.image || data?.speaker_img || data?.moderator_img || data?.profile_url || '';
+            console.log(`Rendering ${type} card. Image URL:`, existingImg, "Data:", data);
+
+            const fields = type === 'speaker' ? [
+                { key: 'speaker_name', label: 'Name', val: data?.speaker_name || data?.name || '' },
+                { key: 'speaker_company', label: 'Company', val: data?.speaker_company || data?.company_name || '' },
+                { key: 'speaker_designation', label: 'Designation', val: data?.speaker_designation || data?.designation || '' },
+                { key: 'speaker_email', label: 'Email', val: data?.speaker_email || '' },
+            ] : [
+                { key: 'moderator_name', label: 'Name', val: data?.moderator_name || data?.name || '' },
+                { key: 'moderator_company', label: 'Company', val: data?.moderator_company || data?.company_name || '' },
+                { key: 'moderator_designation', label: 'Designation', val: data?.moderator_designation || data?.designation || '' },
+                { key: 'moderator_uuid', label: 'UUID (Optional)', val: data?.moderator_uuid || '' },
+            ];
+
+            div.innerHTML = `
+                <div class="drag-handle absolute top-2 left-2 cursor-move text-slate-300 hover:text-slate-500 hidden group-hover:block transition-colors p-1" title="Drag to reorder">
+                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path></svg>
+                </div>
+                <button type="button" onclick="this.parentElement.remove()" class="absolute -top-2 -right-2 bg-white text-red-500 border border-slate-200 shadow-sm rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-50 z-10">×</button>
+                <div class="flex gap-4 items-start">
+                    <div class="flex flex-col items-center gap-2">
+                        <div class="w-16 h-16 rounded-full border-2 border-white shadow-md bg-slate-200 flex items-center justify-center overflow-hidden relative group">
+                            <img id="prev_${personId}" src="${existingImg}" class="${existingImg ? '' : 'hidden'} w-full h-full object-cover" onerror="this.onerror=null; console.warn('Preview Load Failed');">
+                            <div id="placeholder_${personId}" class="${existingImg ? 'hidden' : ''} w-full h-full flex items-center justify-center">
+                                <span class="text-slate-400 text-xs font-bold uppercase">${type.charAt(0)}</span>
+                            </div>
+                            
+                            ${existingImg ? `
+                            <button type="button" onclick="triggerImageEdit('${existingImg}', 'prev_${personId}')" class="absolute inset-0 bg-black/40 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-[10px] font-bold">Edit</button>
+                            ` : ''}
+                        </div>
+                        <label class="cursor-pointer">
+                            <span class="text-[9px] bg-slate-800 text-white px-2 py-0.5 rounded-full hover:bg-blue-600 transition-colors">Upload</span>
+                            <input type="file" accept="image/*" class="hidden f-file-input" onchange="previewPersonImage(this, '${personId}')">
+                        </label>
+                    </div>
+                    <div class="flex-1 grid grid-cols-2 gap-2">
+                        <!-- Hidden field to store existing image URL -->
+                        <input type="hidden" class="f-${type}_image" value="${existingImg}">
+                        ${fields.map(f => `
+                            <div class="${f.key.includes('email') || f.key.includes('uuid') ? 'col-span-2' : ''}">
+                                <input type="text" placeholder="${f.label}" class="f-${f.key} w-full px-2 py-1.5 text-xs border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" value="${f.val}">
+                            </div>
+                        `).join('')}
+                        <div class="col-span-2">
+                             <textarea placeholder="Bio" class="f-${type}_profile w-full px-2 py-1.5 text-xs border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" rows="2">${data?.[type + '_profile'] || ''}</textarea>
+                        </div>
+                        ${type === 'speaker' ? `
+                        <div class="col-span-2 order-field-container">
+                             <div class="flex items-center gap-2 mt-1">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase">Order</label>
+                                <input type="number" class="f-speaker_sort_order w-16 px-2 py-1 text-xs border rounded focus:ring-2 focus:ring-blue-500 outline-none font-mono text-center" 
+                                    value="${data?.speaker_sort_order !== undefined ? data.speaker_sort_order : index}" 
+                                    onchange="updateSpeakerOrderManual(this)">
+                             </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        function triggerImageEdit(imgUrl, previewId) {
+            // Extract filename from URL if possible
+            let filename = null;
+            try {
+                const urlObj = new URL(imgUrl);
+                const pathParts = urlObj.pathname.split('/');
+                filename = pathParts[pathParts.length - 1] || null;
+            } catch (e) {
+                // If URL parsing fails, try to extract from the string
+                const pathParts = imgUrl.split('/');
+                filename = pathParts[pathParts.length - 1].split('?')[0] || null;
+            }
+
+            editExistingImage(imgUrl, previewId, (blob, savedFilename) => {
+                const imgElement = document.getElementById(previewId);
+                if (imgElement) {
+                    const url = URL.createObjectURL(blob);
+                    imgElement.src = url;
+                    imgElement.classList.remove('hidden');
+                    // Hide placeholder if it exists (placeholder ID is same as previewId but with 'placeholder_' prefix instead of 'prev_')
+                    const personId = previewId.replace('prev_', '');
+                    const placeholder = document.getElementById(`placeholder_${personId}`);
+                    if (placeholder) placeholder.classList.add('hidden');
+                    // Store the blob with filename
+                    imageBlobs.set(previewId, { blob, filename: savedFilename || filename || 'image.jpg' });
+                    console.log('Image blob stored with key:', previewId, 'filename:', savedFilename || filename);
+                } else {
+                    console.error('Image element not found:', previewId);
+                    showToast('Error: Image element not found');
+                }
+            }, 'person');
+        }
+
+        function previewPersonImage(input, id) {
+            const file = input.files[0];
+            if (file) {
+                const previewId = `prev_${id}`;
+                openImageEditor(file, (blob, filename) => {
+                    const imgElement = document.getElementById(previewId);
+                    if (imgElement) {
+                        const url = URL.createObjectURL(blob);
+                        imgElement.src = url;
+                        imgElement.classList.remove('hidden');
+                        // Hide placeholder if it exists
+                        const placeholder = document.getElementById(`placeholder_${id}`);
+                        if (placeholder) placeholder.classList.add('hidden');
+                        // Store the blob with filename
+                        imageBlobs.set(previewId, { blob, filename: filename || file.name || 'image.jpg' });
+                        console.log('Image blob stored with key:', previewId, 'filename:', filename || file.name);
+                    } else {
+                        console.error('Image element not found:', previewId);
+                        showToast('Error: Image element not found');
+                    }
+                }, 'person', file.name);
+            }
+        }
+
+        function openImageEditor(source, callback, editorType = 'person', originalFilename = null) {
+            const modal = document.getElementById('imageEditorModal');
+            const img = document.getElementById('cropperImage');
+            const dimensionsPanel = document.getElementById('cropDimensionsPanel');
+            const transparencyPanel = document.getElementById('transparencyPanel');
+            const cropperContainer = document.getElementById('cropperContainer');
+
+            // Extract filename from source if it's a File
+            let filename = originalFilename;
+            if (!filename && source instanceof File) {
+                filename = source.name;
+            }
+
+            // Set currentEditorTarget immediately to ensure it's correct
+            currentEditorTarget = { callback, type: editorType, originalFilename: filename };
+
+            // Store editorType in a local variable for use in this function scope
+            const currentEditorType = editorType;
+
+            // Show/hide dimensions panel and apply thick border class based on editor type
+            if (currentEditorType === 'partner_logo') {
+                dimensionsPanel.classList.remove('hidden');
+                cropperContainer.classList.add('partner-logo-cropper');
+                // Reset inputs to default
+                document.getElementById('cropWidth').value = 400;
+                document.getElementById('cropHeight').value = 400;
+                document.getElementById('lockAspectRatio').checked = false;
+            } else {
+                dimensionsPanel.classList.add('hidden');
+                cropperContainer.classList.remove('partner-logo-cropper');
+            }
+
+            // Always hide transparency panel initially (will show later if needed for partner logos)
+            if (transparencyPanel) {
+                transparencyPanel.classList.add('hidden');
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                img.onload = () => {
+                    // Re-verify editor type from currentEditorTarget to ensure it hasn't changed
+                    const verifiedEditorType = currentEditorTarget?.type || currentEditorType;
+
+                    modal.classList.add('active');
+
+                    if (cropper) {
+                        cropper.destroy();
+                        cropper = null;
+                    }
+
+                    // Set aspect ratio based on verified editor type
+                    const aspectRatio = verifiedEditorType === 'partner_logo' ? NaN : 1; // Free for partner logo, square for person
+
+                    try {
+                        cropper = new Cropper(img, {
+                            aspectRatio: aspectRatio,
+                            viewMode: 1,
+                            autoCropArea: 1,
+                            crop() {
+                                // Always use currentEditorTarget.type instead of closure variable
+                                const currentType = currentEditorTarget?.type || 'person';
+                                if (currentType === 'partner_logo') {
+                                    updateCropInputs();
+                                    // Re-check transparency when crop area changes
+                                    setTimeout(() => {
+                                        checkAndShowTransparencyOption();
+                                    }, 50);
+                                }
+                                updateEstimatedSize();
+                            }
+                        });
+
+                        // For person images (speaker/moderator), set default crop box to 400x400
+                        if (verifiedEditorType === 'person') {
+                            setTimeout(() => {
+                                if (cropper) {
+                                    // Get image dimensions
+                                    const imageData = cropper.getImageData();
+                                    const imgWidth = imageData.naturalWidth;
+                                    const imgHeight = imageData.naturalHeight;
+
+                                    // Calculate center position for 400x400 crop box
+                                    const cropWidth = 400;
+                                    const cropHeight = 400;
+                                    const left = (imgWidth - cropWidth) / 2;
+                                    const top = (imgHeight - cropHeight) / 2;
+
+                                    // Set crop box to 400x400 centered
+                                    cropper.setCropBoxData({
+                                        left: Math.max(0, left),
+                                        top: Math.max(0, top),
+                                        width: Math.min(cropWidth, imgWidth),
+                                        height: Math.min(cropHeight, imgHeight)
+                                    });
+                                }
+                            }, 100);
+                        }
+                    } catch (error) {
+                        console.error('Error initializing cropper:', error);
+                        showToast('Error initializing image editor: ' + error.message);
+                        return;
+                    }
+
+                    // Add event listener for aspect ratio lock (only for partner logo)
+                    if (verifiedEditorType === 'partner_logo') {
+                        const lockCheckbox = document.getElementById('lockAspectRatio');
+                        if (lockCheckbox) {
+                            lockCheckbox.onchange = function () {
+                                if (this.checked && cropper) {
+                                    const cropData = cropper.getData();
+                                    const ratio = cropData.width / cropData.height;
+                                    cropper.setAspectRatio(ratio);
+                                } else if (cropper) {
+                                    cropper.setAspectRatio(NaN);
+                                }
+                            };
+                        }
+                    }
+
+                    // Check for transparency after cropper is initialized (only for partner logos)
+                    if (verifiedEditorType === 'partner_logo') {
+                        setTimeout(() => {
+                            checkAndShowTransparencyOption();
+                            // Update size estimate after checking transparency
+                            updateEstimatedSize();
+                        }, 200);
+                    }
+
+                    // Initial size calculation
+                    setTimeout(() => {
+                        // Always use currentEditorTarget.type to ensure we have the latest value
+                        const finalType = currentEditorTarget?.type || verifiedEditorType || 'person';
+                        if (finalType === 'partner_logo') {
+                            updateCropInputs();
+                        }
+                        updateEstimatedSize();
+                    }, 100);
+                };
+
+                img.onerror = () => {
+                    console.error('Error loading image');
+                    showToast('Error loading image. Please try again.');
+                };
+
+                img.src = e.target.result;
+            };
+
+            reader.onerror = () => {
+                console.error('Error reading file');
+                showToast('Error reading file. Please try again.');
+            };
+
+
+            if (source instanceof File || source instanceof Blob) {
+                reader.readAsDataURL(source);
+            } else if (typeof source === 'string') {
+                // If a string URL is passed, we attempt to convert it to a blob first via editExistingImage logic
+                // Use currentEditorType to ensure we pass the correct type
+                editExistingImage(source, null, callback, currentEditorType, filename);
+            }
+        }
+
+        function updateCropInputs() {
+            if (!cropper) return;
+            const cropData = cropper.getData();
+            const widthInput = document.getElementById('cropWidth');
+            const heightInput = document.getElementById('cropHeight');
+
+            if (widthInput && heightInput) {
+                widthInput.value = Math.round(cropData.width);
+                heightInput.value = Math.round(cropData.height);
+            }
+        }
+
+        function updateCropSize() {
+            if (!cropper) return;
+            const widthInput = document.getElementById('cropWidth');
+            const heightInput = document.getElementById('cropHeight');
+            const lockAspect = document.getElementById('lockAspectRatio').checked;
+
+            const newWidth = parseInt(widthInput.value) || 400;
+            const newHeight = parseInt(heightInput.value) || 400;
+
+            if (lockAspect) {
+                // If aspect ratio is locked, calculate the other dimension based on current ratio
+                const cropData = cropper.getData();
+                const currentRatio = cropData.width / cropData.height;
+
+                // Determine which dimension changed more
+                const widthChanged = Math.abs(newWidth - cropData.width) > Math.abs(newHeight - cropData.height);
+
+                if (widthChanged) {
+                    const adjustedHeight = Math.round(newWidth / currentRatio);
+                    heightInput.value = adjustedHeight;
+                    cropper.setAspectRatio(currentRatio);
+                    cropper.setCropBoxData({
+                        width: newWidth,
+                        height: adjustedHeight
+                    });
+                } else {
+                    const adjustedWidth = Math.round(newHeight * currentRatio);
+                    widthInput.value = adjustedWidth;
+                    cropper.setAspectRatio(currentRatio);
+                    cropper.setCropBoxData({
+                        width: adjustedWidth,
+                        height: newHeight
+                    });
+                }
+            } else {
+                // Free resizing - update both dimensions independently
+                cropper.setAspectRatio(NaN);
+                cropper.setCropBoxData({
+                    width: newWidth,
+                    height: newHeight
+                });
+            }
+
+            updateEstimatedSize();
+        }
+
+        // Improved version for existing images
+        async function editExistingImage(imgUrl, previewId, callback, editorType = 'person', originalFilename = null) {
+            // Extract filename from URL if not provided
+            let filename = originalFilename;
+            if (!filename) {
+                try {
+                    const urlObj = new URL(imgUrl);
+                    const pathParts = urlObj.pathname.split('/');
+                    filename = pathParts[pathParts.length - 1] || null;
+                } catch (e) {
+                    const pathParts = imgUrl.split('/');
+                    filename = pathParts[pathParts.length - 1].split('?')[0] || null;
+                }
+            }
+
+            try {
+                // First try direct fetch with CORS
+                const response = await fetch(imgUrl, { mode: 'cors' });
+                if (!response.ok) throw new Error("Fetch failed");
+                const blob = await response.blob();
+                openImageEditor(blob, callback, editorType, filename);
+            } catch (e) {
+                console.warn("CORS fetch failed, trying Image fallback:", e);
+                // Fallback: try loading into img with crossOrigin
+                const img = new Image();
+                img.crossOrigin = "anonymous";
+                img.onload = () => {
+                    try {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0);
+                        canvas.toBlob((blob) => {
+                            if (blob) openImageEditor(blob, callback, editorType, filename);
+                            else throw new Error("Canvas toBlob failed");
+                        }, 'image/jpeg');
+                    } catch (err) {
+                        showToast("CORS Restriction: The server hosting this image does not allow editing via web tools.");
+                    }
+                };
+                img.onerror = () => showToast("Could not load image. Check if URL is valid or CORS is enabled on the server.");
+                // Add a timestamp to bypass cache as it often blocks CORS retries
+                img.src = imgUrl + (imgUrl.includes('?') ? '&' : '?') + 't=' + Date.now();
+            }
+        }
+
+        function closeImageEditor() {
+            document.getElementById('imageEditorModal').classList.remove('active');
+            const cropperContainer = document.getElementById('cropperContainer');
+            if (cropperContainer) {
+                cropperContainer.classList.remove('partner-logo-cropper');
+            }
+            if (cropper) cropper.destroy();
+        }
+
+        // Check if canvas has transparent pixels
+        function hasTransparency(canvas) {
+            const ctx = canvas.getContext('2d');
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+
+            // Check every 4th pixel (alpha channel) for transparency
+            for (let i = 3; i < data.length; i += 4) {
+                if (data[i] < 255) {
+                    return true; // Found a transparent or semi-transparent pixel
+                }
+            }
+            return false;
+        }
+
+        // Check for transparency and show option panel
+        function checkAndShowTransparencyOption() {
+            if (!cropper || !currentEditorTarget || currentEditorTarget.type !== 'partner_logo') return;
+
+            const transparencyPanel = document.getElementById('transparencyPanel');
+            if (!transparencyPanel) return;
+
+            const widthInput = document.getElementById('cropWidth');
+            const heightInput = document.getElementById('cropHeight');
+            if (!widthInput || !heightInput) return;
+
+            const targetWidth = parseInt(widthInput.value) || 400;
+            const targetHeight = parseInt(heightInput.value) || 400;
+
+            try {
+                const canvas = cropper.getCroppedCanvas({ width: targetWidth, height: targetHeight });
+                if (!canvas) return;
+
+                const isTransparent = hasTransparency(canvas);
+
+                if (isTransparent) {
+                    transparencyPanel.classList.remove('hidden');
+                    // Set default to keep transparency
+                    const keepOption = document.querySelector('input[name="transparencyOption"][value="keep"]');
+                    if (keepOption) keepOption.checked = true;
+                } else {
+                    transparencyPanel.classList.add('hidden');
+                }
+            } catch (error) {
+                console.warn('Error checking transparency:', error);
+                transparencyPanel.classList.add('hidden');
+            }
+        }
+
+        // Update transparency option and refresh preview
+        function updateTransparencyOption() {
+            updateEstimatedSize();
+        }
+
+        // Add white background to canvas
+        function addWhiteBackground(canvas) {
+            // Create a new canvas with white background
+            const newCanvas = document.createElement('canvas');
+            newCanvas.width = canvas.width;
+            newCanvas.height = canvas.height;
+            const newCtx = newCanvas.getContext('2d');
+
+            // Fill with white background first
+            newCtx.fillStyle = '#FFFFFF';
+            newCtx.fillRect(0, 0, newCanvas.width, newCanvas.height);
+
+            // Draw the original image on top (this will composite properly)
+            newCtx.drawImage(canvas, 0, 0);
+
+            return newCanvas;
+        }
+
+        function updateEstimatedSize() {
+            if (!cropper || !currentEditorTarget) return;
+
+            const editorType = currentEditorTarget.type || 'person';
+
+            // For person images (speaker/moderator), always use 400x400
+            // For partner logo, use the input values
+            let targetWidth, targetHeight;
+            if (editorType === 'partner_logo') {
+                const widthInput = document.getElementById('cropWidth');
+                const heightInput = document.getElementById('cropHeight');
+                targetWidth = parseInt(widthInput.value) || 400;
+                targetHeight = parseInt(heightInput.value) || 400;
+            } else {
+                // Person images are always square 400x400
+                targetWidth = 400;
+                targetHeight = 400;
+            }
+
+            let canvas;
+            try {
+                canvas = cropper.getCroppedCanvas({ width: targetWidth, height: targetHeight });
+                if (!canvas) {
+                    console.warn('Could not get cropped canvas');
+                    return;
+                }
+            } catch (error) {
+                console.error('Error getting cropped canvas:', error);
+                return;
+            }
+
+            // Check transparency option for partner logos
+            let finalCanvas = canvas;
+            let usePNG = false;
+            if (editorType === 'partner_logo') {
+                try {
+                    const isTransparent = hasTransparency(canvas);
+                    if (isTransparent) {
+                        const transparencyOption = document.querySelector('input[name="transparencyOption"]:checked');
+                        if (transparencyOption && transparencyOption.value === 'white') {
+                            // Add white background
+                            finalCanvas = addWhiteBackground(canvas);
+                            usePNG = false; // Use JPEG with white background
+                        } else {
+                            // Keep transparency
+                            usePNG = true; // Use PNG
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Error checking transparency:', error);
+                    // Continue with default behavior
+                }
+            }
+
+            // Update preview canvas size and draw
+            const previewCanvas = document.getElementById('cropPreviewCanvas');
+            previewCanvas.width = targetWidth;
+            previewCanvas.height = targetHeight;
+            const pCtx = previewCanvas.getContext('2d');
+            pCtx.clearRect(0, 0, targetWidth, targetHeight);
+            pCtx.drawImage(finalCanvas, 0, 0);
+
+            // Update preview container aspect ratio
+            const previewContainer = previewCanvas.parentElement;
+            if (previewContainer) {
+                previewContainer.style.aspectRatio = `${targetWidth} / ${targetHeight}`;
+            }
+
+            // Update aspect ratio
+            const cropData = cropper.getData();
+            const aspectRatio = (cropData.width / cropData.height).toFixed(2);
+            const aspectRatioDisplay = document.getElementById('aspectRatio');
+            if (aspectRatioDisplay) {
+                aspectRatioDisplay.innerText = `${aspectRatio}:1`;
+            }
+
+            // Update resolution
+            const resolutionDisplay = document.getElementById('cropResolution');
+            if (resolutionDisplay) {
+                resolutionDisplay.innerText = `${Math.round(cropData.width)} × ${Math.round(cropData.height)} pixels`;
+            }
+
+            // Determine mime type and quality
+            const mimeType = usePNG ? 'image/png' : 'image/jpeg';
+            const quality = usePNG ? undefined : 0.8;
+
+            finalCanvas.toBlob((blob) => {
+                const sizeKB = (blob.size / 1024).toFixed(1);
+                const indicator = document.getElementById('estimatedSize');
+                indicator.innerText = `${sizeKB} KB`;
+                if (sizeKB >= 30 && sizeKB <= 60) {
+                    indicator.className = "text-sm font-bold text-green-600";
+                } else {
+                    indicator.className = "text-sm font-bold text-orange-500";
+                }
+            }, mimeType, quality);
+        }
+
+        async function saveCroppedImage() {
+            if (!cropper || !currentEditorTarget) return;
+            console.log("Saving cropped image...");
+
+            try {
+                const editorType = currentEditorTarget.type || 'person';
+
+                // For person images (speaker/moderator), always use 400x400
+                // For partner logo, use the input values
+                let targetWidth, targetHeight;
+                if (editorType === 'partner_logo') {
+                    const widthInput = document.getElementById('cropWidth');
+                    const heightInput = document.getElementById('cropHeight');
+                    targetWidth = parseInt(widthInput.value) || 400;
+                    targetHeight = parseInt(heightInput.value) || 400;
+                } else {
+                    // Person images are always square 400x400
+                    targetWidth = 400;
+                    targetHeight = 400;
+                }
+
+                // Generate canvas with specified dimensions
+                let canvas;
+                try {
+                    canvas = cropper.getCroppedCanvas({ width: targetWidth, height: targetHeight });
+                    if (!canvas) throw new Error("Could not generate canvas.");
+                } catch (error) {
+                    console.error('Error generating canvas:', error);
+                    throw new Error("Could not generate canvas: " + error.message);
+                }
+
+                // Check transparency option for partner logos only
+                let finalCanvas = canvas;
+                let usePNG = false;
+                if (editorType === 'partner_logo') {
+                    try {
+                        const isTransparent = hasTransparency(canvas);
+                        if (isTransparent) {
+                            const transparencyOption = document.querySelector('input[name="transparencyOption"]:checked');
+                            if (transparencyOption && transparencyOption.value === 'white') {
+                                // Add white background
+                                finalCanvas = addWhiteBackground(canvas);
+                                usePNG = false; // Use JPEG with white background
+                            } else {
+                                // Keep transparency
+                                usePNG = true; // Use PNG
+                            }
+                        }
+                    } catch (error) {
+                        console.warn('Error checking transparency, using JPEG:', error);
+                        // Continue with JPEG if transparency check fails
+                        usePNG = false;
+                    }
+                }
+
+                const mimeType = usePNG ? 'image/png' : 'image/jpeg';
+
+                let blob;
+                if (usePNG) {
+                    // PNG preserves transparency, no quality adjustment needed
+                    blob = await new Promise(resolve => finalCanvas.toBlob(resolve, 'image/png'));
+                } else {
+                    // JPEG compression with iterative quality reduction
+                    let quality = 0.9;
+                    blob = await new Promise(resolve => finalCanvas.toBlob(resolve, 'image/jpeg', quality));
+
+                    if (!blob) throw new Error("Could not generate blob from canvas.");
+
+                    while (blob.size > 60000 && quality > 0.1) {
+                        quality -= 0.05;
+                        blob = await new Promise(resolve => finalCanvas.toBlob(resolve, 'image/jpeg', quality));
+                    }
+                }
+
+                if (!blob) throw new Error("Could not generate blob from canvas.");
+
+                console.log(`Final blob size: ${(blob.size / 1024).toFixed(1)} KB (${usePNG ? 'PNG' : 'JPEG'})`);
+
+                if (currentEditorTarget && currentEditorTarget.callback) {
+                    // Preserve original filename or generate appropriate one based on format
+                    let filename = currentEditorTarget.originalFilename;
+                    if (!filename) {
+                        // Generate filename based on editor type and format
+                        const extension = usePNG ? 'png' : 'jpg';
+                        filename = editorType === 'partner_logo' ? `partner_logo.${extension}` : `image.${extension}`;
+                    } else {
+                        // Update extension if format changed
+                        const extension = usePNG ? 'png' : 'jpg';
+                        const nameWithoutExt = filename.replace(/\.[^/.]+$/, '');
+                        filename = `${nameWithoutExt}.${extension}`;
+                    }
+
+                    currentEditorTarget.callback(blob, filename);
+                } else {
+                    console.warn("No callback target set for image editor.");
+                }
+
+                closeImageEditor();
+            } catch (err) {
+                console.error("Save Error:", err);
+                showToast("Error saving image: " + err.message);
+            }
+        }
+
+        function editAgenda(id) {
+            const item = agendas.find(a => a.id === id);
+            if (!item) return;
+            openAgendaModal(true);
+            document.getElementById('agendaId').value = item.id;
+            const f = document.getElementById('agendaForm').elements;
+            f['title'].value = item.title;
+            f['location'].value = item.location || '';
+            f['description'].value = item.description || '';
+            f['information'].value = item.information || '';
+            f['date'].value = item.date;
+            f['track_title'].value = item.track_title || '';
+            f['start'].value = item.start;
+            f['end'].value = item.end;
+            f['enrollable'].checked = item.enrollable;
+            f['admin'].checked = item.admin;
+            f['force_attendance'].checked = item.force_attendance || false;
+
+            if (item.partner_logo) {
+                const lp = document.getElementById('logoPreview');
+                lp.src = item.partner_logo;
+                lp.classList.remove('hidden');
+                document.getElementById('editLogoBtn').classList.remove('hidden');
+            }
+
+            if (item.speaker) {
+                // Sort speakers if alpha sort is true, otherwise respect order or custom logic
+                // For editing, we respect what's coming from backend
+                item.speaker.forEach(s => addPersonField('speaker', s));
+            }
+            if (item.moderator) item.moderator.forEach(m => addPersonField('moderator', m));
+
+            // Set Sorting preference from data or default
+            // Assuming the field name from backend is speaker_default_alpha_sort
+            const isAlpha = item.hasOwnProperty('speaker_default_alpha_sort') ? item.speaker_default_alpha_sort : true;
+            speakerDefaultAlphaSort = isAlpha;
+            document.querySelector(`input[name="speakerSort"][value="${isAlpha ? 'alpha' : 'order'}"]`).checked = true;
+            toggleSpeakerSort(isAlpha); // Initialize state, but allow freedom if manual is selected
+        }
+
+        function toggleSpeakerSort(isAlpha) {
+            speakerDefaultAlphaSort = isAlpha;
+            const list = document.getElementById('speakerList');
+            // We no longer hide/show inputs, they are always visible for preview
+            // const orderInputs = list.querySelectorAll('.order-field-container');
+
+            if (isAlpha) {
+                // If Alpha, disable dragging
+                if (speakerSortable) {
+                    speakerSortable.destroy();
+                    speakerSortable = null;
+                }
+                list.classList.remove('cursor-move');
+                document.querySelectorAll('.drag-handle').forEach(el => el.classList.add('hidden'));
+            } else {
+                // If Order, enable dragging
+                // We do NOT auto-reindex on toggle anymore to preserve values
+                // reindexSpeakers();
+
+                if (!speakerSortable) {
+                    speakerSortable = new Sortable(list, {
+                        animation: 150,
+                        handle: '.person-card',
+                        filter: 'input, textarea, button, label',
+                        preventOnFilter: false,
+                        ghostClass: 'bg-blue-50',
+                        onEnd: function () {
+                            // Order changed via drag, update inputs
+                            reindexSpeakers();
+                        }
+                    });
+                }
+                list.classList.add('cursor-move');
+                document.querySelectorAll('.drag-handle').forEach(el => el.classList.remove('hidden'));
+            }
+        }
+
+        function reindexSpeakers() {
+            const list = document.getElementById('speakerList');
+            const inputs = list.querySelectorAll('.f-speaker_sort_order');
+            inputs.forEach((inp, idx) => {
+                inp.value = idx;
+            });
+        }
+
+        // When user manually edits order, we might want to reorder DOM?
+        // Or just let them set custom numbers. 
+        // Requirement: "allow user to edit". 
+        // Let's assume manual edit shouldn't jump things around immediately, 
+        // but submit should respect it.
+        function updateSpeakerOrderManual(input) {
+            // For now, no immediate re-sort. 
+            // We could implement "sort DOM by input value" if requested.
+        }
+
+
+        async function submitAgenda() {
+            const form = document.getElementById('agendaForm');
+            const agendaId = document.getElementById('agendaId').value;
+            const isEdit = !!agendaId;
+            const btn = document.getElementById('saveBtn');
+
+            btn.disabled = true;
+            btn.innerText = "Saving...";
+
+            const formData = new FormData();
+
+            // Mandatory Field Validation
+            const title = form.elements['title'].value.trim();
+            const date = form.elements['date'].value;
+            const startVal = form.elements['start'].value;
+            const endVal = form.elements['end'].value;
+
+            if (!title || !date || !startVal || !endVal) {
+                btn.disabled = false;
+                btn.innerText = "Save Changes";
+                if (!title) return showToast("Title is required", "error");
+                if (!date) return showToast("Date is required", "error");
+                if (!startVal) return showToast("Start Time is required", "error");
+                if (!endVal) return showToast("End Time is required", "error");
+            }
+
+            // Basic fields
+            formData.append('title', title);
+            formData.append('location', form.elements['location'].value);
+            formData.append('description', form.elements['description'].value);
+            formData.append('information', form.elements['information'].value);
+            formData.append('date', date);
+            formData.append('start', startVal.length === 5 ? startVal + ":00" : startVal);
+            formData.append('end', endVal.length === 5 ? endVal + ":00" : endVal);
+            formData.append('track_title', form.elements['track_title'].value);
+            formData.append('enrollable', form.elements['enrollable'].checked);
+            formData.append('admin', form.elements['admin'].checked);
+            formData.append('force_attendance', form.elements['force_attendance'].checked);
+            formData.append('speaker_default_alpha_sort', speakerDefaultAlphaSort);
+            formData.append('session_id', Date.now() % 10000);
+
+            // Handle partner logo - prefer edited blob over file input
+            const partnerLogoData = imageBlobs.get('partner_logo');
+            if (partnerLogoData && partnerLogoData.blob) {
+                const filename = partnerLogoData.filename || 'partner_logo.jpg';
+                formData.append('partner_logo', partnerLogoData.blob, filename);
+            } else {
+                const logoFile = document.getElementById('partnerLogoFile').files[0];
+                if (logoFile) {
+                    formData.append('partner_logo', logoFile, logoFile.name);
+                }
+            }
+
+            // Collect Speakers & Moderators
+            const collect = (type) => {
+                const results = [];
+                const cards = document.querySelectorAll(`.group-${type}`);
+                cards.forEach((el, index) => {
+                    const obj = {};
+                    // Include the image URL field in the collection to preserve existing images
+                    const fields = type === 'speaker' ?
+                        ['speaker_name', 'speaker_company', 'speaker_designation', 'speaker_email', 'speaker_profile', 'speaker_image'] :
+                        ['moderator_name', 'moderator_company', 'moderator_designation', 'moderator_uuid', 'moderator_profile', 'moderator_image'];
+
+                    fields.forEach(key => {
+                        const input = el.querySelector(`.f-${key}`);
+                        if (input) obj[key] = input.value;
+                    });
+
+                    if (type === 'speaker') {
+                        // If sorting by order, use the input value (which covers both auto-fill and manual edit)
+                        if (!speakerDefaultAlphaSort) {
+                            const orderInput = el.querySelector('.f-speaker_sort_order');
+                            obj['speaker_sort_order'] = orderInput ? parseInt(orderInput.value) : index;
+                        } else {
+                            obj['speaker_sort_order'] = 0;
+                        }
+                    }
+
+                    // Handle File - If a new file is uploaded or edited, it will override the URL
+                    const imgEl = el.querySelector('img[id^="prev_"]');
+                    let storedBlob = null;
+                    let storedFilename = null;
+
+                    if (imgEl && imgEl.id) {
+                        // Try to get blob and filename from imageBlobs map using the image element's ID
+                        const blobData = imageBlobs.get(imgEl.id);
+                        if (blobData) {
+                            storedBlob = blobData.blob;
+                            storedFilename = blobData.filename;
+                        }
+                        console.log(`Checking for blob with key: ${imgEl.id}, found:`, !!storedBlob);
+                    } else {
+                        console.log(`Image element not found in ${type} card ${index}`);
+                    }
+
+                    if (storedBlob) {
+                        // Use the stored blob (from image editor) with original filename
+                        const filename = storedFilename || 'image.jpg';
+                        console.log(`Using stored blob for ${type} ${index} with filename: ${filename}`);
+                        formData.append(`${type}_image_${index}`, storedBlob, filename);
+                        obj[`${type}_image`] = ""; // Clear URL to avoid backend conflict
+                    } else {
+                        // Check if there's a file input with a new file
+                        const fileInput = el.querySelector('.f-file-input');
+                        if (fileInput && fileInput.files[0]) {
+                            const file = fileInput.files[0];
+                            console.log(`Using file input for ${type} ${index} with filename: ${file.name}`);
+                            formData.append(`${type}_image_${index}`, file, file.name);
+                            obj[`${type}_image`] = ""; // Clear URL to avoid backend conflict
+                        } else {
+                            console.log(`No new image for ${type} ${index}, keeping existing URL`);
+                        }
+                        // If no new file and no stored blob, keep the existing image URL from hidden field
+                    }
+
+                    if (obj[`${type}_name`]) results.push(obj);
+                });
+                return results;
+            };
+
+            const speakers = collect('speaker');
+            const moderators = collect('moderator');
+
+            formData.append('speaker', JSON.stringify(speakers));
+            formData.append('moderator', JSON.stringify(moderators));
+
+            try {
+                const url = isEdit
+                    ? `${config.baseUrl}/events/${config.eventId}/agenda/${agendaId}/edit/`
+                    : `${config.baseUrl}/events/${config.eventId}/agenda/create/`;
+
+                const res = await fetch(url, {
+                    method: isEdit ? 'PATCH' : 'POST',
+                    headers: { 'Authorization': `Token ${config.token}` },
+                    body: formData
+                });
+
+                const result = await res.json();
+                if (res.ok && result.success) {
+                    showToast(isEdit ? "Updated Successfully!" : "Created Successfully!");
+                    closeAgendaModal();
+                    fetchAgendas();
+                } else {
+                    throw new Error(result.error || result.message || "API call failed");
+                }
+            } catch (err) {
+                showToast(err.message);
+                console.error("Submission error:", err);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Save Changes";
+            }
+        }
+
+        function handlePartnerLogoUpload(input) {
+            const file = input.files[0];
+            if (file) {
+                openImageEditor(file, (blob, filename) => {
+                    const url = URL.createObjectURL(blob);
+                    const preview = document.getElementById('logoPreview');
+                    preview.src = url;
+                    preview.classList.remove('hidden');
+                    const editBtn = document.getElementById('editLogoBtn');
+                    editBtn.classList.remove('hidden');
+                    imageBlobs.set('partner_logo', { blob, filename: filename || file.name || 'partner_logo.jpg' });
+                }, 'partner_logo', file.name);
+            }
+        }
+
+        function editPartnerLogo() {
+            const preview = document.getElementById('logoPreview');
+            if (preview.src && preview.src !== '') {
+                const existingData = imageBlobs.get('partner_logo');
+                if (existingData && existingData.blob) {
+                    openImageEditor(existingData.blob, (blob, filename) => {
+                        const url = URL.createObjectURL(blob);
+                        preview.src = url;
+                        imageBlobs.set('partner_logo', { blob, filename: filename || existingData.filename || 'partner_logo.jpg' });
+                    }, 'partner_logo', existingData.filename);
+                } else {
+                    // Try to edit from URL - extract filename from URL
+                    let filename = 'partner_logo.jpg';
+                    try {
+                        const urlObj = new URL(preview.src);
+                        const pathParts = urlObj.pathname.split('/');
+                        filename = pathParts[pathParts.length - 1] || filename;
+                    } catch (e) {
+                        const pathParts = preview.src.split('/');
+                        filename = pathParts[pathParts.length - 1].split('?')[0] || filename;
+                    }
+
+                    editExistingImage(preview.src, 'logoPreview', (blob, savedFilename) => {
+                        const url = URL.createObjectURL(blob);
+                        preview.src = url;
+                        imageBlobs.set('partner_logo', { blob, filename: savedFilename || filename });
+                    }, 'partner_logo', filename);
+                }
+            }
+        }
+
+
+        function showToast(m, type = "success") {
+            const t = document.getElementById('toast');
+            const msg = document.getElementById('toastMessage');
+            msg.innerText = m;
+
+            // Adjust colors based on type
+            if (type === "error") {
+                t.classList.replace('bg-slate-900', 'bg-red-600');
+            } else {
+                t.classList.replace('bg-red-600', 'bg-slate-900');
+            }
+
+            t.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 4000);
+        }
+    </script>
+</body>
+
+</html>
