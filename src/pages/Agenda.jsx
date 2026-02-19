@@ -15,7 +15,7 @@ import './Agenda.css';
 
 const Agenda = () => {
     const { id: eventId } = useParams();
-    const { selectedEvent } = useAuth();
+    const { selectedEvent, token } = useAuth();
     const [agendas, setAgendas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [total, setTotal] = useState(0);
@@ -58,8 +58,10 @@ const Agenda = () => {
     const imageRef = useRef(null);
 
     useEffect(() => {
-        fetchAgendas();
-    }, [eventId, page, search]);
+        if (token) {
+            fetchAgendas();
+        }
+    }, [eventId, page, search, token]);
 
     const handleImageClick = (type, index = null) => {
         const input = document.createElement('input');
@@ -124,7 +126,7 @@ const Agenda = () => {
     const fetchAgendas = async () => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('token');
+            // Token from context
             const data = await agendaService.getAgendas(eventId, token, page, pageSize, search);
             setAgendas(data.results || []);
             setTotal(data.count || 0);
@@ -186,7 +188,7 @@ const Agenda = () => {
     const handleSave = async (e) => {
         e.preventDefault();
         try {
-            const token = localStorage.getItem('token');
+            // Token from context
             const data = new FormData();
 
             // Append basic fields
@@ -269,7 +271,7 @@ const Agenda = () => {
     const deleteAgenda = async (agendaId) => {
         if (!window.confirm('Are you sure you want to delete this session?')) return;
         try {
-            const token = localStorage.getItem('token');
+            // Token from context
             await agendaService.deleteAgenda(eventId, agendaId, token);
             fetchAgendas();
         } catch (err) {

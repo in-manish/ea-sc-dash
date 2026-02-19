@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet, NavLink, useParams, useNavigate } from 'react-router-dom';
-import { Menu, X, Users, Calendar, Settings, ChevronLeft, Building2, ArrowLeft, LogOut } from 'lucide-react';
+import { Menu, X, Users, Calendar, Settings, ChevronLeft, Building2, ArrowLeft, LogOut, MessageSquare } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import './EventLayout.css';
 
@@ -80,6 +80,15 @@ const EventLayout = () => {
                     >
                         <Building2 size={20} className="sidebar-item-icon" />
                         <span className="sidebar-label">Companies</span>
+                    </NavLink>
+
+                    <NavLink
+                        to={`/event/${selectedEvent.id}/communication`}
+                        className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
+                        title={isCollapsed ? "Communication" : ""}
+                    >
+                        <MessageSquare size={20} className="sidebar-item-icon" />
+                        <span className="sidebar-label">Communication</span>
                     </NavLink>
                 </nav>
 

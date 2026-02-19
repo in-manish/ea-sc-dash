@@ -6,7 +6,7 @@ import { Loader2, ArrowLeft, Building2, MapPin, Globe, Phone, Ticket, LayoutDash
 import './CompanyDetails.css';
 
 const CompanyDetails = () => {
-    const { selectedEvent } = useAuth();
+    const { selectedEvent, token } = useAuth();
     const { companyId } = useParams();
     const navigate = useNavigate();
 
@@ -22,7 +22,7 @@ const CompanyDetails = () => {
             setError(null);
 
             try {
-                const token = localStorage.getItem('token');
+                // Token from context
                 const data = await eventService.getCompanyDetails(selectedEvent.id, companyId, token);
                 setCompany(data);
             } catch (err) {
@@ -33,8 +33,10 @@ const CompanyDetails = () => {
             }
         };
 
-        fetchDetails();
-    }, [selectedEvent, companyId]);
+        if (selectedEvent && companyId && token) {
+            fetchDetails();
+        }
+    }, [selectedEvent, companyId, token]);
 
     if (loading) {
         return (
@@ -81,6 +83,12 @@ const CompanyDetails = () => {
 
                     <div className="header-actions">
                         {/* Add actions here if needed */}
+                        <button
+                            className="btn btn-secondary"
+                            onClick={() => navigate(`/event/${selectedEvent.id}/companies?tab=additional_requirements&company_ids=${company.id}`)}
+                        >
+                            View Orders
+                        </button>
                     </div>
                 </div>
             </div>

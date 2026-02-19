@@ -6,7 +6,7 @@ import { Loader2, Search, Filter, Phone, Mail, Globe, X } from 'lucide-react';
 import './Attendees.css';
 
 const Attendees = () => {
-    const { selectedEvent } = useAuth();
+    const { selectedEvent, token } = useAuth();
     const navigate = useNavigate();
     const [attendees, setAttendees] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -25,7 +25,6 @@ const Attendees = () => {
             setError(null);
 
             try {
-                const token = localStorage.getItem('token');
                 const data = await eventService.getAttendees(selectedEvent.id, token, page);
                 setAttendees(data.results);
                 setTotal(data.total);
@@ -38,8 +37,10 @@ const Attendees = () => {
             }
         };
 
-        fetchAttendees();
-    }, [selectedEvent, page]);
+        if (selectedEvent && token) {
+            fetchAttendees();
+        }
+    }, [selectedEvent, page, token]);
 
     // Group fields logic - Includes ALL fields
     const getGroupedFields = (attendee) => {

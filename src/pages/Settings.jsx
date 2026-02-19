@@ -7,7 +7,7 @@ import './Settings.css';
 
 const Settings = () => {
     const { id } = useParams();
-    const { selectedEvent } = useAuth();
+    const { selectedEvent, token } = useAuth();
     const [activeTab, setActiveTab] = useState('general');
     const [eventData, setEventData] = useState(null);
     const [originalEventData, setOriginalEventData] = useState(null);
@@ -23,7 +23,7 @@ const Settings = () => {
     const fetchEventDetails = async () => {
         setIsLoading(true);
         try {
-            const token = localStorage.getItem('token');
+            // Token from context
             const data = await eventService.getEventDetails(id, token);
             setEventData(data);
             setOriginalEventData(JSON.parse(JSON.stringify(data))); // Deep copy for comparison
@@ -33,6 +33,12 @@ const Settings = () => {
             setIsLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (id && token) {
+            fetchEventDetails();
+        }
+    }, [id, token]);
 
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -139,7 +145,7 @@ const Settings = () => {
         setMessage({ type: '', text: '' });
 
         try {
-            const token = localStorage.getItem('token');
+            // Token from context
             const formData = new FormData();
 
             // Append simple fields
@@ -530,6 +536,7 @@ const Settings = () => {
                             </div>
                         </div>
                     )}
+
                 </div>
             </div>
         </div>

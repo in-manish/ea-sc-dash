@@ -10,6 +10,7 @@ import Companies from './pages/Companies';
 import CompanyDetails from './pages/CompanyDetails';
 import Agenda from './pages/Agenda';
 import Settings from './pages/Settings';
+import Communication from './pages/Communication';
 import ProtectedRoute from './components/ProtectedRoute';
 
 const App = () => {
@@ -38,6 +39,7 @@ const App = () => {
             <Route path="companies" element={<Companies />} />
             <Route path="companies/:companyId" element={<CompanyDetails />} />
             <Route path="agenda" element={<Agenda />} />
+            <Route path="communication" element={<Communication />} />
             <Route path="settings" element={<Settings />} />
           </Route>
 

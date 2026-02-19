@@ -13,8 +13,13 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const { login } = useAuth();
+    const { login, currentEnv, switchEnvironment } = useAuth();
     const navigate = useNavigate();
+
+    const ENV_OPTIONS = [
+        { value: 'STAGE', label: 'Staging' },
+        { value: 'PROD', label: 'Production' }
+    ];
 
     const handleEmailSubmit = async (e) => {
         e.preventDefault();
@@ -97,6 +102,39 @@ const Login = () => {
                         {error}
                     </div>
                 )}
+
+                <div className="env-switcher" style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    marginBottom: '2rem',
+                    backgroundColor: 'var(--bg-tertiary)',
+                    padding: '0.25rem',
+                    borderRadius: '0.5rem',
+                    width: 'fit-content',
+                    margin: '0 auto 2rem auto'
+                }}>
+                    {ENV_OPTIONS.map((option) => (
+                        <button
+                            key={option.value}
+                            type="button"
+                            onClick={() => switchEnvironment(option.value)}
+                            style={{
+                                padding: '0.5rem 1.5rem',
+                                borderRadius: '0.375rem',
+                                fontSize: '0.875rem',
+                                fontWeight: '500',
+                                border: 'none',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                backgroundColor: currentEnv === option.value ? 'var(--bg-primary)' : 'transparent',
+                                color: currentEnv === option.value ? 'var(--text-primary)' : 'var(--text-secondary)',
+                                boxShadow: currentEnv === option.value ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+                            }}
+                        >
+                            {option.label}
+                        </button>
+                    ))}
+                </div>
 
                 {step === 1 && (
                     <form onSubmit={handleEmailSubmit} className="login-form">
