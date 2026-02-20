@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
 import { Loader2, ArrowLeft, Building2, MapPin, Globe, Phone, Ticket, LayoutDashboard, User } from 'lucide-react';
-import './CompanyDetails.css';
 
 const CompanyDetails = () => {
     const { selectedEvent, token } = useAuth();
@@ -40,8 +39,8 @@ const CompanyDetails = () => {
 
     if (loading) {
         return (
-            <div className="loading-container">
-                <Loader2 className="spinner" size={32} />
+            <div className="flex flex-col items-center justify-center h-[50vh] text-text-tertiary gap-4">
+                <Loader2 className="animate-spin text-accent" size={32} />
                 <p>Loading Company Details...</p>
             </div>
         );
@@ -49,39 +48,42 @@ const CompanyDetails = () => {
 
     if (error || !company) {
         return (
-            <div className="error-container">
-                <p>{error || 'Company not found.'}</p>
+            <div className="text-center p-12 text-text-secondary">
+                <p className="mb-4">{error || 'Company not found.'}</p>
                 <button className="btn btn-secondary" onClick={() => navigate(-1)}>Go Back</button>
             </div>
         );
     }
 
     return (
-        <div className="company-details-page animate-fade-in">
-            <div className="details-header">
-                <button className="back-link" onClick={() => navigate(-1)}>
+        <div className="max-w-[1000px] mx-auto animate-fade-in">
+            <div className="mb-8">
+                <button
+                    className="flex items-center gap-2 text-sm text-text-tertiary hover:text-text-primary transition-colors bg-transparent border-none cursor-pointer p-0 mb-4"
+                    onClick={() => navigate(-1)}
+                >
                     <ArrowLeft size={16} /> Back to List
                 </button>
 
-                <div className="header-content">
-                    <div className="company-branding">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end border-b border-border pb-6 gap-4">
+                    <div className="flex items-center gap-6">
                         {company.company_logo ? (
-                            <img src={company.company_logo} alt={company.company_name} className="company-logo-lg" />
+                            <img src={company.company_logo} alt={company.company_name} className="w-20 h-20 object-contain bg-white rounded-md shadow-sm border border-border shrink-0" />
                         ) : (
-                            <div className="company-icon-placeholder-lg">
+                            <div className="w-20 h-20 bg-bg-tertiary rounded-md flex items-center justify-center text-text-secondary shrink-0">
                                 <Building2 size={32} />
                             </div>
                         )}
                         <div>
-                            <h1 className="company-title">{company.company_name}</h1>
-                            <div className="company-meta">
-                                <span className="badge badge-category">{company.category}</span>
-                                {company.stall_number && <span className="badge badge-stall">Stall: {company.stall_number}</span>}
+                            <h1 className="text-3xl font-bold mb-2 text-text-primary">{company.company_name}</h1>
+                            <div className="flex flex-wrap gap-3">
+                                <span className="inline-flex py-1 px-2.5 rounded-full text-xs font-medium tracking-wide bg-purple-100 text-purple-800">{company.category}</span>
+                                {company.stall_number && <span className="inline-flex py-1 px-2.5 rounded-full text-xs font-semibold tracking-wide bg-bg-tertiary text-text-primary font-mono border border-border">Stall: {company.stall_number}</span>}
                             </div>
                         </div>
                     </div>
 
-                    <div className="header-actions">
+                    <div className="flex items-center shrink-0">
                         {/* Add actions here if needed */}
                         <button
                             className="btn btn-secondary"
@@ -93,27 +95,27 @@ const CompanyDetails = () => {
                 </div>
             </div>
 
-            <div className="details-grid">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Main Info */}
-                <div className="details-card">
-                    <h3 className="card-title"><Building2 size={18} /> Overview</h3>
-                    <div className="info-list">
-                        <div className="info-item">
-                            <label>OBF Number</label>
-                            <span>{company.obf_number}</span>
+                <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
+                    <h3 className="text-sm font-semibold uppercase text-text-tertiary mb-5 flex items-center gap-2 border-b border-border pb-3"><Building2 size={18} /> Overview</h3>
+                    <div className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs text-text-secondary font-medium">OBF Number</label>
+                            <span className="text-[0.9375rem] text-text-primary break-words">{company.obf_number}</span>
                         </div>
-                        <div className="info-item">
-                            <label>Space Details</label>
-                            <span>{company.space} sq.m ({company.stall_detail?.space_type})</span>
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs text-text-secondary font-medium">Space Details</label>
+                            <span className="text-[0.9375rem] text-text-primary break-words">{company.space} sq.m ({company.stall_detail?.space_type})</span>
                         </div>
-                        <div className="info-item">
-                            <label>Location</label>
-                            <span>{company.location || '-'}</span>
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs text-text-secondary font-medium">Location</label>
+                            <span className="text-[0.9375rem] text-text-primary break-words">{company.location || '-'}</span>
                         </div>
-                        <div className="info-item">
-                            <label>Website</label>
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs text-text-secondary font-medium">Website</label>
                             {company.website ? (
-                                <a href={company.website} target="_blank" rel="noopener noreferrer" className="link-flex">
+                                <a href={company.website} target="_blank" rel="noopener noreferrer" className="flex w-fit items-center gap-2 text-[0.9375rem] text-text-primary break-words underline decoration-border underline-offset-[3px] hover:text-text-link hover:decoration-current transition-colors">
                                     {company.website} <Globe size={12} />
                                 </a>
                             ) : '-'}
@@ -122,24 +124,24 @@ const CompanyDetails = () => {
                 </div>
 
                 {/* Badge Stats */}
-                <div className="details-card">
-                    <h3 className="card-title"><Ticket size={18} /> Badge Statistics</h3>
-                    <div className="stats-grid">
-                        <div className="stat-box">
-                            <span className="stat-label">Total Limit</span>
-                            <span className="stat-value">{company.badge_limit}</span>
+                <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
+                    <h3 className="text-sm font-semibold uppercase text-text-tertiary mb-5 flex items-center gap-2 border-b border-border pb-3"><Ticket size={18} /> Badge Statistics</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-bg-secondary p-4 rounded-md flex flex-col items-center justify-center text-center">
+                            <span className="text-xs text-text-secondary mb-1">Total Limit</span>
+                            <span className="text-xl font-bold text-text-primary">{company.badge_limit}</span>
                         </div>
-                        <div className="stat-box">
-                            <span className="stat-label">Issued</span>
-                            <span className="stat-value">{company.badge_issued}</span>
+                        <div className="bg-bg-secondary p-4 rounded-md flex flex-col items-center justify-center text-center">
+                            <span className="text-xs text-text-secondary mb-1">Issued</span>
+                            <span className="text-xl font-bold text-text-primary">{company.badge_issued}</span>
                         </div>
-                        <div className="stat-box">
-                            <span className="stat-label">Remaining</span>
-                            <span className="stat-value">{company.remain_badge_limit_count}</span>
+                        <div className="bg-bg-secondary p-4 rounded-md flex flex-col items-center justify-center text-center">
+                            <span className="text-xs text-text-secondary mb-1">Remaining</span>
+                            <span className="text-xl font-bold text-text-primary">{company.remain_badge_limit_count}</span>
                         </div>
-                        <div className="stat-box">
-                            <span className="stat-label">Handed Over?</span>
-                            <span className={`stat-value ${company.all_badges_handed_over ? 'text-success' : 'text-warning'}`}>
+                        <div className="bg-bg-secondary p-4 rounded-md flex flex-col items-center justify-center text-center">
+                            <span className="text-xs text-text-secondary mb-1">Handed Over?</span>
+                            <span className={`text-xl font-bold ${company.all_badges_handed_over ? 'text-green-600' : 'text-yellow-600'}`}>
                                 {company.all_badges_handed_over ? 'Yes' : 'No'}
                             </span>
                         </div>
@@ -147,24 +149,24 @@ const CompanyDetails = () => {
                 </div>
 
                 {/* Contact / Handover */}
-                <div className="details-card">
-                    <h3 className="card-title"><Phone size={18} /> Contact & Handover</h3>
-                    <div className="info-list">
-                        <div className="info-item">
-                            <label>Sales Person</label>
-                            <span>{company.sales_person || '-'}</span>
+                <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
+                    <h3 className="text-sm font-semibold uppercase text-text-tertiary mb-5 flex items-center gap-2 border-b border-border pb-3"><Phone size={18} /> Contact & Handover</h3>
+                    <div className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs text-text-secondary font-medium">Sales Person</label>
+                            <span className="text-[0.9375rem] text-text-primary break-words">{company.sales_person || '-'}</span>
                         </div>
                         {company.handover_details && (
                             <>
-                                <div className="info-item">
-                                    <label>Handover Phone</label>
-                                    <span>{company.handover_details.phone_number || '-'}</span>
+                                <div className="flex flex-col gap-1">
+                                    <label className="text-xs text-text-secondary font-medium">Handover Phone</label>
+                                    <span className="text-[0.9375rem] text-text-primary break-words">{company.handover_details.phone_number || '-'}</span>
                                 </div>
                                 {company.handover_details.remarks && company.handover_details.remarks.length > 0 && (
-                                    <div className="info-item">
-                                        <label>Latest Remark</label>
-                                        <span>{company.handover_details.remarks[0].remarks}</span>
-                                        <small className="text-muted">{company.handover_details.remarks[0].date}</small>
+                                    <div className="flex flex-col gap-1">
+                                        <label className="text-xs text-text-secondary font-medium">Latest Remark</label>
+                                        <span className="text-[0.9375rem] text-text-primary break-words">{company.handover_details.remarks[0].remarks}</span>
+                                        <small className="text-xs text-text-tertiary mt-1">{company.handover_details.remarks[0].date}</small>
                                     </div>
                                 )}
                             </>
@@ -173,20 +175,20 @@ const CompanyDetails = () => {
                 </div>
 
                 {/* System / Metadata */}
-                <div className="details-card">
-                    <h3 className="card-title"><LayoutDashboard size={18} /> System Info</h3>
-                    <div className="info-list">
-                        <div className="info-item">
-                            <label>Exhibitor UID</label>
-                            <span className="text-mono">{company.uid}</span>
+                <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
+                    <h3 className="text-sm font-semibold uppercase text-text-tertiary mb-5 flex items-center gap-2 border-b border-border pb-3"><LayoutDashboard size={18} /> System Info</h3>
+                    <div className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs text-text-secondary font-medium">Exhibitor UID</label>
+                            <span className="text-[0.9375rem] text-text-primary break-words font-mono text-sm">{company.uid}</span>
                         </div>
-                        <div className="info-item">
-                            <label>Payment Made</label>
-                            <span>{company.is_payment_made ? 'Yes' : 'No'}</span>
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs text-text-secondary font-medium">Payment Made</label>
+                            <span className="text-[0.9375rem] text-text-primary break-words">{company.is_payment_made ? 'Yes' : 'No'}</span>
                         </div>
-                        <div className="info-item">
-                            <label>Locked</label>
-                            <span>{company.is_company_submit_locked ? 'Yes' : 'No'}</span>
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs text-text-secondary font-medium">Locked</label>
+                            <span className="text-[0.9375rem] text-text-primary break-words">{company.is_company_submit_locked ? 'Yes' : 'No'}</span>
                         </div>
                     </div>
                 </div>

@@ -11,11 +11,10 @@ import {
 import Sortable from 'sortablejs';
 import Cropper from 'cropperjs';
 import 'cropperjs/dist/cropper.css';
-import './Agenda.css';
 
 const Agenda = () => {
     const { id: eventId } = useParams();
-    const { selectedEvent, token } = useAuth();
+    const { token } = useAuth();
     const [agendas, setAgendas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [total, setTotal] = useState(0);
@@ -45,7 +44,7 @@ const Agenda = () => {
     });
     const [speakers, setSpeakers] = useState([]);
     const [moderators, setModerators] = useState([]);
-    const [partnerLogo, setPartnerLogo] = useState(null); // File or URL
+    const [, setPartnerLogo] = useState(null); // File or URL
     const [imageBlobs, setImageBlobs] = useState(new Map());
 
     const [isCropping, setIsCropping] = useState(false);
@@ -286,7 +285,7 @@ const Agenda = () => {
     }, [isCropping]);
 
     return (
-        <div className="agenda-page animate-fade-in">
+        <div className="p-6 md:p-8 max-w-[1400px] mx-auto bg-slate-50 min-h-[calc(100vh-64px)] animate-fade-in">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 pb-6 border-b-2 border-slate-100">
                 <div className="flex-1">
                     <h1 className="text-3xl font-black text-slate-900 tracking-tight">Event Agenda</h1>
@@ -322,7 +321,7 @@ const Agenda = () => {
                         />
                     </div>
 
-                    <button className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-700 hover:translate-y-[-2px] active:translate-y-0 transition-all shadow-lg shadow-blue-500/30" onClick={() => handleOpenForm()}>
+                    <button className="flex items-center gap-2 px-6 py-3 rounded-xl font-extrabold bg-blue-600 text-white shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] hover:-translate-y-0.5 hover:shadow-[0_10px_15px_-3px_rgba(37,99,235,0.25)] active:scale-95 transition-all" onClick={() => handleOpenForm()}>
                         <Plus size={18} />
                         <span>Add Session</span>
                     </button>
@@ -330,65 +329,65 @@ const Agenda = () => {
             </div>
 
             {loading && agendas.length === 0 ? (
-                <div className="loading-container">
-                    <Loader2 className="spinner" size={40} />
+                <div className="flex flex-col items-center justify-center h-[50vh] text-slate-400 gap-4">
+                    <Loader2 className="animate-spin text-blue-600" size={40} />
                     <p>Loading agenda sessions...</p>
                 </div>
             ) : (
                 <>
-                    <div className={viewMode === 'card' ? 'agenda-grid' : 'agenda-list-rows'}>
+                    <div className={viewMode === 'card' ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 mb-12 animate-fade-in' : 'flex flex-col gap-4 mb-12 animate-fade-in'}>
                         {agendas.map((item) => (
-                            <div key={item.id} className={viewMode === 'card' ? 'agenda-card' : 'agenda-row'}>
+                            <div key={item.id} className={viewMode === 'card' ? 'bg-white p-6 rounded-[1.25rem] border border-slate-100 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_10px_20px_-5px_rgba(0,0,0,0.03)] transition-all duration-400 ease-[cubic-bezier(0.175,0.885,0.32,1.275)] relative overflow-hidden flex flex-col group hover:shadow-[0_20px_25px_-5px_rgba(0,0,0,0.05),0_10px_10px_-5px_rgba(0,0,0,0.02)] hover:-translate-y-1.5 hover:border-blue-600/10' : 'bg-white py-5 px-8 rounded-2xl border border-slate-100 shadow-[0_1px_3px_rgba(0,0,0,0.02)] transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] flex items-center relative cursor-pointer group hover:shadow-[0_20px_25px_-5px_rgba(0,0,0,0.05),0_10px_10px_-5px_rgba(0,0,0,0.02)] hover:-translate-y-0.5 hover:border-blue-600/40 hover:z-10'}>
                                 {viewMode === 'card' ? (
                                     <>
-                                        <div className="card-header">
-                                            <span className="track-badge">{item.track_title || 'General'}</span>
-                                            <button className="icon-btn-small" onClick={() => handleOpenForm(item)}>
+                                        <div className="flex justify-between items-center mb-6">
+                                            <span className="text-[0.625rem] font-extrabold uppercase tracking-[0.1em] py-2 px-4 bg-blue-50 text-blue-600 rounded-full border border-blue-600/10 transition-all duration-300">{item.track_title || 'General'}</span>
+                                            <button className="p-2 rounded-xl bg-slate-50 text-slate-400 border border-slate-200 transition-all duration-200 hover:text-blue-600 hover:bg-white hover:border-blue-600 hover:scale-110" onClick={() => handleOpenForm(item)}>
                                                 <Edit2 size={14} />
                                             </button>
                                         </div>
 
-                                        <h3 className="card-title">{item.title}</h3>
+                                        <h3 className="text-lg font-extrabold text-slate-900 mb-4 leading-relaxed line-clamp-2 h-[3.1rem]">{item.title}</h3>
 
-                                        <div className="card-details">
-                                            <div className="detail-item">
+                                        <div className="flex flex-col gap-2.5 mb-6">
+                                            <div className="flex items-center gap-3.5 text-sm text-slate-500 font-medium [&>svg]:text-slate-400">
                                                 <MapPin size={16} />
                                                 <span>{item.location || 'Waitlist'}</span>
                                             </div>
-                                            <div className="detail-item">
+                                            <div className="flex items-center gap-3.5 text-sm text-slate-500 font-medium [&>svg]:text-slate-400">
                                                 <Clock size={16} />
                                                 <span>{item.date} • {item.start} - {item.end}</span>
                                             </div>
                                         </div>
 
-                                        <div className="card-actions-row flex gap-2 mb-4">
-                                            <button className="icon-btn-small" onClick={() => handleOpenView(item)}>
+                                        <div className="flex gap-2 mb-4 opacity-0 -translate-x-2.5 transition-all duration-300 ease-[cubic-bezier(0.175,0.885,0.32,1.275)] group-hover:opacity-100 group-hover:translate-x-0">
+                                            <button className="p-2 rounded-xl bg-slate-50 text-slate-400 border border-slate-200 transition-all duration-200 hover:text-blue-600 hover:bg-white hover:border-blue-600 hover:scale-110" onClick={() => handleOpenView(item)}>
                                                 <Eye size={14} />
                                             </button>
-                                            <button className="icon-btn-small text-red-500" onClick={() => deleteAgenda(item.id)}>
+                                            <button className="p-2 rounded-xl bg-slate-50 text-slate-400 border border-slate-200 transition-all duration-200 hover:!text-red-500 hover:bg-white hover:!border-red-500 hover:scale-110" onClick={() => deleteAgenda(item.id)}>
                                                 <Trash2 size={14} />
                                             </button>
                                         </div>
 
-                                        <div className="card-footer">
-                                            <div className="speaker-avatars">
+                                        <div className="pt-5 border-t border-slate-100 mt-auto flex justify-between items-center">
+                                            <div className="flex items-center">
                                                 {item.speaker && item.speaker.slice(0, 3).map((s, i) => (
                                                     <img
                                                         key={i}
                                                         src={s.speaker_image || 'https://via.placeholder.com/40'}
-                                                        className="speaker-avatar-mini"
+                                                        className="w-7 h-7 rounded-full border-2 border-white bg-slate-100 object-cover"
                                                         style={{ marginLeft: i > 0 ? '-8px' : '0' }}
                                                         alt="Speaker"
                                                     />
                                                 ))}
                                             </div>
-                                            {item.enrollable && <span className="joinable-badge">Joinable</span>}
+                                            {item.enrollable && <span className="bg-green-50 text-green-800 text-[0.625rem] font-extrabold py-1.5 px-3.5 rounded-xl uppercase tracking-wider">Joinable</span>}
                                         </div>
                                     </>
                                 ) : (
                                     <div className="flex items-center w-full gap-8">
                                         <div className="w-24 flex-shrink-0">
-                                            <span className="track-badge !text-[10px] !px-2 !py-1 text-center block truncate border-blue-100/50">{item.track_title || 'General'}</span>
+                                            <span className="text-[0.625rem] font-extrabold uppercase tracking-[0.1em] py-2 px-4 bg-blue-50 text-blue-600 rounded-full border border-blue-600/10 transition-all duration-300 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 !text-[10px] !px-2 !py-1 text-center block truncate border-blue-100/50">{item.track_title || 'General'}</span>
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <h3 className="font-extrabold text-slate-900 text-base truncate group-hover:text-blue-600 transition-colors uppercase tracking-tight">{item.title}</h3>
@@ -408,7 +407,7 @@ const Agenda = () => {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-8">
-                                            <div className="speaker-avatars">
+                                            <div className="flex items-center">
                                                 {item.speaker && item.speaker.slice(0, 4).map((s, i) => (
                                                     <div
                                                         key={i}
@@ -453,20 +452,20 @@ const Agenda = () => {
                         ))}
                     </div>
 
-                    <div className="pagination">
+                    <div className="flex items-center justify-center gap-4 mt-8">
                         <button
-                            className="btn btn-secondary btn-sm"
+                            className="inline-flex items-center justify-center gap-2 cursor-pointer transition-all duration-200 whitespace-nowrap bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.05)] hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed !py-1.5 !px-3.5 !text-xs !rounded-lg font-extrabold"
                             disabled={page === 1}
                             onClick={() => setPage(page - 1)}
                         >
                             <ChevronLeft size={16} />
                             Previous
                         </button>
-                        <span className="page-info">
+                        <span className="text-sm font-semibold text-slate-600">
                             Page {page} of {Math.ceil(total / pageSize) || 1}
                         </span>
                         <button
-                            className="btn btn-secondary btn-sm"
+                            className="inline-flex items-center justify-center gap-2 cursor-pointer transition-all duration-200 whitespace-nowrap bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.05)] hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed !py-1.5 !px-3.5 !text-xs !rounded-lg font-extrabold"
                             disabled={page >= Math.ceil(total / pageSize)}
                             onClick={() => setPage(page + 1)}
                         >
@@ -479,75 +478,75 @@ const Agenda = () => {
 
             {/* Form Modal (Create/Edit) */}
             {isFormModalOpen && (
-                <div className="modal-overlay" onClick={() => setIsFormModalOpen(false)}>
-                    <div className="modal-content form-modal-container" onClick={(e) => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h2 className="modal-title">{isEditing ? 'Edit Agenda Session' : 'Create Agenda Session'}</h2>
-                            <button className="icon-btn" onClick={() => setIsFormModalOpen(false)}>
+                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[1000] flex items-center justify-center p-6 animate-fade-in" onClick={() => setIsFormModalOpen(false)}>
+                    <div className="bg-white rounded-3xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] overflow-hidden animate-[modalPop_0.4s_cubic-bezier(0.175,0.885,0.32,1.275)] max-w-[1100px] w-[95vw]" onClick={(e) => e.stopPropagation()}>
+                        <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+                            <h2 className="text-[1.375rem] font-black text-slate-900 tracking-[-0.02em]">{isEditing ? 'Edit Agenda Session' : 'Create Agenda Session'}</h2>
+                            <button className="p-1 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors bg-transparent border-none cursor-pointer flex items-center justify-center" onClick={() => setIsFormModalOpen(false)}>
                                 <X size={20} />
                             </button>
                         </div>
-                        <div className="modal-body">
-                            <form id="agendaForm" onSubmit={handleSave} className="agenda-form-split">
-                                <div className="form-left">
-                                    <div className="form-section-header blue">
+                        <div className="p-8 max-h-[calc(90vh-160px)] overflow-y-auto">
+                            <form id="agendaForm" onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-8 lg:gap-10">
+                                <div className="lg:pr-6 lg:border-r-0 lg:border-b-0 border-b-2 border-slate-100 pb-8 lg:pb-0">
+                                    <div className="flex items-center gap-3.5 mb-8 text-blue-600">
                                         <Plus size={20} />
-                                        <h3>Basic Information</h3>
+                                        <h3 className="text-lg font-extrabold text-slate-900">Basic Information</h3>
                                     </div>
 
-                                    <div className="form-group">
-                                        <label className="form-label">Title</label>
+                                    <div className="mb-5">
+                                        <label className="block text-[0.6875rem] font-extrabold uppercase text-slate-400 tracking-[0.08em] mb-1.5">Title</label>
                                         <input
-                                            type="text" className="form-input" required
+                                            type="text" className="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 transition-all duration-200 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10" required
                                             value={formData.title}
                                             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                                             placeholder="Enter session title..."
                                         />
                                     </div>
 
-                                    <div className="form-group">
-                                        <label className="form-label">Location</label>
+                                    <div className="mb-5">
+                                        <label className="block text-[0.6875rem] font-extrabold uppercase text-slate-400 tracking-[0.08em] mb-1.5">Location</label>
                                         <input
-                                            type="text" className="form-input"
+                                            type="text" className="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 transition-all duration-200 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10"
                                             value={formData.location}
                                             onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                                             placeholder="e.g. Lotus Ballroom, 3rd floor"
                                         />
                                     </div>
 
-                                    <div className="form-group">
-                                        <label className="form-label">Description</label>
+                                    <div className="mb-5">
+                                        <label className="block text-[0.6875rem] font-extrabold uppercase text-slate-400 tracking-[0.08em] mb-1.5">Description</label>
                                         <textarea
-                                            className="form-textarea" rows="4"
+                                            className="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 transition-all duration-200 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10" rows="4"
                                             value={formData.description}
                                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                             placeholder="Description of the session..."
                                         ></textarea>
                                     </div>
 
-                                    <div className="form-group">
-                                        <label className="form-label">Information</label>
+                                    <div className="mb-5">
+                                        <label className="block text-[0.6875rem] font-extrabold uppercase text-slate-400 tracking-[0.08em] mb-1.5">Information</label>
                                         <textarea
-                                            className="form-textarea" rows="3"
+                                            className="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 transition-all duration-200 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10" rows="3"
                                             value={formData.information}
                                             onChange={(e) => setFormData({ ...formData, information: e.target.value })}
                                             placeholder="Additional information..."
                                         ></textarea>
                                     </div>
 
-                                    <div className="form-grid-2">
-                                        <div className="form-group">
-                                            <label className="form-label">Date</label>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="mb-5">
+                                            <label className="block text-[0.6875rem] font-extrabold uppercase text-slate-400 tracking-[0.08em] mb-1.5">Date</label>
                                             <input
-                                                type="date" className="form-input" required
+                                                type="date" className="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 transition-all duration-200 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10" required
                                                 value={formData.date}
                                                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                                             />
                                         </div>
-                                        <div className="form-group">
-                                            <label className="form-label">Track Title</label>
+                                        <div className="mb-5">
+                                            <label className="block text-[0.6875rem] font-extrabold uppercase text-slate-400 tracking-[0.08em] mb-1.5">Track Title</label>
                                             <input
-                                                type="text" className="form-input"
+                                                type="text" className="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 transition-all duration-200 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10"
                                                 placeholder="e.g. Panel, Workshop"
                                                 value={formData.track_title}
                                                 onChange={(e) => setFormData({ ...formData, track_title: e.target.value })}
@@ -555,33 +554,33 @@ const Agenda = () => {
                                         </div>
                                     </div>
 
-                                    <div className="form-grid-2">
-                                        <div className="form-group">
-                                            <label className="form-label">Start Time</label>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="mb-5">
+                                            <label className="block text-[0.6875rem] font-extrabold uppercase text-slate-400 tracking-[0.08em] mb-1.5">Start Time</label>
                                             <input
-                                                type="time" className="form-input" required
+                                                type="time" className="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 transition-all duration-200 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10" required
                                                 value={formData.start}
                                                 onChange={(e) => setFormData({ ...formData, start: e.target.value })}
                                             />
                                         </div>
-                                        <div className="form-group">
-                                            <label className="form-label">End Time</label>
+                                        <div className="mb-5">
+                                            <label className="block text-[0.6875rem] font-extrabold uppercase text-slate-400 tracking-[0.08em] mb-1.5">End Time</label>
                                             <input
-                                                type="time" className="form-input" required
+                                                type="time" className="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 transition-all duration-200 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10" required
                                                 value={formData.end}
                                                 onChange={(e) => setFormData({ ...formData, end: e.target.value })}
                                             />
                                         </div>
                                     </div>
 
-                                    <div className="form-group">
-                                        <label className="form-label">Options</label>
+                                    <div className="mb-5">
+                                        <label className="block text-[0.6875rem] font-extrabold uppercase text-slate-400 tracking-[0.08em] mb-1.5">Options</label>
                                         <div className="grid grid-cols-2 gap-3 mt-1">
-                                            <label className="form-checkbox-group">
+                                            <label className="flex items-center gap-2 cursor-pointer">
                                                 <input type="checkbox" checked={formData.enrollable} onChange={(e) => setFormData({ ...formData, enrollable: e.target.checked })} />
                                                 <span className="text-xs font-bold uppercase">Joinable</span>
                                             </label>
-                                            <label className="form-checkbox-group">
+                                            <label className="flex items-center gap-2 cursor-pointer">
                                                 <input type="checkbox" checked={formData.admin} onChange={(e) => setFormData({ ...formData, admin: e.target.checked })} />
                                                 <span className="text-xs font-bold uppercase">Admin Only</span>
                                             </label>
@@ -589,26 +588,26 @@ const Agenda = () => {
                                     </div>
                                 </div>
 
-                                <div className="form-right">
-                                    <div className="speakers-list-header">
-                                        <h3>Speakers List</h3>
-                                        <button type="button" className="btn btn-primary btn-sm" onClick={() => handleAddPerson('speaker')}>
+                                <div>
+                                    <div className="bg-slate-800 py-4 px-6 rounded-t-2xl flex justify-between items-center text-white">
+                                        <h3 className="text-[0.8125rem] font-extrabold uppercase tracking-[0.1em]">Speakers List</h3>
+                                        <button type="button" className="inline-flex items-center justify-center gap-2 border-none cursor-pointer transition-all duration-200 whitespace-nowrap bg-blue-600 text-white shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] hover:-translate-y-0.5 hover:shadow-[0_10px_15px_-3px_rgba(37,99,235,0.25)] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed !py-1.5 !px-3.5 !text-xs !rounded-lg font-extrabold" onClick={() => handleAddPerson('speaker')}>
                                             <Plus size={14} /> Add Speaker
                                         </button>
                                     </div>
-                                    <div className="speakers-list-container">
-                                        <div className="sorting-options">
-                                            <label className="sorting-option">
+                                    <div className="bg-slate-50 border border-slate-200 border-t-0 rounded-b-2xl p-6">
+                                        <div className="flex gap-6 mb-6 pb-4 border-b border-slate-200">
+                                            <label className="flex items-center gap-2 text-xs font-semibold text-slate-600 cursor-pointer">
                                                 <input
-                                                    type="radio" name="speakerSort"
+                                                    type="radio" name="speakerSort" className="w-3.5 h-3.5 m-0"
                                                     checked={formData.speaker_default_alpha_sort}
                                                     onChange={() => setFormData({ ...formData, speaker_default_alpha_sort: true })}
                                                 />
                                                 Sort By Alpha (Default)
                                             </label>
-                                            <label className="sorting-option">
+                                            <label className="flex items-center gap-2 text-xs font-semibold text-slate-600 cursor-pointer">
                                                 <input
-                                                    type="radio" name="speakerSort"
+                                                    type="radio" name="speakerSort" className="w-3.5 h-3.5 m-0"
                                                     checked={!formData.speaker_default_alpha_sort}
                                                     onChange={() => setFormData({ ...formData, speaker_default_alpha_sort: false })}
                                                 />
@@ -616,58 +615,58 @@ const Agenda = () => {
                                             </label>
                                         </div>
 
-                                        <div className="speakers-grid" ref={speakerListRef}>
+                                        <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4" ref={speakerListRef}>
                                             {speakers.map((s, idx) => (
-                                                <div key={idx} className="speaker-card-compact">
+                                                <div key={idx} className="bg-white border border-slate-200 rounded-2xl p-5 flex gap-4 relative transition-all duration-300 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.05)]">
                                                     {!formData.speaker_default_alpha_sort && (
-                                                        <div className="drag-handle absolute left-1 top-1/2 -translate-y-1/2 text-slate-300">
+                                                        <div className="absolute left-1 top-1/2 -translate-y-1/2 text-slate-300 cursor-move">
                                                             <GripVertical size={16} />
                                                         </div>
                                                     )}
-                                                    <div className="remove-speaker-x" onClick={() => handleRemovePerson('speaker', idx)}>
+                                                    <div className="absolute top-2.5 right-2.5 text-red-500 cursor-pointer opacity-50 transition-opacity duration-200 hover:opacity-100" onClick={() => handleRemovePerson('speaker', idx)}>
                                                         <X size={16} />
                                                     </div>
 
-                                                    <div className="speaker-img-upload-group">
-                                                        <div className="speaker-avatar-circle" onClick={() => handleImageClick('speaker', idx)}>
+                                                    <div className="w-16 flex flex-col items-center gap-2">
+                                                        <div className="w-16 h-16 rounded-full bg-slate-100 overflow-hidden border-4 border-white shadow-[0_0_0_1px_#e2e8f0] cursor-pointer" onClick={() => handleImageClick('speaker', idx)}>
                                                             {s.speaker_image_preview || s.speaker_image ? (
-                                                                <img src={s.speaker_image_preview || s.speaker_image} alt="Speaker" />
+                                                                <img src={s.speaker_image_preview || s.speaker_image} alt="Speaker" className="w-full h-full object-cover" />
                                                             ) : (
                                                                 <div className="w-full h-full flex items-center justify-center text-slate-300">
                                                                     <ImageIcon size={32} />
                                                                 </div>
                                                             )}
                                                         </div>
-                                                        <div className="upload-pill" onClick={() => handleImageClick('speaker', idx)}>Upload</div>
+                                                        <div className="bg-slate-800 text-white text-[0.625rem] font-extrabold uppercase py-0.5 px-2.5 rounded-full cursor-pointer hover:bg-slate-700 transition-colors" onClick={() => handleImageClick('speaker', idx)}>Upload</div>
                                                     </div>
 
-                                                    <div className="speaker-form-fields">
-                                                        <div className="speaker-field-grid">
+                                                    <div className="flex-1">
+                                                        <div className="grid grid-cols-2 gap-2.5">
                                                             <input
-                                                                type="text" className="form-input" placeholder="Name"
+                                                                type="text" className="w-full py-2 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 transition-all duration-200 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10" placeholder="Name"
                                                                 value={s.speaker_name} onChange={(e) => handlePersonChange('speaker', idx, 'speaker_name', e.target.value)}
                                                             />
                                                             <input
-                                                                type="text" className="form-input" placeholder="Company"
+                                                                type="text" className="w-full py-2 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 transition-all duration-200 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10" placeholder="Company"
                                                                 value={s.speaker_company} onChange={(e) => handlePersonChange('speaker', idx, 'speaker_company', e.target.value)}
                                                             />
                                                             <input
-                                                                type="text" className="form-input full" placeholder="Designation"
+                                                                type="text" className="col-span-2 w-full py-2 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 transition-all duration-200 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10" placeholder="Designation"
                                                                 value={s.speaker_designation} onChange={(e) => handlePersonChange('speaker', idx, 'speaker_designation', e.target.value)}
                                                             />
                                                             <input
-                                                                type="email" className="form-input full" placeholder="Email"
+                                                                type="email" className="col-span-2 w-full py-2 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 transition-all duration-200 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10" placeholder="Email"
                                                                 value={s.speaker_email} onChange={(e) => handlePersonChange('speaker', idx, 'speaker_email', e.target.value)}
                                                             />
                                                             <textarea
-                                                                className="form-textarea full" rows="1" placeholder="Bio"
+                                                                className="col-span-2 w-full py-2 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 transition-all duration-200 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10" rows="1" placeholder="Bio"
                                                                 value={s.speaker_bio || ''} onChange={(e) => handlePersonChange('speaker', idx, 'speaker_bio', e.target.value)}
                                                             ></textarea>
                                                         </div>
-                                                        <div className="speaker-card-footer">
+                                                        <div className="mt-3 flex items-center gap-2">
                                                             <span className="text-[10px] font-bold text-slate-400 uppercase">Order</span>
                                                             <input
-                                                                type="number" className="form-input order-input"
+                                                                type="number" className="w-16 py-1.5 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 transition-all duration-200 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10"
                                                                 value={s.speaker_sort_order || 0}
                                                                 onChange={(e) => handlePersonChange('speaker', idx, 'speaker_sort_order', parseInt(e.target.value))}
                                                             />
@@ -678,49 +677,49 @@ const Agenda = () => {
                                         </div>
                                     </div>
 
-                                    <div className="speakers-list-header mt-8">
-                                        <h3>Moderators List</h3>
-                                        <button type="button" className="btn btn-primary btn-sm" onClick={() => handleAddPerson('moderator')}>
+                                    <div className="bg-slate-800 py-4 px-6 rounded-t-2xl flex justify-between items-center text-white mt-8">
+                                        <h3 className="text-[0.8125rem] font-extrabold uppercase tracking-[0.1em]">Moderators List</h3>
+                                        <button type="button" className="inline-flex items-center justify-center gap-2 border-none cursor-pointer transition-all duration-200 whitespace-nowrap bg-blue-600 text-white shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] hover:-translate-y-0.5 hover:shadow-[0_10px_15px_-3px_rgba(37,99,235,0.25)] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed !py-1.5 !px-3.5 !text-xs !rounded-lg font-extrabold" onClick={() => handleAddPerson('moderator')}>
                                             <Plus size={14} /> Add Moderator
                                         </button>
                                     </div>
-                                    <div className="speakers-list-container">
-                                        <div className="speakers-grid">
+                                    <div className="bg-slate-50 border border-slate-200 border-t-0 rounded-b-2xl p-6">
+                                        <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
                                             {moderators.map((m, idx) => (
-                                                <div key={idx} className="speaker-card-compact">
-                                                    <div className="remove-speaker-x" onClick={() => handleRemovePerson('moderator', idx)}>
+                                                <div key={idx} className="bg-white border border-slate-200 rounded-2xl p-5 flex gap-4 relative transition-all duration-300 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.05)]">
+                                                    <div className="absolute top-2.5 right-2.5 text-red-500 cursor-pointer opacity-50 transition-opacity duration-200 hover:opacity-100" onClick={() => handleRemovePerson('moderator', idx)}>
                                                         <X size={16} />
                                                     </div>
 
-                                                    <div className="speaker-img-upload-group">
-                                                        <div className="speaker-avatar-circle" onClick={() => handleImageClick('moderator', idx)}>
+                                                    <div className="w-16 flex flex-col items-center gap-2">
+                                                        <div className="w-16 h-16 rounded-full bg-slate-100 overflow-hidden border-4 border-white shadow-[0_0_0_1px_#e2e8f0] cursor-pointer" onClick={() => handleImageClick('moderator', idx)}>
                                                             {m.moderator_image_preview || m.moderator_image ? (
-                                                                <img src={m.moderator_image_preview || m.moderator_image} alt="Moderator" />
+                                                                <img src={m.moderator_image_preview || m.moderator_image} alt="Moderator" className="w-full h-full object-cover" />
                                                             ) : (
                                                                 <div className="w-full h-full flex items-center justify-center text-slate-300">
                                                                     <ImageIcon size={32} />
                                                                 </div>
                                                             )}
                                                         </div>
-                                                        <div className="upload-pill" onClick={() => handleImageClick('moderator', idx)}>Upload</div>
+                                                        <div className="bg-slate-800 text-white text-[0.625rem] font-extrabold uppercase py-0.5 px-2.5 rounded-full cursor-pointer hover:bg-slate-700 transition-colors" onClick={() => handleImageClick('moderator', idx)}>Upload</div>
                                                     </div>
 
-                                                    <div className="speaker-form-fields">
-                                                        <div className="speaker-field-grid">
+                                                    <div className="flex-1">
+                                                        <div className="grid grid-cols-2 gap-2.5">
                                                             <input
-                                                                type="text" className="form-input" placeholder="Name"
+                                                                type="text" className="w-full py-2 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 transition-all duration-200 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10" placeholder="Name"
                                                                 value={m.moderator_name} onChange={(e) => handlePersonChange('moderator', idx, 'moderator_name', e.target.value)}
                                                             />
                                                             <input
-                                                                type="text" className="form-input" placeholder="Company"
+                                                                type="text" className="w-full py-2 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 transition-all duration-200 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10" placeholder="Company"
                                                                 value={m.moderator_company} onChange={(e) => handlePersonChange('moderator', idx, 'moderator_company', e.target.value)}
                                                             />
                                                             <input
-                                                                type="text" className="form-input full" placeholder="Designation"
+                                                                type="text" className="col-span-2 w-full py-2 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 transition-all duration-200 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10" placeholder="Designation"
                                                                 value={m.moderator_designation} onChange={(e) => handlePersonChange('moderator', idx, 'moderator_designation', e.target.value)}
                                                             />
                                                             <input
-                                                                type="text" className="form-input full" placeholder="UUID (Optional)"
+                                                                type="text" className="col-span-2 w-full py-2 px-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 transition-all duration-200 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10" placeholder="UUID (Optional)"
                                                                 value={m.moderator_uuid} onChange={(e) => handlePersonChange('moderator', idx, 'moderator_uuid', e.target.value)}
                                                             />
                                                         </div>
@@ -732,9 +731,9 @@ const Agenda = () => {
                                 </div>
                             </form>
                         </div>
-                        <div className="modal-footer">
-                            <button className="btn btn-secondary" onClick={() => setIsFormModalOpen(false)}>Cancel</button>
-                            <button type="submit" form="agendaForm" className="btn btn-primary">Save Changes</button>
+                        <div className="py-6 px-10 bg-slate-50 border-t border-slate-100 flex justify-end gap-4">
+                            <button className="inline-flex items-center justify-center gap-2 cursor-pointer transition-all duration-200 whitespace-nowrap bg-white text-slate-600 py-2.5 px-5 rounded-xl font-extrabold text-sm border border-slate-200 hover:bg-slate-50 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.05)] hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed" onClick={() => setIsFormModalOpen(false)}>Cancel</button>
+                            <button type="submit" form="agendaForm" className="inline-flex items-center justify-center gap-2 border-none cursor-pointer transition-all duration-200 whitespace-nowrap bg-blue-600 text-white py-2.5 px-5 rounded-xl font-extrabold text-sm shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] hover:-translate-y-0.5 hover:shadow-[0_10px_15px_-3px_rgba(37,99,235,0.25)] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">Save Changes</button>
                         </div>
                     </div>
                 </div>
@@ -743,22 +742,22 @@ const Agenda = () => {
             {/* Cropper Modal */}
             {
                 isCropping && (
-                    <div className="modal-overlay" style={{ zIndex: 1100 }}>
-                        <div className="modal-content cropper-modal-content" onClick={(e) => e.stopPropagation()}>
-                            <div className="modal-header">
-                                <h2 className="modal-title">Crop Image</h2>
-                                <button className="icon-btn" onClick={() => setIsCropping(false)}>
+                    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-6 animate-fade-in" style={{ zIndex: 1100 }}>
+                        <div className="bg-white rounded-3xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] overflow-hidden animate-[modalPop_0.4s_cubic-bezier(0.175,0.885,0.32,1.275)] max-w-lg w-[95vw]" onClick={(e) => e.stopPropagation()}>
+                            <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+                                <h2 className="text-[1.375rem] font-black text-slate-900 tracking-[-0.02em]">Crop Image</h2>
+                                <button className="p-1 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors bg-transparent border-none cursor-pointer flex items-center justify-center" onClick={() => setIsCropping(false)}>
                                     <X size={20} />
                                 </button>
                             </div>
-                            <div className="modal-body">
-                                <div className="cropper-container">
+                            <div className="p-8 max-h-[calc(90vh-160px)] overflow-y-auto">
+                                <div className="max-w-[400px] w-full mx-auto">
                                     <img ref={imageRef} src={croppingTarget.url} alt="To crop" style={{ maxWidth: '100%', display: 'block' }} />
                                 </div>
                             </div>
-                            <div className="modal-footer">
-                                <button className="btn btn-secondary" onClick={() => setIsCropping(false)}>Cancel</button>
-                                <button className="btn btn-primary" onClick={handleSaveCrop}>Apply Crop</button>
+                            <div className="py-6 px-10 bg-slate-50 border-t border-slate-100 flex justify-end gap-4">
+                                <button className="inline-flex items-center justify-center gap-2 cursor-pointer transition-all duration-200 whitespace-nowrap bg-white text-slate-600 py-2.5 px-5 rounded-xl font-extrabold text-sm border border-slate-200 hover:bg-slate-50 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.05)] hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed" onClick={() => setIsCropping(false)}>Cancel</button>
+                                <button className="inline-flex items-center justify-center gap-2 border-none cursor-pointer transition-all duration-200 whitespace-nowrap bg-blue-600 text-white py-2.5 px-5 rounded-xl font-extrabold text-sm shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] hover:-translate-y-0.5 hover:shadow-[0_10px_15px_-3px_rgba(37,99,235,0.25)] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed" onClick={handleSaveCrop}>Apply Crop</button>
                             </div>
                         </div>
                     </div>
@@ -768,40 +767,40 @@ const Agenda = () => {
             {/* Read-only View Modal */}
             {
                 isViewModalOpen && selectedAgenda && (
-                    <div className="modal-overlay" onClick={() => setIsViewModalOpen(false)}>
-                        <div className="modal-content view-modal-container" onClick={(e) => e.stopPropagation()}>
-                            <div className="modal-header">
-                                <h2 className="modal-title">Session Details</h2>
-                                <button className="icon-btn" onClick={() => setIsViewModalOpen(false)}>
+                    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[1000] flex items-center justify-center p-6 animate-fade-in" onClick={() => setIsViewModalOpen(false)}>
+                        <div className="bg-white rounded-3xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15)] overflow-hidden animate-[modalPop_0.4s_cubic-bezier(0.175,0.885,0.32,1.275)] max-w-3xl w-[95vw]" onClick={(e) => e.stopPropagation()}>
+                            <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+                                <h2 className="text-[1.375rem] font-black text-slate-900 tracking-[-0.02em]">Session Details</h2>
+                                <button className="p-1 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors bg-transparent border-none cursor-pointer flex items-center justify-center" onClick={() => setIsViewModalOpen(false)}>
                                     <X size={20} />
                                 </button>
                             </div>
-                            <div className="modal-body">
-                                <div className="view-session-header-premium">
-                                    <span className="track-badge mb-4 inline-block">{selectedAgenda.track_title || 'General Session'}</span>
+                            <div className="p-8 max-h-[calc(90vh-160px)] overflow-y-auto">
+                                <div className="text-center py-10 px-6 border-b border-slate-100 bg-slate-50 relative overflow-hidden mb-8">
+                                    <span className="text-[0.625rem] font-extrabold uppercase tracking-[0.1em] py-2 px-4 bg-blue-50 text-blue-600 rounded-full border border-blue-600/10 transition-all duration-300 mb-4 inline-block">{selectedAgenda.track_title || 'General Session'}</span>
                                     <h1 className="text-3xl font-black text-slate-900 leading-tight mb-8">{selectedAgenda.title}</h1>
 
-                                    <div className="view-meta-row">
-                                        <div className="view-info-pill">
-                                            <div className="view-info-pill-icon"><Calendar size={20} /></div>
-                                            <div className="view-info-pill-text">
-                                                <label>Date</label>
-                                                <div className="val">{selectedAgenda.date}</div>
+                                    <div className="flex flex-wrap justify-center gap-6 mt-8">
+                                        <div className="bg-white border border-slate-200 py-3 px-5 rounded-2xl flex items-center gap-4 text-left shadow-sm min-w-[200px]">
+                                            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0"><Calendar size={20} /></div>
+                                            <div className="flex-1">
+                                                <label className="block text-[0.625rem] font-extrabold uppercase text-slate-400 tracking-widest mb-1">Date</label>
+                                                <div className="font-bold text-slate-900 text-sm">{selectedAgenda.date}</div>
                                             </div>
                                         </div>
-                                        <div className="view-info-pill">
-                                            <div className="view-info-pill-icon"><Clock size={20} /></div>
-                                            <div className="view-info-pill-text">
-                                                <label>Timing</label>
-                                                <div className="val">{selectedAgenda.start} - {selectedAgenda.end}</div>
+                                        <div className="bg-white border border-slate-200 py-3 px-5 rounded-2xl flex items-center gap-4 text-left shadow-sm min-w-[200px]">
+                                            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0"><Clock size={20} /></div>
+                                            <div className="flex-1">
+                                                <label className="block text-[0.625rem] font-extrabold uppercase text-slate-400 tracking-widest mb-1">Timing</label>
+                                                <div className="font-bold text-slate-900 text-sm">{selectedAgenda.start} - {selectedAgenda.end}</div>
                                             </div>
                                         </div>
                                         {selectedAgenda.location && (
-                                            <div className="view-info-pill">
-                                                <div className="view-info-pill-icon"><MapPin size={20} /></div>
-                                                <div className="view-info-pill-text">
-                                                    <label>Location</label>
-                                                    <div className="val">{selectedAgenda.location}</div>
+                                            <div className="bg-white border border-slate-200 py-3 px-5 rounded-2xl flex items-center gap-4 text-left shadow-sm min-w-[200px]">
+                                                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0"><MapPin size={20} /></div>
+                                                <div className="flex-1">
+                                                    <label className="block text-[0.625rem] font-extrabold uppercase text-slate-400 tracking-widest mb-1">Location</label>
+                                                    <div className="font-bold text-slate-900 text-sm">{selectedAgenda.location}</div>
                                                 </div>
                                             </div>
                                         )}
@@ -810,24 +809,24 @@ const Agenda = () => {
 
                                 {selectedAgenda.description && (
                                     <div className="mb-12">
-                                        <h4 className="view-section-title-small font-black">About Session</h4>
-                                        <div className="view-description-text">{selectedAgenda.description}</div>
+                                        <h4 className="text-[0.6875rem] font-black uppercase text-slate-400 tracking-[0.1em] mb-4 flex items-center gap-3 after:content-[''] after:h-px after:flex-1 after:bg-slate-100">About Session</h4>
+                                        <div className="text-slate-600 leading-relaxed text-[0.9375rem]">{selectedAgenda.description}</div>
                                     </div>
                                 )}
 
                                 {selectedAgenda.speaker && selectedAgenda.speaker.length > 0 && (
                                     <div className="mb-12">
-                                        <h4 className="view-section-title-small font-black">Distinguished Speakers</h4>
-                                        <div className="speaker-view-grid">
+                                        <h4 className="text-[0.6875rem] font-black uppercase text-slate-400 tracking-[0.1em] mb-4 flex items-center gap-3 after:content-[''] after:h-px after:flex-1 after:bg-slate-100">Distinguished Speakers</h4>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                             {selectedAgenda.speaker.map((s, idx) => (
-                                                <div key={idx} className="speaker-view-item">
-                                                    <div className="speaker-view-img">
-                                                        {s.speaker_image ? <img src={s.speaker_image} alt={s.speaker_name} /> : <div className="w-full h-full bg-slate-100 flex items-center justify-center"><Users size={24} className="text-slate-300" /></div>}
+                                                <div key={idx} className="flex items-center gap-4 p-4 rounded-2xl border border-slate-200 hover:border-blue-200 hover:bg-slate-50 transition-colors">
+                                                    <div className="w-14 h-14 rounded-full overflow-hidden shrink-0 border-2 border-slate-100">
+                                                        {s.speaker_image ? <img src={s.speaker_image} alt={s.speaker_name} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-slate-100 flex items-center justify-center"><Users size={24} className="text-slate-300" /></div>}
                                                     </div>
-                                                    <div className="speaker-view-info">
-                                                        <div className="name">{s.speaker_name}</div>
-                                                        <div className="title">{s.speaker_designation}</div>
-                                                        <div className="comp">{s.speaker_company}</div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="font-extrabold text-slate-900 text-sm truncate">{s.speaker_name}</div>
+                                                        <div className="text-[0.6875rem] font-bold text-blue-600 truncate mb-0.5">{s.speaker_designation}</div>
+                                                        <div className="text-xs text-slate-500 truncate">{s.speaker_company}</div>
                                                     </div>
                                                 </div>
                                             ))}
@@ -835,8 +834,8 @@ const Agenda = () => {
                                     </div>
                                 )}
                             </div>
-                            <div className="modal-footer">
-                                <button className="btn btn-secondary" onClick={() => setIsViewModalOpen(false)}>Close Window</button>
+                            <div className="py-6 px-10 bg-slate-50 border-t border-slate-100 flex justify-end gap-4">
+                                <button className="inline-flex items-center justify-center gap-2 cursor-pointer transition-all duration-200 whitespace-nowrap bg-white text-slate-600 py-2.5 px-5 rounded-xl font-extrabold text-sm border border-slate-200 hover:bg-slate-50 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.05)] hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed" onClick={() => setIsViewModalOpen(false)}>Close Window</button>
                             </div>
                         </div>
                     </div>

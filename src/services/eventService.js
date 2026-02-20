@@ -22,13 +22,45 @@ const getHeaders = (token) => {
 };
 
 export const eventService = {
-    async getAttendees(eventId, token, page = 1, size = 50, sortBy = 'modified_at', sortOrder = 'desc') {
+    async getAttendees(eventId, token, options = {}) {
+        const {
+            page = 1,
+            size = 50,
+            sortBy = 'modified_at',
+            sortOrder = 'desc',
+            searchQuery = '',
+            searchType = '',
+            filters = {}
+        } = options;
+
         try {
             const queryParams = new URLSearchParams({
                 page,
                 size,
                 sort_by: sortBy,
                 sort_order: sortOrder
+            });
+
+            if (searchQuery) {
+                queryParams.append('search_query', searchQuery);
+            }
+
+            if (searchType) {
+                queryParams.append('search_type', searchType);
+            }
+
+            // Process filters
+            Object.keys(filters).forEach(key => {
+                const value = filters[key];
+                if (value !== '' && value !== null && value !== undefined) {
+                    if (key === 'whatsapp_sent') {
+                        queryParams.append('wa_sent', value);
+                    } else if (key === 'attendee_type' && Array.isArray(value)) {
+                        queryParams.append(key, value.join(','));
+                    } else {
+                        queryParams.append(key, value);
+                    }
+                }
             });
 
             const response = await fetch(`${getApiUrl()}/events/${eventId}/attendees/search?${queryParams}`, {
@@ -47,7 +79,7 @@ export const eventService = {
         }
     },
 
-    async getCompanies(eventId, token, page = 1, size = 20, sortBy = 'obf_number', sortOrder = 'desc', search = '') {
+    async getCompanies(eventId, token, page = 1, size = 20, sortBy = 'obf_number', sortOrder = 'desc', search = '', filters = {}, includeStats = false) {
         // Note: The curl command shows a different base URL for companies list: https://reconnect.stage-eventapp-reconnect.fairfest.in/evc/events/...
         // I need to handle this URL difference safely.
         // The base URL const is 'https://reconnect.stage-eventapp-reconnect.fairfest.in/events'
@@ -63,6 +95,23 @@ export const eventService = {
                 sort_by: sortBy,
                 sort_order: sortOrder,
                 q: search
+            });
+
+            if (includeStats) {
+                queryParams.append('agg', 'true');
+            }
+
+            // Process filters
+            Object.keys(filters).forEach(key => {
+                const value = filters[key];
+                if (value !== '' && value !== null && value !== undefined) {
+                    if (Array.isArray(value)) {
+                        // API expects comma-separated values for array filters
+                        queryParams.append(key, value.join(','));
+                    } else {
+                        queryParams.append(key, value);
+                    }
+                }
             });
 
             const response = await fetch(`${companyListUrl}?${queryParams}`, {

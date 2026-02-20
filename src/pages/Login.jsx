@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth';
 import { useAuth } from '../contexts/AuthContext';
 import { ArrowRight, Lock, Mail, KeyRound, Loader2 } from 'lucide-react';
-import './Login.css';
 
 const Login = () => {
     const [step, setStep] = useState(1);
@@ -85,34 +84,25 @@ const Login = () => {
     };
 
     return (
-        <div className="login-container">
-            <div className="login-card animate-fade-in">
-                <div className="login-header">
-                    <div className="logo-icon" style={{ margin: '0 auto 1rem' }}>C</div>
-                    <h1 className="login-title">
+        <div className="flex items-center justify-center min-h-screen bg-bg-secondary">
+            <div className="w-full max-w-[400px] p-8 bg-bg-primary border border-border rounded-lg shadow-md animate-fade-in">
+                <div className="mb-8 text-center">
+                    <div className="w-8 h-8 bg-accent text-white rounded-md flex items-center justify-center text-lg mx-auto mb-4 font-bold">C</div>
+                    <h1 className="text-2xl font-bold text-text-primary mb-2">
                         {step === 1 ? 'Welcome Back' : step === 2 ? 'Enter Password' : 'Security Check'}
                     </h1>
-                    <p className="login-subtitle">
+                    <p className="text-sm text-text-secondary">
                         {step === 1 ? 'Sign in to your dashboard' : step === 2 ? `Hello, ${email}` : 'Enter the code sent to your email'}
                     </p>
                 </div>
 
                 {error && (
-                    <div className="alert-error">
+                    <div className="bg-red-50 text-danger p-3 rounded-md text-sm mb-4 border border-red-100">
                         {error}
                     </div>
                 )}
 
-                <div className="env-switcher" style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    marginBottom: '2rem',
-                    backgroundColor: 'var(--bg-tertiary)',
-                    padding: '0.25rem',
-                    borderRadius: '0.5rem',
-                    width: 'fit-content',
-                    margin: '0 auto 2rem auto'
-                }}>
+                <div className="flex justify-center mb-8 bg-bg-tertiary p-1 rounded-lg w-fit mx-auto">
                     {ENV_OPTIONS.map((option) => (
                         <button
                             key={option.value}
@@ -126,8 +116,8 @@ const Login = () => {
                                 border: 'none',
                                 cursor: 'pointer',
                                 transition: 'all 0.2s ease',
-                                backgroundColor: currentEnv === option.value ? 'var(--bg-primary)' : 'transparent',
-                                color: currentEnv === option.value ? 'var(--text-primary)' : 'var(--text-secondary)',
+                                backgroundColor: currentEnv === option.value ? 'var(--color-bg-primary)' : 'transparent',
+                                color: currentEnv === option.value ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
                                 boxShadow: currentEnv === option.value ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
                             }}
                         >
@@ -137,10 +127,10 @@ const Login = () => {
                 </div>
 
                 {step === 1 && (
-                    <form onSubmit={handleEmailSubmit} className="login-form">
+                    <form onSubmit={handleEmailSubmit} className="flex flex-col gap-4">
                         <div className="input-group">
                             <label className="input-label">Email Address</label>
-                            <div className="input-wrapper">
+                            <div className="relative">
                                 <input
                                     type="email"
                                     className="input-field"
@@ -159,10 +149,10 @@ const Login = () => {
                 )}
 
                 {step === 2 && (
-                    <form onSubmit={handlePasswordSubmit} className="login-form">
+                    <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-4">
                         <div className="input-group">
                             <label className="input-label">Password</label>
-                            <div className="input-wrapper">
+                            <div className="relative">
                                 <input
                                     type="password"
                                     className="input-field"
@@ -174,7 +164,7 @@ const Login = () => {
                                 />
                             </div>
                         </div>
-                        <div className="form-actions-between">
+                        <div className="flex justify-between items-center mt-2">
                             <button type="button" className="btn btn-ghost" onClick={() => setStep(1)}>
                                 Back
                             </button>
@@ -186,10 +176,10 @@ const Login = () => {
                 )}
 
                 {step === 3 && (
-                    <form onSubmit={handleOtpSubmit} className="login-form">
+                    <form onSubmit={handleOtpSubmit} className="flex flex-col gap-4">
                         <div className="input-group">
                             <label className="input-label">Verification Code</label>
-                            <div className="input-wrapper">
+                            <div className="relative">
                                 <input
                                     type="text"
                                     className="input-field"
@@ -201,7 +191,7 @@ const Login = () => {
                                 />
                             </div>
                         </div>
-                        <div className="form-actions-between">
+                        <div className="flex justify-between items-center mt-2">
                             <button type="button" className="btn btn-ghost" onClick={() => setStep(2)}>
                                 Back
                             </button>

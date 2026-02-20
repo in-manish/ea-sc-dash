@@ -3,7 +3,6 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
 import { Loader2, Calendar, CheckCircle, XCircle, DollarSign, X } from 'lucide-react';
-import './AdditionalRequirementsOrders.css';
 
 const STATUS_OPTIONS = [
     { value: 'cart', label: 'Cart' },
@@ -14,6 +13,17 @@ const STATUS_OPTIONS = [
     { value: 'cancelled', label: 'Cancelled' },
     { value: 'refunded', label: 'Refunded' }
 ];
+
+const getStatusClass = (status) => {
+    switch (status) {
+        case 'paid': return 'bg-[#dcfce7] text-[#166534]';
+        case 'pending': return 'bg-[#fef9c3] text-[#854d0e]';
+        case 'cart': return 'bg-[#f3f4f6] text-[#374151]';
+        case 'failed': return 'bg-[#fee2e2] text-[#991b1b]';
+        case 'cancelled': return 'bg-[#f3f4f6] text-[#374151] line-through';
+        default: return 'bg-slate-100 text-slate-700';
+    }
+};
 
 const AdditionalRequirementsOrders = ({ eventId }) => {
     const { token } = useAuth();
@@ -151,7 +161,7 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
     const [emailInput, setEmailInput] = useState('');
     const [sendingReport, setSendingReport] = useState(false);
     const [reportTimer, setReportTimer] = useState(0);
-    const [reportVerification, setReportVerification] = useState(null); // To store filtering info if needed
+
 
     // Load saved emails on mount
     useEffect(() => {
@@ -257,7 +267,7 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
     };
 
     return (
-        <div className="ar-orders-container animate-fade-in">
+        <div className="py-4 animate-fade-in">
             <div className="flex justify-between items-center mb-4">
                 <h1 className="text-2xl font-bold text-gray-800">Additional Requirements Orders</h1>
                 <button className="btn btn-primary" onClick={handleStartSendReport}>
@@ -291,12 +301,12 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
             )}
 
             {/* Filters */}
-            <div className="ar-filter-bar">
-                <div className="ar-filter-group">
-                    <label>Status</label>
+            <div className="flex flex-wrap items-center gap-4 mb-6 bg-bg-primary p-4 rounded-lg border border-border shadow-sm">
+                <div className="flex flex-col gap-2">
+                    <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Status</label>
                     <div className="select-wrapper">
                         <select
-                            className="ar-filter-select"
+                            className="p-2 border border-border rounded-md text-sm min-w-[150px] bg-bg-primary text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all shadow-sm"
                             value=""
                             onChange={handleStatusChange}
                         >
@@ -314,10 +324,10 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
                     </div>
                 </div>
 
-                <div className="ar-filter-group">
-                    <label>Verified</label>
+                <div className="flex flex-col gap-2">
+                    <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Verified</label>
                     <select
-                        className="ar-filter-select"
+                        className="p-2 border border-border rounded-md text-sm min-w-[150px] bg-bg-primary text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all shadow-sm"
                         value={isVerified}
                         onChange={(e) => updateFilters({ is_verified: e.target.value })}
                     >
@@ -327,10 +337,10 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
                     </select>
                 </div>
 
-                <div className="ar-filter-group">
-                    <label>Payment Mode</label>
+                <div className="flex flex-col gap-2">
+                    <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Payment Mode</label>
                     <select
-                        className="ar-filter-select"
+                        className="p-2 border border-border rounded-md text-sm min-w-[150px] bg-bg-primary text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all shadow-sm"
                         value={paymentMode}
                         onChange={(e) => updateFilters({ payment_mode: e.target.value })}
                     >
@@ -340,21 +350,21 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
                     </select>
                 </div>
 
-                <div className="ar-filter-group">
-                    <label>From Date</label>
+                <div className="flex flex-col gap-2">
+                    <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">From Date</label>
                     <input
                         type="date"
-                        className="ar-filter-date"
+                        className="p-2 border border-border rounded-md text-sm min-w-[150px] bg-bg-primary text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all shadow-sm"
                         value={dateFrom}
                         onChange={(e) => updateFilters({ date_from: e.target.value })}
                     />
                 </div>
 
-                <div className="ar-filter-group">
-                    <label>To Date</label>
+                <div className="flex flex-col gap-2">
+                    <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">To Date</label>
                     <input
                         type="date"
-                        className="ar-filter-date"
+                        className="p-2 border border-border rounded-md text-sm min-w-[150px] bg-bg-primary text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all shadow-sm"
                         value={dateTo}
                         onChange={(e) => updateFilters({ date_to: e.target.value })}
                     />
@@ -363,61 +373,61 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
 
             {/* Active Filters */}
             {(statusParam.length > 0 || isVerified || paymentMode || dateFrom || dateTo || companyIds.length > 0) && (
-                <div className="ar-active-filters">
+                <div className="flex flex-wrap gap-2 min-h-[40px] mb-6">
                     {statusParam.map(s => (
-                        <span key={s} className="filter-chip">
+                        <span key={s} className="flex items-center gap-2 px-3 py-1 bg-bg-secondary rounded-full text-[0.8125rem] font-medium text-text-primary border border-border">
                             Status: {STATUS_OPTIONS.find(o => o.value === s)?.label || s}
-                            <button onClick={() => removeFilter('status', s)}><X size={12} /></button>
+                            <button className="flex items-center justify-center text-text-muted hover:bg-black/10 hover:text-text-primary rounded-full p-0.5 transition-colors" onClick={() => removeFilter('status', s)}><X size={12} /></button>
                         </span>
                     ))}
                     {isVerified && (
-                        <span className="filter-chip">
+                        <span className="flex items-center gap-2 px-3 py-1 bg-bg-secondary rounded-full text-[0.8125rem] font-medium text-text-primary border border-border">
                             Verified: {isVerified === 'true' ? 'Yes' : 'No'}
-                            <button onClick={() => removeFilter('is_verified')}><X size={12} /></button>
+                            <button className="flex items-center justify-center text-text-muted hover:bg-black/10 hover:text-text-primary rounded-full p-0.5 transition-colors" onClick={() => removeFilter('is_verified')}><X size={12} /></button>
                         </span>
                     )}
                     {paymentMode && (
-                        <span className="filter-chip">
+                        <span className="flex items-center gap-2 px-3 py-1 bg-bg-secondary rounded-full text-[0.8125rem] font-medium text-text-primary border border-border">
                             Payment: {paymentMode}
-                            <button onClick={() => removeFilter('payment_mode')}><X size={12} /></button>
+                            <button className="flex items-center justify-center text-text-muted hover:bg-black/10 hover:text-text-primary rounded-full p-0.5 transition-colors" onClick={() => removeFilter('payment_mode')}><X size={12} /></button>
                         </span>
                     )}
                     {dateFrom && (
-                        <span className="filter-chip">
+                        <span className="flex items-center gap-2 px-3 py-1 bg-bg-secondary rounded-full text-[0.8125rem] font-medium text-text-primary border border-border">
                             From: {dateFrom}
-                            <button onClick={() => removeFilter('date_from')}><X size={12} /></button>
+                            <button className="flex items-center justify-center text-text-muted hover:bg-black/10 hover:text-text-primary rounded-full p-0.5 transition-colors" onClick={() => removeFilter('date_from')}><X size={12} /></button>
                         </span>
                     )}
                     {dateTo && (
-                        <span className="filter-chip">
+                        <span className="flex items-center gap-2 px-3 py-1 bg-bg-secondary rounded-full text-[0.8125rem] font-medium text-text-primary border border-border">
                             To: {dateTo}
-                            <button onClick={() => removeFilter('date_to')}><X size={12} /></button>
+                            <button className="flex items-center justify-center text-text-muted hover:bg-black/10 hover:text-text-primary rounded-full p-0.5 transition-colors" onClick={() => removeFilter('date_to')}><X size={12} /></button>
                         </span>
                     )}
                     {companyIds.map(id => (
-                        <span key={id} className="filter-chip">
+                        <span key={id} className="flex items-center gap-2 px-3 py-1 bg-bg-secondary rounded-full text-[0.8125rem] font-medium text-text-primary border border-border">
                             Company ID: {id}
-                            <button onClick={() => removeFilter('company_ids', id)}><X size={12} /></button>
+                            <button className="flex items-center justify-center text-text-muted hover:bg-black/10 hover:text-text-primary rounded-full p-0.5 transition-colors" onClick={() => removeFilter('company_ids', id)}><X size={12} /></button>
                         </span>
                     ))}
-                    <button className="clear-all-btn" onClick={() => setSearchParams({})}>Clear All</button>
+                    <button className="text-sm text-text-muted hover:text-text-primary transition-colors hover:underline px-2 py-1" onClick={() => setSearchParams({})}>Clear All</button>
 
                 </div>
             )}
 
             {/* Email Modal */}
             {showEmailModal && (
-                <div className="modal-overlay">
-                    <div className="modal-content">
-                        <h3>Send Report via Email</h3>
+                <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 animate-fade-in p-4 sm:p-6 backdrop-blur-sm">
+                    <div className="bg-bg-primary p-6 sm:p-8 rounded-xl w-full max-w-lg shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)] ring-1 ring-border/50 animate-[modalPop_0.3s_ease-out]">
+                        <h3 className="text-xl font-semibold mb-2 text-text-primary">Send Report via Email</h3>
                         <p className="text-sm text-gray-500 mb-4">
                             Add email addresses to receive the report. The list will be saved for future use.
                         </p>
 
-                        <div className="email-input-group mb-4">
+                        <div className="flex gap-2 mb-4">
                             <input
                                 type="email"
-                                className="form-input"
+                                className="flex-1 p-2 border border-border rounded-lg text-sm bg-bg-primary text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all shadow-sm"
                                 placeholder="Enter email and press Enter"
                                 value={emailInput}
                                 onChange={(e) => setEmailInput(e.target.value)}
@@ -426,17 +436,17 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
                             <button className="btn btn-secondary btn-sm" onClick={handleAddEmail}>Add</button>
                         </div>
 
-                        <div className="email-chip-list mb-6">
+                        <div className="flex flex-wrap gap-2 min-h-[40px] mb-6 p-3 bg-bg-tertiary rounded-lg border border-border/50">
                             {reportEmails.map(email => (
-                                <span key={email} className="email-chip">
+                                <span key={email} className="flex items-center gap-1.5 px-3 py-1.5 bg-bg-primary rounded-full text-[0.8125rem] font-medium text-text-secondary border border-border shadow-sm transition-all hover:border-slate-300">
                                     {email}
-                                    <button onClick={() => handleRemoveEmail(email)}><X size={12} /></button>
+                                    <button className="flex items-center justify-center text-text-muted rounded-full p-0.5 hover:bg-black/10 hover:text-text-primary transition-colors" onClick={() => handleRemoveEmail(email)}><X size={12} /></button>
                                 </span>
                             ))}
                             {reportEmails.length === 0 && <span className="text-gray-400 text-sm italic">No emails added</span>}
                         </div>
 
-                        <div className="modal-actions flex justify-end gap-2">
+                        <div className="flex justify-end gap-2">
                             <button className="btn btn-secondary" onClick={() => setShowEmailModal(false)}>Cancel</button>
                             <button
                                 className="btn btn-primary"
@@ -452,9 +462,9 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
 
             {/* Timer Notification Toast */}
             {sendingReport && (
-                <div className="timer-toast">
+                <div className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 bg-bg-primary text-text-primary p-4 sm:px-6 sm:py-4 rounded-xl shadow-xl flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 border border-border z-60 animate-[slideUp_0.4s_cubic-bezier(0.16,1,0.3,1)]">
                     <div className="flex items-center gap-3">
-                        <Loader2 className="animate-spin" size={20} />
+                        <Loader2 className="animate-spin text-accent" size={20} />
                         <span>Sending report in <strong>{reportTimer}s</strong>...</span>
                     </div>
                     <button className="btn btn-warning btn-sm" onClick={handleCancelTimer}>
@@ -464,44 +474,44 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
             )}
 
 
-            {error && <div className="alert-error">{error}</div>}
+            {error && <div className="bg-red-50 text-red-800 p-4 border border-red-200 rounded-md mb-6">{error}</div>}
 
-            <div className="companies-table-container">
-                <table className="companies-table">
+            <div className="bg-bg-primary border border-border rounded-lg overflow-x-auto shadow-sm">
+                <table className="w-full text-left border-collapse">
                     <thead>
                         <tr>
-                            <th>Order ID</th>
-                            <th>Company</th>
-                            <th>Products</th>
-                            <th>Amount</th>
-                            <th>Payment</th>
-                            <th>Status</th>
+                            <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Order ID</th>
+                            <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Company</th>
+                            <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Products</th>
+                            <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Amount</th>
+                            <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Payment</th>
+                            <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         {loading ? (
                             <tr>
-                                <td colSpan="6" className="loading-row">
-                                    <Loader2 className="spinner" size={24} />
+                                <td colSpan="6" className="text-center p-12 text-text-secondary">
+                                    <Loader2 className="animate-spin text-accent mx-auto" size={24} />
                                 </td>
                             </tr>
                         ) : orders.length === 0 ? (
                             <tr>
-                                <td colSpan="6" className="empty-row">No orders found matching criteria.</td>
+                                <td colSpan="6" className="text-center p-12 text-text-secondary">No orders found matching criteria.</td>
                             </tr>
                         ) : (
                             orders.map((order) => (
-                                <tr key={order.id}>
-                                    <td>
+                                <tr key={order.id} className="transition-colors duration-200 hover:bg-bg-secondary [&>td]:border-b [&>td]:border-border group">
+                                    <td className="py-4 px-6 align-middle group-last:border-b-0">
                                         <div className="font-mono text-sm">{order.id}</div>
                                         <div className="text-xs text-gray-500">{formatDate(order.created_at)}</div>
                                     </td>
-                                    <td>
+                                    <td className="py-4 px-6 align-middle group-last:border-b-0">
                                         <div className="font-semibold">
                                             {order.company ? (
                                                 <Link
                                                     to={`/event/${eventId}/companies/${order.company.id}`}
-                                                    className="company-link hover:underline text-primary"
+                                                    className="hover:underline text-primary"
                                                 >
                                                     {order.company.company_name}
                                                 </Link>
@@ -509,17 +519,17 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
                                         </div>
                                         <div className="text-xs text-gray-500">{order.user?.name}</div>
                                     </td>
-                                    <td>
-                                        <div className="ar-product-list">
+                                    <td className="py-4 px-6 align-middle group-last:border-b-0">
+                                        <div className="flex flex-col gap-2">
                                             {order.products.map(product => (
-                                                <div key={product.id} className="ar-product-item">
-                                                    {product.image && <img src={product.image} alt="" className="ar-product-img" />}
+                                                <div key={product.id} className="flex items-center gap-2 text-[0.8125rem] text-text-secondary">
+                                                    {product.image && <img src={product.image} alt="" className="w-8 h-8 rounded-md object-cover bg-bg-tertiary border border-border group-hover:border-slate-300 transition-colors" />}
                                                     <span>{product.name} (x{product.quantity})</span>
                                                 </div>
                                             ))}
                                         </div>
                                     </td>
-                                    <td>
+                                    <td className="py-4 px-6 align-middle group-last:border-b-0">
                                         <div className="font-medium">
                                             {order.total_amount?.formatted}
                                         </div>
@@ -529,7 +539,7 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
                                             </div>
                                         )}
                                     </td>
-                                    <td>
+                                    <td className="py-4 px-6 align-middle group-last:border-b-0">
                                         <div className="flex flex-col gap-1">
                                             <span className="text-xs uppercase font-semibold">{order.payment_mode}</span>
                                             {order.is_verified ? (
@@ -543,8 +553,8 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
                                             )}
                                         </div>
                                     </td>
-                                    <td>
-                                        <span className={`ar-status-badge status-${order.status}`}>
+                                    <td className="py-4 px-6 align-middle group-last:border-b-0">
+                                        <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${getStatusClass(order.status)}`}>
                                             {order.status}
                                         </span>
                                     </td>
@@ -555,7 +565,7 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
                 </table>
             </div>
 
-            <div className="pagination">
+            <div className="flex items-center justify-between mt-6 bg-bg-primary p-4 border border-border rounded-lg shadow-sm">
                 <button
                     className="btn btn-secondary btn-sm"
                     disabled={page === 1 || loading}
@@ -563,7 +573,7 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
                 >
                     Previous
                 </button>
-                <span className="page-info">Page {page} of {Math.ceil(total / 10)}</span>
+                <span className="text-sm font-medium text-text-secondary">Page {page} of {Math.ceil(total / 10)}</span>
                 <button
                     className="btn btn-secondary btn-sm"
                     disabled={orders.length < 10 || loading}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { whatsappService } from '../services/whatsappService';
 import { Loader2, Plus, RefreshCw, MessageSquare, ArrowLeft, Eye, Check } from 'lucide-react';

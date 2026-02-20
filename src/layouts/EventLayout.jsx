@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Outlet, NavLink, useParams, useNavigate } from 'react-router-dom';
 import { Menu, X, Users, Calendar, Settings, ChevronLeft, Building2, ArrowLeft, LogOut, MessageSquare } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import './EventLayout.css';
 
 const EventLayout = () => {
     const { selectedEvent, clearEvent, logout } = useAuth();
@@ -20,33 +19,37 @@ const EventLayout = () => {
     };
 
     if (!selectedEvent || selectedEvent.id.toString() !== id) {
-        return <div className="loading-state">Loading Event Context...</div>;
+        return <div className="p-4 text-text-secondary">Loading Event Context...</div>;
     }
 
+    const navLinkClass = ({ isActive }) =>
+        `flex items-center gap-3 text-sm transition-all duration-200 whitespace-nowrap rounded-md ${isActive ? 'text-accent bg-accent/10 font-semibold' : 'text-text-secondary font-medium hover:text-text-primary hover:bg-bg-secondary'
+        } ${isCollapsed ? 'justify-center p-[10px]' : 'py-2.5 px-3'}`;
+
     return (
-        <div className={`event-layout ${isCollapsed ? 'collapsed' : ''}`}>
-            <aside className="event-sidebar">
-                <div className="event-sidebar-header">
-                    <div className="header-top">
+        <div className="flex min-h-screen bg-bg-secondary">
+            <aside className={`bg-bg-primary border-r border-border flex flex-col h-screen fixed left-0 top-0 z-50 transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${isCollapsed ? 'w-[72px]' : 'w-[260px]'}`}>
+                <div className={`border-b border-border transition-all duration-300 ${isCollapsed ? 'p-4 px-3' : 'py-5 px-4'}`}>
+                    <div className={`flex items-center ${isCollapsed ? 'flex-col gap-4 mb-0' : 'justify-between mb-4'}`}>
                         <button
                             onClick={() => {
                                 clearEvent();
                                 navigate('/');
                             }}
-                            className="back-btn"
+                            className={`bg-transparent border-none text-text-tertiary cursor-pointer rounded-md flex items-center justify-center transition-all duration-200 hover:text-text-primary hover:bg-bg-secondary ${isCollapsed ? 'p-2 w-full' : 'p-2'}`}
                             title="Back to Events"
                         >
                             <ArrowLeft size={20} />
                         </button>
-                        <button onClick={() => setIsCollapsed(!isCollapsed)} className="toggle-btn" title="Toggle Sidebar">
+                        <button onClick={() => setIsCollapsed(!isCollapsed)} className={`bg-transparent border-none text-text-tertiary cursor-pointer rounded-md flex items-center justify-center transition-all duration-200 hover:text-text-primary hover:bg-bg-secondary ${isCollapsed ? 'p-2 w-full' : 'p-2'}`} title="Toggle Sidebar">
                             <Menu size={20} />
                         </button>
                     </div>
 
                     {!isCollapsed && (
-                        <div className="event-info animate-fade-in">
-                            <h2 className="event-sidebar-title">{selectedEvent.name}</h2>
-                            <div className="event-meta">
+                        <div className="px-2 animate-[fadeIn_0.5s_ease-out]">
+                            <h2 className="text-base font-semibold text-text-primary mb-1 leading-snug whitespace-nowrap overflow-hidden text-ellipsis">{selectedEvent.name}</h2>
+                            <div className="flex flex-col text-xs text-text-secondary gap-0.5">
                                 <span>#{selectedEvent.id}</span>
                                 <span>{formatDate(selectedEvent.start_date)} - {formatDate(selectedEvent.end_date)}</span>
                             </div>
@@ -54,64 +57,64 @@ const EventLayout = () => {
                     )}
                 </div>
 
-                <nav className="event-nav">
+                <nav className={`flex-1 flex flex-col gap-1 overflow-y-auto ${isCollapsed ? 'py-4 px-2' : 'py-4 px-3'}`}>
                     <NavLink
                         to={`/event/${selectedEvent.id}/attendees`}
-                        className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
+                        className={navLinkClass}
                         title={isCollapsed ? "Attendees" : ""}
                     >
-                        <Users size={20} className="sidebar-item-icon" />
-                        <span className="sidebar-label">Attendees</span>
+                        <Users size={20} className="shrink-0" />
+                        <span className={isCollapsed ? 'hidden' : 'block'}>Attendees</span>
                     </NavLink>
 
                     <NavLink
                         to={`/event/${selectedEvent.id}/agenda`}
-                        className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
+                        className={navLinkClass}
                         title={isCollapsed ? "Agenda" : ""}
                     >
-                        <Calendar size={20} className="sidebar-item-icon" />
-                        <span className="sidebar-label">Agenda</span>
+                        <Calendar size={20} className="shrink-0" />
+                        <span className={isCollapsed ? 'hidden' : 'block'}>Agenda</span>
                     </NavLink>
 
                     <NavLink
                         to={`/event/${selectedEvent.id}/companies`}
-                        className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
+                        className={navLinkClass}
                         title={isCollapsed ? "Companies" : ""}
                     >
-                        <Building2 size={20} className="sidebar-item-icon" />
-                        <span className="sidebar-label">Companies</span>
+                        <Building2 size={20} className="shrink-0" />
+                        <span className={isCollapsed ? 'hidden' : 'block'}>Companies</span>
                     </NavLink>
 
                     <NavLink
                         to={`/event/${selectedEvent.id}/communication`}
-                        className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
+                        className={navLinkClass}
                         title={isCollapsed ? "Communication" : ""}
                     >
-                        <MessageSquare size={20} className="sidebar-item-icon" />
-                        <span className="sidebar-label">Communication</span>
+                        <MessageSquare size={20} className="shrink-0" />
+                        <span className={isCollapsed ? 'hidden' : 'block'}>Communication</span>
                     </NavLink>
                 </nav>
 
-                <div className="event-sidebar-footer">
+                <div className={`border-t border-border flex flex-col gap-1 ${isCollapsed ? 'py-4 px-2' : 'py-4 px-3'}`}>
                     <button
-                        className="settings-btn-sidebar"
+                        className={`flex items-center gap-3 w-full border-none bg-transparent text-text-secondary rounded-md text-sm font-medium cursor-pointer transition-all duration-200 hover:bg-bg-secondary hover:text-text-primary whitespace-nowrap ${isCollapsed ? 'justify-center p-[10px]' : 'py-2.5 px-3'}`}
                         title={isCollapsed ? "Settings" : ""}
                         onClick={() => navigate(`/event/${selectedEvent.id}/settings`)}
                     >
-                        <Settings size={20} className="sidebar-item-icon" />
-                        <span className="sidebar-label">Settings</span>
+                        <Settings size={20} className="shrink-0" />
+                        <span className={isCollapsed ? 'hidden' : 'block'}>Settings</span>
                     </button>
 
-                    <div className="sidebar-divider"></div>
+                    <div className={`h-px bg-border my-2 ${isCollapsed ? 'hidden' : 'block'}`}></div>
 
-                    <button onClick={logout} className="logout-btn-sidebar" title={isCollapsed ? "Logout" : ""}>
-                        <LogOut size={20} className="sidebar-item-icon" />
-                        <span className="sidebar-label">Logout</span>
+                    <button onClick={logout} className={`flex items-center gap-3 w-full border-none bg-transparent text-text-secondary rounded-md text-sm font-medium cursor-pointer transition-all duration-200 hover:bg-red-50 hover:text-danger whitespace-nowrap ${isCollapsed ? 'justify-center p-[10px]' : 'py-2.5 px-3'}`} title={isCollapsed ? "Logout" : ""}>
+                        <LogOut size={20} className="shrink-0" />
+                        <span className={isCollapsed ? 'hidden' : 'block'}>Logout</span>
                     </button>
                 </div>
             </aside>
 
-            <main className="event-content">
+            <main className={`flex-1 bg-bg-secondary p-8 min-h-screen transition-[margin-left] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${isCollapsed ? 'ml-[72px]' : 'ml-[260px]'}`}>
                 <Outlet />
             </main>
         </div>
