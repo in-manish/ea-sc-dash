@@ -281,5 +281,168 @@ export const eventService = {
             console.error('Update Event Error:', error);
             throw error;
         }
+    },
+
+
+    // --- AR Groups APIs ---
+
+    async getARGroups(eventId, token, options = {}) {
+        const { is_active, page, page_size } = options;
+        try {
+            const queryParams = new URLSearchParams();
+            if (is_active !== undefined) queryParams.append('is_active', is_active);
+            if (page) queryParams.append('page', page);
+            if (page_size) queryParams.append('page_size', page_size);
+
+            const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/additional-requirements/groups/${queryString}`, {
+                method: 'GET',
+                headers: getHeaders(token)
+            });
+
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Get AR Groups Error:', error);
+            throw error;
+        }
+    },
+
+    async createARGroup(eventId, token, data) {
+        try {
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/additional-requirements/groups/`, {
+                method: 'POST',
+                headers: {
+                    ...getHeaders(token),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Create AR Group Error:', error);
+            throw error;
+        }
+    },
+
+    async updateARGroup(eventId, groupId, token, data) {
+        try {
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/additional-requirements/groups/${groupId}/`, {
+                method: 'PATCH',
+                headers: {
+                    ...getHeaders(token),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Update AR Group Error:', error);
+            throw error;
+        }
+    },
+
+    async deleteARGroup(eventId, groupId, token) {
+        try {
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/additional-requirements/groups/${groupId}/`, {
+                method: 'DELETE',
+                headers: getHeaders(token)
+            });
+
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return true;
+        } catch (error) {
+            console.error('Delete AR Group Error:', error);
+            throw error;
+        }
+    },
+
+    // --- AR Products APIs ---
+
+    async getARProducts(eventId, groupId, token, options = {}) {
+        const { is_active, page, page_size } = options;
+        try {
+            const queryParams = new URLSearchParams();
+            if (is_active !== undefined) queryParams.append('is_active', is_active);
+            if (page) queryParams.append('page', page);
+            if (page_size) queryParams.append('page_size', page_size);
+
+            const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/additional-requirements/groups/${groupId}/products/${queryString}`, {
+                method: 'GET',
+                headers: getHeaders(token)
+            });
+
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Get AR Products Error:', error);
+            throw error;
+        }
+    },
+
+    async createARProduct(eventId, groupId, token, data, isMultipart = false) {
+        try {
+            const headers = getHeaders(token);
+            if (!isMultipart) {
+                headers['Content-Type'] = 'application/json';
+            } else {
+                delete headers['Content-Type']; // Let browser set boundary for multipart
+            }
+
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/additional-requirements/groups/${groupId}/products/`, {
+                method: 'POST',
+                headers,
+                body: isMultipart ? data : JSON.stringify(data)
+            });
+
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Create AR Product Error:', error);
+            throw error;
+        }
+    },
+
+    async updateARProduct(eventId, productId, token, data, isMultipart = false) {
+        try {
+            const headers = getHeaders(token);
+            if (!isMultipart) {
+                headers['Content-Type'] = 'application/json';
+            } else {
+                delete headers['Content-Type'];
+            }
+
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/additional-requirements/products/${productId}/`, {
+                method: 'PATCH',
+                headers,
+                body: isMultipart ? data : JSON.stringify(data)
+            });
+
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Update AR Product Error:', error);
+            throw error;
+        }
+    },
+
+    async deleteARProduct(eventId, productId, token) {
+        try {
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/additional-requirements/products/${productId}/`, {
+                method: 'DELETE',
+                headers: getHeaders(token)
+            });
+
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return true;
+        } catch (error) {
+            console.error('Delete AR Product Error:', error);
+            throw error;
+        }
     }
 };

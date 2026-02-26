@@ -2,16 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
-import { Loader2, Search, Filter, Globe, Building2, X, Printer } from 'lucide-react';
+import { Loader2, Search, Filter, Globe, Building2, X, Printer, ShoppingCart, Settings } from 'lucide-react';
 import AdditionalRequirementsOrders from './AdditionalRequirementsOrders';
+import ARManager from './ARManager';
 
 const Companies = () => {
     const { selectedEvent, token } = useAuth();
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
 
-    // Helper to get active tab from URL or default to 'exhibitors'
-    const getActiveTab = () => searchParams.get('tab') || 'exhibitors';
+    // Helper to get active tab and view from URL
+    const activeTab = searchParams.get('tab') || 'exhibitors';
+    const arView = searchParams.get('ar_view') || 'orders';
 
     const [companies, setCompanies] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -41,11 +43,18 @@ const Companies = () => {
 
     const [filters, setFilters] = useState(getInitialFilters());
 
-    const activeTab = getActiveTab();
-
     const handleTabChange = (tabName) => {
         const newParams = new URLSearchParams(searchParams);
         newParams.set('tab', tabName);
+        if (tabName !== 'additional_requirements') {
+            newParams.delete('ar_view');
+        }
+        setSearchParams(newParams);
+    };
+
+    const handleARViewChange = (viewName) => {
+        const newParams = new URLSearchParams(searchParams);
+        newParams.set('ar_view', viewName);
         setSearchParams(newParams);
     };
 
@@ -61,6 +70,8 @@ const Companies = () => {
 
     // Update searchParams for persistence
     useEffect(() => {
+        if (activeTab !== 'exhibitors') return;
+
         const params = new URLSearchParams(searchParams);
         if (page > 1) params.set('page', page);
         else params.delete('page');
@@ -79,7 +90,7 @@ const Companies = () => {
         });
 
         setSearchParams(params, { replace: true });
-    }, [page, debouncedSearch, filters, setSearchParams]);
+    }, [page, debouncedSearch, filters, activeTab]);
 
     useEffect(() => {
         const fetchCompanies = async () => {
@@ -180,7 +191,26 @@ const Companies = () => {
                 </button>
             </div>
 
-            {activeTab === 'exhibitors' ? (
+            {activeTab === 'additional_requirements' && (
+                <div className="mb-6 flex items-center gap-1 p-1 bg-bg-secondary border border-border rounded-lg inline-flex">
+                    <button
+                        className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${arView === 'orders' ? 'bg-white text-accent shadow-sm' : 'text-text-secondary hover:text-text-primary'}`}
+                        onClick={() => handleARViewChange('orders')}
+                    >
+                        <ShoppingCart size={16} />
+                        Requirement Orders
+                    </button>
+                    <button
+                        className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${arView === 'setup' ? 'bg-white text-accent shadow-sm' : 'text-text-secondary hover:text-text-primary'}`}
+                        onClick={() => handleARViewChange('setup')}
+                    >
+                        <Settings size={16} />
+                        Requirement Setup
+                    </button>
+                </div>
+            )}
+
+            {activeTab === 'exhibitors' && (
                 <>
                     {error && <div className="bg-red-50 text-red-800 p-4 border border-red-200 rounded-md mb-6">{error}</div>}
 
@@ -280,8 +310,14 @@ const Companies = () => {
                         </button>
                     </div>
                 </>
-            ) : (
+            )}
+
+            {activeTab === 'additional_requirements' && arView === 'orders' && (
                 <AdditionalRequirementsOrders eventId={selectedEvent.id} />
+            )}
+
+            {activeTab === 'additional_requirements' && arView === 'setup' && (
+                <ARManager eventId={selectedEvent.id} />
             )}
 
             {/* Filter Drawer */}

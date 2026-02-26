@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
-import { Loader2, Calendar, CheckCircle, XCircle, DollarSign, X } from 'lucide-react';
+import { Loader2, Calendar, CheckCircle, XCircle, DollarSign, X, ChevronDown } from 'lucide-react';
 
 const STATUS_OPTIONS = [
     { value: 'cart', label: 'Cart' },
@@ -33,6 +33,7 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
     const [error, setError] = useState(null);
     const [total, setTotal] = useState(0);
     const [stats, setStats] = useState(null);
+    const [isStatsExpanded, setIsStatsExpanded] = useState(false);
 
     // Get filters from URL
     const page = parseInt(searchParams.get('page')) || 1;
@@ -269,34 +270,75 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
     return (
         <div className="py-4 animate-fade-in">
             <div className="flex justify-between items-center mb-4">
-                <h1 className="text-2xl font-bold text-gray-800">Additional Requirements Orders</h1>
+                <div className="flex items-center gap-4">
+                    <h1 className="text-2xl font-bold text-gray-800">Additional Requirements Orders</h1>
+                    {stats && (
+                        <button
+                            className="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-md text-xs font-bold uppercase tracking-wider transition-colors"
+                            onClick={() => setIsStatsExpanded(!isStatsExpanded)}
+                        >
+                            {isStatsExpanded ? 'Hide Stats' : 'View Stats'}
+                            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isStatsExpanded ? 'rotate-180' : ''}`} />
+                        </button>
+                    )}
+                </div>
                 <button className="btn btn-primary" onClick={handleStartSendReport}>
                     Send Report
                 </button>
             </div>
 
             {/* Stats Section */}
-            {stats && (
-                <div className="stats-grid mb-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {Object.entries(stats).map(([key, value]) => (
-                        <div key={key} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col">
-                            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{key.replace(/_/g, ' ')}</span>
-                            {typeof value === 'object' && value !== null ? (
-                                <div className="flex flex-col gap-1 mt-1">
-                                    {Object.entries(value).map(([subKey, subVal]) => (
-                                        <div key={subKey} className="flex justify-between items-center text-sm">
-                                            <span className="text-slate-500 capitalize">{subKey.replace(/_/g, ' ')}</span>
-                                            <span className="font-bold text-slate-800">{subVal}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <span className="text-2xl font-black text-slate-800">
-                                    {typeof value === 'number' && key.includes('amount') ? formatCurrency(value) : value}
-                                </span>
-                            )}
-                        </div>
-                    ))}
+            {stats && isStatsExpanded && (
+                <div className="flex gap-4 mb-6 overflow-x-auto pb-2 animate-fade-in">
+                    {Object.entries(stats).map(([key, value]) => {
+                        // Skip rendering empty objects or nulls
+                        if (typeof value === 'object' && value !== null && Object.keys(value).length === 0) return null;
+
+                        return (
+                            <div key={key} className="bg-white rounded-xl border border-gray-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] p-5 min-w-[240px] flex-shrink-0 flex flex-col">
+                                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">{key.replace(/_/g, ' ')}</span>
+                                {typeof value === 'object' && value !== null ? (
+                                    <div className="flex flex-col gap-1">
+                                        {Object.entries(value).map(([subKey, subVal]) => {
+                                            const filterValue = subKey.replace('_count', '');
+                                            let isActive = false;
+
+                                            if (key === 'payment_mode') isActive = paymentMode === filterValue;
+                                            else if (key === 'status') isActive = statusParam.includes(filterValue);
+                                            else if (key === 'is_verified') isActive = isVerified === filterValue.toString();
+
+                                            return (
+                                                <div
+                                                    key={subKey}
+                                                    className={`flex justify-between items-center text-[13px] p-1.5 -mx-1.5 rounded-md cursor-pointer transition-colors ${isActive ? 'bg-blue-50/80 text-accent' : 'hover:bg-slate-50'}`}
+                                                    onClick={() => {
+                                                        if (key === 'payment_mode') {
+                                                            if (isActive) removeFilter('payment_mode', filterValue);
+                                                            else updateFilters({ payment_mode: filterValue });
+                                                        } else if (key === 'status') {
+                                                            if (isActive) removeFilter('status', filterValue);
+                                                            else updateFilters({ status: [...statusParam, filterValue] });
+                                                        } else if (key === 'is_verified') {
+                                                            if (isActive) removeFilter('is_verified', filterValue.toString());
+                                                            else updateFilters({ is_verified: filterValue.toString() });
+                                                        }
+                                                    }}
+                                                    title={`Click to filter by ${filterValue}`}
+                                                >
+                                                    <span className={`capitalize ${isActive ? 'text-accent font-semibold' : 'text-slate-500'}`}>{subKey.replace(/_/g, ' ')}</span>
+                                                    <span className={`font-bold ${isActive ? 'text-accent' : 'text-slate-800'}`}>{subVal}</span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <span className="text-2xl font-black text-slate-800 mt-auto">
+                                        {typeof value === 'number' && key.includes('amount') ? formatCurrency(value) : value}
+                                    </span>
+                                )}
+                            </div>
+                        );
+                    })}
                 </div>
             )}
 

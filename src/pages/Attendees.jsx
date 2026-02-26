@@ -354,7 +354,9 @@ const Attendees = () => {
                                                     attendee.company || '-'
                                                 )}
                                             </div>
-                                            <div className="text-xs text-text-secondary mt-0.5">{attendee.city}, {attendee.country}</div>
+                                            <div className="text-xs text-text-secondary mt-0.5">
+                                                {[attendee.city, attendee.country].filter(Boolean).join(', ') || '-'}
+                                            </div>
                                             {(attendee.website || attendee.parent_exhibitor_id) && (
                                                 <div className="flex gap-2.5 mt-1.5">
                                                     {attendee.website && (
