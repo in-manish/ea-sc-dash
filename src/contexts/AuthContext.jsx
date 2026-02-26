@@ -82,7 +82,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('app_env', newEnv);
         // Navigate to root to ensure we don't stay on a page with invalid ID (like an event detail page)
         // and reload to apply the new config/theme
-        window.location.href = '/';
+        window.location.href = import.meta.env.BASE_URL;
     };
 
     return (

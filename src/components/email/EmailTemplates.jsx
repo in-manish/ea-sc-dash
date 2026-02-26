@@ -30,9 +30,6 @@ const EmailTemplates = () => {
     const [editFormData, setEditFormData] = useState({});
     const [isSaving, setIsSaving] = useState(false);
 
-    // Deletion State
-    const [isDeleting, setIsDeleting] = useState(false);
-
     const fetchTemplates = async () => {
         setIsLoading(true);
         try {
@@ -115,15 +112,12 @@ const EmailTemplates = () => {
         e.stopPropagation();
         if (!window.confirm("Are you sure you want to delete this email template?")) return;
 
-        setIsDeleting(true);
         try {
             await emailService.deleteTemplate(id, token);
             await fetchTemplates();
         } catch (err) {
             console.error('Error deleting template', err);
             alert("Failed to delete template.");
-        } finally {
-            setIsDeleting(false);
         }
     }
 

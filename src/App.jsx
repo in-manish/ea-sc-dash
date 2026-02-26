@@ -15,9 +15,11 @@ import Reports from './pages/Reports';
 import ProtectedRoute from './components/ProtectedRoute';
 
 const App = () => {
+  const basename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/';
+
   return (
     <AuthProvider>
-      <Router>
+      <Router basename={basename}>
         <Routes>
           <Route path="/login" element={<Login />} />
 

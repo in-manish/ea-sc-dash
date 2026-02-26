@@ -55,7 +55,7 @@ const ARManager = ({ eventId }) => {
                 ...prev,
                 [groupId]: { loading: false, data: data.results || data, error: null }
             }));
-        } catch (err) {
+        } catch {
             setProductsState(prev => ({
                 ...prev,
                 [groupId]: { loading: false, data: [], error: 'Failed to load products.' }
@@ -99,7 +99,7 @@ const ARManager = ({ eventId }) => {
             let jsonPayload = {};
             try {
                 jsonPayload = JSON.parse(groupForm.group_details_json);
-            } catch (e) {
+            } catch {
                 // If invalid JSON, maybe alert or default to empty
             }
 
@@ -117,11 +117,11 @@ const ARManager = ({ eventId }) => {
             }
             setIsGroupModalOpen(false);
             fetchGroups();
-        } catch (err) {
-            alert('Failed to save group');
-        } finally {
-            setSavingGroup(false);
-        }
+            } catch {
+                alert('Failed to save group');
+            } finally {
+                setSavingGroup(false);
+            }
     };
 
     const handleDeleteGroup = async (groupId) => {
@@ -129,7 +129,7 @@ const ARManager = ({ eventId }) => {
             try {
                 await eventService.deleteARGroup(eventId, groupId, token);
                 fetchGroups();
-            } catch (err) {
+            } catch {
                 alert('Failed to delete group');
             }
         }
@@ -203,7 +203,7 @@ const ARManager = ({ eventId }) => {
             if (expandedGroups.has(activeGroupIdForProduct)) {
                 fetchProductsForGroup(activeGroupIdForProduct);
             }
-        } catch (err) {
+        } catch {
             alert('Failed to save product');
         } finally {
             setSavingProduct(false);
@@ -217,7 +217,7 @@ const ARManager = ({ eventId }) => {
                 if (expandedGroups.has(groupId)) {
                     fetchProductsForGroup(groupId);
                 }
-            } catch (err) {
+            } catch {
                 alert('Failed to delete product');
             }
         }

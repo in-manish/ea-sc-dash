@@ -1,16 +1,8 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-const repoName = process.env.GITHUB_REPOSITORY?.split('/')[1] || ''
-const isUserSite = repoName.toLowerCase() === 'in-manish.github.io'
-const base = process.env.GITHUB_ACTIONS
-  ? isUserSite
-    ? '/'
-    : `/${repoName}/`
-  : '/'
-
-// https://vite.dev/config/
+// Custom domain deployment should always serve from root.
 export default defineConfig({
-  base,
+  base: '/',
   plugins: [react()],
 })

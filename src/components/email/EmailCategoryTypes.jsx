@@ -29,9 +29,6 @@ const EmailCategoryTypes = () => {
     const [editFormData, setEditFormData] = useState({});
     const [isSaving, setIsSaving] = useState(false);
 
-    // Deletion State
-    const [isDeleting, setIsDeleting] = useState(false);
-
     const fetchEmails = async () => {
         if (!eventId) return;
         setIsLoading(true);
@@ -112,15 +109,12 @@ const EmailCategoryTypes = () => {
         e.stopPropagation();
         if (!window.confirm("Are you sure you want to delete this category email?")) return;
 
-        setIsDeleting(true);
         try {
             await emailService.deleteCategoryEmail(eventId, id, token);
             await fetchEmails();
         } catch (err) {
             console.error('Error deleting email', err);
             alert("Failed to delete email.");
-        } finally {
-            setIsDeleting(false);
         }
     }
 
