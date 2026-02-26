@@ -4,6 +4,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
 import { Save, Loader2, Calendar, MapPin, Globe, Building2, Users, Plus, Trash2, Eye, EyeOff, ArrowUp, ArrowDown } from 'lucide-react';
 
+
+
+
 const ToggleSwitch = ({ name, checked, isModified, onChange }) => (
     <label className="relative inline-block w-11 h-6 cursor-pointer m-0">
         <input type="checkbox" name={name} checked={checked} onChange={onChange} className="peer sr-only" />
@@ -23,6 +26,9 @@ const Settings = () => {
     const [message, setMessage] = useState({ type: '', text: '' });
     const [previewStates, setPreviewStates] = useState({});
 
+
+
+
     useEffect(() => {
         fetchEventDetails();
     }, [id]);
@@ -33,7 +39,9 @@ const Settings = () => {
             const data = await eventService.getEventDetails(id, token);
             setEventData(data);
             setOriginalEventData(JSON.parse(JSON.stringify(data)));
+
         } catch (err) {
+
             console.error(err);
             setMessage({ type: 'error', text: 'Failed to load event details.' });
         } finally {
@@ -493,7 +501,7 @@ const Settings = () => {
                             <div className="bg-bg-primary border border-border rounded-lg p-6 mb-6">
                                 <h3 className="text-base font-semibold text-text-primary mb-6 pb-2 border-b border-border">Attendee Types</h3>
                                 <div className="flex flex-col gap-2">
-                                    {eventData.attendee_types?.map(type => (
+                                    {(eventData.attendee_types || []).map(type => (
                                         <div key={type.id} className="flex justify-between items-center p-3 bg-bg-secondary rounded-md">
                                             <span className="text-sm font-medium">{type.name}</span>
                                             {type.email_saved && <span className="py-1 px-2 rounded font-semibold text-xs bg-green-100 text-green-800">Email Saved</span>}
@@ -510,3 +518,4 @@ const Settings = () => {
 };
 
 export default Settings;
+

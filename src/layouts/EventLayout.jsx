@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet, NavLink, useParams, useNavigate } from 'react-router-dom';
-import { Menu, X, Users, Calendar, Settings, ChevronLeft, Building2, ArrowLeft, LogOut, MessageSquare, BarChart2 } from 'lucide-react';
+import { Menu, X, Users, Calendar, Settings, ChevronLeft, Building2, ArrowLeft, LogOut, MessageSquare, BarChart2, UserCog } from 'lucide-react';
+
 import { useAuth } from '../contexts/AuthContext';
 
 const EventLayout = () => {
@@ -66,6 +67,16 @@ const EventLayout = () => {
                         <Users size={20} className="shrink-0" />
                         <span className={isCollapsed ? 'hidden' : 'block'}>Attendees</span>
                     </NavLink>
+
+                    <NavLink
+                        to={`/event/${selectedEvent.id}/attendee-types`}
+                        className={navLinkClass}
+                        title={isCollapsed ? "Attendee Types" : ""}
+                    >
+                        <UserCog size={20} className="shrink-0" />
+                        <span className={isCollapsed ? 'hidden' : 'block'}>Attendee Types</span>
+                    </NavLink>
+
 
                     <NavLink
                         to={`/event/${selectedEvent.id}/agenda`}

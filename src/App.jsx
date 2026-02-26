@@ -12,7 +12,9 @@ import Agenda from './pages/Agenda';
 import Settings from './pages/Settings';
 import Communication from './pages/Communication';
 import Reports from './pages/Reports';
+import AttendeeTypes from './pages/AttendeeTypes';
 import ProtectedRoute from './components/ProtectedRoute';
+
 
 const App = () => {
   const basename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/';
@@ -44,7 +46,9 @@ const App = () => {
             <Route path="agenda" element={<Agenda />} />
             <Route path="communication" element={<Communication />} />
             <Route path="reports" element={<Reports />} />
+            <Route path="attendee-types" element={<AttendeeTypes />} />
             <Route path="settings" element={<Settings />} />
+
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

@@ -444,5 +444,307 @@ export const eventService = {
             console.error('Delete AR Product Error:', error);
             throw error;
         }
+    },
+
+    async getScanLocations(eventId, token) {
+        try {
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/locations/scan/`, {
+                method: 'GET',
+                headers: getHeaders(token)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Get Scan Locations Error:', error);
+            throw error;
+        }
+    },
+
+    // --- Attendee Type Badge Management ---
+
+    async getBadgeUrls(eventId, attId, token) {
+        try {
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/attendee_types/${attId}/badge/`, {
+                method: 'GET',
+                headers: getHeaders(token)
+            });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Get Badge URLs Error:', error);
+            throw error;
+        }
+    },
+
+    async uploadBadgeImages(eventId, attId, token, formData) {
+        try {
+            const headers = getHeaders(token);
+            delete headers['Content-Type']; // Browser sets multipart boundary
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/attendee_types/${attId}/badge/`, {
+                method: 'POST',
+                headers,
+                body: formData
+            });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Upload Badge Images Error:', error);
+            throw error;
+        }
+    },
+
+    async removeBadgeImages(eventId, attId, token) {
+        try {
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/attendee_types/${attId}/badge/`, {
+                method: 'DELETE',
+                headers: getHeaders(token)
+            });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return true;
+        } catch (error) {
+            console.error('Remove Badge Images Error:', error);
+            throw error;
+        }
+    },
+
+    // --- Attendee Type Badge Design ---
+
+    async getBadgeDesign(eventId, attId, token) {
+        try {
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/attendee_types/${attId}/design/badge/`, {
+                method: 'GET',
+                headers: getHeaders(token)
+            });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Get Badge Design Error:', error);
+            throw error;
+        }
+    },
+
+    async updateBadgeDesign(eventId, attId, token, formData) {
+        try {
+            const headers = getHeaders(token);
+            delete headers['Content-Type'];
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/attendee_types/${attId}/design/badge/`, {
+                method: 'POST',
+                headers,
+                body: formData
+            });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Update Badge Design Error:', error);
+            throw error;
+        }
+    },
+
+    // --- Email Badge Template ---
+
+    async uploadEmailBadgeTemplate(eventId, attId, token, file) {
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            const headers = getHeaders(token);
+            delete headers['Content-Type'];
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/attendee_types/email_badge/template/?attendee_type_id=${attId}`, {
+                method: 'POST',
+                headers,
+                body: formData
+            });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Upload Email Badge Template Error:', error);
+            throw error;
+        }
+    },
+
+    // --- Email Drafts ---
+
+    async getEmailDrafts(eventId, token, atId = null) {
+        try {
+            const query = atId ? `?at_id=${atId}` : '';
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/attendee_types/emails/${query}`, {
+                method: 'GET',
+                headers: getHeaders(token)
+            });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Get Email Drafts Error:', error);
+            throw error;
+        }
+    },
+
+    async saveEmailDraft(eventId, token, payload) {
+        try {
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/attendee_types/emails/`, {
+                method: 'POST',
+                headers: {
+                    ...getHeaders(token),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Save Email Draft Error:', error);
+            throw error;
+        }
+    },
+
+    async deleteEmailDraft(eventId, token, attendeeTypeIds) {
+        try {
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/attendee_types/emails/`, {
+                method: 'DELETE',
+                headers: {
+                    ...getHeaders(token),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ attendee_types: attendeeTypeIds })
+            });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return true;
+        } catch (error) {
+            console.error('Delete Email Draft Error:', error);
+            throw error;
+        }
+    },
+
+    // --- SMS Drafts ---
+
+    async getSMSDrafts(eventId, token, atId = null) {
+        try {
+            const query = atId ? `?at_id=${atId}` : '';
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/attendee_types/sms/${query}`, {
+                method: 'GET',
+                headers: getHeaders(token)
+            });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Get SMS Drafts Error:', error);
+            throw error;
+        }
+    },
+
+    async saveSMSDraft(eventId, token, payload) {
+        try {
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/attendee_types/sms/`, {
+                method: 'POST',
+                headers: {
+                    ...getHeaders(token),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Save SMS Draft Error:', error);
+            throw error;
+        }
+    },
+
+    async deleteSMSDraft(eventId, token, attendeeTypeIds) {
+        try {
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/attendee_types/sms/`, {
+                method: 'DELETE',
+                headers: {
+                    ...getHeaders(token),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ attendee_types: attendeeTypeIds })
+            });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return true;
+        } catch (error) {
+            console.error('Delete SMS Draft Error:', error);
+            throw error;
+        }
+    },
+
+    // --- Attendee Transfer ---
+
+    async transferAttendees(eventId, token, payload) {
+        try {
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/attendee_types/`, {
+                method: 'PATCH',
+                headers: {
+                    ...getHeaders(token),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Transfer Attendees Error:', error);
+            throw error;
+        }
+    },
+
+    // --- Attendee Type CRUD ---
+
+    async getAttendeeTypes(eventId, token) {
+        try {
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/attendee_types/`, {
+                method: 'GET',
+                headers: getHeaders(token)
+            });
+
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Get Attendee Types Error:', error);
+            throw error;
+        }
+    },
+
+    async updateAttendeeTypes(eventId, token, attendeeTypes) {
+        try {
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/attendee_types/`, {
+                method: 'PUT',
+                headers: {
+                    ...getHeaders(token),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ attendee_types: attendeeTypes })
+            });
+
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            console.error('Update Attendee Types Error:', error);
+            throw error;
+        }
+    },
+
+    async deleteAttendeeType(eventId, attendeeTypeId, token) {
+        try {
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/attendee_types/`, {
+                method: 'DELETE',
+                headers: {
+                    ...getHeaders(token),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: attendeeTypeId })
+            });
+
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return true;
+        } catch (error) {
+            console.error('Delete Attendee Type Error:', error);
+            throw error;
+        }
     }
 };
+
+

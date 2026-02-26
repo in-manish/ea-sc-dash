@@ -2,25 +2,27 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import ReportService from '../../services/reportService';
 import { eventService } from '../../services/eventService';
-import { Loader2, Download, Search, Filter, AlertCircle, RefreshCw, MapPin, Hash, User, Mail, Building, Clock, Map, Phone, Briefcase, X, AlignLeft, Calendar } from 'lucide-react';
+import { Loader2, Download, Search, Filter, AlertCircle, RefreshCw, MapPin, Hash, User, Mail, Building, Clock, Map, Phone, Briefcase, X, AlignLeft, LayoutIcon, Info, Calendar } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 
-const ScanReports = () => {
+
+const PrintReports = () => {
     const { selectedEvent } = useAuth();
     const [searchParams, setSearchParams] = useSearchParams();
 
     // Derived state from URL
     const page = parseInt(searchParams.get('p') || '1');
-    const sortBy = searchParams.get('sort') || 'scanned_at';
+    const sortBy = searchParams.get('sort') || 'printed_at';
     const sortOrder = searchParams.get('order') || 'desc';
     const uniqueRecord = searchParams.get('unique') === 'true';
 
     // Parse filters from URL
     const filters = React.useMemo(() => ({
-        location_id: searchParams.get('loc')?.split(',').filter(Boolean).map(Number) || [],
-        date: searchParams.get('date')?.split(',').filter(Boolean) || [],
-        att_id: searchParams.get('att')?.split(',').filter(Boolean) || [],
-        reg_type: searchParams.get('reg')?.split(',').filter(Boolean) || []
+        print_location_id: searchParams.get('ploc')?.split(',').filter(Boolean).map(Number) || [],
+        kiosk_location_id: searchParams.get('kloc')?.split(',').filter(Boolean).map(Number) || [],
+        att_id: searchParams.get('att')?.split(',').filter(Boolean).map(String) || [],
+        reg_type: searchParams.get('reg')?.split(',').filter(Boolean) || [],
+        date: searchParams.get('date')?.split(',').filter(Boolean) || []
     }), [searchParams]);
 
     const setPage = (newPage) => {
@@ -56,17 +58,20 @@ const ScanReports = () => {
     const setFilters = (updateFn) => {
         const newFilters = typeof updateFn === 'function' ? updateFn(filters) : updateFn;
         setSearchParams(params => {
-            if (newFilters.location_id.length > 0) params.set('loc', newFilters.location_id.join(','));
-            else params.delete('loc');
+            if (newFilters.print_location_id.length > 0) params.set('ploc', newFilters.print_location_id.join(','));
+            else params.delete('ploc');
 
-            if (newFilters.date.length > 0) params.set('date', newFilters.date.join(','));
-            else params.delete('date');
+            if (newFilters.kiosk_location_id.length > 0) params.set('kloc', newFilters.kiosk_location_id.join(','));
+            else params.delete('kloc');
 
             if (newFilters.att_id.length > 0) params.set('att', newFilters.att_id.join(','));
             else params.delete('att');
 
             if (newFilters.reg_type.length > 0) params.set('reg', newFilters.reg_type.join(','));
             else params.delete('reg');
+
+            if (newFilters.date.length > 0) params.set('date', newFilters.date.join(','));
+            else params.delete('date');
 
             params.set('p', '1'); // Reset page
             return params;
@@ -76,7 +81,9 @@ const ScanReports = () => {
     const [data, setData] = useState([]);
     const [statistics, setStatistics] = useState({
         total: 0,
-        location_statistics: {}
+        print_location: {},
+        kiosk_location: {},
+        other_location: {}
     });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -84,30 +91,39 @@ const ScanReports = () => {
     const [downloading, setDownloading] = useState(false);
     const [selectedRecord, setSelectedRecord] = useState(null);
     const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
-    const [locations, setLocations] = useState([]); // Official list [{id, name, ...}]
-    const [locationMap, setLocationMap] = useState({}); // Mapping id -> name
+
+    // Metadata for filters
+    const [printLocations, setPrintLocations] = useState([]);
+    const [kioskLocations, setKioskLocations] = useState([]);
+    const [attendeeTypes, setAttendeeTypes] = useState([]);
 
     const { token } = useAuth();
 
-    // Fetch Scan Locations on mount
+    // Fetch Metadata (Locations, Attendee Types)
     useEffect(() => {
-        const fetchLocations = async () => {
+        const fetchFiltersMetadata = async () => {
             if (!selectedEvent?.id || !token) return;
             try {
-                const data = await eventService.getScanLocations(selectedEvent.id, token);
-                setLocations(data || []);
+                // Fetch Print Locations
+                const pLocs = await ReportService.getPrintLocations(selectedEvent.id);
+                setPrintLocations(pLocs || []);
 
-                // Build a map for quick name lookup by ID
-                const map = {};
-                (data || []).forEach(loc => {
-                    map[loc.id] = loc.name;
-                });
-                setLocationMap(map);
+                // Fetch Kiosk Locations (might fail if endpoint doesn't exist)
+                try {
+                    const kLocs = await ReportService.getKioskLocations(selectedEvent.id);
+                    setKioskLocations(kLocs || []);
+                } catch (e) {
+                    console.warn("Kiosk locations endpoint not found or failed:", e);
+                }
+
+                // Fetch Attendee Types from Event Details
+                const eventDetails = await eventService.getEventDetails(selectedEvent.id, token);
+                setAttendeeTypes(eventDetails?.attendee_types || []);
             } catch (err) {
-                console.error("Error fetching locations:", err);
+                console.error("Error fetching filters metadata:", err);
             }
         };
-        fetchLocations();
+        fetchFiltersMetadata();
     }, [selectedEvent?.id, token]);
 
     const fetchReports = useCallback(async () => {
@@ -126,33 +142,25 @@ const ScanReports = () => {
                 ...filters
             };
 
-            const response = await ReportService.getScanReports(selectedEvent.id, params);
-            // Fix data parsing logic since API response structure is flat and doesn't wrap in "success" / "data"
-            if (response.scanned_report !== undefined || response.total !== undefined) {
-                const reports = response.scanned_report || [];
-                setData(reports);
+            const response = await ReportService.getPrintReports(selectedEvent.id, params);
+
+            // API Response: { total: int, duplicate_count: int, statistics: {print_location, kiosk_location, other_location}, data: [] }
+            if (response.data !== undefined || response.total !== undefined) {
+                setData(response.data || []);
                 setStatistics({
                     total: response.total || 0,
-                    location_statistics: response.statistics?.location_statistics || {}
-                });
-            } else if (response.success && response.data) {
-                // Fallback for wrapped responses just in case the backend format behaves differently
-                const reports = response.data.scanned_report || [];
-                setData(reports);
-                setStatistics({
-                    total: response.data.total || 0,
-                    location_statistics: response.data.statistics?.location_statistics || {}
+                    print_location: response.statistics?.print_location || {},
+                    kiosk_location: response.statistics?.kiosk_location || {},
+                    other_location: response.statistics?.other_location || {}
                 });
             } else {
-                // Determine error state
-                throw new Error(response.message || 'Failed to fetch scan reports or no records found.');
+                throw new Error(response.message || 'Failed to fetch print reports.');
             }
         } catch (err) {
-            console.error('Error fetching scan reports:', err);
+            console.error('Error fetching print reports:', err);
             setError(err.message || 'An error occurred while fetching reports.');
-            // Clear on error
             setData([]);
-            setStatistics({ total: 0, location_statistics: {} });
+            setStatistics({ total: 0, print_location: {}, kiosk_location: {}, other_location: {} });
         } finally {
             setLoading(false);
         }
@@ -171,26 +179,20 @@ const ScanReports = () => {
                 sort_by: sortBy,
                 sort_order: sortOrder,
                 unique_record: uniqueRecord,
+                ...filters
             };
 
-            const response = await ReportService.downloadScanReport(selectedEvent.id, params);
+            const response = await ReportService.downloadPrintReport(selectedEvent.id, params);
 
-            if (response.success || response.download_link || response.message) {
-                const targetLink = response.download_link || response.data?.download_link;
-                const targetMsg = response.message || response.data?.message;
-
-                if (targetLink) {
-                    window.open(targetLink, '_blank');
-                } else if (targetMsg) {
-                    alert(targetMsg);
-                } else {
-                    alert('Export initiated successfully.');
-                }
+            if (response.download_link) {
+                window.open(response.download_link, '_blank');
+            } else if (response.message) {
+                alert(response.message);
             } else {
-                alert(response.message || 'Failed to download report');
+                alert('Export initiated successfully.');
             }
         } catch (err) {
-            console.error('Error downloading scan report:', err);
+            console.error('Error downloading print report:', err);
             alert('An error occurred while downloading the report.');
         } finally {
             setDownloading(false);
@@ -204,17 +206,8 @@ const ScanReports = () => {
             setSortBy(field);
             setSortOrder('asc');
         }
-        setPage(1); // Reset to first page
+        setPage(1);
     };
-
-    const StatusBadge = ({ scannedIn }) => (
-        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${scannedIn === 'IN'
-            ? 'bg-green-100 text-green-800 border-green-200 border'
-            : 'bg-red-100 text-red-800 border-red-200 border'
-            }`}>
-            {scannedIn === 'IN' ? 'Check-in' : 'Check-out'}
-        </span>
-    );
 
     const DetailItem = ({ icon, label, value }) => {
         if (!value || value === '-' || value === 'null') return null;
@@ -228,16 +221,18 @@ const ScanReports = () => {
         );
     };
 
-    // Calculate total pages
     const totalPages = Math.ceil((statistics.total || 0) / pageSize);
-    const maxBarCount = Math.max(...Object.values(statistics.location_statistics || {}), 1);
+
+    // Combine stats for rendering
+    const combinedStats = { ...statistics.print_location, ...statistics.kiosk_location, ...statistics.other_location };
+    const maxBarCount = Math.max(...Object.values(combinedStats), 1);
 
     return (
         <div className="flex flex-col gap-6 w-full max-w-[100vw]">
             {/* Header / Stats row */}
             <div className="flex flex-col gap-4">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <h2 className="text-xl font-bold text-text-primary">Scan Reports ({statistics.total || 0})</h2>
+                    <h2 className="text-xl font-bold text-text-primary">Print Reports ({statistics.total || 0})</h2>
 
                     <div className="flex items-center gap-3 w-full sm:w-auto self-end">
                         <button
@@ -274,7 +269,7 @@ const ScanReports = () => {
                             ) : (
                                 <Download size={16} />
                             )}
-                            <span className="hidden sm:inline">{downloading ? 'Exporting...' : 'Export'}</span>
+                            <span className="hidden sm:inline">{downloading ? 'Exporting...' : 'Export CSV'}</span>
                         </button>
                     </div>
                 </div>
@@ -282,17 +277,21 @@ const ScanReports = () => {
                 {/* Active Filter Pills */}
                 {Object.values(filters).some(f => f.length > 0) && (
                     <div className="flex flex-wrap gap-2 py-1 animate-fade-in">
-                        {Object.entries(filters).map(([key, value]) => (
-                            value.map(val => {
-                                // For location_id, try to show the name if we have it in our map
+                        {Object.entries(filters).map(([key, value]) => {
+                            if (!Array.isArray(value)) return null;
+                            return value.map(val => {
                                 let displayVal = val;
-                                if (key === 'location_id' && locationMap[val]) {
-                                    displayVal = locationMap[val];
+                                if (key === 'print_location_id') {
+                                    displayVal = printLocations.find(l => l.id === val)?.name || val;
+                                } else if (key === 'kiosk_location_id') {
+                                    displayVal = kioskLocations.find(l => l.id === val)?.location || val;
+                                } else if (key === 'att_id') {
+                                    displayVal = attendeeTypes.find(t => t.id === val)?.name || val;
                                 }
 
                                 return (
                                     <div key={`${key}-${val}`} className="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-xs font-semibold bg-accent/10 text-accent border border-accent/20 transition-all hover:bg-accent/15">
-                                        <span className="opacity-70 uppercase text-[10px] font-bold tracking-wider">{key.replace('_', ' ')}:</span>
+                                        <span className="opacity-70 uppercase text-[10px] font-bold tracking-wider">{key.replace('_id', '').replace('_', ' ')}:</span>
                                         <span>{displayVal}</span>
                                         <button
                                             className="p-0.5 rounded-full hover:bg-accent/20 transition-colors"
@@ -307,12 +306,12 @@ const ScanReports = () => {
                                         </button>
                                     </div>
                                 );
-                            })
-                        ))}
+                            });
+                        })}
                         <button
                             className="text-xs font-bold text-text-tertiary hover:text-accent transition-colors px-2"
                             onClick={() => {
-                                setFilters({ location_id: [], date: [], att_id: [], reg_type: [] });
+                                setFilters({ print_location_id: [], kiosk_location_id: [], date: [], att_id: [], reg_type: [] });
                             }}
                         >
                             Clear All
@@ -320,14 +319,15 @@ const ScanReports = () => {
                     </div>
                 )}
 
+
                 {/* Location Statistics Bar Graph */}
-                {Object.keys(statistics.location_statistics || {}).length > 0 && (
+                {Object.keys(combinedStats).length > 0 && (
                     <div className="bg-bg-primary border border-border rounded-xl p-5 shadow-sm">
                         <h3 className="text-sm font-semibold text-text-primary mb-4 flex items-center gap-2 pb-3 border-b border-border/50">
-                            <AlignLeft size={16} className="text-accent" /> Gate-wise Scan Distribution
+                            <AlignLeft size={16} className="text-accent" /> Gate/Kiosk-wise Print Distribution
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4">
-                            {Object.entries(statistics.location_statistics).map(([location, count]) => (
+                            {Object.entries(combinedStats).map(([location, count]) => (
                                 <div key={location} className="flex items-center gap-3 group">
                                     <span className="w-24 text-xs font-semibold text-text-secondary truncate text-right group-hover:text-text-primary transition-colors" title={location}>
                                         {location}
@@ -356,15 +356,15 @@ const ScanReports = () => {
                 </div>
             )}
 
-            {/* Data Table Container */}
+            {/* Data Table */}
             <div className="flex flex-col bg-bg-primary rounded-xl overflow-hidden border border-border shadow-sm flex-1 w-full relative">
                 <div className="overflow-x-auto w-full">
                     <table className="w-full text-left border-collapse text-sm">
                         <thead className="bg-bg-secondary sticky top-0 z-10 w-full text-text-secondary font-semibold text-[0.85rem] uppercase tracking-wider border-b border-border">
                             <tr>
-                                <th className="py-3 px-4 min-w-[150px] whitespace-nowrap cursor-pointer hover:bg-bg-tertiary transition-colors" onClick={() => handleSort('scanned_at')}>
+                                <th className="py-3 px-4 min-w-[150px] whitespace-nowrap cursor-pointer hover:bg-bg-tertiary transition-colors" onClick={() => handleSort('printed_at')}>
                                     <div className="flex items-center gap-2">
-                                        <Clock size={14} /> Time {sortBy === 'scanned_at' && (sortOrder === 'asc' ? '↑' : '↓')}
+                                        <Clock size={14} /> Printed At {sortBy === 'printed_at' && (sortOrder === 'asc' ? '↑' : '↓')}
                                     </div>
                                 </th>
                                 <th className="py-3 px-4 min-w-[200px] whitespace-nowrap cursor-pointer hover:bg-bg-tertiary transition-colors" onClick={() => handleSort('name')}>
@@ -377,12 +377,12 @@ const ScanReports = () => {
                                         <Building size={14} /> Details {sortBy === 'company' && (sortOrder === 'asc' ? '↑' : '↓')}
                                     </div>
                                 </th>
-                                <th className="py-3 px-4 min-w-[160px] whitespace-nowrap cursor-pointer hover:bg-bg-tertiary transition-colors" onClick={() => handleSort('location_name')}>
+                                <th className="py-3 px-4 min-w-[160px] whitespace-nowrap">
                                     <div className="flex items-center gap-2">
-                                        <MapPin size={14} /> Location {sortBy === 'location_name' && (sortOrder === 'asc' ? '↑' : '↓')}
+                                        <MapPin size={14} /> Print Location
                                     </div>
                                 </th>
-                                <th className="py-3 px-4 min-w-[140px] whitespace-nowrap">Status</th>
+                                <th className="py-3 px-4 min-w-[140px] whitespace-nowrap">Kiosk</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
@@ -400,51 +400,49 @@ const ScanReports = () => {
                                             <Search size={20} />
                                         </div>
                                         <span className="font-medium text-text-primary block mb-1">No reports found</span>
-                                        <span className="text-xs">Adjust your filters to see more results</span>
                                     </td>
                                 </tr>
                             ) : (
-                                data.map((item) => (
+                                data.map((item, idx) => (
                                     <tr
-                                        key={item.id}
+                                        key={idx}
                                         onClick={() => setSelectedRecord(item)}
                                         className="hover:bg-bg-tertiary transition-colors cursor-pointer group"
                                     >
                                         <td className="py-3 px-4 font-medium text-text-primary whitespace-nowrap align-top">
-                                            {new Date(item.scanned_at).toLocaleString([], {
+                                            {item.printed_at ? new Date(item.printed_at).toLocaleString([], {
                                                 year: 'numeric', month: 'short', day: 'numeric',
                                                 hour: '2-digit', minute: '2-digit'
-                                            })}
+                                            }) : '-'}
                                         </td>
                                         <td className="py-3 px-4 align-top">
                                             <div className="flex flex-col gap-0.5">
-                                                <span className="font-semibold text-text-primary truncate group-hover:text-accent transition-colors" title={item.user?.name}>{item.user?.name || '-'}</span>
+                                                <span className="font-semibold text-text-primary truncate group-hover:text-accent transition-colors" title={item.user_data?.name}>{item.user_data?.name || '-'}</span>
                                                 <div className="flex items-center gap-1.5 text-xs text-text-secondary mt-0.5">
-                                                    {item.user?.email && <span className="flex items-center gap-1 truncate" title={item.user.email}><Mail size={10} /> {item.user.email}</span>}
+                                                    {item.user_data?.email && <span className="flex items-center gap-1 truncate" title={item.user_data.email}><Mail size={10} /> {item.user_data.email}</span>}
                                                 </div>
                                                 <div className="flex items-center gap-1.5 text-xs text-text-secondary mt-0.5">
-                                                    {item.user?.phone && <span className="flex items-center gap-1 truncate" title={item.user.phone}><Phone size={10} /> {item.user.phone}</span>}
+                                                    {item.user_data?.phone && <span className="flex items-center gap-1 truncate" title={item.user_data.phone}><Phone size={10} /> {item.user_data.phone}</span>}
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="py-3 px-4 align-top">
                                             <div className="flex flex-col gap-0.5">
-                                                <span className="font-medium text-text-primary text-sm truncate group-hover:text-accent transition-colors" title={item.user?.company}>{item.user?.company || '-'}</span>
-                                                <span className="text-xs text-text-secondary flex items-center gap-1 mt-0.5 truncate" title={item.user?.designation}>
-                                                    <Briefcase size={10} className="shrink-0" /> {item.user?.designation || '-'}
+                                                <span className="font-medium text-text-primary text-sm truncate group-hover:text-accent transition-colors" title={item.user_data?.company}>{item.user_data?.company || '-'}</span>
+                                                <span className="text-xs text-text-secondary flex items-center gap-1 mt-0.5 truncate" title={item.user_data?.designation}>
+                                                    <Briefcase size={10} className="shrink-0" /> {item.user_data?.designation || '-'}
                                                 </span>
                                             </div>
                                         </td>
                                         <td className="py-3 px-4 align-top">
                                             <div className="flex flex-col gap-0.5">
-                                                <span className="font-medium text-text-primary text-sm truncate" title={item.location?.name}>{item.location?.name || '-'}</span>
-                                                <span className="text-[10px] uppercase font-semibold text-text-tertiary tracking-wider mt-0.5 flex items-center gap-1 truncate">
-                                                    <Hash size={10} /> {item.device_id || '-'}
-                                                </span>
+                                                <span className="font-medium text-text-primary text-sm truncate" title={item.print_location?.name}>{item.print_location?.name || '-'}</span>
                                             </div>
                                         </td>
                                         <td className="py-3 px-4 align-top whitespace-nowrap">
-                                            <StatusBadge scannedIn={item.scanned_in} />
+                                            <span className="text-sm text-text-secondary">
+                                                {item.kiosk_location?.location || '-'}
+                                            </span>
                                         </td>
                                     </tr>
                                 ))
@@ -453,7 +451,7 @@ const ScanReports = () => {
                     </table>
                 </div>
 
-                {/* Pagination Controls */}
+                {/* Pagination */}
                 {!loading && data.length > 0 && (
                     <div className="p-4 border-t border-border bg-bg-secondary/30 flex items-center justify-between text-sm w-full">
                         <div className="text-text-secondary font-medium">
@@ -495,8 +493,8 @@ const ScanReports = () => {
                 >
                     <div className="px-6 py-5 border-b border-border flex justify-between items-center bg-bg-secondary/20">
                         <div>
-                            <h3 className="text-lg font-bold text-text-primary tracking-tight">Report Filters</h3>
-                            <p className="text-xs text-text-secondary mt-1">Refine your scan report data</p>
+                            <h3 className="text-lg font-bold text-text-primary tracking-tight">Print Filters</h3>
+                            <p className="text-xs text-text-secondary mt-1">Refine your print report data</p>
                         </div>
                         <button
                             onClick={() => setIsFilterDrawerOpen(false)}
@@ -532,35 +530,58 @@ const ScanReports = () => {
                             </div>
                         </div>
 
-                        {/* Location Filter */}
+                        {/* Print Location Filter */}
                         <div className="flex flex-col gap-3">
                             <h4 className="text-[0.7rem] font-bold text-text-tertiary uppercase tracking-[0.15em] flex items-center gap-2">
-                                <MapPin size={14} className="text-accent" /> Available Locations
+                                <MapPin size={14} className="text-accent" /> Print Locations
                             </h4>
-                            <div className="flex flex-col gap-1 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
-                                {locations.map(loc => (
+                            <div className="flex flex-col gap-1 max-h-[180px] overflow-y-auto pr-2 custom-scrollbar">
+                                {printLocations.map(loc => (
                                     <label key={loc.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-bg-secondary/50 cursor-pointer transition-colors group">
                                         <input
                                             type="checkbox"
-                                            checked={filters.location_id.includes(loc.id)}
+                                            checked={filters.print_location_id.includes(loc.id)}
                                             onChange={() => {
-                                                const current = filters.location_id;
+                                                const current = filters.print_location_id;
                                                 const next = current.includes(loc.id) ? current.filter(l => l !== loc.id) : [...current, loc.id];
-                                                setFilters({ ...filters, location_id: next });
+                                                setFilters({ ...filters, print_location_id: next });
                                             }}
                                             className="w-4 h-4 rounded border-border text-accent focus:ring-accent accent-accent"
                                         />
                                         <span className="text-sm font-medium text-text-primary group-hover:text-accent transition-colors">{loc.name}</span>
-                                        <span className="ml-auto text-[10px] font-bold text-text-tertiary bg-bg-secondary px-1.5 py-0.5 rounded-md">
-                                            {statistics.location_statistics?.[loc.name] || 0}
-                                        </span>
                                     </label>
                                 ))}
-                                {locations.length === 0 && (
-                                    <p className="text-xs text-text-tertiary italic p-2 text-center">No locations available</p>
+                                {printLocations.length === 0 && (
+                                    <p className="text-xs text-text-tertiary italic p-2 text-center">No print locations available</p>
                                 )}
                             </div>
                         </div>
+
+                        {/* Kiosk Location Filter */}
+                        {kioskLocations.length > 0 && (
+                            <div className="flex flex-col gap-3">
+                                <h4 className="text-[0.7rem] font-bold text-text-tertiary uppercase tracking-[0.15em] flex items-center gap-2">
+                                    <LayoutIcon size={14} className="text-accent" /> Kiosk Locations
+                                </h4>
+                                <div className="flex flex-col gap-1 max-h-[180px] overflow-y-auto pr-2 custom-scrollbar">
+                                    {kioskLocations.map(loc => (
+                                        <label key={loc.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-bg-secondary/50 cursor-pointer transition-colors group">
+                                            <input
+                                                type="checkbox"
+                                                checked={filters.kiosk_location_id.includes(loc.id)}
+                                                onChange={() => {
+                                                    const current = filters.kiosk_location_id;
+                                                    const next = current.includes(loc.id) ? current.filter(l => l !== loc.id) : [...current, loc.id];
+                                                    setFilters({ ...filters, kiosk_location_id: next });
+                                                }}
+                                                className="w-4 h-4 rounded border-border text-accent focus:ring-accent accent-accent"
+                                            />
+                                            <span className="text-sm font-medium text-text-primary group-hover:text-accent transition-colors">{loc.location}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         {/* Date Filter */}
                         <div className="flex flex-col gap-3">
@@ -632,23 +653,25 @@ const ScanReports = () => {
                             <h4 className="text-[0.7rem] font-bold text-text-tertiary uppercase tracking-[0.15em] flex items-center gap-2">
                                 <User size={14} className="text-accent" /> Attendee Category
                             </h4>
-                            <div className="flex flex-wrap gap-2">
-                                {['Exhibitor', 'Visitor', 'VIP', 'Speaker', 'Media', 'Contractor'].map(type => (
-                                    <button
-                                        key={type}
-                                        onClick={() => {
-                                            const current = filters.att_id;
-                                            const next = current.includes(type) ? current.filter(t => t !== type) : [...current, type];
-                                            setFilters({ ...filters, att_id: next });
-                                        }}
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all duration-200 
-                                            ${filters.att_id.includes(type)
-                                                ? 'bg-accent text-white border-accent shadow-sm'
-                                                : 'bg-bg-secondary border-border text-text-secondary hover:border-accent/40'}`}
-                                    >
-                                        {type}
-                                    </button>
+                            <div className="flex flex-col gap-1 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
+                                {attendeeTypes.map(type => (
+                                    <label key={type.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-bg-secondary/50 cursor-pointer transition-colors group">
+                                        <input
+                                            type="checkbox"
+                                            checked={filters.att_id.includes(type.id)}
+                                            onChange={() => {
+                                                const current = filters.att_id;
+                                                const next = current.includes(type.id) ? current.filter(id => id !== type.id) : [...current, type.id];
+                                                setFilters({ ...filters, att_id: next });
+                                            }}
+                                            className="w-4 h-4 rounded border-border text-accent focus:ring-accent accent-accent"
+                                        />
+                                        <span className="text-sm font-medium text-text-primary group-hover:text-accent transition-colors">{type.name}</span>
+                                    </label>
                                 ))}
+                                {attendeeTypes.length === 0 && (
+                                    <p className="text-xs text-text-tertiary italic p-2 text-center">No attendee categories available</p>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -656,7 +679,7 @@ const ScanReports = () => {
                     <div className="p-6 border-t border-border bg-bg-secondary/30 flex gap-3">
                         <button
                             onClick={() => {
-                                setFilters({ location_id: [], date: [], att_id: [], reg_type: [] });
+                                setFilters({ print_location_id: [], kiosk_location_id: [], date: [], att_id: [], reg_type: [] });
                                 setIsFilterDrawerOpen(false);
                             }}
                             className="flex-1 py-2.5 rounded-xl text-sm font-bold text-text-secondary bg-bg-primary border border-border hover:bg-bg-secondary transition-all"
@@ -673,10 +696,11 @@ const ScanReports = () => {
                 </div>
             </div>
 
-            {/* Record Detail Modal */}
+
+            {/* Detail Modal */}
             {selectedRecord && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px] opacity-100 transition-opacity"
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px]"
                     onClick={() => setSelectedRecord(null)}
                 >
                     <div
@@ -685,8 +709,8 @@ const ScanReports = () => {
                     >
                         <div className="px-6 py-4 border-b border-border flex justify-between items-center bg-bg-secondary/20">
                             <div>
-                                <h3 className="text-xl font-bold text-text-primary tracking-tight">Scan Record Details</h3>
-                                <p className="text-xs text-text-secondary mt-1">Viewing full report payload for attendee</p>
+                                <h3 className="text-xl font-bold text-text-primary tracking-tight">Print Record Details</h3>
+                                <p className="text-xs text-text-secondary mt-1">Viewing full print report payload</p>
                             </div>
                             <button
                                 onClick={() => setSelectedRecord(null)}
@@ -697,46 +721,34 @@ const ScanReports = () => {
                         </div>
 
                         <div className="p-6 overflow-y-auto flex flex-col gap-6 bg-bg-primary/50">
-                            {/* Group 1: User Info */}
+                            {/* User Info */}
                             <div className="bg-bg-secondary/20 border border-border/80 rounded-xl p-5 shadow-sm">
                                 <h4 className="text-[0.8rem] font-bold text-text-primary uppercase tracking-widest mb-4 flex items-center gap-2 pb-2 border-b border-border/30">
                                     <div className="bg-accent/10 p-1.5 rounded-md"><User size={16} className="text-accent" /></div> Attendee Information
                                 </h4>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                                    <DetailItem icon={<User />} label="Name" value={selectedRecord.user?.name} />
-                                    <DetailItem icon={<Mail />} label="Email" value={selectedRecord.user?.email} />
-                                    <DetailItem icon={<Phone />} label="Phone" value={selectedRecord.user?.phone} />
-                                    <DetailItem icon={<Building />} label="Company" value={selectedRecord.user?.company} />
-                                    <DetailItem icon={<Briefcase />} label="Designation" value={selectedRecord.user?.designation} />
-                                    <DetailItem icon={<Hash />} label="Registration Type" value={selectedRecord.user?.reg_type} />
-                                    <DetailItem icon={<Hash />} label="Attendee Category" value={selectedRecord.user?.attendee_type?.name} />
-                                    <DetailItem icon={<Map />} label="City" value={selectedRecord.user?.city} />
-                                    <DetailItem icon={<MapPin />} label="State/Country" value={`${selectedRecord.user?.state || ''} ${selectedRecord.user?.country || ''}`.trim() || null} />
-                                    <DetailItem icon={<Building />} label="Company Address" value={selectedRecord.user?.company_address} />
-                                    <DetailItem icon={<User />} label="Event Login Code" value={selectedRecord.user?.event_login_code} />
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                    <DetailItem icon={<User />} label="Name" value={selectedRecord.user_data?.name} />
+                                    <DetailItem icon={<Mail />} label="Email" value={selectedRecord.user_data?.email} />
+                                    <DetailItem icon={<Phone />} label="Phone" value={selectedRecord.user_data?.phone} />
+                                    <DetailItem icon={<Building />} label="Company" value={selectedRecord.user_data?.company} />
+                                    <DetailItem icon={<Briefcase />} label="Designation" value={selectedRecord.user_data?.designation} />
+                                    <DetailItem icon={<Hash />} label="Registration ID" value={selectedRecord.user_data?.reg_id} />
+                                    <DetailItem icon={<Info />} label="Attendee Category" value={selectedRecord.user_data?.attendee_type?.name} />
+                                    <DetailItem icon={<LayoutIcon />} label="Registration Type" value={selectedRecord.user_data?.reg_type} />
+                                    <DetailItem icon={<MapPin />} label="City" value={selectedRecord.user_data?.city} />
                                 </div>
                             </div>
 
-                            {/* Group 2: Scan Info */}
+                            {/* Print Info */}
                             <div className="bg-bg-secondary/20 border border-border/80 rounded-xl p-5 shadow-sm">
                                 <h4 className="text-[0.8rem] font-bold text-text-primary uppercase tracking-widest mb-4 flex items-center gap-2 pb-2 border-b border-border/30">
-                                    <div className="bg-accent/10 p-1.5 rounded-md"><Clock size={16} className="text-accent" /></div> Scan & Device Information
+                                    <div className="bg-accent/10 p-1.5 rounded-md"><Clock size={16} className="text-accent" /></div> Print & Location Information
                                 </h4>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <DetailItem icon={<Clock />} label="Scanned At" value={new Date(selectedRecord.scanned_at).toLocaleString()} />
-                                    <DetailItem icon={<MapPin />} label="Location / Gate" value={selectedRecord.location?.name} />
-                                    <DetailItem icon={<Hash />} label="Device ID" value={selectedRecord.device_id || 'N/A'} />
-                                    <div className="flex flex-col gap-1 p-3 bg-bg-primary rounded border border-border/50">
-                                        <span className="text-xs text-text-secondary flex items-center gap-1.5 font-medium tracking-wide">
-                                            Status
-                                        </span>
-                                        <div className="mt-1">
-                                            <StatusBadge scannedIn={selectedRecord.scanned_in} />
-                                        </div>
-                                    </div>
-                                    {selectedRecord.location?.created_at && (
-                                        <DetailItem icon={<Clock />} label="Gate Creation" value={new Date(selectedRecord.location.created_at).toLocaleString()} />
-                                    )}
+                                    <DetailItem icon={<Clock />} label="Printed At" value={selectedRecord.printed_at ? new Date(selectedRecord.printed_at).toLocaleString() : 'N/A'} />
+                                    <DetailItem icon={<MapPin />} label="Print Location" value={selectedRecord.print_location?.name} />
+                                    <DetailItem icon={<Map />} label="Kiosk Location" value={selectedRecord.kiosk_location?.location} />
+                                    <DetailItem icon={<Hash />} label="Print ID" value={selectedRecord.id} />
                                 </div>
                             </div>
                         </div>
@@ -747,5 +759,4 @@ const ScanReports = () => {
     );
 };
 
-export default ScanReports;
-
+export default PrintReports;
