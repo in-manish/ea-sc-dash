@@ -13,6 +13,7 @@ import Settings from './pages/Settings';
 import Communication from './pages/Communication';
 import Reports from './pages/Reports';
 import AttendeeTypes from './pages/AttendeeTypes';
+import UserManagement from './pages/UserManagement';
 import ProtectedRoute from './components/ProtectedRoute';
 
 
@@ -47,6 +48,7 @@ const App = () => {
             <Route path="communication" element={<Communication />} />
             <Route path="reports" element={<Reports />} />
             <Route path="attendee-types" element={<AttendeeTypes />} />
+            <Route path="staff" element={<UserManagement />} />
             <Route path="settings" element={<Settings />} />
 
           </Route>

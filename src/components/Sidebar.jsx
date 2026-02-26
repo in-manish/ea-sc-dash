@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, Calendar, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, Calendar, Settings, LogOut, UserCog } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext.jsx';
 
 const Sidebar = () => {

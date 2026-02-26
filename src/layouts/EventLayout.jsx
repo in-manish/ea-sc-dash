@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet, NavLink, useParams, useNavigate } from 'react-router-dom';
-import { Menu, X, Users, Calendar, Settings, ChevronLeft, Building2, ArrowLeft, LogOut, MessageSquare, BarChart2, UserCog } from 'lucide-react';
+import { Menu, X, Users, Calendar, Settings, ChevronLeft, Building2, ArrowLeft, LogOut, MessageSquare, BarChart2, UserCog, ShieldCheck, IdCard } from 'lucide-react';
 
 import { useAuth } from '../contexts/AuthContext';
 
@@ -69,16 +69,6 @@ const EventLayout = () => {
                     </NavLink>
 
                     <NavLink
-                        to={`/event/${selectedEvent.id}/attendee-types`}
-                        className={navLinkClass}
-                        title={isCollapsed ? "Attendee Types" : ""}
-                    >
-                        <UserCog size={20} className="shrink-0" />
-                        <span className={isCollapsed ? 'hidden' : 'block'}>Attendee Types</span>
-                    </NavLink>
-
-
-                    <NavLink
                         to={`/event/${selectedEvent.id}/agenda`}
                         className={navLinkClass}
                         title={isCollapsed ? "Agenda" : ""}
@@ -113,6 +103,28 @@ const EventLayout = () => {
                         <BarChart2 size={20} className="shrink-0" />
                         <span className={isCollapsed ? 'hidden' : 'block'}>Reports</span>
                     </NavLink>
+
+                    <div className="mt-auto flex flex-col gap-1">
+                        <div className={`h-px bg-border my-2 ${isCollapsed ? 'mx-1' : ''}`}></div>
+
+                        <NavLink
+                            to={`/event/${selectedEvent.id}/staff`}
+                            className={navLinkClass}
+                            title={isCollapsed ? "Staff Management" : ""}
+                        >
+                            <ShieldCheck size={20} className="shrink-0" />
+                            <span className={isCollapsed ? 'hidden' : 'block'}>Staff Management</span>
+                        </NavLink>
+
+                        <NavLink
+                            to={`/event/${selectedEvent.id}/attendee-types`}
+                            className={navLinkClass}
+                            title={isCollapsed ? "Attendee Types" : ""}
+                        >
+                            <IdCard size={20} className="shrink-0" />
+                            <span className={isCollapsed ? 'hidden' : 'block'}>Attendee Types</span>
+                        </NavLink>
+                    </div>
                 </nav>
 
                 <div className={`border-t border-border flex flex-col gap-1 ${isCollapsed ? 'py-4 px-2' : 'py-4 px-3'}`}>
