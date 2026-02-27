@@ -1,10 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import WhatsAppConfig from '../components/WhatsAppConfig';
 import EmailConfig from '../components/EmailConfig';
 import { MessageSquare, Mail } from 'lucide-react';
 
 const Communication = () => {
-    const [activeTab, setActiveTab] = useState('whatsapp');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const activeTab = searchParams.get('tab') || 'whatsapp';
+
+    const handleTabChange = (tab) => {
+        const params = new URLSearchParams(searchParams);
+        params.set('tab', tab);
+        setSearchParams(params, { replace: true });
+    };
 
     return (
         <div className="communication-page animate-fade-in p-6 bg-bg-secondary min-h-[calc(100vh-64px)]">
@@ -19,7 +27,7 @@ const Communication = () => {
                         ? 'border-accent text-accent bg-bg-primary rounded-t-lg shadow-sm'
                         : 'border-transparent text-text-tertiary hover:text-text-secondary hover:bg-bg-tertiary rounded-t-lg'
                         }`}
-                    onClick={() => setActiveTab('whatsapp')}
+                    onClick={() => handleTabChange('whatsapp')}
                 >
                     <MessageSquare size={16} />
                     WhatsApp
@@ -29,7 +37,7 @@ const Communication = () => {
                         ? 'border-accent text-accent bg-bg-primary rounded-t-lg shadow-sm'
                         : 'border-transparent text-text-tertiary hover:text-text-secondary hover:bg-bg-tertiary rounded-t-lg'
                         }`}
-                    onClick={() => setActiveTab('email')}
+                    onClick={() => handleTabChange('email')}
                 >
                     <Mail size={16} />
                     Email

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { userService } from '../services/userService';
 import {
@@ -14,9 +14,17 @@ const UserManagement = () => {
     const { token } = useAuth();
 
     // States
+    const [searchParams, setSearchParams] = useSearchParams();
     const [staffUsers, setStaffUsers] = useState({});
     const [isLoading, setIsLoading] = useState(true);
+    const activeOrgType = searchParams.get('tab') || 'print';
     const [message, setMessage] = useState({ type: '', text: '' });
+
+    const setActiveOrgType = (tab) => {
+        const params = new URLSearchParams(searchParams);
+        params.set('tab', tab);
+        setSearchParams(params, { replace: true });
+    };
 
     // Modal states
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);

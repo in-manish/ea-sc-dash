@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Outlet, NavLink, useParams, useNavigate } from 'react-router-dom';
-import { Menu, X, Users, Calendar, Settings, ChevronLeft, Building2, ArrowLeft, LogOut, MessageSquare, BarChart2, UserCog, ShieldCheck, IdCard } from 'lucide-react';
+import { Outlet, NavLink, useParams, useNavigate, useLocation } from 'react-router-dom';
+import { Menu, X, Users, Calendar, Settings, ChevronLeft, Building2, ArrowLeft, LogOut, MessageSquare, BarChart2, UserCog, ShieldCheck, IdCard, ChevronDown } from 'lucide-react';
 
 import { useAuth } from '../contexts/AuthContext';
 
@@ -8,7 +8,19 @@ const EventLayout = () => {
     const { selectedEvent, clearEvent, logout } = useAuth();
     const { id } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [expandedItems, setExpandedItems] = useState({
+        'Companies': location.pathname.includes('/companies'),
+        'Communication': location.pathname.includes('/communication')
+    });
+
+    const toggleExpand = (title) => {
+        setExpandedItems(prev => ({
+            ...prev,
+            [title]: !prev[title]
+        }));
+    };
 
     const formatDate = (dateString) => {
         if (!dateString) return '';
@@ -65,7 +77,7 @@ const EventLayout = () => {
                         title={isCollapsed ? "Attendees" : ""}
                     >
                         <Users size={20} className="shrink-0" />
-                        <span className={isCollapsed ? 'hidden' : 'block'}>Attendees</span>
+                        {!isCollapsed && <span className="flex-1">Attendees</span>}
                     </NavLink>
 
                     <NavLink
@@ -74,26 +86,86 @@ const EventLayout = () => {
                         title={isCollapsed ? "Agenda" : ""}
                     >
                         <Calendar size={20} className="shrink-0" />
-                        <span className={isCollapsed ? 'hidden' : 'block'}>Agenda</span>
+                        {!isCollapsed && <span className="flex-1">Agenda</span>}
                     </NavLink>
 
-                    <NavLink
-                        to={`/event/${selectedEvent.id}/companies`}
-                        className={navLinkClass}
-                        title={isCollapsed ? "Companies" : ""}
-                    >
-                        <Building2 size={20} className="shrink-0" />
-                        <span className={isCollapsed ? 'hidden' : 'block'}>Companies</span>
-                    </NavLink>
+                    {/* Companies with Submenu */}
+                    <div className="flex flex-col gap-1">
+                        <div
+                            className={navLinkClass({ isActive: location.pathname.includes('/companies') })}
+                            onClick={() => {
+                                toggleExpand('Companies');
+                                if (!location.pathname.includes('/companies')) {
+                                    navigate(`/event/${selectedEvent.id}/companies?tab=exhibitors`);
+                                }
+                            }}
+                            style={{ cursor: 'pointer' }}
+                            title={isCollapsed ? "Companies" : ""}
+                        >
+                            <Building2 size={20} className="shrink-0" />
+                            {!isCollapsed && (
+                                <>
+                                    <span className="flex-1">Companies</span>
+                                    <ChevronDown size={14} className={`transition-transform duration-200 ${expandedItems['Companies'] ? 'rotate-180' : ''}`} />
+                                </>
+                            )}
+                        </div>
+                        {!isCollapsed && expandedItems['Companies'] && (
+                            <div className="ml-9 flex flex-col gap-1 border-l border-border pl-2 my-1 animate-fade-in">
+                                <NavLink
+                                    to={`/event/${selectedEvent.id}/companies?tab=exhibitors`}
+                                    className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/companies') && (new URLSearchParams(location.search).get('tab') === 'exhibitors' || !new URLSearchParams(location.search).get('tab')) ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
+                                >
+                                    Exhibitors
+                                </NavLink>
+                                <NavLink
+                                    to={`/event/${selectedEvent.id}/companies?tab=additional_requirements`}
+                                    className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/companies') && new URLSearchParams(location.search).get('tab') === 'additional_requirements' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
+                                >
+                                    Additional Requirements
+                                </NavLink>
+                            </div>
+                        )}
+                    </div>
 
-                    <NavLink
-                        to={`/event/${selectedEvent.id}/communication`}
-                        className={navLinkClass}
-                        title={isCollapsed ? "Communication" : ""}
-                    >
-                        <MessageSquare size={20} className="shrink-0" />
-                        <span className={isCollapsed ? 'hidden' : 'block'}>Communication</span>
-                    </NavLink>
+                    {/* Communication with Submenu */}
+                    <div className="flex flex-col gap-1">
+                        <div
+                            className={navLinkClass({ isActive: location.pathname.includes('/communication') })}
+                            onClick={() => {
+                                toggleExpand('Communication');
+                                if (!location.pathname.includes('/communication')) {
+                                    navigate(`/event/${selectedEvent.id}/communication?tab=whatsapp`);
+                                }
+                            }}
+                            style={{ cursor: 'pointer' }}
+                            title={isCollapsed ? "Communication" : ""}
+                        >
+                            <MessageSquare size={20} className="shrink-0" />
+                            {!isCollapsed && (
+                                <>
+                                    <span className="flex-1">Communication</span>
+                                    <ChevronDown size={14} className={`transition-transform duration-200 ${expandedItems['Communication'] ? 'rotate-180' : ''}`} />
+                                </>
+                            )}
+                        </div>
+                        {!isCollapsed && expandedItems['Communication'] && (
+                            <div className="ml-9 flex flex-col gap-1 border-l border-border pl-2 my-1 animate-fade-in">
+                                <NavLink
+                                    to={`/event/${selectedEvent.id}/communication?tab=whatsapp`}
+                                    className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/communication') && (new URLSearchParams(location.search).get('tab') === 'whatsapp' || !new URLSearchParams(location.search).get('tab')) ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
+                                >
+                                    WhatsApp
+                                </NavLink>
+                                <NavLink
+                                    to={`/event/${selectedEvent.id}/communication?tab=email`}
+                                    className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/communication') && new URLSearchParams(location.search).get('tab') === 'email' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
+                                >
+                                    Email
+                                </NavLink>
+                            </div>
+                        )}
+                    </div>
 
                     <NavLink
                         to={`/event/${selectedEvent.id}/reports`}
@@ -101,7 +173,7 @@ const EventLayout = () => {
                         title={isCollapsed ? "Reports" : ""}
                     >
                         <BarChart2 size={20} className="shrink-0" />
-                        <span className={isCollapsed ? 'hidden' : 'block'}>Reports</span>
+                        {!isCollapsed && <span className="flex-1">Reports</span>}
                     </NavLink>
 
                     <div className="mt-auto flex flex-col gap-1">
@@ -113,7 +185,7 @@ const EventLayout = () => {
                             title={isCollapsed ? "Attendee Types" : ""}
                         >
                             <IdCard size={20} className="shrink-0" />
-                            <span className={isCollapsed ? 'hidden' : 'block'}>Attendee Types</span>
+                            {!isCollapsed && <span className="flex-1">Attendee Types</span>}
                         </NavLink>
 
                         <NavLink
@@ -122,7 +194,7 @@ const EventLayout = () => {
                             title={isCollapsed ? "Staff Management" : ""}
                         >
                             <ShieldCheck size={20} className="shrink-0" />
-                            <span className={isCollapsed ? 'hidden' : 'block'}>Staff Management</span>
+                            {!isCollapsed && <span className="flex-1">Staff Management</span>}
                         </NavLink>
                     </div>
                 </nav>
