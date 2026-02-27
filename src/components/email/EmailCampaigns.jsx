@@ -4,14 +4,13 @@ import { emailService } from '../../services/emailService';
 import { Loader2, Calendar, Clock, Users, X, Check, XCircle, AlertCircle, PlayCircle, Send, List, Grid } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 
-const EmailCampaigns = () => {
+const EmailCampaigns = ({ viewMode = 'list' }) => {
     const { token, selectedEvent } = useAuth();
     const { id } = useParams();
     const eventId = id || selectedEvent?.id;
 
     const [campaigns, setCampaigns] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [viewMode, setViewMode] = useState('list');
+    const [isLoading, setIsLoading] = useState(true);
 
     // Reschedule Modal
     const [rescheduleCampaign, setRescheduleCampaign] = useState(null);
@@ -83,10 +82,10 @@ const EmailCampaigns = () => {
     const StatusBadge = ({ status }) => {
         const styles = {
             SCHEDULED: "bg-amber-50 text-amber-700 border-amber-200",
-            IN_PROGRESS: "bg-blue-50 text-blue-700 border-blue-200",
-            COMPLETE: "bg-green-50 text-green-700 border-green-200",
-            CANCELED: "bg-gray-100 text-gray-700 border-gray-300",
-            FAILED: "bg-red-50 text-red-700 border-red-200",
+            IN_PROGRESS: "bg-accent text-white border-accent shadow-sm",
+            COMPLETE: "bg-success/10 text-success border-success/20",
+            CANCELED: "bg-bg-tertiary text-text-tertiary border-border",
+            FAILED: "bg-danger/10 text-danger border-danger/20",
         };
 
         const icons = {
@@ -100,7 +99,7 @@ const EmailCampaigns = () => {
         const currentStyle = styles[status] || "bg-gray-50 text-gray-600 border-gray-200";
 
         return (
-            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${currentStyle}`}>
+            <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border ${currentStyle}`}>
                 {icons[status] || null}
                 {status}
             </span>
@@ -108,32 +107,7 @@ const EmailCampaigns = () => {
     };
 
     return (
-        <div className="animate-fade-in relative min-h-[400px]">
-            {/* Header */}
-            <div className="flex justify-between items-center mb-6">
-                <div>
-                    <h3 className="text-lg font-medium text-gray-800">Email Campaigns</h3>
-                    <p className="text-sm text-gray-500">Monitor and manage your scheduled bulk email campaigns.</p>
-                </div>
-                <div className="flex items-center gap-3">
-                    <div className="flex items-center bg-gray-100 p-1 rounded-lg border border-gray-200">
-                        <button
-                            onClick={() => setViewMode('list')}
-                            className={`p-1.5 rounded-md flex items-center justify-center transition-all ${viewMode === 'list' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/50'}`}
-                            title="List View"
-                        >
-                            <List size={16} />
-                        </button>
-                        <button
-                            onClick={() => setViewMode('grid')}
-                            className={`p-1.5 rounded-md flex items-center justify-center transition-all ${viewMode === 'grid' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/50'}`}
-                            title="Grid View"
-                        >
-                            <Grid size={16} />
-                        </button>
-                    </div>
-                </div>
-            </div>
+        <div className="relative min-h-[400px]">
 
             {/* List */}
             <div className="space-y-4">
@@ -152,35 +126,35 @@ const EmailCampaigns = () => {
                 ) : (
                     <>
                         {viewMode === 'grid' ? (
-                            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 animate-fade-in">
+                            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                                 {campaigns.map(campaign => (
-                                    <div key={campaign.id} className="bg-white border border-gray-200 rounded-xl hover:shadow-md transition-all flex flex-col overflow-hidden">
-                                        <div className="p-4 border-b border-gray-50 flex flex-col gap-3">
-                                            <div className="flex justify-between items-start w-full">
-                                                <h3 className="font-semibold text-gray-800 leading-tight text-base truncate pr-2" title={campaign.name}>
+                                    <div key={campaign.id} className="bg-bg-primary border border-border rounded-[2rem] shadow-premium transition-all duration-500 hover:-translate-y-1.5 flex flex-col overflow-hidden">
+                                        <div className="p-6 border-b border-border flex flex-col gap-3 bg-bg-secondary/40">
+                                            <div className="flex justify-between items-center w-full">
+                                                <h3 className="font-black text-text-primary leading-tight text-base truncate pr-2 tracking-tight" title={campaign.name}>
                                                     {campaign.name || 'Unnamed Campaign'}
                                                 </h3>
                                                 <StatusBadge status={campaign.status} />
                                             </div>
-                                            <div className="text-sm text-gray-600 font-medium line-clamp-1" title={campaign.subject}>
-                                                <span className="text-gray-400 font-normal mr-1">Subj:</span>
+                                            <div className="text-xs text-text-secondary font-bold line-clamp-1" title={campaign.subject}>
+                                                <span className="text-text-tertiary font-medium mr-1 uppercase text-[9px] tracking-widest">Subj:</span>
                                                 {campaign.subject || '(No Subject)'}
                                             </div>
                                         </div>
 
-                                        <div className="p-4 flex-1 bg-gray-50/30 flex flex-col gap-3">
-                                            <div className="flex items-center text-sm text-gray-700 bg-white p-2 rounded-lg border border-gray-100 shadow-sm">
-                                                <Calendar size={16} className="text-blue-500 mr-2" />
+                                        <div className="p-6 flex-1 bg-bg-secondary/20 flex flex-col gap-4">
+                                            <div className="flex items-center text-[13px] text-text-primary bg-bg-primary p-3 rounded-xl border border-border shadow-sm">
+                                                <Calendar size={16} className="text-accent mr-3" />
                                                 <div className="flex flex-col">
-                                                    <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Scheduled For</span>
-                                                    <span>{campaign.scheduled_time ? new Date(campaign.scheduled_time).toLocaleString() : 'Immediate'}</span>
+                                                    <span className="text-[9px] text-text-tertiary uppercase font-black tracking-[0.2em]">Deployment Schedule</span>
+                                                    <span className="font-bold">{campaign.scheduled_time ? new Date(campaign.scheduled_time).toLocaleString() : 'Immediate Action'}</span>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center text-sm text-gray-700 bg-white p-2 rounded-lg border border-gray-100 shadow-sm">
-                                                <Users size={16} className="text-indigo-500 mr-2" />
+                                            <div className="flex items-center text-[13px] text-text-primary bg-bg-primary p-3 rounded-xl border border-border shadow-sm">
+                                                <Users size={16} className="text-accent mr-3" />
                                                 <div className="flex flex-col">
-                                                    <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Recipients</span>
-                                                    <span>{campaign.number_recipients || 0}</span>
+                                                    <span className="text-[9px] text-text-tertiary uppercase font-black tracking-[0.2em]">Target Reach</span>
+                                                    <span className="font-bold">{campaign.number_recipients || 0} Recipients</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -198,10 +172,10 @@ const EmailCampaigns = () => {
                                                     <button
                                                         onClick={() => handleCancel(campaign.id)}
                                                         disabled={isCancelling === campaign.id}
-                                                        className="px-3 py-1.5 text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-md transition-colors flex items-center gap-1"
+                                                        className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-danger bg-danger/5 hover:bg-danger hover:text-white border border-danger/20 rounded-xl transition-all flex items-center gap-2"
                                                     >
                                                         {isCancelling === campaign.id && <Loader2 size={12} className="animate-spin" />}
-                                                        Cancel
+                                                        Cancel Campaign
                                                     </button>
                                                 </>
                                             )}
@@ -213,7 +187,7 @@ const EmailCampaigns = () => {
                                 ))}
                             </div>
                         ) : (
-                            <div className="flex flex-col gap-3 animate-fade-in">
+                            <div className="flex flex-col gap-3">
                                 {campaigns.map(campaign => (
                                     <div key={campaign.id} className="bg-white border border-gray-200 rounded-xl hover:shadow-md transition-all flex flex-col sm:flex-row items-stretch overflow-hidden min-h-[5rem] relative">
 

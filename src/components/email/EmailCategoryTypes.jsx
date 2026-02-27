@@ -13,14 +13,13 @@ const deviceDimensions = {
     laptop16: { width: '1600px', icon: Monitor, label: '16" Laptop' },
 };
 
-const EmailCategoryTypes = () => {
+const EmailCategoryTypes = ({ viewMode = 'list', onAddSignal = 0 }) => {
     const { token, selectedEvent } = useAuth();
     const { id } = useParams();
     const eventId = id || selectedEvent?.id;
 
     const [emails, setEmails] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [viewMode, setViewMode] = useState('list');
+    const [isLoading, setIsLoading] = useState(true);
 
     // Modal State
     const [previewEmail, setPreviewEmail] = useState(null);
@@ -47,6 +46,13 @@ const EmailCategoryTypes = () => {
             fetchEmails();
         }
     }, [token, eventId]);
+
+    // Handle lifted create signal
+    useEffect(() => {
+        if (onAddSignal > 0) {
+            handleCreateNew();
+        }
+    }, [onAddSignal]);
 
     const handleViewEmail = (email) => {
         setPreviewEmail(email);
@@ -119,39 +125,7 @@ const EmailCategoryTypes = () => {
     }
 
     return (
-        <div className="animate-fade-in relative min-h-[400px]">
-            {/* Header / Actions */}
-            <div className="flex justify-between items-center mb-6">
-                <div>
-                    <h3 className="text-lg font-medium text-gray-800">Category Type Emails</h3>
-                    <p className="text-sm text-gray-500">Target emails based on attendee categories.</p>
-                </div>
-                <div className="flex items-center gap-3">
-                    <div className="flex items-center bg-gray-100 p-1 rounded-lg border border-gray-200">
-                        <button
-                            onClick={() => setViewMode('list')}
-                            className={`p-1.5 rounded-md flex items-center justify-center transition-all ${viewMode === 'list' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/50'}`}
-                            title="List View"
-                        >
-                            <List size={16} />
-                        </button>
-                        <button
-                            onClick={() => setViewMode('grid')}
-                            className={`p-1.5 rounded-md flex items-center justify-center transition-all ${viewMode === 'grid' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/50'}`}
-                            title="Grid View"
-                        >
-                            <Grid size={16} />
-                        </button>
-                    </div>
-                    <button
-                        onClick={handleCreateNew}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium text-sm shadow-sm"
-                    >
-                        <Plus size={16} />
-                        Create Draft
-                    </button>
-                </div>
-            </div>
+        <div className="relative min-h-[400px]">
 
             {/* List */}
             <div className="space-y-4">
@@ -166,19 +140,19 @@ const EmailCategoryTypes = () => {
                         </div>
                         <h4 className="text-base font-medium text-gray-900 mb-1">No drafts found</h4>
                         <p className="text-sm text-gray-500 mb-4">Create your first category email draft to get started.</p>
-                        <button onClick={handleCreateNew} className="text-blue-600 font-medium text-sm hover:underline">
-                            + Create Draft
+                        <button onClick={handleCreateNew} className="text-accent font-black text-xs uppercase tracking-widest hover:underline mt-2">
+                            + Initialize New Draft
                         </button>
                     </div>
                 ) : (
                     <>
                         {viewMode === 'grid' ? (
-                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 animate-fade-in">
+                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                                 {emails.map(email => (
-                                    <div key={email.id} onClick={() => handleViewEmail(email)} className="cursor-pointer group relative bg-white border border-gray-200 rounded-xl hover:shadow-md transition-all hover:border-blue-300 flex flex-col overflow-hidden">
-                                        <div className="p-4 border-b border-gray-50 flex flex-col gap-3">
+                                    <div key={email.id} onClick={() => handleViewEmail(email)} className="cursor-pointer group relative bg-bg-primary border border-border rounded-2xl hover:shadow-premium transition-all hover:border-accent/10 flex flex-col overflow-hidden">
+                                        <div className="p-5 border-b border-border flex flex-col gap-3 bg-bg-secondary/40">
                                             <div className="flex justify-between items-start w-full">
-                                                <h3 className="font-semibold text-gray-800 group-hover:text-blue-600 leading-tight text-base truncate pr-2" title={email.email_name}>
+                                                <h3 className="font-black text-text-primary group-hover:text-accent leading-tight text-base truncate pr-2 tracking-tight" title={email.email_name}>
                                                     {email.email_name || 'Unnamed Email'}
                                                 </h3>
                                                 <button
@@ -189,8 +163,8 @@ const EmailCategoryTypes = () => {
                                                 </button>
                                             </div>
                                             <div className="flex gap-2">
-                                                <span className="px-2.5 py-1 rounded text-[11px] font-bold tracking-wide uppercase bg-blue-50 text-blue-600 border border-blue-100">
-                                                    {email.category_name || 'Category'}
+                                                <span className="px-3 py-1 rounded-lg text-[10px] font-black tracking-widest uppercase bg-accent text-white border border-accent shadow-sm">
+                                                    {email.category_name || 'General Category'}
                                                 </span>
                                             </div>
                                         </div>
@@ -206,7 +180,7 @@ const EmailCategoryTypes = () => {
                                         </div>
 
                                         <div className="px-4 py-2.5 text-xs font-medium text-gray-500 bg-gray-50 flex justify-end items-center border-t border-gray-100">
-                                            <span className="group-hover:text-blue-600 flex items-center gap-1.5 transition-colors">
+                                            <span className="group-hover:text-accent flex items-center gap-1.5 transition-colors font-black uppercase tracking-widest text-[9px]">
                                                 View & Edit <ArrowLeft size={12} className="rotate-180" />
                                             </span>
                                         </div>
@@ -214,22 +188,22 @@ const EmailCategoryTypes = () => {
                                 ))}
                             </div>
                         ) : (
-                            <div className="flex flex-col gap-3 animate-fade-in">
+                            <div className="flex flex-col gap-3">
                                 {emails.map(email => (
-                                    <div key={email.id} onClick={() => handleViewEmail(email)} className="bg-white border border-gray-200 rounded-xl hover:shadow-md transition-all hover:border-blue-300 flex flex-col sm:flex-row items-stretch overflow-hidden min-h-[5rem] cursor-pointer group relative">
+                                    <div key={email.id} onClick={() => handleViewEmail(email)} className="bg-bg-primary border border-border rounded-2xl hover:shadow-premium transition-all hover:border-accent/10 flex flex-col sm:flex-row items-stretch overflow-hidden min-h-[5.5rem] cursor-pointer group relative">
 
-                                        <div className="w-full sm:w-1/4 p-4 border-b sm:border-b-0 sm:border-r border-gray-50 flex flex-col shrink-0 justify-center bg-gray-50/30">
-                                            <h3 className="font-semibold text-gray-800 group-hover:text-blue-600 leading-tight text-base truncate pr-2" title={email.email_name}>
+                                        <div className="w-full sm:w-1/4 p-5 border-b sm:border-b-0 sm:border-r border-border flex flex-col shrink-0 justify-center bg-bg-secondary/30">
+                                            <h3 className="font-black text-text-primary group-hover:text-accent leading-tight text-base truncate pr-2 tracking-tight" title={email.email_name}>
                                                 {email.email_name || 'Unnamed Email'}
                                             </h3>
-                                            <div className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mt-1.5">Draft Internal Name</div>
+                                            <div className="text-[10px] text-text-tertiary font-black uppercase tracking-[0.15em] mt-2">DRAFT IDENTIFIER</div>
                                         </div>
 
-                                        <div className="sm:w-40 px-4 py-3 sm:py-0 shrink-0 flex items-center sm:justify-center border-b sm:border-b-0 sm:border-r border-gray-50">
+                                        <div className="sm:w-40 px-5 py-3 sm:py-0 shrink-0 flex items-center sm:justify-center border-b sm:border-b-0 sm:border-r border-border">
                                             <div className="w-full flex sm:flex-col items-center justify-between sm:justify-center gap-2">
-                                                <span className="text-[10px] sm:hidden text-gray-400 uppercase font-bold">Category</span>
-                                                <span className="px-2.5 py-1 rounded text-[11px] font-bold tracking-wide uppercase bg-blue-50 text-blue-600 border border-blue-100 truncate sm:w-full text-center" title={email.category_name}>
-                                                    {email.category_name || 'Category'}
+                                                <span className="text-[10px] sm:hidden text-text-tertiary uppercase font-black">Category</span>
+                                                <span className="px-3 py-1.5 rounded-lg text-[10px] font-black tracking-widest uppercase bg-bg-tertiary text-text-secondary border border-border truncate sm:w-full text-center group-hover:bg-accent group-hover:text-white group-hover:border-accent transition-all" title={email.category_name}>
+                                                    {email.category_name || 'General'}
                                                 </span>
                                             </div>
                                         </div>
@@ -244,10 +218,10 @@ const EmailCategoryTypes = () => {
                                             </div>
                                         </div>
 
-                                        <div className="px-4 py-3 sm:py-0 shrink-0 flex items-center justify-end gap-2 border-t sm:border-t-0 sm:border-l border-gray-50 bg-gray-50/50 sm:bg-transparent">
+                                        <div className="px-5 py-3 sm:py-0 shrink-0 flex items-center justify-end gap-3 border-t sm:border-t-0 sm:border-l border-border bg-bg-secondary/40 sm:bg-transparent">
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); handleViewEmail(email); }}
-                                                className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 text-xs font-medium border border-gray-200 hover:border-blue-200 bg-white shadow-sm"
+                                                className="text-text-secondary hover:text-accent hover:bg-bg-primary px-4 py-2 rounded-xl transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest border border-border hover:border-accent/30 bg-bg-primary shadow-sm"
                                             >
                                                 <Edit3 size={14} /> Edit
                                             </button>
@@ -275,8 +249,8 @@ const EmailCategoryTypes = () => {
                         {/* Modal Header */}
                         <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-white z-10">
                             <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                                {isEditing ? <Edit3 size={18} className="text-amber-600" /> : <Eye size={18} className="text-blue-600" />}
-                                {isEditing ? (previewEmail.isNew ? 'Create New Category Email' : 'Editing Category Email') : 'Preview Category Email'}
+                                {isEditing ? <Edit3 size={18} className="text-amber-600" /> : <Eye size={18} className="text-accent" />}
+                                {isEditing ? (previewEmail.isNew ? 'Construct Category Draft' : 'Modifying Category Email') : 'Draft Overview'}
                             </h3>
                             <div className="flex items-center gap-3">
                                 {!isEditing ? (
@@ -304,10 +278,10 @@ const EmailCategoryTypes = () => {
                                         <button
                                             onClick={handleSave}
                                             disabled={isSaving}
-                                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2 font-medium text-sm shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+                                            className="px-6 py-2.5 bg-accent hover:bg-accent-hover text-white rounded-xl transition-all flex items-center gap-2 font-black text-xs uppercase tracking-widest shadow-lg shadow-accent/20 disabled:opacity-70 disabled:cursor-not-allowed"
                                         >
                                             {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                                            <span className="hidden sm:inline">Save Changes</span>
+                                            <span>{previewEmail.isNew ? 'Deploy Draft' : 'Commit Changes'}</span>
                                         </button>
                                     </>
                                 )}
