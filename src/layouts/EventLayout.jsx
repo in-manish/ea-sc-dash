@@ -108,21 +108,21 @@ const EventLayout = () => {
                         <div className={`h-px bg-border my-2 ${isCollapsed ? 'mx-1' : ''}`}></div>
 
                         <NavLink
-                            to={`/event/${selectedEvent.id}/staff`}
-                            className={navLinkClass}
-                            title={isCollapsed ? "Staff Management" : ""}
-                        >
-                            <ShieldCheck size={20} className="shrink-0" />
-                            <span className={isCollapsed ? 'hidden' : 'block'}>Staff Management</span>
-                        </NavLink>
-
-                        <NavLink
                             to={`/event/${selectedEvent.id}/attendee-types`}
                             className={navLinkClass}
                             title={isCollapsed ? "Attendee Types" : ""}
                         >
                             <IdCard size={20} className="shrink-0" />
                             <span className={isCollapsed ? 'hidden' : 'block'}>Attendee Types</span>
+                        </NavLink>
+
+                        <NavLink
+                            to={`/event/${selectedEvent.id}/staff`}
+                            className={navLinkClass}
+                            title={isCollapsed ? "Staff Management" : ""}
+                        >
+                            <ShieldCheck size={20} className="shrink-0" />
+                            <span className={isCollapsed ? 'hidden' : 'block'}>Staff Management</span>
                         </NavLink>
                     </div>
                 </nav>
