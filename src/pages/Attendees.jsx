@@ -171,7 +171,7 @@ const Attendees = () => {
             ],
             Identity: [
                 { label: 'Full Name', value: attendee.name },
-                { label: 'Race ID', value: attendee.id },
+                { label: 'Race ID', value: attendee.evc_id },
                 { label: 'Tracking UUID', value: attendee.tracking_uuid },
                 { label: 'UID', value: attendee.uuid },
             ],
