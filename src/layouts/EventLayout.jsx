@@ -12,7 +12,9 @@ const EventLayout = () => {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [expandedItems, setExpandedItems] = useState({
         'Companies': location.pathname.includes('/companies'),
-        'Communication': location.pathname.includes('/communication')
+        'Communication': location.pathname.includes('/communication'),
+        'Reports': location.pathname.includes('/reports'),
+        'Staff Management': location.pathname.includes('/staff')
     });
 
     const toggleExpand = (title) => {
@@ -167,14 +169,50 @@ const EventLayout = () => {
                         )}
                     </div>
 
-                    <NavLink
-                        to={`/event/${selectedEvent.id}/reports`}
-                        className={navLinkClass}
-                        title={isCollapsed ? "Reports" : ""}
-                    >
-                        <BarChart2 size={20} className="shrink-0" />
-                        {!isCollapsed && <span className="flex-1">Reports</span>}
-                    </NavLink>
+                    {/* Reports with Submenu */}
+                    <div className="flex flex-col gap-1">
+                        <div
+                            className={navLinkClass({ isActive: location.pathname.includes('/reports') })}
+                            onClick={() => {
+                                toggleExpand('Reports');
+                                if (!location.pathname.includes('/reports')) {
+                                    navigate(`/event/${selectedEvent.id}/reports?tab=scan`);
+                                }
+                            }}
+                            style={{ cursor: 'pointer' }}
+                            title={isCollapsed ? "Reports" : ""}
+                        >
+                            <BarChart2 size={20} className="shrink-0" />
+                            {!isCollapsed && (
+                                <>
+                                    <span className="flex-1">Reports</span>
+                                    <ChevronDown size={14} className={`transition-transform duration-200 ${expandedItems['Reports'] ? 'rotate-180' : ''}`} />
+                                </>
+                            )}
+                        </div>
+                        {!isCollapsed && expandedItems['Reports'] && (
+                            <div className="ml-9 flex flex-col gap-1 border-l border-border pl-2 my-1 animate-fade-in">
+                                <NavLink
+                                    to={`/event/${selectedEvent.id}/reports?tab=scan`}
+                                    className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/reports') && (new URLSearchParams(location.search).get('tab') === 'scan' || !new URLSearchParams(location.search).get('tab')) ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
+                                >
+                                    Scan Reports
+                                </NavLink>
+                                <NavLink
+                                    to={`/event/${selectedEvent.id}/reports?tab=print`}
+                                    className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/reports') && new URLSearchParams(location.search).get('tab') === 'print' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
+                                >
+                                    Print Reports
+                                </NavLink>
+                                <NavLink
+                                    to={`/event/${selectedEvent.id}/reports?tab=meeting`}
+                                    className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/reports') && new URLSearchParams(location.search).get('tab') === 'meeting' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
+                                >
+                                    Meeting Reports
+                                </NavLink>
+                            </div>
+                        )}
+                    </div>
 
                     <div className="mt-auto flex flex-col gap-1">
                         <div className={`h-px bg-border my-2 ${isCollapsed ? 'mx-1' : ''}`}></div>
@@ -188,14 +226,56 @@ const EventLayout = () => {
                             {!isCollapsed && <span className="flex-1">Attendee Types</span>}
                         </NavLink>
 
-                        <NavLink
-                            to={`/event/${selectedEvent.id}/staff`}
-                            className={navLinkClass}
-                            title={isCollapsed ? "Staff Management" : ""}
-                        >
-                            <ShieldCheck size={20} className="shrink-0" />
-                            {!isCollapsed && <span className="flex-1">Staff Management</span>}
-                        </NavLink>
+                        {/* Staff Management with Submenu */}
+                        <div className="flex flex-col gap-1">
+                            <div
+                                className={navLinkClass({ isActive: location.pathname.includes('/staff') })}
+                                onClick={() => {
+                                    toggleExpand('Staff Management');
+                                    if (!location.pathname.includes('/staff')) {
+                                        navigate(`/event/${selectedEvent.id}/staff?tab=print`);
+                                    }
+                                }}
+                                style={{ cursor: 'pointer' }}
+                                title={isCollapsed ? "Staff Management" : ""}
+                            >
+                                <ShieldCheck size={20} className="shrink-0" />
+                                {!isCollapsed && (
+                                    <>
+                                        <span className="flex-1">Staff Management</span>
+                                        <ChevronDown size={14} className={`transition-transform duration-200 ${expandedItems['Staff Management'] ? 'rotate-180' : ''}`} />
+                                    </>
+                                )}
+                            </div>
+                            {!isCollapsed && expandedItems['Staff Management'] && (
+                                <div className="ml-9 flex flex-col gap-1 border-l border-border pl-2 my-1 animate-fade-in">
+                                    <NavLink
+                                        to={`/event/${selectedEvent.id}/staff?tab=print`}
+                                        className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/staff') && (new URLSearchParams(location.search).get('tab') === 'print' || !new URLSearchParams(location.search).get('tab')) ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
+                                    >
+                                        Printing
+                                    </NavLink>
+                                    <NavLink
+                                        to={`/event/${selectedEvent.id}/staff?tab=scan`}
+                                        className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/staff') && new URLSearchParams(location.search).get('tab') === 'scan' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
+                                    >
+                                        Scanning
+                                    </NavLink>
+                                    <NavLink
+                                        to={`/event/${selectedEvent.id}/staff?tab=kiosk`}
+                                        className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/staff') && new URLSearchParams(location.search).get('tab') === 'kiosk' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
+                                    >
+                                        Kiosk
+                                    </NavLink>
+                                    <NavLink
+                                        to={`/event/${selectedEvent.id}/staff?tab=organizer`}
+                                        className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/staff') && new URLSearchParams(location.search).get('tab') === 'organizer' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
+                                    >
+                                        Organizer
+                                    </NavLink>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </nav>
 

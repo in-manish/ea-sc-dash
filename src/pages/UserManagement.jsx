@@ -88,6 +88,16 @@ const UserManagement = () => {
         }
     }, [message]);
 
+    // Handle deep-linking scrolling
+    useEffect(() => {
+        if (activeOrgType && !isLoading) {
+            const element = document.getElementById(`section-${activeOrgType}`);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+    }, [activeOrgType, isLoading]);
+
     const handleOpenModal = (user = null, orgType = 'print') => {
         if (user) {
             setEditingUser(user);
@@ -207,7 +217,7 @@ const UserManagement = () => {
                     orgTypes.map((orgType) => {
                         const users = staffUsers[orgType.id] || [];
                         return (
-                            <div key={orgType.id} className="bg-bg-primary border border-border rounded-[2rem] shadow-premium overflow-hidden mesh-bg relative">
+                            <div key={orgType.id} id={`section-${orgType.id}`} className={`bg-bg-primary border border-border rounded-[2rem] shadow-premium overflow-hidden mesh-bg relative transition-all duration-500 ${activeOrgType === orgType.id ? 'ring-2 ring-accent ring-offset-4 ring-offset-bg-secondary' : ''}`}>
                                 <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] pointer-events-none" />
 
                                 <div className="relative z-10 p-6">
