@@ -8,13 +8,14 @@ import Dashboard from './pages/Dashboard';
 import Attendees from './pages/Attendees';
 import Companies from './pages/Companies';
 import CompanyDetails from './pages/CompanyDetails';
-import Agenda from './pages/Agenda';
+import Agenda from './pages/event-agenda';
 import Settings from './pages/Settings';
 import Communication from './pages/Communication';
 import Reports from './pages/Reports';
 import AttendeeTypes from './pages/AttendeeTypes';
 import UserManagement from './pages/UserManagement';
 import ProtectedRoute from './components/ProtectedRoute';
+import Payments from './pages/payments/Payments';
 
 
 const App = () => {
@@ -50,6 +51,7 @@ const App = () => {
             <Route path="attendee-types" element={<AttendeeTypes />} />
             <Route path="staff" element={<UserManagement />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="payments" element={<Payments />} />
 
           </Route>
 

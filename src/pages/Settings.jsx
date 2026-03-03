@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
-import { Save, Loader2, Calendar, MapPin, Globe, Building2, Users, Plus, Trash2, Eye, EyeOff, ArrowUp, ArrowDown } from 'lucide-react';
+import { Save, Loader2, Calendar, MapPin, Globe, Building2, Users, Plus, Trash2, Eye, EyeOff, ArrowUp, ArrowDown, ShieldCheck } from 'lucide-react';
+import PaymentConfig from '../components/PaymentConfig';
 
 
 
@@ -145,7 +146,16 @@ const Settings = () => {
             const formData = new FormData();
 
             Object.keys(eventData).forEach(key => {
-                if (key !== 'social_links' && key !== 'attendee_types' && key !== 'company_complimentary_invitee_info' && key !== 'location' && eventData[key] !== null) {
+                const imageFields = ['logo', 'logo2', 'event_background_image', 'event_banner_logo', 'meetingdiary_portal_bg_image'];
+
+                if (
+                    key !== 'social_links' &&
+                    key !== 'attendee_types' &&
+                    key !== 'company_complimentary_invitee_info' &&
+                    key !== 'location' &&
+                    eventData[key] !== null &&
+                    !(imageFields.includes(key) && typeof eventData[key] === 'string')
+                ) {
                     formData.append(key, eventData[key]);
                 }
             });
@@ -169,6 +179,8 @@ const Settings = () => {
     const getInputClass = (fieldName, isIcon = false) => `w-full p-2.5 border rounded-md text-sm transition-colors duration-200 focus:outline-none focus:ring-2 ${isIcon ? 'pl-9' : ''} ${isFieldModified(fieldName) ? 'border-amber-500 bg-[#fffbeb] text-amber-900 focus:border-amber-600 focus:ring-amber-500/20' : 'border-border bg-bg-primary text-text-primary focus:border-accent focus:ring-accent/10'}`;
 
     const getInviteeInputClass = (index, fieldName) => `w-full p-2.5 border rounded-md text-sm transition-colors duration-200 focus:outline-none focus:ring-2 ${isInviteeInfoModified(index, fieldName) ? 'border-amber-500 bg-[#fffbeb] text-amber-900 focus:border-amber-600 focus:ring-amber-500/20' : 'border-border bg-bg-primary text-text-primary focus:border-accent focus:ring-accent/10'}`;
+
+    const [paymentSubTab, setPaymentSubTab] = useState('selection');
 
     if (isLoading) {
         return (
@@ -224,53 +236,74 @@ const Settings = () => {
                     >
                         Attendees
                     </button>
+                    <button
+                        className={`bg-transparent border-none py-3 px-6 text-sm font-medium cursor-pointer border-b-2 transition-all duration-200 ${activeTab === 'payments' ? 'text-accent border-accent font-semibold' : 'text-text-secondary border-transparent hover:text-text-primary'}`}
+                        onClick={() => setActiveTab('payments')}
+                    >
+                        Payments
+                    </button>
                 </div>
 
                 <div className="max-w-[800px] animate-fade-in">
                     {activeTab === 'general' && (
-                        <div className="animate-fade-in">
-                            <div className="bg-bg-primary border border-border rounded-lg p-6 mb-6">
-                                <h3 className="text-base font-semibold text-text-primary mb-6 pb-2 border-b border-border">Basic Information</h3>
-                                <div className="mb-5">
-                                    <label className="block mb-2 text-sm font-medium text-text-primary">Event Name</label>
-                                    <input
-                                        type="text"
-                                        name="name"
-                                        value={eventData.name || ''}
-                                        onChange={handleInputChange}
-                                        className={getInputClass('name')}
-                                    />
-                                </div>
-                                <div className="mb-5">
-                                    <label className="block mb-2 text-sm font-medium text-text-primary">Description</label>
-                                    <textarea
-                                        name="description"
-                                        value={eventData.description || ''}
-                                        onChange={handleInputChange}
-                                        className={getInputClass('description')}
-                                        rows={3}
-                                    />
-                                </div>
-                                <div className="mb-0">
-                                    <label className="block mb-2 text-sm font-medium text-text-primary">Website</label>
-                                    <div className="relative flex items-center">
-                                        <Globe size={16} className="absolute left-2.5 text-text-tertiary pointer-events-none" />
+                        <div className="animate-fade-in space-y-6">
+                            {/* Section 1: Event Identity */}
+                            <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm overflow-hidden relative">
+                                <div className="absolute top-0 left-0 w-1 h-full bg-accent opacity-20"></div>
+                                <h3 className="text-base font-semibold text-text-primary mb-6 pb-2 border-b border-border flex items-center gap-2">
+                                    <Globe size={18} className="text-accent" />
+                                    Event Identity
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="md:col-span-2">
+                                        <label className="block mb-2 text-xs font-bold text-text-secondary uppercase tracking-wider">Event Name</label>
                                         <input
-                                            type="url"
-                                            name="website"
-                                            value={eventData.website || ''}
+                                            type="text"
+                                            name="name"
+                                            value={eventData.name || ''}
                                             onChange={handleInputChange}
-                                            className={getInputClass('website', true)}
+                                            className={getInputClass('name')}
+                                            placeholder="Enter event name"
+                                        />
+                                    </div>
+                                    <div className="md:col-span-1">
+                                        <label className="block mb-2 text-xs font-bold text-text-secondary uppercase tracking-wider">Official Website</label>
+                                        <div className="relative flex items-center">
+                                            <Globe size={16} className="absolute left-2.5 text-text-tertiary pointer-events-none" />
+                                            <input
+                                                type="url"
+                                                name="website"
+                                                value={eventData.website || ''}
+                                                onChange={handleInputChange}
+                                                className={getInputClass('website', true)}
+                                                placeholder="https://example.com"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="md:col-span-2">
+                                        <label className="block mb-2 text-xs font-bold text-text-secondary uppercase tracking-wider">Event Description</label>
+                                        <textarea
+                                            name="description"
+                                            value={eventData.description || ''}
+                                            onChange={handleInputChange}
+                                            className={getInputClass('description')}
+                                            rows={4}
+                                            placeholder="Briefly describe the event..."
                                         />
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="bg-bg-primary border border-border rounded-lg p-6 mb-6">
-                                <h3 className="text-base font-semibold text-text-primary mb-6 pb-2 border-b border-border">Date & Location</h3>
-                                <div className="grid grid-cols-2 gap-4 mb-5">
+                            {/* Section 2: Venue & Schedule */}
+                            <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm overflow-hidden relative">
+                                <div className="absolute top-0 left-0 w-1 h-full bg-success opacity-20"></div>
+                                <h3 className="text-base font-semibold text-text-primary mb-6 pb-2 border-b border-border flex items-center gap-2">
+                                    <Calendar size={18} className="text-success" />
+                                    Venue & Schedule
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block mb-2 text-sm font-medium text-text-primary">Start Date</label>
+                                        <label className="block mb-2 text-xs font-bold text-text-secondary uppercase tracking-wider">Start Date</label>
                                         <input
                                             type="date"
                                             name="start_date"
@@ -280,7 +313,7 @@ const Settings = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block mb-2 text-sm font-medium text-text-primary">End Date</label>
+                                        <label className="block mb-2 text-xs font-bold text-text-secondary uppercase tracking-wider">End Date</label>
                                         <input
                                             type="date"
                                             name="end_date"
@@ -289,175 +322,194 @@ const Settings = () => {
                                             className={getInputClass('end_date')}
                                         />
                                     </div>
-                                </div>
-                                <div className="mb-5">
-                                    <label className="block mb-2 text-sm font-medium text-text-primary">Address</label>
-                                    <div className="relative flex items-center">
-                                        <MapPin size={16} className="absolute left-2.5 text-text-tertiary pointer-events-none" />
+                                    <div className="md:col-span-2">
+                                        <label className="block mb-2 text-xs font-bold text-text-secondary uppercase tracking-wider">Venue Address</label>
+                                        <div className="relative flex items-center">
+                                            <MapPin size={16} className="absolute left-2.5 text-text-tertiary pointer-events-none" />
+                                            <input
+                                                type="text"
+                                                name="address"
+                                                value={eventData.address || ''}
+                                                onChange={handleInputChange}
+                                                className={getInputClass('address', true)}
+                                                placeholder="Street address, building name..."
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block mb-2 text-xs font-bold text-text-secondary uppercase tracking-wider">City / Location</label>
                                         <input
                                             type="text"
-                                            name="address"
-                                            value={eventData.address || ''}
+                                            name="city"
+                                            value={eventData.city || ''}
                                             onChange={handleInputChange}
-                                            className={getInputClass('address', true)}
+                                            className={getInputClass('city')}
+                                            placeholder="City name"
                                         />
                                     </div>
-                                </div>
-                                <div className="mb-0">
-                                    <label className="block mb-2 text-sm font-medium text-text-primary">City</label>
-                                    <input
-                                        type="text"
-                                        name="city"
-                                        value={eventData.city || ''}
-                                        onChange={handleInputChange}
-                                        className={getInputClass('city')}
-                                    />
                                 </div>
                             </div>
                         </div>
                     )}
 
                     {activeTab === 'companies' && (
-                        <div className="animate-fade-in">
-                            <div className="bg-bg-primary border border-border rounded-lg p-6 mb-6">
-                                <h3 className="text-base font-semibold text-text-primary mb-6 pb-2 border-b border-border">Configuration</h3>
-                                <div className="flex justify-between items-center mb-5 pb-5 border-b border-dashed border-border text-sm">
-                                    <label className="font-medium text-text-primary cursor-pointer mb-0">Company Lock Display</label>
-                                    <ToggleSwitch
-                                        name="is_company_lock_display_enabled"
-                                        checked={eventData.is_company_lock_display_enabled || false}
-                                        isModified={isFieldModified('is_company_lock_display_enabled')}
-                                        onChange={handleInputChange}
-                                    />
-                                </div>
-                                <div className={`flex justify-between items-center ${eventData.meeting_diary_enabled ? 'mb-5 pb-5 border-b border-dashed border-border' : 'mb-0'} text-sm`}>
-                                    <label className="font-medium text-text-primary cursor-pointer mb-0">Meeting Diary Enabled</label>
-                                    <ToggleSwitch
-                                        name="meeting_diary_enabled"
-                                        checked={!!eventData.meeting_diary_enabled}
-                                        isModified={isFieldModified('meeting_diary_enabled')}
-                                        onChange={handleInputChange}
-                                    />
-                                </div>
-                                {eventData.meeting_diary_enabled && (
-                                    <div className="mb-0 mt-5">
-                                        <label className="block mb-2 text-sm font-medium text-text-primary">Meeting Diary Domain</label>
-                                        <input
-                                            type="text"
-                                            name="meetingdiary_domain"
-                                            value={eventData.meetingdiary_domain || ''}
+                        <div className="animate-fade-in space-y-6">
+                            {/* Section 1: Access Controls */}
+                            <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
+                                <h3 className="text-base font-semibold text-text-primary mb-6 pb-2 border-b border-border flex items-center gap-2">
+                                    <Building2 size={18} className="text-amber-500" />
+                                    Platform Access & Controls
+                                </h3>
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center p-4 bg-bg-secondary rounded-lg border border-border text-sm">
+                                        <div>
+                                            <p className="font-semibold text-text-primary m-0">Company Lock Display</p>
+                                            <p className="text-xs text-text-tertiary mt-0.5">Restrict display of companies based on specific criteria.</p>
+                                        </div>
+                                        <ToggleSwitch
+                                            name="is_company_lock_display_enabled"
+                                            checked={eventData.is_company_lock_display_enabled || false}
+                                            isModified={isFieldModified('is_company_lock_display_enabled')}
                                             onChange={handleInputChange}
-                                            className={getInputClass('meetingdiary_domain')}
                                         />
                                     </div>
-                                )}
-                            </div>
 
-                            <div className="bg-bg-primary border border-border rounded-lg p-6 mb-6">
-                                <h3 className="text-base font-semibold text-text-primary mb-6 pb-2 border-b border-border">Resources</h3>
-                                <div className="mb-0">
-                                    <label className="block mb-2 text-sm font-medium text-text-primary">Floor Plan Link</label>
-                                    <input
-                                        type="url"
-                                        name="floor_plan_link"
-                                        value={eventData.floor_plan_link || ''}
-                                        onChange={handleInputChange}
-                                        className={getInputClass('floor_plan_link')}
-                                    />
+                                    <div className="p-4 bg-bg-secondary rounded-lg border border-border">
+                                        <div className="flex justify-between items-center text-sm mb-4">
+                                            <div>
+                                                <p className="font-semibold text-text-primary m-0">Meeting Diary Portal</p>
+                                                <p className="text-xs text-text-tertiary mt-0.5">Enable the dedicated B2B meeting diary for exhibitors.</p>
+                                            </div>
+                                            <ToggleSwitch
+                                                name="meeting_diary_enabled"
+                                                checked={!!eventData.meeting_diary_enabled}
+                                                isModified={isFieldModified('meeting_diary_enabled')}
+                                                onChange={handleInputChange}
+                                            />
+                                        </div>
+                                        {eventData.meeting_diary_enabled && (
+                                            <div className="animate-fade-in pt-4 border-t border-dashed border-border">
+                                                <label className="block mb-2 text-xs font-bold text-text-secondary uppercase tracking-wider">Diary Sub-Domain</label>
+                                                <input
+                                                    type="text"
+                                                    name="meetingdiary_domain"
+                                                    value={eventData.meetingdiary_domain || ''}
+                                                    onChange={handleInputChange}
+                                                    className={getInputClass('meetingdiary_domain')}
+                                                    placeholder="example.meetingdiary.com"
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="bg-bg-primary border border-border rounded-lg p-6 mb-6">
+                            {/* Section 2: Resources */}
+                            <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
+                                <h3 className="text-base font-semibold text-text-primary mb-6 pb-2 border-b border-border flex items-center gap-2">
+                                    <MapPin size={18} className="text-blue-500" />
+                                    Exhibitor Resources
+                                </h3>
+                                <div className="mb-0">
+                                    <label className="block mb-2 text-xs font-bold text-text-secondary uppercase tracking-wider">Floor Plan URL</label>
+                                    <div className="relative flex items-center">
+                                        <Save size={16} className="absolute left-2.5 text-text-tertiary pointer-events-none" />
+                                        <input
+                                            type="url"
+                                            name="floor_plan_link"
+                                            value={eventData.floor_plan_link || ''}
+                                            onChange={handleInputChange}
+                                            className={getInputClass('floor_plan_link', true)}
+                                            placeholder="https://example.com/floor-plan.pdf"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Section 3: Complimentary Invitee Info */}
+                            <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
                                 <div className="flex justify-between items-center mb-6 pb-2 border-b border-border">
-                                    <h3 className="text-base font-semibold text-text-primary m-0">Complimentary Invitee Info</h3>
-                                    <button className="btn btn-sm btn-secondary flex items-center" onClick={addInviteeInfo} type="button">
-                                        <Plus size={14} style={{ marginRight: '4px' }} />
-                                        Add Info Block
+                                    <h3 className="text-base font-semibold text-text-primary m-0 flex items-center gap-2">
+                                        <Users size={18} className="text-purple-500" />
+                                        Complimentary Access Rules
+                                    </h3>
+                                    <button className="btn btn-sm btn-secondary flex items-center gap-1" onClick={addInviteeInfo} type="button">
+                                        <Plus size={14} />
+                                        Add Block
                                     </button>
                                 </div>
 
-                                <div className="flex flex-col gap-4">
+                                <div className="space-y-4">
                                     {(eventData.company_complimentary_invitee_info || []).map((info, index) => (
-                                        <div key={index} className="bg-bg-secondary border border-border rounded-md p-4">
-                                            <div className="flex justify-between items-center mb-4">
-                                                <span className="text-xs font-semibold text-text-tertiary uppercase tracking-wider">#{index + 1}</span>
-                                                <div className="flex gap-2 items-center">
+                                        <div key={index} className="bg-bg-secondary border border-border rounded-lg p-5">
+                                            <div className="flex justify-between items-center mb-5">
+                                                <span className="px-2 py-0.5 bg-bg-tertiary rounded text-[10px] font-bold text-text-tertiary uppercase tracking-tighter">Rule Block #{index + 1}</span>
+                                                <div className="flex gap-2">
+                                                    <div className="flex rounded border border-border overflow-hidden">
+                                                        <button
+                                                            className="w-8 h-8 flex items-center justify-center bg-bg-primary text-text-secondary hover:bg-bg-tertiary disabled:opacity-30"
+                                                            onClick={() => moveInviteeInfo(index, -1)}
+                                                            disabled={index === 0}
+                                                            type="button"
+                                                        ><ArrowUp size={14} /></button>
+                                                        <button
+                                                            className="w-8 h-8 flex items-center justify-center bg-bg-primary text-text-secondary border-l border-border hover:bg-bg-tertiary disabled:opacity-30"
+                                                            onClick={() => moveInviteeInfo(index, 1)}
+                                                            disabled={index === (eventData.company_complimentary_invitee_info || []).length - 1}
+                                                            type="button"
+                                                        ><ArrowDown size={14} /></button>
+                                                    </div>
                                                     <button
-                                                        className="flex items-center justify-center w-8 h-8 rounded-sm border border-border bg-bg-primary text-text-secondary transition-all duration-200 hover:bg-bg-tertiary hover:text-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                                                        onClick={() => moveInviteeInfo(index, -1)}
-                                                        disabled={index === 0}
-                                                        title="Move Up"
-                                                        type="button"
-                                                    >
-                                                        <ArrowUp size={16} />
-                                                    </button>
-                                                    <button
-                                                        className="flex items-center justify-center w-8 h-8 rounded-sm border border-border bg-bg-primary text-text-secondary transition-all duration-200 hover:bg-bg-tertiary hover:text-text-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                                                        onClick={() => moveInviteeInfo(index, 1)}
-                                                        disabled={index === (eventData.company_complimentary_invitee_info || []).length - 1}
-                                                        title="Move Down"
-                                                        type="button"
-                                                    >
-                                                        <ArrowDown size={16} />
-                                                    </button>
-                                                    <div className="w-[1px] h-6 bg-border mx-1"></div>
-                                                    <button
-                                                        className={`flex items-center justify-center w-8 h-8 rounded-sm border transition-all duration-200 ${previewStates[index] ? 'bg-accent text-white border-accent' : 'border-border bg-bg-primary text-text-secondary hover:bg-bg-tertiary hover:text-text-primary'}`}
+                                                        className={`w-8 h-8 flex items-center justify-center rounded border transition-all ${previewStates[index] ? 'bg-accent text-white border-accent' : 'border-border bg-bg-primary text-text-secondary hover:bg-bg-tertiary'}`}
                                                         onClick={() => togglePreview(index)}
-                                                        title={previewStates[index] ? "Edit Mode" : "Preview Mode"}
                                                         type="button"
                                                     >
-                                                        {previewStates[index] ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                        {previewStates[index] ? <EyeOff size={14} /> : <Eye size={14} />}
                                                     </button>
                                                     <button
-                                                        className="flex items-center justify-center w-8 h-8 rounded-sm border border-border bg-bg-primary text-text-secondary transition-all duration-200 hover:bg-red-100 hover:text-red-800 hover:border-red-200"
+                                                        className="w-8 h-8 flex items-center justify-center rounded border border-border bg-bg-primary text-danger hover:bg-red-50"
                                                         onClick={() => removeInviteeInfo(index)}
-                                                        title="Remove"
                                                         type="button"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
+                                                    ><Trash2 size={14} /></button>
                                                 </div>
                                             </div>
 
-                                            <div className="mb-5">
-                                                <label className="block mb-2 text-sm font-medium text-text-primary">Title</label>
-                                                <input
-                                                    type="text"
-                                                    value={info.title || ''}
-                                                    onChange={(e) => handleInviteeInfoChange(index, 'title', e.target.value)}
-                                                    className={getInviteeInputClass(index, 'title')}
-                                                    placeholder="e.g., Eligibility Criteria"
-                                                />
-                                            </div>
-
-                                            <div className="mb-0">
-                                                <label className="block mb-2 text-sm font-medium text-text-primary">Description (HTML Supported)</label>
-                                                {previewStates[index] ? (
-                                                    <div
-                                                        className="bg-bg-primary border border-border rounded-md p-4 min-h-[120px] text-sm leading-relaxed"
-                                                        dangerouslySetInnerHTML={{ __html: info.description }}
-                                                        style={{ listStylePosition: 'inside' }}
+                                            <div className="grid grid-cols-1 gap-4">
+                                                <div>
+                                                    <label className="block mb-1.5 text-xs font-bold text-text-secondary uppercase">Title</label>
+                                                    <input
+                                                        type="text"
+                                                        value={info.title || ''}
+                                                        onChange={(e) => handleInviteeInfoChange(index, 'title', e.target.value)}
+                                                        className={getInviteeInputClass(index, 'title')}
+                                                        placeholder="Eligibility, Quota, etc."
                                                     />
-                                                ) : (
-                                                    <textarea
-                                                        value={info.description || ''}
-                                                        onChange={(e) => handleInviteeInfoChange(index, 'description', e.target.value)}
-                                                        className={getInviteeInputClass(index, 'description')}
-                                                        rows={5}
-                                                        placeholder="Enter description..."
-                                                    />
-                                                )}
+                                                </div>
+                                                <div>
+                                                    <label className="block mb-1.5 text-xs font-bold text-text-secondary uppercase">Description (HTML Support)</label>
+                                                    {previewStates[index] ? (
+                                                        <div
+                                                            className="bg-bg-primary border border-border rounded-md p-4 min-h-[140px] text-sm leading-relaxed prose prose-sm max-w-none shadow-inner"
+                                                            dangerouslySetInnerHTML={{ __html: info.description }}
+                                                        />
+                                                    ) : (
+                                                        <textarea
+                                                            value={info.description || ''}
+                                                            onChange={(e) => handleInviteeInfoChange(index, 'description', e.target.value)}
+                                                            className={getInviteeInputClass(index, 'description')}
+                                                            rows={5}
+                                                            placeholder="<p>Enter rules here...</p>"
+                                                        />
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     ))}
 
                                     {(!eventData.company_complimentary_invitee_info || eventData.company_complimentary_invitee_info.length === 0) && (
-                                        <div className="text-center p-8 bg-bg-secondary rounded-md border border-dashed border-border text-text-secondary flex flex-col items-center gap-4">
-                                            <p>No complimentary invitee information added.</p>
-                                            <button className="btn btn-sm btn-secondary" onClick={addInviteeInfo} type="button">
-                                                Add First Block
-                                            </button>
+                                        <div className="text-center p-12 bg-bg-secondary rounded-lg border border-dashed border-border text-text-tertiary">
+                                            <p className="mb-4">No complimentary invitee information added yet.</p>
+                                            <button className="btn btn-sm btn-secondary" onClick={addInviteeInfo} type="button">Add First Block</button>
                                         </div>
                                     )}
                                 </div>
@@ -466,49 +518,130 @@ const Settings = () => {
                     )}
 
                     {activeTab === 'attendees' && (
-                        <div className="animate-fade-in">
-                            <div className="bg-bg-primary border border-border rounded-lg p-6 mb-6">
-                                <h3 className="text-base font-semibold text-text-primary mb-6 pb-2 border-b border-border">Features</h3>
-                                <div className="flex justify-between items-center mb-5 pb-5 border-b border-dashed border-border text-sm">
-                                    <label className="font-medium text-text-primary cursor-pointer mb-0">Event Active</label>
-                                    <ToggleSwitch
-                                        name="event_active"
-                                        checked={eventData.event_active || false}
-                                        isModified={isFieldModified('event_active')}
-                                        onChange={handleInputChange}
-                                    />
-                                </div>
-                                <div className="flex justify-between items-center mb-5 pb-5 border-b border-dashed border-border text-sm">
-                                    <label className="font-medium text-text-primary cursor-pointer mb-0">Print/SMS Enabled</label>
-                                    <ToggleSwitch
-                                        name="print_sms_enabled"
-                                        checked={eventData.print_sms_enabled || false}
-                                        isModified={isFieldModified('print_sms_enabled')}
-                                        onChange={handleInputChange}
-                                    />
-                                </div>
-                                <div className="flex justify-between items-center text-sm">
-                                    <label className="font-medium text-text-primary cursor-pointer mb-0">Twilio Enabled</label>
-                                    <ToggleSwitch
-                                        name="twilio_on"
-                                        checked={eventData.twilio_on || false}
-                                        isModified={isFieldModified('twilio_on')}
-                                        onChange={handleInputChange}
-                                    />
+                        <div className="animate-fade-in space-y-6">
+                            {/* Section 1: Modules & Services */}
+                            <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
+                                <h3 className="text-base font-semibold text-text-primary mb-6 pb-2 border-b border-border flex items-center gap-2">
+                                    <Users size={18} className="text-indigo-500" />
+                                    Active Modules & Services
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="flex justify-between items-center p-4 bg-bg-secondary rounded-lg border border-border">
+                                        <div>
+                                            <p className="text-sm font-semibold text-text-primary m-0">Event Status</p>
+                                            <p className="text-[10px] text-text-tertiary mt-0.5 font-bold uppercase tracking-wider">{eventData.event_active ? 'Online' : 'Offline'}</p>
+                                        </div>
+                                        <ToggleSwitch
+                                            name="event_active"
+                                            checked={eventData.event_active || false}
+                                            isModified={isFieldModified('event_active')}
+                                            onChange={handleInputChange}
+                                        />
+                                    </div>
+                                    <div className="flex justify-between items-center p-4 bg-bg-secondary rounded-lg border border-border">
+                                        <div>
+                                            <p className="text-sm font-semibold text-text-primary m-0">Print & SMS</p>
+                                            <p className="text-[10px] text-text-tertiary mt-0.5 font-bold uppercase tracking-wider">On-site registration tools</p>
+                                        </div>
+                                        <ToggleSwitch
+                                            name="print_sms_enabled"
+                                            checked={eventData.print_sms_enabled || false}
+                                            isModified={isFieldModified('print_sms_enabled')}
+                                            onChange={handleInputChange}
+                                        />
+                                    </div>
+                                    <div className="flex justify-between items-center p-4 bg-bg-secondary rounded-lg border border-border">
+                                        <div>
+                                            <p className="text-sm font-semibold text-text-primary m-0">Twilio Communications</p>
+                                            <p className="text-[10px] text-text-tertiary mt-0.5 font-bold uppercase tracking-wider">Global SMS notifications</p>
+                                        </div>
+                                        <ToggleSwitch
+                                            name="twilio_on"
+                                            checked={eventData.twilio_on || false}
+                                            isModified={isFieldModified('twilio_on')}
+                                            onChange={handleInputChange}
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="bg-bg-primary border border-border rounded-lg p-6 mb-6">
-                                <h3 className="text-base font-semibold text-text-primary mb-6 pb-2 border-b border-border">Attendee Types</h3>
-                                <div className="flex flex-col gap-2">
+                            {/* Section 2: Registration Policy */}
+                            <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
+                                <h3 className="text-base font-semibold text-text-primary mb-6 pb-2 border-b border-border flex items-center gap-2">
+                                    <Users size={18} className="text-teal-500" />
+                                    Attendee Categories
+                                </h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     {(eventData.attendee_types || []).map(type => (
-                                        <div key={type.id} className="flex justify-between items-center p-3 bg-bg-secondary rounded-md">
-                                            <span className="text-sm font-medium">{type.name}</span>
-                                            {type.email_saved && <span className="py-1 px-2 rounded font-semibold text-xs bg-green-100 text-green-800">Email Saved</span>}
+                                        <div key={type.id} className="flex justify-between items-center p-4 bg-bg-secondary rounded-lg border border-border transition-all hover:border-accent/40 group">
+                                            <span className="text-sm font-medium text-text-primary">{type.name}</span>
+                                            {type.email_saved && (
+                                                <span className="py-1 px-2 rounded-full font-bold text-[9px] bg-success/10 text-success uppercase tracking-widest border border-success/20">
+                                                    Email Active
+                                                </span>
+                                            )}
                                         </div>
                                     ))}
+                                    {(!eventData.attendee_types || eventData.attendee_types.length === 0) && (
+                                        <div className="col-span-full py-8 text-center text-text-tertiary italic text-sm">
+                                            No attendee types configured.
+                                        </div>
+                                    )}
                                 </div>
                             </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'payments' && (
+                        <div className="animate-fade-in space-y-6">
+                            {/* Sub-tab Navigation */}
+                            <div className="flex gap-4 p-1 bg-bg-secondary rounded-lg w-fit border border-border">
+                                <button
+                                    onClick={() => setPaymentSubTab('selection')}
+                                    className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${paymentSubTab === 'selection' ? 'bg-bg-primary text-accent shadow-sm' : 'text-text-tertiary hover:text-text-primary'}`}
+                                >
+                                    Event Gateway
+                                </button>
+                                <button
+                                    onClick={() => setPaymentSubTab('config')}
+                                    className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${paymentSubTab === 'config' ? 'bg-bg-primary text-accent shadow-sm' : 'text-text-tertiary hover:text-text-primary'}`}
+                                >
+                                    Gateway Credentials
+                                </button>
+                            </div>
+
+                            {paymentSubTab === 'selection' ? (
+                                <div className="animate-fade-in">
+                                    {/* Section 1: Global Platform Policy */}
+                                    <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm overflow-hidden relative">
+                                        <div className="absolute top-0 left-0 w-1 h-full bg-accent opacity-20"></div>
+                                        <h3 className="text-base font-semibold text-text-primary mb-6 pb-2 border-b border-border flex items-center gap-2">
+                                            <ShieldCheck size={18} className="text-accent" />
+                                            Active Platform Provider
+                                        </h3>
+                                        <div className="max-w-md">
+                                            <label className="block mb-2 text-xs font-bold text-text-secondary uppercase tracking-wider">Default Gateway Strategy</label>
+                                            <select
+                                                name="payment_provider"
+                                                value={eventData.payment_provider || ''}
+                                                onChange={handleInputChange}
+                                                className={getInputClass('payment_provider')}
+                                            >
+                                                <option value="">(Not Configured)</option>
+                                                <option value="razorpay">Razorpay Platform</option>
+                                                <option value="stripe">Stripe Global</option>
+                                            </select>
+                                            <p className="text-xs text-text-tertiary mt-3 leading-relaxed">
+                                                Select the primary gateway that will handle all registrations and financial transactions for this event instance.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="animate-fade-in">
+                                    <PaymentConfig token={token} />
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>

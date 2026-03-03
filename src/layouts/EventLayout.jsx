@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet, NavLink, useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, Users, Calendar, Settings, ChevronLeft, Building2, ArrowLeft, LogOut, MessageSquare, BarChart2, UserCog, ShieldCheck, IdCard, ChevronDown } from 'lucide-react';
+import { Menu, X, Users, Calendar, Settings, ChevronLeft, Building2, ArrowLeft, LogOut, MessageSquare, BarChart2, UserCog, ShieldCheck, IdCard, ChevronDown, CreditCard } from 'lucide-react';
 
 import { useAuth } from '../contexts/AuthContext';
 
@@ -276,6 +276,15 @@ const EventLayout = () => {
                                 </div>
                             )}
                         </div>
+
+                        <NavLink
+                            to={`/event/${selectedEvent.id}/payments`}
+                            className={navLinkClass}
+                            title={isCollapsed ? "Payments" : ""}
+                        >
+                            <CreditCard size={20} className="shrink-0" />
+                            {!isCollapsed && <span className="flex-1">Payments</span>}
+                        </NavLink>
                     </div>
                 </nav>
 
