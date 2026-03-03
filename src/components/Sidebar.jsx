@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, Users, Calendar, Settings, LogOut, UserCog } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext.jsx';
+import logo from '../assets/logo.png';
 
 const Sidebar = () => {
     const { user, logout } = useAuth();
@@ -14,8 +15,8 @@ const Sidebar = () => {
         <aside className="w-[var(--sidebar-width)] h-screen fixed left-0 top-0 bg-bg-primary border-r border-border flex flex-col z-50">
             <div className="h-[var(--header-height)] flex items-center px-6 border-b border-bg-secondary">
                 <div className="flex items-center gap-3 font-bold text-text-primary">
-                    <div className="w-8 h-8 bg-accent text-white rounded-md flex items-center justify-center text-lg">C</div>
-                    <span className="logo-text">Command</span>
+                    <img src={logo} alt="EA-SC Logo" className="w-8 h-8 rounded-md object-contain" />
+                    <span className="logo-text">EA-SC Dash</span>
                 </div>
             </div>
 
