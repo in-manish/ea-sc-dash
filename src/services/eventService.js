@@ -386,12 +386,13 @@ export const eventService = {
     },
 
     async createARProduct(eventId, groupId, token, data, isMultipart = false) {
+        // Existing implementation remains unchanged
         try {
             const headers = getHeaders(token);
             if (!isMultipart) {
                 headers['Content-Type'] = 'application/json';
             } else {
-                delete headers['Content-Type']; // Let browser set boundary for multipart
+                delete headers['Content-Type'];
             }
 
             const response = await fetch(`${getApiUrl()}/events/${eventId}/additional-requirements/groups/${groupId}/products/`, {
@@ -404,6 +405,29 @@ export const eventService = {
             return await response.json();
         } catch (error) {
             console.error('Create AR Product Error:', error);
+            throw error;
+        }
+    },
+
+    async copyAdditionalRequirements(targetEventId, token, payload) {
+        try {
+            const response = await fetch(`${getApiUrl()}/events/${targetEventId}/additional-requirements/copy/`, {
+                method: 'POST',
+                headers: {
+                    ...getHeaders(token),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.groups || 'Detailed Sync failed');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Copy AR Error:', error);
             throw error;
         }
     },

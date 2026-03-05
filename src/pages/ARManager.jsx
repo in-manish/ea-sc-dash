@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
-import { Loader2, Plus, Edit2, Trash2, ChevronRight, ChevronDown, Package, Image as ImageIcon, Eye } from 'lucide-react';
+import { Loader2, Plus, Edit2, Trash2, ChevronRight, ChevronDown, Package, Image as ImageIcon, Eye, RefreshCw } from 'lucide-react';
+import ARSyncModal from '../features/ARSync/ARSyncModal';
 
 const ARManager = ({ eventId }) => {
     const { token } = useAuth();
@@ -29,6 +30,7 @@ const ARManager = ({ eventId }) => {
     });
     const [productPhoto, setProductPhoto] = useState(null);
     const [savingProduct, setSavingProduct] = useState(false);
+    const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
 
     useEffect(() => {
         fetchGroups();
@@ -117,11 +119,11 @@ const ARManager = ({ eventId }) => {
             }
             setIsGroupModalOpen(false);
             fetchGroups();
-            } catch {
-                alert('Failed to save group');
-            } finally {
-                setSavingGroup(false);
-            }
+        } catch {
+            alert('Failed to save group');
+        } finally {
+            setSavingGroup(false);
+        }
     };
 
     const handleDeleteGroup = async (groupId) => {
@@ -345,9 +347,14 @@ const ARManager = ({ eventId }) => {
                     <h1 className="text-2xl font-bold text-gray-800">Requirement Setup</h1>
                     <p className="text-sm text-text-secondary">Configure Additional Requirement Groups and Products for Event #{eventId}</p>
                 </div>
-                <button className="btn btn-primary shadow-md hover:shadow-lg transition-all" onClick={() => handleOpenGroupModal()}>
-                    <Plus size={16} className="mr-2" /> New Group
-                </button>
+                <div className="flex gap-3">
+                    <button className="btn btn-secondary shadow-sm" onClick={() => setIsSyncModalOpen(true)}>
+                        <RefreshCw size={16} className="mr-2" /> Sync from Event
+                    </button>
+                    <button className="btn btn-primary shadow-md hover:shadow-lg transition-all" onClick={() => handleOpenGroupModal()}>
+                        <Plus size={16} className="mr-2" /> New Group
+                    </button>
+                </div>
             </div>
 
             <div className="flex flex-col gap-4">
@@ -457,6 +464,14 @@ const ARManager = ({ eventId }) => {
 
             {isGroupModalOpen && renderGroupModal()}
             {isProductModalOpen && renderProductModal()}
+            {isSyncModalOpen && (
+                <ARSyncModal
+                    targetEventId={eventId}
+                    token={token}
+                    onClose={() => setIsSyncModalOpen(false)}
+                    onRefresh={fetchGroups}
+                />
+            )}
         </div>
     );
 };

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet, NavLink, useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, Users, Calendar, Settings, ChevronLeft, Building2, ArrowLeft, LogOut, MessageSquare, BarChart2, UserCog, ShieldCheck, IdCard, ChevronDown, CreditCard } from 'lucide-react';
+import { Menu, X, Users, Calendar, Settings, ChevronLeft, Building2, ArrowLeft, LogOut, MessageSquare, BarChart2, UserCog, ShieldCheck, IdCard, ChevronDown, CreditCard, Wrench } from 'lucide-react';
 
 import { useAuth } from '../contexts/AuthContext';
 
@@ -14,7 +14,8 @@ const EventLayout = () => {
         'Companies': location.pathname.includes('/companies'),
         'Communication': location.pathname.includes('/communication'),
         'Reports': location.pathname.includes('/reports'),
-        'Staff Management': location.pathname.includes('/staff')
+        'Staff Management': location.pathname.includes('/staff'),
+        'Utils Config': location.pathname.includes('/attendee-types') || location.pathname.includes('/exhibitor-portal-setup')
     });
 
     const toggleExpand = (title) => {
@@ -217,14 +218,41 @@ const EventLayout = () => {
                     <div className="mt-auto flex flex-col gap-1">
                         <div className={`h-px bg-border my-2 ${isCollapsed ? 'mx-1' : ''}`}></div>
 
-                        <NavLink
-                            to={`/event/${selectedEvent.id}/attendee-types`}
-                            className={navLinkClass}
-                            title={isCollapsed ? "Attendee Types" : ""}
-                        >
-                            <IdCard size={20} className="shrink-0" />
-                            {!isCollapsed && <span className="flex-1">Attendee Types</span>}
-                        </NavLink>
+                        {/* Utils Config with Submenu */}
+                        <div className="flex flex-col gap-1">
+                            <div
+                                className={navLinkClass({ isActive: location.pathname.includes('/attendee-types') || location.pathname.includes('/exhibitor-portal-setup') })}
+                                onClick={() => {
+                                    toggleExpand('Utils Config');
+                                }}
+                                style={{ cursor: 'pointer' }}
+                                title={isCollapsed ? "Utils Config" : ""}
+                            >
+                                <Wrench size={20} className="shrink-0" />
+                                {!isCollapsed && (
+                                    <>
+                                        <span className="flex-1">Utils Config</span>
+                                        <ChevronDown size={14} className={`transition-transform duration-200 ${expandedItems['Utils Config'] ? 'rotate-180' : ''}`} />
+                                    </>
+                                )}
+                            </div>
+                            {!isCollapsed && expandedItems['Utils Config'] && (
+                                <div className="ml-9 flex flex-col gap-1 border-l border-border pl-2 my-1 animate-fade-in">
+                                    <NavLink
+                                        to={`/event/${selectedEvent.id}/attendee-types`}
+                                        className={({ isActive }) => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${isActive ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
+                                    >
+                                        Attendee Types
+                                    </NavLink>
+                                    <NavLink
+                                        to={`/event/${selectedEvent.id}/exhibitor-portal-setup`}
+                                        className={({ isActive }) => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${isActive ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
+                                    >
+                                        Exhibitor Portal Setup
+                                    </NavLink>
+                                </div>
+                            )}
+                        </div>
 
                         {/* Staff Management with Submenu */}
                         <div className="flex flex-col gap-1">

@@ -16,6 +16,7 @@ import AttendeeTypes from './pages/AttendeeTypes';
 import UserManagement from './pages/UserManagement';
 import ProtectedRoute from './components/ProtectedRoute';
 import Payments from './pages/payments/Payments';
+import ExhibitorPortalSetup from './pages/exhibitor-portal-setup/ExhibitorPortalSetup';
 
 
 const App = () => {
@@ -52,6 +53,7 @@ const App = () => {
             <Route path="staff" element={<UserManagement />} />
             <Route path="settings" element={<Settings />} />
             <Route path="payments" element={<Payments />} />
+            <Route path="exhibitor-portal-setup" element={<ExhibitorPortalSetup />} />
 
           </Route>
 
