@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
 import { Loader2, Plus, Edit2, Trash2, ChevronRight, ChevronDown, Package, Image as ImageIcon, Eye, RefreshCw, Code, Layout } from 'lucide-react';
 import ARSyncModal from '../features/ARSync/ARSyncModal';
-import { toPythonString, parsePythonString, pythonToJson } from '../utils/pythonUtils';
+import { toPythonString, parsePythonString, pythonToJson, cleanPythonString } from '../utils/pythonUtils';
 
 const ARManager = ({ eventId }) => {
     const { token } = useAuth();
@@ -91,6 +91,8 @@ const ARManager = ({ eventId }) => {
             let details = group.group_details_json;
             if (typeof details !== 'string') {
                 details = toPythonString(details || {});
+            } else {
+                details = cleanPythonString(details);
             }
             setGroupForm({
                 group_name: group.group_name || '',
@@ -115,7 +117,7 @@ const ARManager = ({ eventId }) => {
             const payload = {
                 group_name: groupForm.group_name,
                 position: parseInt(groupForm.position) || 0,
-                group_details_json: groupForm.group_details_json,
+                group_details_json: cleanPythonString(groupForm.group_details_json),
                 is_active: groupForm.is_active
             };
 

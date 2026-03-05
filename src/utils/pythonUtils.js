@@ -55,8 +55,22 @@ export const pythonToJson = (str) => {
  */
 export const parsePythonString = (str) => {
     try {
-        return JSON.parse(pythonToJson(str));
+        return JSON.parse(pythonToJson(cleanPythonString(str)));
     } catch (e) {
         return {};
     }
+};
+
+/**
+ * Cleans a string by removing potential outer quotes (pasted from console/logs).
+ */
+export const cleanPythonString = (str) => {
+    if (typeof str !== 'string') return str;
+    let trimmed = str.trim();
+    // Remove wrapping double quotes or single quotes
+    if ((trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+        (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+        return trimmed.substring(1, trimmed.length - 1).trim();
+    }
+    return trimmed;
 };
