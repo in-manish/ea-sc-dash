@@ -19,6 +19,7 @@ const ARManager = ({ eventId }) => {
 
     // Modals state
     const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
+    const [editingGroup, setEditingGroup] = useState(null); // null for new
     const [groupForm, setGroupForm] = useState({ group_name: '', position: 0, group_details_json: '{}', is_active: true });
     const [savingGroup, setSavingGroup] = useState(false);
     const [jsonEditMode, setJsonEditMode] = useState('raw'); // 'raw' or 'preview'
@@ -233,7 +234,7 @@ const ARManager = ({ eventId }) => {
 
     const renderGroupModal = () => (
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 p-4">
-            <div className="bg-white rounded-xl w-full max-w-md shadow-xl flex flex-col max-h-[90vh]">
+            <div className="bg-white rounded-xl w-full max-w-2xl shadow-xl flex flex-col max-h-[90vh]">
                 <div className="p-6 border-b border-border flex justify-between items-center">
                     <h3 className="text-xl font-bold">{editingGroup ? 'Edit Group' : 'Create Group'}</h3>
                     <button className="text-text-tertiary hover:text-text-primary" onClick={() => setIsGroupModalOpen(false)}><XIcon /></button>
@@ -316,7 +317,7 @@ const ARManager = ({ eventId }) => {
 
     const renderProductModal = () => (
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 p-4">
-            <div className="bg-white rounded-xl w-full max-w-lg shadow-xl flex flex-col max-h-[90vh]">
+            <div className="bg-white rounded-xl w-full max-w-3xl shadow-xl flex flex-col max-h-[90vh]">
                 <div className="p-6 border-b border-border flex justify-between items-center">
                     <h3 className="text-xl font-bold">{editingProduct ? 'Edit Product' : 'New Product'}</h3>
                     <button className="text-text-tertiary hover:text-text-primary" onClick={() => setIsProductModalOpen(false)}><XIcon /></button>
