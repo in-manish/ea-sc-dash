@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
-import { Loader2, Plus, Edit2, Trash2, ChevronRight, ChevronDown, Package, Image as ImageIcon, Eye, RefreshCw } from 'lucide-react';
+import { Loader2, Plus, Edit2, Trash2, ChevronRight, ChevronDown, Package, Image as ImageIcon, Eye, RefreshCw, Code, Layout } from 'lucide-react';
 import ARSyncModal from '../features/ARSync/ARSyncModal';
+import { toPythonString, parsePythonString, pythonToJson } from '../utils/pythonUtils';
 
 const ARManager = ({ eventId }) => {
     const { token } = useAuth();
@@ -18,9 +19,10 @@ const ARManager = ({ eventId }) => {
 
     // Modals state
     const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
-    const [editingGroup, setEditingGroup] = useState(null); // null for new
     const [groupForm, setGroupForm] = useState({ group_name: '', position: 0, group_details_json: '{}', is_active: true });
     const [savingGroup, setSavingGroup] = useState(false);
+    const [jsonEditMode, setJsonEditMode] = useState('raw'); // 'raw' or 'preview'
+    const [previewJsonBuffer, setPreviewJsonBuffer] = useState('');
 
     const [isProductModalOpen, setIsProductModalOpen] = useState(false);
     const [activeGroupIdForProduct, setActiveGroupIdForProduct] = useState(null);
@@ -80,17 +82,26 @@ const ARManager = ({ eventId }) => {
 
     // --- Group Actions ---
     const handleOpenGroupModal = (group = null) => {
+        setJsonEditMode('raw');
         if (group) {
             setEditingGroup(group);
+            // If group_details_json is already a string (Python literal), keep it.
+            // If it's an object, convert to Python string.
+            let details = group.group_details_json;
+            if (typeof details !== 'string') {
+                details = toPythonString(details || {});
+            }
             setGroupForm({
                 group_name: group.group_name || '',
                 position: group.position || 0,
-                group_details_json: JSON.stringify(group.group_details_json || {}, null, 2),
+                group_details_json: details,
                 is_active: group.is_active
             });
+            setPreviewJsonBuffer(JSON.stringify(parsePythonString(details), null, 2));
         } else {
             setEditingGroup(null);
             setGroupForm({ group_name: '', position: 0, group_details_json: '{}', is_active: true });
+            setPreviewJsonBuffer('{}');
         }
         setIsGroupModalOpen(true);
     };
@@ -98,17 +109,12 @@ const ARManager = ({ eventId }) => {
     const handleSaveGroup = async () => {
         setSavingGroup(true);
         try {
-            let jsonPayload = {};
-            try {
-                jsonPayload = JSON.parse(groupForm.group_details_json);
-            } catch {
-                // If invalid JSON, maybe alert or default to empty
-            }
-
+            // The user wants the format of the string NOT to change.
+            // So we send the string as is.
             const payload = {
                 group_name: groupForm.group_name,
                 position: parseInt(groupForm.position) || 0,
-                group_details_json: jsonPayload,
+                group_details_json: groupForm.group_details_json,
                 is_active: groupForm.is_active
             };
 
@@ -242,8 +248,53 @@ const ARManager = ({ eventId }) => {
                         <input type="number" className="w-full p-2.5 border border-border rounded-lg" value={groupForm.position} onChange={e => setGroupForm({ ...groupForm, position: e.target.value })} />
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-text-tertiary uppercase tracking-wider mb-2">Group Details (JSON)</label>
-                        <textarea className="w-full p-2.5 border border-border rounded-lg h-24 font-mono text-sm" value={groupForm.group_details_json} onChange={e => setGroupForm({ ...groupForm, group_details_json: e.target.value })} />
+                        <div className="flex justify-between items-center mb-2">
+                            <label className="block text-xs font-bold text-text-tertiary uppercase tracking-wider">Group Details</label>
+                            <div className="flex bg-gray-100 p-1 rounded-lg border border-border">
+                                <button
+                                    className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all flex items-center gap-1 ${jsonEditMode === 'raw' ? 'bg-white shadow-sm text-accent' : 'text-text-tertiary hover:text-text-primary'}`}
+                                    onClick={() => setJsonEditMode('raw')}
+                                >
+                                    <Code size={12} /> RAW
+                                </button>
+                                <button
+                                    className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all flex items-center gap-1 ${jsonEditMode === 'preview' ? 'bg-white shadow-sm text-accent' : 'text-text-tertiary hover:text-text-primary'}`}
+                                    onClick={() => {
+                                        setPreviewJsonBuffer(JSON.stringify(parsePythonString(groupForm.group_details_json), null, 2));
+                                        setJsonEditMode('preview');
+                                    }}
+                                >
+                                    <Layout size={12} /> PREVIEW
+                                </button>
+                            </div>
+                        </div>
+
+                        {jsonEditMode === 'raw' ? (
+                            <textarea
+                                className="w-full p-2.5 border border-border rounded-lg h-32 font-mono text-[11px] leading-relaxed bg-gray-50 focus:bg-white transition-colors"
+                                value={groupForm.group_details_json}
+                                onChange={e => setGroupForm({ ...groupForm, group_details_json: e.target.value })}
+                                placeholder="Enter Python-style literal string..."
+                            />
+                        ) : (
+                            <div className="flex flex-col gap-2">
+                                <textarea
+                                    className="w-full p-2.5 border border-border rounded-lg h-32 font-mono text-[11px] leading-relaxed bg-blue-50/30"
+                                    value={previewJsonBuffer}
+                                    onChange={e => {
+                                        setPreviewJsonBuffer(e.target.value);
+                                        try {
+                                            const obj = JSON.parse(e.target.value);
+                                            setGroupForm({ ...groupForm, group_details_json: toPythonString(obj) });
+                                        } catch (err) {
+                                            // Invalid JSON while typing
+                                        }
+                                    }}
+                                    placeholder="Edit as standard JSON..."
+                                />
+                                <p className="text-[10px] text-text-tertiary italic">Preview mode allows editing as standard JSON. It converts back to Python format automatically.</p>
+                            </div>
+                        )}
                     </div>
                     <div className="flex items-center justify-between p-4 bg-bg-secondary rounded-lg border border-border">
                         <span className="font-semibold text-sm">Active</span>
