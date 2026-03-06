@@ -335,7 +335,7 @@ const EventLayout = () => {
                 </div>
             </aside>
 
-            <main className={`flex-1 bg-bg-secondary p-8 min-h-screen transition-[margin-left] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${isCollapsed ? 'ml-[72px]' : 'ml-[260px]'}`}>
+            <main className={`flex-1 bg-bg-secondary p-8 min-h-screen overflow-hidden min-w-0 transition-[margin-left] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${isCollapsed ? 'ml-[72px]' : 'ml-[260px]'}`}>
                 <Outlet />
             </main>
         </div>

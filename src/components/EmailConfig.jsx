@@ -25,38 +25,43 @@ const EmailConfig = () => {
     const config = getTabText();
 
     return (
-        <div className="bg-bg-primary rounded-2xl shadow-premium border border-border flex flex-col min-h-[600px]">
-            <div className="px-8 pt-8 border-b border-border">
-                <div className="flex justify-between items-start mb-6">
-                    <div>
-                        <h2 className="text-2xl font-bold text-text-primary tracking-tight">{config.title}</h2>
-                        <p className="text-sm text-text-tertiary mt-1">{config.desc}</p>
+        <div className="bg-bg-primary rounded-2xl shadow-premium border border-border flex flex-col min-h-[600px] overflow-hidden min-w-0">
+            <div className="px-6 pt-6 border-b border-border">
+                {/* Header with title + action button */}
+                <div className="flex flex-wrap items-center justify-between gap-4 mb-6 p-5 bg-bg-secondary/50 rounded-xl border border-border">
+                    <div className="min-w-0">
+                        <h2 className="text-xl font-extrabold text-text-primary tracking-tight">{config.title}</h2>
+                        <p className="text-sm text-text-secondary mt-1">{config.desc}</p>
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3 flex-shrink-0">
                         {/* View Mode Toggle */}
-                        <div className="flex items-center bg-bg-tertiary p-1 rounded-xl border border-border">
+                        <div className="flex bg-bg-primary p-1 rounded-lg border border-border">
                             <button
                                 onClick={() => setViewMode('list')}
-                                className={`p-1.5 rounded-lg flex items-center justify-center transition-all ${viewMode === 'list' ? 'bg-accent text-white shadow-md' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
-                                title="List View"
+                                className={`p-1.5 rounded-md transition-all ${viewMode === 'list'
+                                    ? 'bg-accent text-white shadow-sm'
+                                    : 'text-text-tertiary hover:text-text-secondary'
+                                    }`}
                             >
-                                <List size={16} />
+                                <List size={18} />
                             </button>
                             <button
                                 onClick={() => setViewMode('grid')}
-                                className={`p-1.5 rounded-lg flex items-center justify-center transition-all ${viewMode === 'grid' ? 'bg-accent text-white shadow-md' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
-                                title="Grid View"
+                                className={`p-1.5 rounded-md transition-all ${viewMode === 'grid'
+                                    ? 'bg-accent text-white shadow-sm'
+                                    : 'text-text-tertiary hover:text-text-secondary'
+                                    }`}
                             >
-                                <Grid size={16} />
+                                <Grid size={18} />
                             </button>
                         </div>
 
-                        {/* Primary Action */}
+                        {/* Primary Action Button */}
                         {config.button && (
                             <button
                                 onClick={handleActionClick}
-                                className="btn btn-primary px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-lg shadow-accent/20 font-black uppercase tracking-widest text-[10px]"
+                                className="bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm hover:shadow-md transition-all whitespace-nowrap"
                             >
                                 <Plus size={16} />
                                 {config.button}
@@ -99,7 +104,7 @@ const EmailConfig = () => {
                 </div>
             </div>
 
-            <div className="flex-1 p-8 bg-bg-secondary/20">
+            <div className="flex-1 p-6 bg-bg-secondary/20 overflow-hidden min-w-0">
                 {activeTab === 'categories' && <EmailCategoryTypes viewMode={viewMode} onAddSignal={createSignal} />}
                 {activeTab === 'templates' && <EmailTemplates viewMode={viewMode} onAddSignal={createSignal} />}
                 {activeTab === 'campaigns' && <EmailCampaigns viewMode={viewMode} />}
