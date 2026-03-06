@@ -84,13 +84,16 @@ const Dashboard = () => {
                         <div
                             key={event.id}
                             className={`bg-bg-primary border border-border cursor-pointer ${viewMode === 'card'
-                                    ? 'rounded-lg p-6 flex flex-col transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-border-hover'
-                                    : 'grid grid-cols-[1.5fr_1.2fr_1.2fr_2fr_100px] gap-4 items-center rounded-md p-4 transition-colors duration-200 hover:bg-bg-secondary'
+                                ? 'rounded-lg p-6 flex flex-col transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-border-hover'
+                                : 'grid grid-cols-[1.5fr_1.2fr_1.2fr_2fr_100px] gap-4 items-center rounded-md p-4 transition-colors duration-200 hover:bg-bg-secondary'
                                 }`}
                             onClick={() => handleEventClick(event)}
                         >
                             <div className={viewMode === 'card' ? 'flex-1 mb-6' : 'contents'}>
-                                <h3 className={viewMode === 'card' ? 'text-lg font-semibold text-text-primary mb-2' : 'text-[0.925rem] font-semibold text-text-primary m-0'}>{event.name}</h3>
+                                <div className="flex items-center gap-2 mb-2">
+                                    <h3 className={viewMode === 'card' ? 'text-lg font-semibold text-text-primary m-0' : 'text-[0.925rem] font-semibold text-text-primary m-0'}>{event.name}</h3>
+                                    <span className="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-accent/10 text-accent border border-accent/20">#{event.id}</span>
+                                </div>
                                 {viewMode === 'card' && event.description && <p className="text-sm text-text-secondary mb-4 line-clamp-2">{event.description}</p>}
 
                                 <div className={viewMode === 'card' ? 'flex flex-col gap-2' : 'contents'}>

@@ -1,15 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink, useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Menu, X, Users, Calendar, Settings, ChevronLeft, Building2, ArrowLeft, LogOut, MessageSquare, BarChart2, UserCog, ShieldCheck, IdCard, ChevronDown, CreditCard, Wrench } from 'lucide-react';
 
 import { useAuth } from '../contexts/AuthContext';
+import { eventService } from '../services/eventService';
 
 const EventLayout = () => {
-    const { selectedEvent, clearEvent, logout } = useAuth();
+    const { selectedEvent, selectEvent, clearEvent, logout, token, recentEvents } = useAuth();
     const { id } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [isEventDropdownOpen, setIsEventDropdownOpen] = useState(false);
+    const [eventLoadError, setEventLoadError] = useState(null);
     const [expandedItems, setExpandedItems] = useState({
         'Companies': location.pathname.includes('/companies'),
         'Communication': location.pathname.includes('/communication'),
@@ -17,6 +20,21 @@ const EventLayout = () => {
         'Staff Management': location.pathname.includes('/staff'),
         'Utils Config': location.pathname.includes('/attendee-types') || location.pathname.includes('/exhibitor-portal-setup')
     });
+
+    // Auto-fetch event details when navigating directly via URL
+    useEffect(() => {
+        if ((!selectedEvent || selectedEvent.id.toString() !== id) && token && id) {
+            setEventLoadError(null);
+            eventService.getEventDetails(id, token)
+                .then(eventData => {
+                    selectEvent(eventData);
+                })
+                .catch(err => {
+                    console.error('Failed to load event:', err);
+                    setEventLoadError('Failed to load event. It may not exist or you may not have access.');
+                });
+        }
+    }, [id, token, selectedEvent]);
 
     const toggleExpand = (title) => {
         setExpandedItems(prev => ({
@@ -33,6 +51,20 @@ const EventLayout = () => {
             day: 'numeric'
         });
     };
+
+    if (eventLoadError) {
+        return (
+            <div className="p-8 flex flex-col items-center gap-4">
+                <div className="text-danger text-sm">{eventLoadError}</div>
+                <button
+                    onClick={() => navigate('/')}
+                    className="px-4 py-2 bg-accent text-white rounded-md text-sm font-medium cursor-pointer border-none hover:opacity-90 transition-opacity"
+                >
+                    Back to Events
+                </button>
+            </div>
+        );
+    }
 
     if (!selectedEvent || selectedEvent.id.toString() !== id) {
         return <div className="p-4 text-text-secondary">Loading Event Context...</div>;
@@ -63,12 +95,73 @@ const EventLayout = () => {
                     </div>
 
                     {!isCollapsed && (
-                        <div className="px-2 animate-[fadeIn_0.5s_ease-out]">
-                            <h2 className="text-base font-semibold text-text-primary mb-1 leading-snug whitespace-nowrap overflow-hidden text-ellipsis">{selectedEvent.name}</h2>
-                            <div className="flex flex-col text-xs text-text-secondary gap-0.5">
-                                <span>#{selectedEvent.id}</span>
-                                <span>{formatDate(selectedEvent.start_date)} - {formatDate(selectedEvent.end_date)}</span>
-                            </div>
+                        <div className="px-2 animate-[fadeIn_0.5s_ease-out] relative">
+                            <button
+                                onClick={() => setIsEventDropdownOpen(!isEventDropdownOpen)}
+                                className="w-full text-left bg-bg-primary border border-border rounded-lg p-2.5 flex items-center justify-between transition-all hover:border-border-hover hover:bg-bg-secondary cursor-pointer relative z-20 group"
+                            >
+                                <div className="flex flex-col overflow-hidden mr-2">
+                                    <span className="text-[10px] font-bold text-text-tertiary uppercase tracking-wider mb-0.5 group-hover:text-accent transition-colors">Current Event</span>
+                                    <h2 className="text-sm font-semibold text-text-primary leading-snug break-words pr-2">{selectedEvent.name}</h2>
+                                    <div className="flex flex-wrap text-[11px] text-text-secondary gap-x-1 gap-y-0.5 mt-1">
+                                        <span className="font-medium text-text-primary whitespace-nowrap">#{selectedEvent.id}</span>
+                                        <span className="whitespace-nowrap">•</span>
+                                        <span className="whitespace-nowrap">{formatDate(selectedEvent.start_date)} - {formatDate(selectedEvent.end_date)}</span>
+                                    </div>
+                                </div>
+                                <ChevronDown size={16} className={`text-text-tertiary transition-transform duration-200 shrink-0 ${isEventDropdownOpen ? 'rotate-180 text-text-primary' : ''}`} />
+                            </button>
+
+                            {/* Recent Events Dropdown */}
+                            {isEventDropdownOpen && (
+                                <>
+                                    <div
+                                        className="fixed inset-0 z-10"
+                                        onClick={() => setIsEventDropdownOpen(false)}
+                                    ></div>
+                                    <div className="absolute top-[calc(100%+4px)] left-2 right-2 bg-bg-primary border border-border rounded-lg shadow-lg z-30 py-1.5 animate-fade-in overflow-hidden">
+                                        <div className="px-3 py-1.5 text-xs font-semibold text-text-tertiary uppercase tracking-wider bg-bg-secondary/50 border-b border-border">
+                                            Recent Events
+                                        </div>
+                                        <div className="max-h-[200px] overflow-y-auto">
+                                            {recentEvents && recentEvents.length > 0 ? (
+                                                recentEvents.map(event => (
+                                                    <button
+                                                        key={`recent-${event.id}`}
+                                                        onClick={() => {
+                                                            selectEvent(event);
+                                                            setIsEventDropdownOpen(false);
+                                                            navigate(`/event/${event.id}/attendees`);
+                                                        }}
+                                                        className={`w-full text-left px-3 py-2 text-sm border-none bg-transparent cursor-pointer transition-colors hover:bg-bg-secondary flex flex-col ${event.id === selectedEvent.id ? 'bg-accent/5' : ''}`}
+                                                    >
+                                                        <span className={`font-medium ${event.id === selectedEvent.id ? 'text-accent' : 'text-text-primary'} whitespace-nowrap overflow-hidden text-ellipsis w-full`}>
+                                                            {event.name}
+                                                        </span>
+                                                        <span className="text-[11px] text-text-secondary">#{event.id}</span>
+                                                    </button>
+                                                ))
+                                            ) : (
+                                                <div className="px-3 py-3 text-sm text-text-tertiary text-center">
+                                                    No recent events
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="border-t border-border mt-1">
+                                            <button
+                                                onClick={() => {
+                                                    clearEvent();
+                                                    setIsEventDropdownOpen(false);
+                                                    navigate('/');
+                                                }}
+                                                className="w-full text-center px-3 py-2 text-[13px] font-medium text-accent border-none bg-transparent cursor-pointer hover:bg-accent/5 transition-colors"
+                                            >
+                                                View all events
+                                            </button>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     )}
                 </div>

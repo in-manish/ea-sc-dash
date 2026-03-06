@@ -11,6 +11,7 @@ export const AuthProvider = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedEvent, setSelectedEvent] = useState(null);
+    const [recentEvents, setRecentEvents] = useState([]);
 
     // Get current environment
     const currentEnv = localStorage.getItem('app_env') || 'STAGE';
@@ -19,7 +20,8 @@ export const AuthProvider = ({ children }) => {
     const getStorageKeys = (env = currentEnv) => ({
         user: `user_${env}`,
         token: `token_${env}`,
-        event: `selectedEvent_${env}`
+        event: `selectedEvent_${env}`,
+        recentEvents: `recentEvents_${env}`
     });
 
     useEffect(() => {
@@ -30,6 +32,7 @@ export const AuthProvider = ({ children }) => {
         const storedUser = localStorage.getItem(keys.user);
         const storedToken = localStorage.getItem(keys.token);
         const storedEvent = localStorage.getItem(keys.event);
+        const storedRecentEvents = localStorage.getItem(keys.recentEvents);
 
         if (storedUser && storedToken) {
             setUser(JSON.parse(storedUser));
@@ -39,6 +42,15 @@ export const AuthProvider = ({ children }) => {
 
         if (storedEvent) {
             setSelectedEvent(JSON.parse(storedEvent));
+        }
+
+        if (storedRecentEvents) {
+            try {
+                setRecentEvents(JSON.parse(storedRecentEvents));
+            } catch (e) {
+                console.error("Failed to parse recent events", e);
+                setRecentEvents([]);
+            }
         }
 
         setIsLoading(false);
@@ -58,16 +70,26 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
         setToken(null);
         setSelectedEvent(null);
+        setRecentEvents([]);
         setIsAuthenticated(false);
         localStorage.removeItem(keys.user);
         localStorage.removeItem(keys.token);
         localStorage.removeItem(keys.event);
+        localStorage.removeItem(keys.recentEvents);
     };
 
     const selectEvent = (event) => {
         const keys = getStorageKeys();
         setSelectedEvent(event);
         localStorage.setItem(keys.event, JSON.stringify(event));
+
+        // Update recent events (max 5)
+        setRecentEvents(prevEvents => {
+            const filtered = prevEvents.filter(e => e.id !== event.id);
+            const updated = [event, ...filtered].slice(0, 5);
+            localStorage.setItem(keys.recentEvents, JSON.stringify(updated));
+            return updated;
+        });
     };
 
     const clearEvent = () => {
@@ -96,6 +118,7 @@ export const AuthProvider = ({ children }) => {
             selectedEvent,
             selectEvent,
             clearEvent,
+            recentEvents,
             currentEnv,
             switchEnvironment
         }}>
