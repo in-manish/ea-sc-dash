@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
-import { Loader2, Calendar, CheckCircle, XCircle, DollarSign, X, ChevronDown, Search, Copy, Check, Building2, User, Package, FileText, CreditCard, ShieldCheck, ShieldX } from 'lucide-react';
+import { Loader2, Calendar, CheckCircle, XCircle, DollarSign, X, ChevronDown, Search, Copy, Check, Building2, User, Package, FileText, CreditCard, ShieldCheck, ShieldX, Download, ZoomIn } from 'lucide-react';
 
 const STATUS_OPTIONS = [
     { value: 'cart', label: 'Cart' },
@@ -202,6 +202,7 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [expandedPayments, setExpandedPayments] = useState(null);
+    const [previewImage, setPreviewImage] = useState(null);
 
     // Load saved emails on mount
     useEffect(() => {
@@ -904,6 +905,32 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
                                                 : <span className="inline-flex items-center gap-1 text-amber-600"><ShieldX size={13} /> No</span>
                                         } />
                                         {o.offline_payment_reference && <DetailRow label="Reference" value={o.offline_payment_reference} mono />}
+                                        {o.payment?.offline && (
+                                            <div className="mt-2 border-t border-border/30 pt-2">
+                                                <DetailRow label="Status" value={<span className={`px-2 py-0.5 rounded-full text-xs font-semibold capitalize ${getStatusClass(o.payment.offline.status)}`}>{o.payment.offline.status?.replace('_', ' ')}</span>} />
+                                                <DetailRow label="Verified" value={
+                                                    o.payment.offline.is_verified
+                                                        ? <span className="inline-flex items-center gap-1 text-green-600 text-xs"><ShieldCheck size={12} /> Yes</span>
+                                                        : <span className="inline-flex items-center gap-1 text-amber-600 text-xs"><ShieldX size={12} /> No</span>
+                                                } />
+                                                {o.payment.offline.file_url && (
+                                                    <div className="mt-2">
+                                                        <span className="text-xs font-semibold text-text-muted uppercase tracking-wider block mb-1.5">Payment Proof</span>
+                                                        <div className="relative group/img inline-block">
+                                                            <img
+                                                                src={o.payment.offline.file_url}
+                                                                alt="Payment proof"
+                                                                className="w-full max-w-[200px] h-auto rounded-lg border border-border object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                                                                onClick={() => setPreviewImage(o.payment.offline.file_url)}
+                                                            />
+                                                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity pointer-events-none">
+                                                                <span className="bg-black/60 text-white rounded-full p-1.5"><ZoomIn size={16} /></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                         {o.payment?.online?.length > 0 && (
                                             <div className="mt-2">
                                                 <button
@@ -960,6 +987,34 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
                     </div>
                 );
             })()}
+
+            {/* Image Lightbox */}
+            {previewImage && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[60] animate-fade-in p-4" onClick={() => setPreviewImage(null)}>
+                    <div className="relative max-w-4xl max-h-[90vh] animate-[modalPop_0.2s_ease-out]" onClick={e => e.stopPropagation()}>
+                        <img src={previewImage} alt="Preview" className="max-w-full max-h-[85vh] rounded-xl shadow-2xl object-contain" />
+                        <div className="absolute top-3 right-3 flex gap-2">
+                            <a
+                                href={previewImage}
+                                download
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="bg-white/90 hover:bg-white text-slate-700 rounded-full p-2 shadow-lg transition-colors"
+                                title="Download"
+                            >
+                                <Download size={18} />
+                            </a>
+                            <button
+                                className="bg-white/90 hover:bg-white text-slate-700 rounded-full p-2 shadow-lg transition-colors"
+                                onClick={() => setPreviewImage(null)}
+                                title="Close"
+                            >
+                                <X size={18} />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {error && <div className="bg-red-50 text-red-800 p-4 border border-red-200 rounded-md mb-6">{error}</div>}
 
