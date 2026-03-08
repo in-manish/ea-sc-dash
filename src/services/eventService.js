@@ -193,7 +193,7 @@ export const eventService = {
             const queryParams = new URLSearchParams();
 
             if (Array.isArray(status)) {
-                status.forEach(s => queryParams.append('status', s));
+                queryParams.append('status', status.join(','));
             } else {
                 queryParams.append('status', status);
             }

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
-import { Loader2, Calendar, CheckCircle, XCircle, DollarSign, X, ChevronDown } from 'lucide-react';
+import { Loader2, Calendar, CheckCircle, XCircle, DollarSign, X, ChevronDown, Search, Copy, Check, Building2, User, Package, FileText, CreditCard, ShieldCheck, ShieldX } from 'lucide-react';
 
 const STATUS_OPTIONS = [
     { value: 'cart', label: 'Cart' },
@@ -23,6 +23,32 @@ const getStatusClass = (status) => {
         case 'cancelled': return 'bg-[#f3f4f6] text-[#374151] line-through';
         default: return 'bg-slate-100 text-slate-700';
     }
+};
+
+const CopyableId = ({ value, label }) => {
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        navigator.clipboard.writeText(String(value));
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+    };
+
+    return (
+        <button
+            onClick={handleCopy}
+            title={`Copy ${label || value}`}
+            className="inline-flex items-center gap-1 font-mono text-sm hover:text-accent transition-colors group/copy"
+        >
+            {value}
+            {copied
+                ? <Check size={12} className="text-green-600" />
+                : <Copy size={12} className="opacity-0 group-hover/copy:opacity-60 transition-opacity" />
+            }
+        </button>
+    );
 };
 
 const AdditionalRequirementsOrders = ({ eventId }) => {
@@ -47,7 +73,12 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
     const paymentMode = searchParams.get('payment_mode') || '';
     const dateFrom = searchParams.get('date_from') || '';
     const dateTo = searchParams.get('date_to') || '';
-    const companyIds = searchParams.getAll('company_ids');
+    const orderId = searchParams.get('order_id') || '';
+    const companyName = searchParams.get('company_name') || '';
+    const companyId = searchParams.get('company_id') || '';
+    const companyIds = searchParams.get('company_ids') || '';
+    const excludeCompanyIds = searchParams.get('exclude_company_ids') || '';
+    const userId = searchParams.get('user_id') || '';
 
     const updateFilters = (newFilters) => {
         const params = new URLSearchParams(searchParams);
@@ -122,7 +153,12 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
                     payment_mode: paymentMode,
                     date_from: dateFrom,
                     date_to: dateTo,
-                    company_ids: companyIds
+                    order_id: orderId,
+                    company_name: companyName,
+                    company_id: companyId,
+                    company_ids: companyIds,
+                    exclude_company_ids: excludeCompanyIds,
+                    user_id: userId,
                 };
 
                 const data = await eventService.getAdditionalRequirementsOrders(eventId, token, page, 10, filters, true);
@@ -162,7 +198,10 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
     const [emailInput, setEmailInput] = useState('');
     const [sendingReport, setSendingReport] = useState(false);
     const [reportTimer, setReportTimer] = useState(0);
-
+    const [reportStatuses, setReportStatuses] = useState(['paid', 'pay_later']);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [selectedOrder, setSelectedOrder] = useState(null);
+    const [expandedPayments, setExpandedPayments] = useState(null);
 
     // Load saved emails on mount
     useEffect(() => {
@@ -193,7 +232,16 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
         setReportEmails(reportEmails.filter(email => email !== emailToRemove));
     };
 
+    const handleToggleReportStatus = (value) => {
+        setReportStatuses(prev =>
+            prev.includes(value) ? prev.filter(s => s !== value) : [...prev, value]
+        );
+    };
+
     const handleStartSendReport = () => {
+        if (statusParam.length > 0) {
+            setReportStatuses(statusParam);
+        }
         setShowEmailModal(true);
     };
 
@@ -229,26 +277,8 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
     const performSendReport = async () => {
         setLoading(true);
         try {
-            // Token from context
-            // Use current filters or default logic if needed. 
-            // The requirement says "status=paid,pay_later" in curl, but maybe we should respect current filters if they are set?
-            // The prompt said: "status=paid%2Cpay_later" which implies a default.
-            // Let's use the current status filter if it exists, otherwise default to paid,pay_later as per request sample.
-            // However, the user request specifically showed that CURL. Let's stick to what's requested: "allow user to edit send_to_emails".
-            // It didn't explicitly say to use current filter 'status' for the report, but usually reports reflect the view.
-            // But looking at the curl: `status=paid%2Cpay_later` is hardcoded in the example. 
-            // I'll stick to a default behavior but maybe allow it to be flexible if the user filters. 
-            // For now, I will use the `statusParam` from the component state if it has values, 
-            // otherwise I will default to `['paid', 'pay_later']` to match the example.
-
-            const statusesToSend = statusParam.length > 0 ? statusParam : ['paid', 'pay_later'];
-
-            await eventService.sendAROrdersReport(eventId, token, reportEmails, statusesToSend);
-
-            // Show success (you might want a toast here, using alert for now or a custom UI element)
-            // Since I don't see a Toast component imported, I'll set a temporary success message in 'error' state or similar?
-            // Better: use a temporary success state.
-            alert("Report sent successfully!");
+            await eventService.sendAROrdersReport(eventId, token, reportEmails, reportStatuses);
+            setShowSuccessModal(true);
         } catch (err) {
             console.error(err);
             setError("Failed to send report.");
@@ -266,6 +296,40 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
             updateFilters({ status: [...currentStatuses, value] });
         }
     };
+
+    const parseBillingDetails = (raw) => {
+        if (!raw) return null;
+        try {
+            const results = [];
+            const regex = /\{[^{}]*\}/g;
+            let match;
+            while ((match = regex.exec(raw)) !== null) {
+                try {
+                    const parsed = JSON.parse(match[0]);
+                    if (typeof parsed === 'object' && parsed !== null) {
+                        results.push(parsed);
+                    }
+                } catch {}
+            }
+            return results.length > 0 ? results : null;
+        } catch {
+            return null;
+        }
+    };
+
+    const formatDateTime = (dateString) => {
+        if (!dateString) return '-';
+        return new Date(dateString).toLocaleString('en-IN', {
+            dateStyle: 'medium', timeStyle: 'short'
+        });
+    };
+
+    const DetailRow = ({ label, value, mono }) => (
+        <div className="flex justify-between items-start gap-4 py-2 border-b border-border/30 last:border-b-0">
+            <span className="text-xs font-semibold text-text-muted uppercase tracking-wider whitespace-nowrap">{label}</span>
+            <span className={`text-sm text-text-primary text-right ${mono ? 'font-mono' : ''}`}>{value || '-'}</span>
+        </div>
+    );
 
     return (
         <div className="py-4 animate-fade-in">
@@ -343,78 +407,162 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
             )}
 
             {/* Filters */}
-            <div className="flex flex-wrap items-center gap-4 mb-6 bg-bg-primary p-4 rounded-lg border border-border shadow-sm">
-                <div className="flex flex-col gap-2">
-                    <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Status</label>
-                    <div className="select-wrapper">
+            <div className="flex flex-col gap-4 mb-6 bg-bg-primary p-4 rounded-lg border border-border shadow-sm">
+                <div className="flex flex-wrap items-end gap-4">
+                    <div className="flex flex-col gap-2">
+                        <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Status</label>
+                        <div className="select-wrapper">
+                            <select
+                                className="p-2 border border-border rounded-md text-sm min-w-[150px] bg-bg-primary text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all shadow-sm"
+                                value=""
+                                onChange={handleStatusChange}
+                            >
+                                <option value="">Select Status...</option>
+                                {STATUS_OPTIONS.map(opt => (
+                                    <option
+                                        key={opt.value}
+                                        value={opt.value}
+                                        disabled={statusParam.includes(opt.value)}
+                                    >
+                                        {opt.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                        <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Verified</label>
                         <select
                             className="p-2 border border-border rounded-md text-sm min-w-[150px] bg-bg-primary text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all shadow-sm"
-                            value=""
-                            onChange={handleStatusChange}
+                            value={isVerified}
+                            onChange={(e) => updateFilters({ is_verified: e.target.value })}
                         >
-                            <option value="">Select Status...</option>
-                            {STATUS_OPTIONS.map(opt => (
-                                <option
-                                    key={opt.value}
-                                    value={opt.value}
-                                    disabled={statusParam.includes(opt.value)}
-                                >
-                                    {opt.label}
-                                </option>
-                            ))}
+                            <option value="">All</option>
+                            <option value="true">Verified</option>
+                            <option value="false">Not Verified</option>
                         </select>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                        <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Payment Mode</label>
+                        <select
+                            className="p-2 border border-border rounded-md text-sm min-w-[150px] bg-bg-primary text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all shadow-sm"
+                            value={paymentMode}
+                            onChange={(e) => updateFilters({ payment_mode: e.target.value })}
+                        >
+                            <option value="">All</option>
+                            <option value="online">Online</option>
+                            <option value="offline">Offline</option>
+                        </select>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                        <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">From Date</label>
+                        <input
+                            type="date"
+                            className="p-2 border border-border rounded-md text-sm min-w-[150px] bg-bg-primary text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all shadow-sm"
+                            value={dateFrom}
+                            onChange={(e) => updateFilters({ date_from: e.target.value })}
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                        <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">To Date</label>
+                        <input
+                            type="date"
+                            className="p-2 border border-border rounded-md text-sm min-w-[150px] bg-bg-primary text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all shadow-sm"
+                            value={dateTo}
+                            onChange={(e) => updateFilters({ date_to: e.target.value })}
+                        />
                     </div>
                 </div>
 
-                <div className="flex flex-col gap-2">
-                    <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Verified</label>
-                    <select
-                        className="p-2 border border-border rounded-md text-sm min-w-[150px] bg-bg-primary text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all shadow-sm"
-                        value={isVerified}
-                        onChange={(e) => updateFilters({ is_verified: e.target.value })}
-                    >
-                        <option value="">All</option>
-                        <option value="true">Verified</option>
-                        <option value="false">Not Verified</option>
-                    </select>
-                </div>
+                <div className="border-t border-border/50 pt-4">
+                    <div className="flex flex-wrap items-end gap-4">
+                        <div className="flex flex-col gap-2">
+                            <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Order ID</label>
+                            <div className="relative">
+                                <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+                                <input
+                                    key={`oid-${orderId}`}
+                                    type="text"
+                                    defaultValue={orderId}
+                                    placeholder="Search order..."
+                                    className="pl-8 pr-2 py-2 border border-border rounded-md text-sm min-w-[150px] bg-bg-primary text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all shadow-sm"
+                                    onKeyDown={(e) => { if (e.key === 'Enter') updateFilters({ order_id: e.target.value.trim() || null }); }}
+                                />
+                            </div>
+                        </div>
 
-                <div className="flex flex-col gap-2">
-                    <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Payment Mode</label>
-                    <select
-                        className="p-2 border border-border rounded-md text-sm min-w-[150px] bg-bg-primary text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all shadow-sm"
-                        value={paymentMode}
-                        onChange={(e) => updateFilters({ payment_mode: e.target.value })}
-                    >
-                        <option value="">All</option>
-                        <option value="online">Online</option>
-                        <option value="offline">Offline</option>
-                    </select>
-                </div>
+                        <div className="flex flex-col gap-2">
+                            <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Company Name</label>
+                            <div className="relative">
+                                <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+                                <input
+                                    key={`cname-${companyName}`}
+                                    type="text"
+                                    defaultValue={companyName}
+                                    placeholder="Search company..."
+                                    className="pl-8 pr-2 py-2 border border-border rounded-md text-sm min-w-[170px] bg-bg-primary text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all shadow-sm"
+                                    onKeyDown={(e) => { if (e.key === 'Enter') updateFilters({ company_name: e.target.value.trim() || null }); }}
+                                />
+                            </div>
+                        </div>
 
-                <div className="flex flex-col gap-2">
-                    <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">From Date</label>
-                    <input
-                        type="date"
-                        className="p-2 border border-border rounded-md text-sm min-w-[150px] bg-bg-primary text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all shadow-sm"
-                        value={dateFrom}
-                        onChange={(e) => updateFilters({ date_from: e.target.value })}
-                    />
-                </div>
+                        <div className="flex flex-col gap-2">
+                            <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Company ID</label>
+                            <input
+                                key={`cid-${companyId}`}
+                                type="text"
+                                defaultValue={companyId}
+                                placeholder="e.g. 123"
+                                className="p-2 border border-border rounded-md text-sm min-w-[120px] bg-bg-primary text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all shadow-sm"
+                                onKeyDown={(e) => { if (e.key === 'Enter') updateFilters({ company_id: e.target.value.trim() || null }); }}
+                            />
+                        </div>
 
-                <div className="flex flex-col gap-2">
-                    <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">To Date</label>
-                    <input
-                        type="date"
-                        className="p-2 border border-border rounded-md text-sm min-w-[150px] bg-bg-primary text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all shadow-sm"
-                        value={dateTo}
-                        onChange={(e) => updateFilters({ date_to: e.target.value })}
-                    />
+                        <div className="flex flex-col gap-2">
+                            <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">User ID</label>
+                            <input
+                                key={`uid-${userId}`}
+                                type="text"
+                                defaultValue={userId}
+                                placeholder="e.g. 456"
+                                className="p-2 border border-border rounded-md text-sm min-w-[120px] bg-bg-primary text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all shadow-sm"
+                                onKeyDown={(e) => { if (e.key === 'Enter') updateFilters({ user_id: e.target.value.trim() || null }); }}
+                            />
+                        </div>
+
+                        <div className="flex flex-col gap-2">
+                            <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Company IDs</label>
+                            <input
+                                key={`cids-${companyIds}`}
+                                type="text"
+                                defaultValue={companyIds}
+                                placeholder="1,2,3..."
+                                className="p-2 border border-border rounded-md text-sm min-w-[130px] bg-bg-primary text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all shadow-sm"
+                                onKeyDown={(e) => { if (e.key === 'Enter') updateFilters({ company_ids: e.target.value.trim() || null }); }}
+                            />
+                        </div>
+
+                        <div className="flex flex-col gap-2">
+                            <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider">Exclude Company IDs</label>
+                            <input
+                                key={`ecids-${excludeCompanyIds}`}
+                                type="text"
+                                defaultValue={excludeCompanyIds}
+                                placeholder="4,5,6..."
+                                className="p-2 border border-border rounded-md text-sm min-w-[130px] bg-bg-primary text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all shadow-sm"
+                                onKeyDown={(e) => { if (e.key === 'Enter') updateFilters({ exclude_company_ids: e.target.value.trim() || null }); }}
+                            />
+                        </div>
+                    </div>
                 </div>
             </div>
 
             {/* Active Filters */}
-            {(statusParam.length > 0 || isVerified || paymentMode || dateFrom || dateTo || companyIds.length > 0) && (
+            {(statusParam.length > 0 || isVerified || paymentMode || dateFrom || dateTo || orderId || companyName || companyId || companyIds || excludeCompanyIds || userId) && (
                 <div className="flex flex-wrap gap-2 min-h-[40px] mb-6">
                     {statusParam.map(s => (
                         <span key={s} className="flex items-center gap-2 px-3 py-1 bg-bg-secondary rounded-full text-[0.8125rem] font-medium text-text-primary border border-border">
@@ -446,14 +594,43 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
                             <button className="flex items-center justify-center text-text-muted hover:bg-black/10 hover:text-text-primary rounded-full p-0.5 transition-colors" onClick={() => removeFilter('date_to')}><X size={12} /></button>
                         </span>
                     )}
-                    {companyIds.map(id => (
-                        <span key={id} className="flex items-center gap-2 px-3 py-1 bg-bg-secondary rounded-full text-[0.8125rem] font-medium text-text-primary border border-border">
-                            Company ID: {id}
-                            <button className="flex items-center justify-center text-text-muted hover:bg-black/10 hover:text-text-primary rounded-full p-0.5 transition-colors" onClick={() => removeFilter('company_ids', id)}><X size={12} /></button>
+                    {orderId && (
+                        <span className="flex items-center gap-2 px-3 py-1 bg-bg-secondary rounded-full text-[0.8125rem] font-medium text-text-primary border border-border">
+                            Order: {orderId}
+                            <button className="flex items-center justify-center text-text-muted hover:bg-black/10 hover:text-text-primary rounded-full p-0.5 transition-colors" onClick={() => removeFilter('order_id')}><X size={12} /></button>
                         </span>
-                    ))}
+                    )}
+                    {companyName && (
+                        <span className="flex items-center gap-2 px-3 py-1 bg-bg-secondary rounded-full text-[0.8125rem] font-medium text-text-primary border border-border">
+                            Company: {companyName}
+                            <button className="flex items-center justify-center text-text-muted hover:bg-black/10 hover:text-text-primary rounded-full p-0.5 transition-colors" onClick={() => removeFilter('company_name')}><X size={12} /></button>
+                        </span>
+                    )}
+                    {companyId && (
+                        <span className="flex items-center gap-2 px-3 py-1 bg-bg-secondary rounded-full text-[0.8125rem] font-medium text-text-primary border border-border">
+                            Company ID: {companyId}
+                            <button className="flex items-center justify-center text-text-muted hover:bg-black/10 hover:text-text-primary rounded-full p-0.5 transition-colors" onClick={() => removeFilter('company_id')}><X size={12} /></button>
+                        </span>
+                    )}
+                    {companyIds && (
+                        <span className="flex items-center gap-2 px-3 py-1 bg-bg-secondary rounded-full text-[0.8125rem] font-medium text-text-primary border border-border">
+                            Company IDs: {companyIds}
+                            <button className="flex items-center justify-center text-text-muted hover:bg-black/10 hover:text-text-primary rounded-full p-0.5 transition-colors" onClick={() => removeFilter('company_ids')}><X size={12} /></button>
+                        </span>
+                    )}
+                    {excludeCompanyIds && (
+                        <span className="flex items-center gap-2 px-3 py-1 bg-bg-secondary rounded-full text-[0.8125rem] font-medium text-text-primary border border-border">
+                            Excl. Companies: {excludeCompanyIds}
+                            <button className="flex items-center justify-center text-text-muted hover:bg-black/10 hover:text-text-primary rounded-full p-0.5 transition-colors" onClick={() => removeFilter('exclude_company_ids')}><X size={12} /></button>
+                        </span>
+                    )}
+                    {userId && (
+                        <span className="flex items-center gap-2 px-3 py-1 bg-bg-secondary rounded-full text-[0.8125rem] font-medium text-text-primary border border-border">
+                            User: {userId}
+                            <button className="flex items-center justify-center text-text-muted hover:bg-black/10 hover:text-text-primary rounded-full p-0.5 transition-colors" onClick={() => removeFilter('user_id')}><X size={12} /></button>
+                        </span>
+                    )}
                     <button className="text-sm text-text-muted hover:text-text-primary transition-colors hover:underline px-2 py-1" onClick={() => setSearchParams({})}>Clear All</button>
-
                 </div>
             )}
 
@@ -478,7 +655,7 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
                             <button className="btn btn-secondary btn-sm" onClick={handleAddEmail}>Add</button>
                         </div>
 
-                        <div className="flex flex-wrap gap-2 min-h-[40px] mb-6 p-3 bg-bg-tertiary rounded-lg border border-border/50">
+                        <div className="flex flex-wrap gap-2 min-h-[40px] mb-4 p-3 bg-bg-tertiary rounded-lg border border-border/50">
                             {reportEmails.map(email => (
                                 <span key={email} className="flex items-center gap-1.5 px-3 py-1.5 bg-bg-primary rounded-full text-[0.8125rem] font-medium text-text-secondary border border-border shadow-sm transition-all hover:border-slate-300">
                                     {email}
@@ -488,12 +665,38 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
                             {reportEmails.length === 0 && <span className="text-gray-400 text-sm italic">No emails added</span>}
                         </div>
 
+                        <div className="mb-6">
+                            <label className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2 block">Filter by Status</label>
+                            <div className="flex flex-wrap gap-2">
+                                {STATUS_OPTIONS.map(opt => {
+                                    const isSelected = reportStatuses.includes(opt.value);
+                                    return (
+                                        <button
+                                            key={opt.value}
+                                            type="button"
+                                            className={`px-3 py-1.5 rounded-full text-[0.8125rem] font-medium border transition-all ${
+                                                isSelected
+                                                    ? 'bg-accent text-white border-accent shadow-sm'
+                                                    : 'bg-bg-primary text-text-secondary border-border hover:border-slate-300'
+                                            }`}
+                                            onClick={() => handleToggleReportStatus(opt.value)}
+                                        >
+                                            {opt.label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            {reportStatuses.length === 0 && (
+                                <p className="text-xs text-amber-600 mt-1.5">Select at least one status</p>
+                            )}
+                        </div>
+
                         <div className="flex justify-end gap-2">
                             <button className="btn btn-secondary" onClick={() => setShowEmailModal(false)}>Cancel</button>
                             <button
                                 className="btn btn-primary"
                                 onClick={handleConfirmSendReport}
-                                disabled={reportEmails.length === 0}
+                                disabled={reportEmails.length === 0 || reportStatuses.length === 0}
                             >
                                 Send Report
                             </button>
@@ -515,6 +718,248 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
                 </div>
             )}
 
+            {/* Success Modal */}
+            {showSuccessModal && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 animate-fade-in p-4" onClick={() => setShowSuccessModal(false)}>
+                    <div
+                        className="bg-bg-primary rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.2)] ring-1 ring-border/50 w-full max-w-sm p-8 text-center animate-[modalPop_0.3s_ease-out]"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="mx-auto w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-5">
+                            <CheckCircle className="text-green-600" size={32} />
+                        </div>
+                        <h3 className="text-xl font-semibold text-text-primary mb-2">Report Sent!</h3>
+                        <p className="text-sm text-gray-500 mb-2">
+                            The report has been sent to
+                        </p>
+                        <div className="flex flex-wrap justify-center gap-1.5 mb-6">
+                            {reportEmails.map(email => (
+                                <span key={email} className="inline-block px-2.5 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium border border-green-200">
+                                    {email}
+                                </span>
+                            ))}
+                        </div>
+                        <button
+                            className="btn btn-primary w-full"
+                            onClick={() => setShowSuccessModal(false)}
+                        >
+                            Done
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Order Detail Modal */}
+            {selectedOrder && (() => {
+                const o = selectedOrder;
+                const billing = parseBillingDetails(o.billing_details_json);
+                return (
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-start z-50 animate-fade-in p-4 sm:p-8 overflow-y-auto" onClick={() => setSelectedOrder(null)}>
+                        <div
+                            className="bg-bg-primary rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.2)] ring-1 ring-border/50 w-full max-w-4xl my-auto animate-[modalPop_0.3s_ease-out]"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            {/* Header */}
+                            <div className="flex items-center justify-between p-6 border-b border-border">
+                                <div className="flex items-center gap-3">
+                                    <div>
+                                        <div className="flex items-center gap-2.5">
+                                            <CopyableId value={o.id} label="Order ID" />
+                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold capitalize ${getStatusClass(o.status)}`}>
+                                                {o.status?.replace('_', ' ')}
+                                            </span>
+                                        </div>
+                                        <div className="text-xs text-text-muted mt-1">
+                                            Created {formatDateTime(o.created_at)} &middot; Updated {formatDateTime(o.updated_at)}
+                                        </div>
+                                    </div>
+                                </div>
+                                <button className="p-1.5 rounded-lg hover:bg-bg-secondary text-text-muted hover:text-text-primary transition-colors" onClick={() => setSelectedOrder(null)}>
+                                    <X size={18} />
+                                </button>
+                            </div>
+
+                            <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+                                {/* Company & User */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="bg-bg-secondary rounded-xl p-4 border border-border/50">
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <Building2 size={14} className="text-accent" />
+                                            <span className="text-xs font-bold text-text-secondary uppercase tracking-widest">Company</span>
+                                        </div>
+                                        {o.company ? (
+                                            <div className="space-y-0.5">
+                                                <div className="flex items-center gap-2">
+                                                    {o.company.company_logo && <img src={o.company.company_logo} alt="" className="w-8 h-8 rounded-md object-cover border border-border" />}
+                                                    <div>
+                                                        <div className="font-semibold text-sm text-text-primary">{o.company.company_name}</div>
+                                                        <CopyableId value={o.company.id} label="Company ID" />
+                                                    </div>
+                                                </div>
+                                                <div className="mt-2 space-y-1 text-xs text-text-secondary">
+                                                    {o.company.country && <div>{o.company.country_flag} {o.company.country}{o.company.location && o.company.location !== o.company.country ? ` \u2022 ${o.company.location}` : ''}</div>}
+                                                    {o.company.category && <div>Category: <span className="font-semibold">{o.company.category}</span></div>}
+                                                    {o.company.stall_number && <div>Stall: <span className="font-semibold">{o.company.stall_number}</span></div>}
+                                                </div>
+                                            </div>
+                                        ) : <span className="text-sm text-text-muted">N/A</span>}
+                                    </div>
+                                    <div className="bg-bg-secondary rounded-xl p-4 border border-border/50">
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <User size={14} className="text-accent" />
+                                            <span className="text-xs font-bold text-text-secondary uppercase tracking-widest">User</span>
+                                        </div>
+                                        {o.user ? (
+                                            <div className="space-y-1">
+                                                <div className="flex items-center gap-2">
+                                                    {o.user.display_pic && <img src={o.user.display_pic} alt="" className="w-8 h-8 rounded-full object-cover border border-border" />}
+                                                    <div className="font-semibold text-sm text-text-primary">{o.user.name}</div>
+                                                </div>
+                                                <CopyableId value={o.user.id} label="User ID" />
+                                            </div>
+                                        ) : <span className="text-sm text-text-muted">N/A</span>}
+                                    </div>
+                                </div>
+
+                                {/* Products */}
+                                {o.products && o.products.length > 0 && (
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <Package size={14} className="text-accent" />
+                                            <span className="text-xs font-bold text-text-secondary uppercase tracking-widest">Products</span>
+                                        </div>
+                                        <div className="border border-border/50 rounded-xl overflow-hidden">
+                                            <table className="w-full text-sm">
+                                                <thead>
+                                                    <tr className="bg-bg-secondary">
+                                                        <th className="text-left py-2.5 px-4 text-[11px] font-bold text-text-muted uppercase tracking-wider">Item</th>
+                                                        <th className="text-center py-2.5 px-3 text-[11px] font-bold text-text-muted uppercase tracking-wider">Qty</th>
+                                                        <th className="text-right py-2.5 px-4 text-[11px] font-bold text-text-muted uppercase tracking-wider">INR</th>
+                                                        <th className="text-right py-2.5 px-4 text-[11px] font-bold text-text-muted uppercase tracking-wider">USD</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {o.products.map(p => (
+                                                        <tr key={p.id} className="border-t border-border/30">
+                                                            <td className="py-3 px-4">
+                                                                <div className="flex items-center gap-2.5">
+                                                                    {p.image && <img src={p.image} alt="" className="w-10 h-10 rounded-lg object-cover border border-border bg-bg-tertiary flex-shrink-0" />}
+                                                                    <span className="text-text-primary font-medium">{p.name}</span>
+                                                                </div>
+                                                            </td>
+                                                            <td className="py-3 px-3 text-center font-semibold text-text-secondary">{p.quantity}</td>
+                                                            <td className="py-3 px-4 text-right font-mono text-text-primary">{formatCurrency(p.prices?.inr * p.quantity, 'INR')}</td>
+                                                            <td className="py-3 px-4 text-right font-mono text-text-secondary">{p.prices?.usd ? formatCurrency(p.prices.usd * p.quantity, 'USD') : '-'}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Pricing */}
+                                {o.total_amount && (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="bg-bg-secondary rounded-xl p-4 border border-border/50">
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <DollarSign size={14} className="text-accent" />
+                                                <span className="text-xs font-bold text-text-secondary uppercase tracking-widest">Amount (INR)</span>
+                                            </div>
+                                            <DetailRow label="Subtotal" value={`\u20B9${o.total_amount.subtotal}`} mono />
+                                            <DetailRow label={`GST (${o.total_amount.gst_rate}%)`} value={`\u20B9${o.total_amount.gst_amount}`} mono />
+                                            <div className="flex justify-between items-center pt-2 mt-1 border-t border-border">
+                                                <span className="text-xs font-bold text-text-primary uppercase">Total</span>
+                                                <span className="text-base font-bold text-text-primary font-mono">{o.total_amount.formatted}</span>
+                                            </div>
+                                        </div>
+                                        {o.total_amount_usd && (
+                                            <div className="bg-bg-secondary rounded-xl p-4 border border-border/50">
+                                                <div className="flex items-center gap-2 mb-3">
+                                                    <DollarSign size={14} className="text-accent" />
+                                                    <span className="text-xs font-bold text-text-secondary uppercase tracking-widest">Amount (USD)</span>
+                                                </div>
+                                                <DetailRow label="Subtotal" value={`$${o.total_amount_usd.subtotal}`} mono />
+                                                <DetailRow label={`GST (${o.total_amount_usd.gst_rate}%)`} value={`$${o.total_amount_usd.gst_amount}`} mono />
+                                                <div className="flex justify-between items-center pt-2 mt-1 border-t border-border">
+                                                    <span className="text-xs font-bold text-text-primary uppercase">Total</span>
+                                                    <span className="text-base font-bold text-text-primary font-mono">{o.total_amount_usd.formatted}</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Payment & Billing */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="bg-bg-secondary rounded-xl p-4 border border-border/50">
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <CreditCard size={14} className="text-accent" />
+                                            <span className="text-xs font-bold text-text-secondary uppercase tracking-widest">Payment</span>
+                                        </div>
+                                        <DetailRow label="Mode" value={<span className="uppercase font-semibold">{o.payment_mode}</span>} />
+                                        <DetailRow label="Verified" value={
+                                            o.is_verified
+                                                ? <span className="inline-flex items-center gap-1 text-green-600"><ShieldCheck size={13} /> Yes</span>
+                                                : <span className="inline-flex items-center gap-1 text-amber-600"><ShieldX size={13} /> No</span>
+                                        } />
+                                        {o.offline_payment_reference && <DetailRow label="Reference" value={o.offline_payment_reference} mono />}
+                                        {o.payment?.online?.length > 0 && (
+                                            <div className="mt-2">
+                                                <button
+                                                    className="flex items-center gap-1.5 text-xs font-semibold text-accent hover:text-accent/80 transition-colors w-full"
+                                                    onClick={() => setExpandedPayments(prev => prev === o.id ? null : o.id)}
+                                                >
+                                                    <ChevronDown size={13} className={`transition-transform duration-200 ${expandedPayments === o.id ? 'rotate-0' : '-rotate-90'}`} />
+                                                    {o.payment.online.length} Online Transaction{o.payment.online.length > 1 ? 's' : ''}
+                                                </button>
+                                                {expandedPayments === o.id && (
+                                                    <div className="mt-2 space-y-2 animate-fade-in">
+                                                        {o.payment.online.map(txn => (
+                                                            <div key={txn.id} className="bg-bg-primary rounded-lg p-3 border border-border/50 text-xs space-y-1">
+                                                                <div className="flex items-center justify-between">
+                                                                    <span className={`px-2 py-0.5 rounded-full font-semibold capitalize ${txn.status === 'success' ? 'bg-green-100 text-green-700' : txn.status === 'failed' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                                                                        {txn.status}
+                                                                    </span>
+                                                                    <span className="font-bold font-mono text-sm text-text-primary">{txn.currency === 'INR' ? '\u20B9' : '$'}{txn.amount}</span>
+                                                                </div>
+                                                                <DetailRow label="Gateway" value={<span className="capitalize">{txn.payment_gateway}</span>} />
+                                                                <DetailRow label="Transaction ID" value={txn.transaction_id} mono />
+                                                                <DetailRow label="Payment ID" value={txn.payment_id} mono />
+                                                                <DetailRow label="Type" value={<span className="capitalize">{txn.payment_type?.replace('_', ' ')}</span>} />
+                                                                <DetailRow label="Date" value={formatDateTime(txn.created_at)} />
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                    {billing && billing.length > 0 && (
+                                        <div className="bg-bg-secondary rounded-xl p-4 border border-border/50">
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <FileText size={14} className="text-accent" />
+                                                <span className="text-xs font-bold text-text-secondary uppercase tracking-widest">Billing Details</span>
+                                            </div>
+                                            {billing.map((entry, idx) => (
+                                                <div key={idx} className={idx > 0 ? 'mt-3 pt-3 border-t border-border/30' : ''}>
+                                                    {entry.organization && <DetailRow label="Organization" value={entry.organization} />}
+                                                    {entry.gst_no && <DetailRow label="GST No" value={entry.gst_no} mono />}
+                                                    {entry.address && <DetailRow label="Address" value={entry.address} />}
+                                                    {entry.date && <DetailRow label="Date" value={entry.date} />}
+                                                    {entry.contact_person && <DetailRow label="Contact" value={entry.contact_person} />}
+                                                    {entry.contact_person_phone && <DetailRow label="Phone" value={entry.contact_person_phone} mono />}
+                                                    {entry.contact_person_email && <DetailRow label="Email" value={entry.contact_person_email} />}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
 
             {error && <div className="bg-red-50 text-red-800 p-4 border border-red-200 rounded-md mb-6">{error}</div>}
 
@@ -543,9 +988,9 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
                             </tr>
                         ) : (
                             orders.map((order) => (
-                                <tr key={order.id} className="transition-colors duration-200 hover:bg-bg-secondary [&>td]:border-b [&>td]:border-border group">
+                                <tr key={order.id} className="transition-colors duration-200 hover:bg-bg-secondary [&>td]:border-b [&>td]:border-border group cursor-pointer" onClick={() => setSelectedOrder(order)}>
                                     <td className="py-4 px-6 align-middle group-last:border-b-0">
-                                        <div className="font-mono text-sm">{order.id}</div>
+                                        <CopyableId value={order.id} label="Order ID" />
                                         <div className="text-xs text-gray-500">{formatDate(order.created_at)}</div>
                                     </td>
                                     <td className="py-4 px-6 align-middle group-last:border-b-0">
@@ -554,11 +999,15 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
                                                 <Link
                                                     to={`/event/${eventId}/companies/${order.company.id}`}
                                                     className="hover:underline text-primary"
+                                                    onClick={e => e.stopPropagation()}
                                                 >
                                                     {order.company.company_name}
                                                 </Link>
                                             ) : 'N/A'}
                                         </div>
+                                        {order.company && (
+                                            <CopyableId value={order.company.id} label="Company ID" />
+                                        )}
                                         <div className="text-xs text-gray-500">{order.user?.name}</div>
                                     </td>
                                     <td className="py-4 px-6 align-middle group-last:border-b-0">
