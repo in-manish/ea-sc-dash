@@ -477,12 +477,12 @@ const WhatsAppConfig = () => {
                                                             onChange={(e) => handleVariableChange(v, 'type', e.target.value)}
                                                             className="w-[110px] flex-shrink-0 rounded-xl border-border border-2 px-3 py-2 text-xs bg-bg-primary outline-none focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all font-bold text-text-primary"
                                                         >
-                                                            <option value="text">Text</option>
-                                                            <option value="document">Document</option>
-                                                            <option value="image">Image</option>
-                                                            <option value="video">Video</option>
-                                                            <option value="currency">Currency</option>
-                                                            <option value="datetime">Date/Time</option>
+                                                            <option value="text">text</option>
+                                                            <option value="document">document</option>
+                                                            <option value="image">image</option>
+                                                            <option value="video">video</option>
+                                                            <option value="currency">currency</option>
+                                                            <option value="datetime">datetime</option>
                                                         </select>
                                                     )}
                                                     <input
