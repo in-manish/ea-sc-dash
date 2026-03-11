@@ -40,11 +40,15 @@ const WhatsAppConfig = () => {
         const uniqueMatches = [...new Set(matches)];
         setDetectedVariables(uniqueMatches);
 
-        // Preserve existing values, add new ones
+        // Preserve existing values, add new ones as objects
         setFormData(prev => {
             const newVars = { ...prev.content_variables };
             uniqueMatches.forEach(v => {
-                if (!newVars[v]) newVars[v] = '';
+                if (!newVars[v]) newVars[v] = { type: 'text', value: '' };
+                // Migrate any legacy flat string variables to objects
+                if (typeof newVars[v] === 'string') {
+                    newVars[v] = { type: 'text', value: newVars[v] };
+                }
             });
             return { ...prev, content_variables: newVars };
         });
@@ -79,14 +83,20 @@ const WhatsAppConfig = () => {
         }
     };
 
-    const handleVariableChange = (variable, value) => {
-        setFormData(prev => ({
-            ...prev,
-            content_variables: {
-                ...prev.content_variables,
-                [variable]: value
-            }
-        }));
+    const handleVariableChange = (variable, key, val) => {
+        setFormData(prev => {
+            const currentVar = prev.content_variables[variable] || { type: 'text', value: '' };
+            const updatedVar = typeof currentVar === 'string' ? { type: 'text', value: currentVar } : { ...currentVar };
+            updatedVar[key] = val;
+            
+            return {
+                ...prev,
+                content_variables: {
+                    ...prev.content_variables,
+                    [variable]: updatedVar
+                }
+            };
+        });
     };
 
     const generatePreview = (text, variables) => {
@@ -153,9 +163,13 @@ const WhatsAppConfig = () => {
             const complexVars = {};
             // The API expects '1': {'type': 'text', 'value': 'foo'} for both TWILIO and MSG91
             Object.entries(formData.content_variables).forEach(([k, v]) => {
+                // Handle both legacy string values and new object structure
+                const type = v && v.type ? v.type : 'text';
+                const value = v && v.value !== undefined ? v.value : (typeof v === 'string' ? v : '');
+                
                 // Ensure we only pass mapped values to avoid empty submission errors
-                if (v && v.trim() !== '') {
-                    complexVars[k] = { type: 'text', value: v };
+                if (value && value.trim() !== '') {
+                    complexVars[k] = { type, value };
                 }
             });
             payload.content_variables = complexVars;
@@ -194,9 +208,9 @@ const WhatsAppConfig = () => {
         if (template.content_variables) {
             Object.entries(template.content_variables).forEach(([k, v]) => {
                 if (typeof v === 'object' && v !== null && 'value' in v) {
-                    vars[k] = v.value;
+                    vars[k] = { type: v.type || 'text', value: v.value };
                 } else {
-                    vars[k] = v;
+                    vars[k] = { type: 'text', value: v };
                 }
             });
         }
@@ -220,10 +234,10 @@ const WhatsAppConfig = () => {
         let vars = {};
         if (template.content_variables) {
             Object.entries(template.content_variables).forEach(([k, v]) => {
-                if (typeof v === 'object' && v.value) {
-                    vars[k] = v.value;
+                if (typeof v === 'object' && v !== null && 'value' in v) {
+                    vars[k] = { type: v.type || 'text', value: v.value };
                 } else {
-                    vars[k] = v;
+                    vars[k] = { type: 'text', value: v };
                 }
             });
         }
@@ -447,20 +461,40 @@ const WhatsAppConfig = () => {
                                 <div className="bg-bg-secondary/50 p-6 rounded-2xl border-2 border-border">
                                     <h4 className="text-[11px] font-bold text-text-primary mb-4 uppercase tracking-[0.2em]">Map Variables</h4>
                                     <div className="space-y-4">
-                                        {detectedVariables.map(v => (
-                                            <div key={v} className="flex items-center gap-4">
-                                                <span className="w-20 text-center text-[10px] font-bold text-accent bg-bg-primary px-3 py-1.5 rounded-lg border border-border shadow-sm">
-                                                    {`{{${v}}}`}
-                                                </span>
-                                                <input
-                                                    type="text"
-                                                    value={formData.content_variables[v] || ''}
-                                                    onChange={(e) => handleVariableChange(v, e.target.value)}
-                                                    placeholder="e.g. name, event.name"
-                                                    className="flex-1 rounded-xl border-border border-2 px-4 py-2 text-sm bg-bg-primary outline-none focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all font-bold text-text-primary"
-                                                />
-                                            </div>
-                                        ))}
+                                        {detectedVariables.map(v => {
+                                            const currentVar = formData.content_variables[v] || { type: 'text', value: '' };
+                                            const vartype = typeof currentVar === 'string' ? 'text' : (currentVar.type || 'text');
+                                            const varval = typeof currentVar === 'string' ? currentVar : (currentVar.value || '');
+                                            
+                                            return (
+                                                <div key={v} className="flex items-center gap-3">
+                                                    <span className="w-16 flex-shrink-0 text-center text-[10px] font-bold text-accent bg-bg-primary px-2 py-1.5 rounded-lg border border-border shadow-sm">
+                                                        {`{{${v}}}`}
+                                                    </span>
+                                                    {formData.provider === 'MSG91' && (
+                                                        <select
+                                                            value={vartype}
+                                                            onChange={(e) => handleVariableChange(v, 'type', e.target.value)}
+                                                            className="w-[110px] flex-shrink-0 rounded-xl border-border border-2 px-3 py-2 text-xs bg-bg-primary outline-none focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all font-bold text-text-primary"
+                                                        >
+                                                            <option value="text">Text</option>
+                                                            <option value="document">Document</option>
+                                                            <option value="image">Image</option>
+                                                            <option value="video">Video</option>
+                                                            <option value="currency">Currency</option>
+                                                            <option value="datetime">Date/Time</option>
+                                                        </select>
+                                                    )}
+                                                    <input
+                                                        type="text"
+                                                        value={varval}
+                                                        onChange={(e) => handleVariableChange(v, 'value', e.target.value)}
+                                                        placeholder="e.g. name, badge_url"
+                                                        className="flex-1 rounded-xl border-border border-2 px-4 py-2 text-sm bg-bg-primary outline-none focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all font-bold text-text-primary min-w-[150px]"
+                                                    />
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                     {errors.content_variables && <p className="text-xs text-danger mt-3 font-bold">{errors.content_variables[0]}</p>}
                                 </div>
