@@ -82,7 +82,7 @@ const PaymentConfig = ({ token }) => {
     const handleEdit = (config) => {
         setEditingId(config.id);
         setFormData({
-            gateway: config.gateway || 'razorpay',
+            gateway: config.gateway_name || config.gateway || 'razorpay',
             mode: config.mode || 'test',
             key_id: config.credentials?.key_id || '', // Note: Secrets aren't usually returned, user must re-enter if updating keys
             key_secret: '', // Keep empty for security
@@ -265,7 +265,7 @@ const PaymentConfig = ({ token }) => {
                                 <div className="flex justify-between items-start mb-4 pl-2">
                                     <div>
                                         <h4 className="font-semibold text-text-primary capitalize flex items-center gap-2">
-                                            {config.gateway || 'Provider'}
+                                            {config.gateway_name || config.gateway || 'Provider'}
                                             {config.is_active && <CheckCircle2 size={14} className="text-success" />}
                                             {!config.is_active && <XCircle size={14} className="text-text-tertiary" />}
                                         </h4>

@@ -153,15 +153,23 @@ const Settings = () => {
                     key !== 'attendee_types' &&
                     key !== 'company_complimentary_invitee_info' &&
                     key !== 'location' &&
+                    key !== 'intl_meta' &&
+                    key !== 'intl_data' &&
                     eventData[key] !== null &&
                     !(imageFields.includes(key) && typeof eventData[key] === 'string')
                 ) {
-                    formData.append(key, eventData[key]);
+                    formData.append(key, typeof eventData[key] === 'object' && !(eventData[key] instanceof File) ? JSON.stringify(eventData[key]) : eventData[key]);
                 }
             });
 
             formData.append('social_links', JSON.stringify(eventData.social_links));
             formData.append('company_complimentary_invitee_info', JSON.stringify(eventData.company_complimentary_invitee_info || []));
+            if (eventData.intl_meta !== undefined && eventData.intl_meta !== null) {
+                formData.append('intl_meta', JSON.stringify(eventData.intl_meta));
+            }
+            if (eventData.intl_data !== undefined && eventData.intl_data !== null) {
+                formData.append('intl_data', JSON.stringify(eventData.intl_data));
+            }
 
             await eventService.updateEvent(id, token, formData);
             setMessage({ type: 'success', text: 'Settings updated successfully!' });

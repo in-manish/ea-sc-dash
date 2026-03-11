@@ -147,17 +147,18 @@ const WhatsAppConfig = () => {
         try {
             // Token from context
             const payload = {
-                ...formData,
-                content_variables: formData.content_variables
+                ...formData
             };
 
-            if (formData.provider === 'TWILIO') {
-                const complexVars = {};
-                Object.entries(formData.content_variables).forEach(([k, v]) => {
+            const complexVars = {};
+            // The API expects '1': {'type': 'text', 'value': 'foo'} for both TWILIO and MSG91
+            Object.entries(formData.content_variables).forEach(([k, v]) => {
+                // Ensure we only pass mapped values to avoid empty submission errors
+                if (v && v.trim() !== '') {
                     complexVars[k] = { type: 'text', value: v };
-                });
-                payload.content_variables = complexVars;
-            }
+                }
+            });
+            payload.content_variables = complexVars;
 
             let response;
             if (editingId) {
