@@ -26,6 +26,8 @@ const WhatsAppConfig = () => {
     });
 
     const [detectedVariables, setDetectedVariables] = useState([]);
+    const [manualVariables, setManualVariables] = useState([]);
+    const [newVarName, setNewVarName] = useState('');
 
     useEffect(() => {
         if (view === 'list') {
@@ -43,7 +45,8 @@ const WhatsAppConfig = () => {
         // Preserve existing values, add new ones as objects
         setFormData(prev => {
             const newVars = { ...prev.content_variables };
-            uniqueMatches.forEach(v => {
+            const allVars = [...uniqueMatches, ...manualVariables];
+            allVars.forEach(v => {
                 if (!newVars[v]) newVars[v] = { type: 'text', value: '' };
                 // Migrate any legacy flat string variables to objects
                 if (typeof newVars[v] === 'string') {
@@ -52,7 +55,23 @@ const WhatsAppConfig = () => {
             });
             return { ...prev, content_variables: newVars };
         });
-    }, [formData.msg_text]);
+    }, [formData.msg_text, manualVariables]);
+
+    const handleAddManualVariable = () => {
+        if (newVarName.trim() && !detectedVariables.includes(newVarName.trim()) && !manualVariables.includes(newVarName.trim())) {
+            setManualVariables(prev => [...prev, newVarName.trim()]);
+            setNewVarName('');
+        }
+    };
+
+    const handleRemoveManualVariable = (varName) => {
+        setManualVariables(prev => prev.filter(v => v !== varName));
+        setFormData(prev => {
+            const newVars = { ...prev.content_variables };
+            delete newVars[varName];
+            return { ...prev, content_variables: newVars };
+        });
+    };
 
     const fetchTemplates = async () => {
         setIsLoading(true);
@@ -136,6 +155,8 @@ const WhatsAppConfig = () => {
     const resetForm = () => {
         setEditingId(null);
         setErrors({});
+        setManualVariables([]);
+        setNewVarName('');
         setFormData({
             template_name: '',
             category: 'attendee',
@@ -203,8 +224,11 @@ const WhatsAppConfig = () => {
     const handleEditTemplate = (template) => {
         setEditingId(template.id);
         setErrors({});
+        setManualVariables([]);
 
         let vars = {};
+        let manualVarsFound = [];
+        
         if (template.content_variables) {
             Object.entries(template.content_variables).forEach(([k, v]) => {
                 if (typeof v === 'object' && v !== null && 'value' in v) {
@@ -212,7 +236,18 @@ const WhatsAppConfig = () => {
                 } else {
                     vars[k] = { type: 'text', value: v };
                 }
+                
+                // If the key is not in the message text, it's a manual variable
+                const regex = /\{\{([^}]+)\}\}/g;
+                const matches = [...(template.msg_text || '').matchAll(regex)].map(m => m[1]);
+                if (!matches.includes(k)) {
+                    manualVarsFound.push(k);
+                }
             });
+        }
+        
+        if (manualVarsFound.length > 0) {
+            setManualVariables(manualVarsFound);
         }
 
         setFormData({
@@ -457,19 +492,42 @@ const WhatsAppConfig = () => {
                             </div>
 
                             {/* ... (keep variable mapping) ... */}
-                            {detectedVariables.length > 0 && (
+                            {(detectedVariables.length > 0 || manualVariables.length > 0 || true) && (
                                 <div className="bg-bg-secondary/50 p-6 rounded-2xl border-2 border-border">
-                                    <h4 className="text-[11px] font-bold text-text-primary mb-4 uppercase tracking-[0.2em]">Map Variables</h4>
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h4 className="text-[11px] font-bold text-text-primary uppercase tracking-[0.2em]">Map Variables</h4>
+                                        
+                                        <div className="flex items-center gap-2">
+                                            <input 
+                                                type="text" 
+                                                value={newVarName}
+                                                onChange={(e) => setNewVarName(e.target.value)}
+                                                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddManualVariable())}
+                                                placeholder="Custom Header (e.g. header_1)"
+                                                className="rounded-lg border-border border px-3 py-1.5 text-xs bg-bg-primary outline-none focus:ring-2 focus:ring-accent/10 focus:border-accent transition-all text-text-primary w-[160px]"
+                                            />
+                                            <button 
+                                                type="button" 
+                                                onClick={handleAddManualVariable}
+                                                disabled={!newVarName.trim()}
+                                                className="btn btn-sm btn-primary py-1.5 px-3 text-[10px] uppercase font-black"
+                                            >
+                                                Add
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
                                     <div className="space-y-4">
-                                        {detectedVariables.map(v => {
+                                        {[...detectedVariables, ...manualVariables].map(v => {
                                             const currentVar = formData.content_variables[v] || { type: 'text', value: '' };
                                             const vartype = typeof currentVar === 'string' ? 'text' : (currentVar.type || 'text');
                                             const varval = typeof currentVar === 'string' ? currentVar : (currentVar.value || '');
+                                            const isManual = manualVariables.includes(v);
                                             
                                             return (
                                                 <div key={v} className="flex items-center gap-3">
-                                                    <span className="w-16 flex-shrink-0 text-center text-[10px] font-bold text-accent bg-bg-primary px-2 py-1.5 rounded-lg border border-border shadow-sm">
-                                                        {`{{${v}}}`}
+                                                    <span className="w-20 lg:w-24 flex-shrink-0 text-center text-[10px] font-bold text-accent bg-bg-primary px-2 py-1.5 rounded-lg border border-border shadow-sm truncate" title={v}>
+                                                        {isManual ? v : `{{${v}}}`}
                                                     </span>
                                                     {formData.provider === 'MSG91' && (
                                                         <select
@@ -489,12 +547,27 @@ const WhatsAppConfig = () => {
                                                         type="text"
                                                         value={varval}
                                                         onChange={(e) => handleVariableChange(v, 'value', e.target.value)}
-                                                        placeholder="e.g. name, badge_url"
+                                                        placeholder={isManual ? "e.g. badge_url" : "e.g. name, event.name"}
                                                         className="flex-1 rounded-xl border-border border-2 px-4 py-2 text-sm bg-bg-primary outline-none focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all font-bold text-text-primary min-w-[150px]"
                                                     />
+                                                    {isManual && (
+                                                        <button 
+                                                            type="button" 
+                                                            onClick={() => handleRemoveManualVariable(v)}
+                                                            className="text-text-tertiary hover:text-danger p-1"
+                                                            title="Remove custom variable"
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    )}
                                                 </div>
                                             );
                                         })}
+                                        {[...detectedVariables, ...manualVariables].length === 0 && (
+                                            <p className="text-xs text-text-tertiary italic text-center py-4">
+                                                No variables detected in text. Add a custom variable above or use {`{{1}}`} in the message text.
+                                            </p>
+                                        )}
                                     </div>
                                     {errors.content_variables && <p className="text-xs text-danger mt-3 font-bold">{errors.content_variables[0]}</p>}
                                 </div>
