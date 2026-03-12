@@ -39,7 +39,10 @@ const CopyMatchmakingModal = ({ isOpen, onClose, toEventId, onSuccess }) => {
         try {
             await matchmakingApi.copyMatchmaking({
                 from_event_id: parseInt(fromId), to_event_id: parseInt(toEventId),
-                attendee_types_data: types.filter(t => t.from && t.to).map(t => [t.from, t.to])
+                attendee_types_data: types.filter(t => t.from && t.to).map(t => ({
+                    from_attendee_type_name: t.from,
+                    to_attendee_type_name: t.to
+                }))
             }, token);
             setSuccess(true); setTimeout(() => { onSuccess?.(); onClose(); setConfirm(false); setSuccess(false); }, 2000);
         } catch (err) { setError(err.message); setConfirm(false); }
