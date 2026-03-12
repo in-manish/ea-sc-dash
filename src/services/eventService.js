@@ -243,7 +243,7 @@ export const eventService = {
 
     async getEventDetails(eventId, token) {
         try {
-            const response = await fetch(`${getApiUrl()}/events/${eventId}/`, {
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/?add_details=true`, {
                 method: 'GET',
                 headers: getHeaders(token)
             });
