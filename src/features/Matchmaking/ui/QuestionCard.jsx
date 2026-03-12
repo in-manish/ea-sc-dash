@@ -18,7 +18,7 @@ const QuestionCard = ({ question, onEdit, onRemove, defaultExpanded }) => {
             <div className="relative z-10 p-6 pb-3 cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
-                        <span className="text-[9px] font-bold bg-bg-tertiary text-text-tertiary px-2.5 py-1 rounded-full uppercase tracking-wider border border-border/60">#{question.id}</span>
+                        <span className="text-[8px] font-bold bg-bg-secondary text-text-tertiary px-2 py-0.5 rounded-full uppercase tracking-tighter border border-border/40">#{question.id}</span>
                         {!isExpanded && (
                             <div className="flex items-center gap-1.5 animate-fade-in">
                                 {question.is_filter && <div className="w-1.5 h-1.5 rounded-full bg-status-success shadow-[0_0_8px_rgba(22,163,74,0.4)]" title="Filterable" />}
@@ -36,12 +36,12 @@ const QuestionCard = ({ question, onEdit, onRemove, defaultExpanded }) => {
                     </div>
                 </div>
 
-                <div className="flex justify-between items-start gap-4">
-                    <h3 className={`text-lg font-bold text-text-primary leading-tight transition-colors duration-300 ${isExpanded ? 'text-accent' : 'group-hover:text-accent'}`}>
+                <div className="flex justify-between items-start gap-3">
+                    <h3 className={`text-base font-semibold text-text-primary leading-snug transition-colors duration-300 ${isExpanded ? 'text-accent' : 'group-hover:text-accent'}`}>
                         {question.title}
                     </h3>
                     {!isExpanded && (
-                        <span className="shrink-0 text-[10px] font-bold bg-accent/5 text-accent px-2.5 py-1 rounded-lg border border-accent/10 uppercase tracking-tight self-center animate-fade-in">
+                        <span className="shrink-0 text-[9px] font-bold bg-accent/5 text-accent px-2 py-0.5 rounded-md border border-accent/10 uppercase tracking-tighter self-center animate-fade-in">
                              {optionCount} {optionCount === 1 ? 'Option' : 'Options'}
                         </span>
                     )}

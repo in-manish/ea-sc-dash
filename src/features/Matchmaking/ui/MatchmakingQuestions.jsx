@@ -66,31 +66,36 @@ const MatchmakingQuestions = () => {
                 <div className="absolute -top-24 -left-24 w-96 h-96 bg-accent/5 blur-[120px] rounded-full pointer-events-none" />
                 <div className="absolute -top-12 right-0 w-64 h-64 bg-status-success/5 blur-[100px] rounded-full pointer-events-none" />
                 
-                <div className="relative flex flex-col xl:flex-row justify-between items-start xl:items-end gap-10">
+                <div className="relative flex flex-col xl:flex-row justify-between items-start xl:items-center gap-10">
                     <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-4">
-                            <span className="bg-accent/10 text-accent text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-accent/20">Module: Matchmaking</span>
-                            {data?.modified_at && <span className="text-[10px] font-bold text-text-tertiary uppercase tracking-wider">Last Sync: {new Date(data.modified_at).toLocaleDateString()}</span>}
+                        <div className="flex items-center gap-2 mb-6 text-[10px] font-bold text-text-tertiary uppercase tracking-widest bg-bg-secondary w-fit px-4 py-1.5 rounded-full border border-border/40">
+                            <span className="text-accent">Module:</span> Matchmaking
+                            <div className="w-1 h-1 rounded-full bg-border mx-1" />
+                            {data?.modified_at && <span>Synced: {new Date(data.modified_at).toLocaleDateString()}</span>}
                         </div>
-                        <h1 className="text-xl font-bold text-text-primary mb-1 flex items-baseline gap-3">
-                            Event <span className="text-accent underline decoration-accent/20">#{currentId}</span>
-                        </h1>
-                        <div className="flex items-center gap-4 group">
-                            <div className="w-1 h-12 bg-accent/20 rounded-full group-hover:bg-accent transition-colors duration-500" />
-                            <div>
-                                <p className="text-base font-bold text-text-primary group-hover:text-accent transition-colors">{data?.form_name || 'Configuration Gateway'}</p>
-                                <p className="text-xs text-text-secondary">{data?.questions?.length || 0} active parameters</p>
-                            </div>
+                        <div className="flex flex-col gap-1">
+                            <h1 className="text-2xl font-bold text-text-primary tracking-tight">
+                                Event <span className="text-accent underline decoration-accent/20">#{currentId}</span>
+                            </h1>
+                            <p className="text-sm font-medium text-text-secondary flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-accent/40" />
+                                {data?.form_name || 'Configuration Gateway'} · {data?.questions?.length || 0} active parameters
+                            </p>
                         </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row items-center gap-5 w-full xl:w-auto">
-                        <div className="flex items-center gap-1.5 bg-white p-1.5 rounded-2xl shadow-xl shadow-accent/5 border border-border/60">
-                            <button onClick={() => setCurrentId(Math.max(1, currentId - 1))} className="p-1.5 hover:bg-bg-secondary rounded-lg text-text-tertiary transition-colors"><ChevronLeft size={18} /></button>
-                            <div className="flex gap-1 px-1">
-                                {ids.map(id => <button key={id} onClick={() => { setCurrentId(id); setTempId(id); }} className={`min-w-[32px] h-8 rounded-lg text-xs font-bold transition-all duration-300 ${currentId == id ? 'bg-accent text-white shadow-md shadow-accent/20 scale-105' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}>{id}</button>)}
+                    <div className="flex flex-col sm:flex-row items-center gap-4 w-full xl:w-auto">
+                        <div className="flex items-center gap-1 bg-white p-1 rounded-2xl shadow-xl shadow-accent/5 border border-border/40">
+                            <button onClick={() => setCurrentId(Math.max(1, currentId - 1))} className="p-2 hover:bg-bg-secondary rounded-xl text-text-tertiary transition-colors"><ChevronLeft size={16} /></button>
+                            <div className="flex gap-1">
+                                {ids.map(id => (
+                                    <button key={id} onClick={() => { setCurrentId(id); setTempId(id); }} className={`flex flex-col items-center justify-center min-w-[50px] py-1.5 rounded-xl transition-all duration-300 ${currentId == id ? 'bg-accent text-white shadow-lg shadow-accent/20' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}>
+                                        <span className="text-[8px] font-bold uppercase tracking-tighter opacity-70 mb-0.5">EVENT</span>
+                                        <span className="text-xs font-bold leading-none">{id}</span>
+                                    </button>
+                                ))}
                             </div>
-                            <button onClick={() => setCurrentId(currentId + 1)} className="p-1.5 hover:bg-bg-secondary rounded-lg text-text-tertiary transition-colors"><ChevronRight size={18} /></button>
+                            <button onClick={() => setCurrentId(currentId + 1)} className="p-2 hover:bg-bg-secondary rounded-xl text-text-tertiary transition-colors"><ChevronRight size={16} /></button>
                         </div>
                         
                         <div className="flex items-center gap-3 w-full sm:w-auto">
