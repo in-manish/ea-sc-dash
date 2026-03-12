@@ -24,6 +24,33 @@ export const matchmakingApi = {
     },
 
     /**
+     * Create or update matchmaking form and questions
+     * @param {string|number} eventId 
+     * @param {Object} payload - { form_id, form_name, questions }
+     * @param {string} token 
+     * @returns {Promise<Object>}
+     */
+    saveMatchmakingQuestions: async (eventId, payload, token) => {
+        const baseUrl = getApiUrl();
+        const response = await fetch(`${baseUrl}/events/${eventId}/questions/matchmaking/`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json, text/plain, */*',
+                'Content-Type': 'application/json',
+                'Authorization': `Token ${token}`,
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.detail || errorData.message || `Failed to save matchmaking questions: ${response.statusText}`);
+        }
+
+        return await response.json();
+    },
+
+    /**
      * Copy matchmaking questions from one event to another
      * @param {Object} data - { from_event_id, to_event_id, attendee_types_data }
      * @param {string} token 
@@ -73,6 +100,7 @@ export const matchmakingApi = {
             throw new Error(errorData.detail || errorData.message || `Failed to delete form: ${response.statusText}`);
         }
 
-        return true;
+        if (response.status === 204) return true;
+        return await response.json();
     }
 };

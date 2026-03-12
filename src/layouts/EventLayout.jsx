@@ -21,6 +21,15 @@ const EventLayout = () => {
         'Utils Config': location.pathname.includes('/attendee-types') || location.pathname.includes('/exhibitor-portal-setup')
     });
 
+    // Handle body class for CSS variable shifting
+    useEffect(() => {
+        if (isCollapsed) {
+            document.body.classList.add('sidebar-collapsed');
+        } else {
+            document.body.classList.remove('sidebar-collapsed');
+        }
+    }, [isCollapsed]);
+
     // Auto-fetch event details when navigating directly via URL
     useEffect(() => {
         if ((!selectedEvent || selectedEvent.id.toString() !== id) && token && id) {
