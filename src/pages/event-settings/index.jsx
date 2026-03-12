@@ -11,6 +11,7 @@ import AttendeeSettings from './AttendeeSettings';
 import PaymentSettings from './PaymentSettings';
 import CommunicationSettings from './CommunicationSettings';
 import IntegrationSettings from './IntegrationSettings';
+import LocalizationSettings from './LocalizationSettings';
 
 const EventSettings = () => {
     const { id } = useParams();
@@ -174,6 +175,7 @@ const EventSettings = () => {
         { id: 'communication', label: 'Communication' },
         { id: 'integrations', label: 'Integrations' },
         { id: 'payments', label: 'Payments' },
+        { id: 'localization', label: 'Localization' },
     ];
 
     return (
@@ -255,6 +257,13 @@ const EventSettings = () => {
                         handleInputChange={handleInputChange} 
                         isFieldModified={isFieldModified} 
                         token={token}
+                    />
+                )}
+                {activeTab === 'localization' && (
+                    <LocalizationSettings 
+                        eventData={eventData} 
+                        handleInputChange={handleInputChange} 
+                        isFieldModified={isFieldModified} 
                     />
                 )}
             </div>
