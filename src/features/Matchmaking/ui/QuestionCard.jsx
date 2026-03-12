@@ -21,7 +21,7 @@ const QuestionCard = ({ question, attendeeTypes, onEdit, onRemove, defaultExpand
     }, [defaultExpanded]);
 
     return (
-        <div className={`group relative bg-white rounded-2xl border transition-all duration-500 ease-out animate-fade-in flex flex-col overflow-hidden ${isExpanded ? 'shadow-lg border-accent/20 h-full min-h-[400px]' : 'shadow-sm hover:shadow-md border-border/50 hover:border-accent/30 h-fit'}`}>
+        <div className={`group relative bg-white rounded-2xl border transition-all duration-500 ease-out animate-fade-in flex flex-col overflow-hidden ${isExpanded ? 'shadow-lg border-accent/20 h-fit' : 'shadow-sm hover:shadow-md border-border/50 hover:border-accent/30 h-fit'}`}>
             <div className={`absolute top-0 right-0 w-48 h-48 bg-accent/5 blur-[100px] rounded-full -mr-24 -mt-24 transition-opacity duration-1000 ${isExpanded ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
             
             {/* Header: Utility Row (ID, Step, Edit, Toggle) */}
@@ -43,7 +43,7 @@ const QuestionCard = ({ question, attendeeTypes, onEdit, onRemove, defaultExpand
             </div>
 
             {/* Title & Brand Row (Full Title + Badges) */}
-            <div className="relative z-10 p-6 pt-5 cursor-pointer flex-1" onClick={() => setIsExpanded(!isExpanded)}>
+            <div className="relative z-10 p-6 pt-5 cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
                 <div className="flex flex-col gap-3">
                     <div className="flex flex-wrap items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
@@ -86,8 +86,8 @@ const QuestionCard = ({ question, attendeeTypes, onEdit, onRemove, defaultExpand
 
             {/* Expanded Body & Footer */}
             <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}>
-                <div className="px-6 pb-6 pt-2 flex flex-col h-full">
-                    <div className="flex-1 relative z-10">
+                <div className="px-6 pb-6 pt-2 flex flex-col">
+                    <div className="relative z-10">
                         <div className="mb-4">
                             <div className="text-[10px] font-bold text-text-tertiary uppercase tracking-widest mb-4 flex items-center gap-2">
                                 <Layers size={12} className="text-accent" />

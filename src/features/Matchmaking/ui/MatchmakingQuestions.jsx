@@ -151,7 +151,7 @@ const MatchmakingQuestions = () => {
                     <button onClick={fetchData} className="btn btn-secondary py-3 px-8 rounded-xl gap-2 mx-auto flex font-bold text-xs border-none bg-bg-secondary hover:bg-bg-tertiary"><RefreshCw size={16} /> RETRY CONNECTION</button>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-10">
+                <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-10 items-start">
                     {data?.questions?.map(q => <QuestionCard key={q.id} question={q} attendeeTypes={attendeeTypes} onEdit={q => setModals(m => ({ ...m, ques: true, selectedQues: q }))} onRemove={handleRemoveQuestion} defaultExpanded={allExpanded} />)}
                     
                     {(!data?.questions || data.questions.length === 0) && (
