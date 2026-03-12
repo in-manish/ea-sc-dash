@@ -6,6 +6,7 @@ import QuestionCard from './QuestionCard';
 import CopyMatchmakingModal from './CopyMatchmakingModal';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
 import MatchmakingQuestionModal from './MatchmakingQuestionModal';
+import { eventService } from '../../../services/eventService';
 
 const MatchmakingQuestions = () => {
     const { selectedEvent, token } = useAuth();
@@ -14,6 +15,7 @@ const MatchmakingQuestions = () => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [attendeeTypes, setAttendeeTypes] = useState([]);
     const [modals, setModals] = useState({ copy: false, del: false, delLoading: false, ques: false, selectedQues: null });
 
     const ids = useMemo(() => {
@@ -24,7 +26,14 @@ const MatchmakingQuestions = () => {
     const fetchData = async () => {
         if (!currentId) return;
         setLoading(true); setError(null);
-        try { setData(await matchmakingApi.getMatchmakingQuestions(currentId, token)); }
+        try { 
+            const [quesData, attendData] = await Promise.all([
+                matchmakingApi.getMatchmakingQuestions(currentId, token),
+                eventService.getAttendeeTypes(currentId, token)
+            ]);
+            setData(quesData);
+            setAttendeeTypes(attendData.attendee_types || []);
+        }
         catch (err) { setError(err.message); }
         finally { setLoading(false); }
     };
@@ -143,7 +152,7 @@ const MatchmakingQuestions = () => {
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-10">
-                    {data?.questions?.map(q => <QuestionCard key={q.id} question={q} onEdit={q => setModals(m => ({ ...m, ques: true, selectedQues: q }))} onRemove={handleRemoveQuestion} defaultExpanded={allExpanded} />)}
+                    {data?.questions?.map(q => <QuestionCard key={q.id} question={q} attendeeTypes={attendeeTypes} onEdit={q => setModals(m => ({ ...m, ques: true, selectedQues: q }))} onRemove={handleRemoveQuestion} defaultExpanded={allExpanded} />)}
                     
                     {(!data?.questions || data.questions.length === 0) && (
                         <div className="col-span-full py-32 px-10 text-center bg-white rounded-[3rem] border-2 border-dashed border-border/60 flex flex-col items-center group hover:border-accent/40 transition-colors duration-500">

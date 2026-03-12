@@ -2,9 +2,19 @@ import React, { useState } from 'react';
 import { Filter, Star, Hash, Trash2, Layout, Layers, ChevronDown, ChevronUp, MoreHorizontal } from 'lucide-react';
 import OptionList from './OptionList';
 
-const QuestionCard = ({ question, onEdit, onRemove, defaultExpanded }) => {
+const QuestionCard = ({ question, attendeeTypes, onEdit, onRemove, defaultExpanded }) => {
     const [isExpanded, setIsExpanded] = useState(defaultExpanded || false);
     const optionCount = question.options?.length || 0;
+
+    const getAttendeeNames = () => {
+        if (!question.attendee_types || !attendeeTypes) return [];
+        return question.attendee_types.map(id => {
+            const type = attendeeTypes.find(t => t.id === id);
+            return type ? type.name : `ID ${id}`;
+        });
+    };
+
+    const attendeeNames = getAttendeeNames();
 
     React.useEffect(() => {
         setIsExpanded(defaultExpanded);
@@ -26,12 +36,17 @@ const QuestionCard = ({ question, onEdit, onRemove, defaultExpanded }) => {
                             </div>
                         )}
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                         <div className="flex items-center gap-1.5">
                             <span className="text-[9px] font-bold text-text-tertiary flex items-center gap-1 uppercase tracking-tight"><Hash size={10} className="text-accent" /> Step {question.sort_key || 0}</span>
                         </div>
-                        <div className={`p-2 rounded-xl transition-all duration-300 ${isExpanded ? 'bg-accent text-white shadow-lg shadow-accent/20' : 'bg-bg-secondary text-text-tertiary group-hover:bg-accent/10 group-hover:text-accent'}`}>
-                            {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                        <div className="flex items-center gap-2 ml-2">
+                             <button onClick={(e) => { e.stopPropagation(); onEdit?.(question); }} className="p-2 text-text-tertiary hover:text-accent bg-bg-secondary hover:bg-accent/10 rounded-xl transition-all duration-300 active:scale-95" title="Edit Configuration">
+                                <MoreHorizontal size={16} />
+                            </button>
+                            <div className={`p-2 rounded-xl transition-all duration-300 ${isExpanded ? 'bg-accent text-white shadow-lg shadow-accent/20' : 'bg-bg-secondary text-text-tertiary group-hover:bg-accent/10 group-hover:text-accent'}`}>
+                                {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -47,9 +62,20 @@ const QuestionCard = ({ question, onEdit, onRemove, defaultExpanded }) => {
                     )}
                 </div>
 
-                {!isExpanded && question.design_type && (
-                    <div className="mt-3 flex items-center gap-2 animate-fade-in">
-                        <span className="text-[9px] font-bold text-text-tertiary/60 flex items-center gap-1 uppercase tracking-tight"><Layout size={10} /> {question.design_type}</span>
+                {!isExpanded && (
+                    <div className="mt-4 flex flex-wrap items-center gap-2 animate-fade-in">
+                        {question.design_type && (
+                            <span className="text-[9px] font-bold text-text-tertiary/60 flex items-center gap-1 uppercase tracking-tight bg-bg-secondary/50 px-2 py-0.5 rounded-lg border border-border/40"><Layout size={10} /> {question.design_type}</span>
+                        )}
+                        {attendeeNames.length > 0 && (
+                            <div className="flex gap-1.5">
+                                {attendeeNames.map((name, i) => (
+                                    <span key={i} className="text-[8px] font-bold text-accent bg-accent/5 px-2 py-0.5 rounded-lg border border-accent/10 uppercase tracking-tighter">
+                                        {name}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
@@ -73,11 +99,15 @@ const QuestionCard = ({ question, onEdit, onRemove, defaultExpanded }) => {
                                     <span className="flex items-center gap-1 text-[9px] font-bold bg-status-danger/5 text-status-danger px-2 py-0.5 rounded-lg uppercase border border-status-danger/10 block">Mandatory</span>
                                 )}
                             </div>
-                            {question.attendee_types?.map(attendeeTypeId => (
-                                <span key={attendeeTypeId} className="text-[9px] font-bold text-text-tertiary bg-bg-secondary px-2 py-0.5 rounded-lg border border-border/40">
-                                    ID {attendeeTypeId}
-                                </span>
-                            ))}
+                            {attendeeNames.length > 0 && (
+                                <div className="flex flex-wrap gap-1.5">
+                                    {attendeeNames.map((name, i) => (
+                                        <span key={i} className="text-[9px] font-bold text-text-tertiary bg-bg-secondary px-2.5 py-1 rounded-lg border border-border/40">
+                                            {name}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         <div className="flex items-center gap-3">
