@@ -17,6 +17,7 @@ import UserManagement from './pages/UserManagement';
 import ProtectedRoute from './components/ProtectedRoute';
 import Payments from './pages/payments/Payments';
 import ExhibitorPortalSetup from './pages/exhibitor-portal-setup/ExhibitorPortalSetup';
+import MatchmakingQuestions from './features/Matchmaking/ui/MatchmakingQuestions';
 
 
 const App = () => {
@@ -54,6 +55,7 @@ const App = () => {
             <Route path="settings" element={<Settings />} />
             <Route path="payments" element={<Payments />} />
             <Route path="exhibitor-portal-setup" element={<ExhibitorPortalSetup />} />
+            <Route path="matchmaking" element={<MatchmakingQuestions />} />
 
           </Route>
 

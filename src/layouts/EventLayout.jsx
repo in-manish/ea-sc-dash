@@ -338,6 +338,12 @@ const EventLayout = () => {
                                         Attendee Types
                                     </NavLink>
                                     <NavLink
+                                        to={`/event/${selectedEvent.id}/matchmaking`}
+                                        className={({ isActive }) => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${isActive ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
+                                    >
+                                        Matchmaking
+                                    </NavLink>
+                                    <NavLink
                                         to={`/event/${selectedEvent.id}/exhibitor-portal-setup`}
                                         className={({ isActive }) => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${isActive ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
                                     >
