@@ -229,7 +229,7 @@ const EventLayout = () => {
                                 >
                                     <span className="flex items-center gap-2">
                                         <div className="w-1 h-1 rounded-full bg-border"></div>
-                                        Company Product Config
+                                        Company Products
                                     </span>
                                     <span className="bg-success text-white text-[8px] px-1 py-0.5 rounded-sm font-bold uppercase tracking-tighter leading-none animate-pulse">New</span>
                                 </NavLink>
