@@ -5,6 +5,7 @@ import { eventService } from '../services/eventService';
 import { Loader2, Search, Filter, Globe, Building2, X, Printer, ShoppingCart, Settings } from 'lucide-react';
 import AdditionalRequirementsOrders from './AdditionalRequirementsOrders';
 import ARManager from './ARManager';
+import CompanyProductSection from './event-settings/company-products/CompanyProductSection';
 
 const Companies = () => {
     const { selectedEvent, token } = useAuth();
@@ -181,6 +182,15 @@ const Companies = () => {
                     Exhibitors
                 </button>
                 <button
+                    className={`pb-2 px-1 font-medium text-sm transition-colors relative ${activeTab === 'company_products'
+                        ? 'text-accent border-b-2 border-accent'
+                        : 'text-text-secondary hover:text-text-primary'
+                        }`}
+                    onClick={() => handleTabChange('company_products')}
+                >
+                    Company Products
+                </button>
+                <button
                     className={`pb-2 px-1 font-medium text-sm transition-colors relative ${activeTab === 'additional_requirements'
                         ? 'text-accent border-b-2 border-accent'
                         : 'text-text-secondary hover:text-text-primary'
@@ -318,6 +328,10 @@ const Companies = () => {
 
             {activeTab === 'additional_requirements' && arView === 'setup' && (
                 <ARManager eventId={selectedEvent.id} />
+            )}
+
+            {activeTab === 'company_products' && (
+                <CompanyProductSection eventId={selectedEvent.id} token={token} />
             )}
 
             {/* Filter Drawer */}
