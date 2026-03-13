@@ -38,17 +38,34 @@ const ProductList = ({
                         {showShortcuts && (
                             <div className="flex items-center gap-1 bg-bg-tertiary/50 p-1 rounded-lg border border-border/50">
                                 <span className="text-[8px] font-bold text-text-tertiary uppercase px-1.5 border-r border-border/50 mr-1">Events</span>
-                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(id => (
-                                    <button
-                                        key={id}
-                                        onClick={() => handleEventShortcut(id)}
-                                        className={`w-7 h-7 flex items-center justify-center rounded text-[11px] font-bold transition-all ${Number(viewEventId) === id ? 'bg-accent text-white shadow-sm ring-2 ring-accent/20' : 'text-text-secondary hover:bg-bg-primary hover:text-accent'}`}
-                                        type="button"
-                                        title={`View Event ${id}`}
-                                    >
-                                        {id}
-                                    </button>
-                                ))}
+                                {(() => {
+                                    const curr = Number(currentEventId);
+                                    let ids = [];
+                                    
+                                    if (curr <= 10) {
+                                        // Show 1 to curr-1 if curr is small
+                                        for (let i = 1; i < curr; i++) ids.push(i);
+                                    } else {
+                                        // Show 1, 2, 3 ... curr-4, curr-3, curr-2, curr-1
+                                        ids = [1, 2, 3, '...', curr - 4, curr - 3, curr - 2, curr - 1];
+                                    }
+
+                                    return ids.map((id, index) => (
+                                        id === '...' ? (
+                                            <span key={`sep-${index}`} className="text-[10px] text-text-tertiary px-1">...</span>
+                                        ) : (
+                                            <button
+                                                key={id}
+                                                onClick={() => handleEventShortcut(id)}
+                                                className={`w-7 h-7 flex items-center justify-center rounded text-[11px] font-bold transition-all ${Number(viewEventId) === id ? 'bg-accent text-white shadow-sm ring-2 ring-accent/20' : 'text-text-secondary hover:bg-bg-primary hover:text-accent'}`}
+                                                type="button"
+                                                title={`View Event ${id}`}
+                                            >
+                                                {id}
+                                            </button>
+                                        )
+                                    ));
+                                })()}
                             </div>
                         )}
 
