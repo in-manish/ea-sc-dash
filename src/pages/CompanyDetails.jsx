@@ -101,6 +101,22 @@ const CompanyDetails = () => {
                     <h3 className="text-sm font-semibold uppercase text-text-tertiary mb-5 flex items-center gap-2 border-b border-border pb-3"><Building2 size={18} /> Overview</h3>
                     <div className="flex flex-col gap-4">
                         <div className="flex flex-col gap-1">
+                            <label className="text-xs text-text-secondary font-medium">Company Name</label>
+                            <span className="text-[0.9375rem] text-text-primary break-words">{company.company_name}</span>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs text-text-secondary font-medium">Address</label>
+                            <span className="text-[0.9375rem] text-text-primary break-words">{company.location || '-'}</span>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs text-text-secondary font-medium">Exhibitor ID</label>
+                            <span className="text-[0.9375rem] text-text-primary break-words">{company.id}</span>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs text-text-secondary font-medium">User ID</label>
+                            <span className="text-[0.9375rem] text-text-primary break-words">{company.uid || '-'}</span>
+                        </div>
+                        <div className="flex flex-col gap-1">
                             <label className="text-xs text-text-secondary font-medium">OBF Number</label>
                             <span className="text-[0.9375rem] text-text-primary break-words">{company.obf_number}</span>
                         </div>
