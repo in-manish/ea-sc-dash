@@ -43,6 +43,11 @@ const EmailTemplateList = ({ isLoading, templates, viewMode, handleViewTemplate,
                                         <Trash2 size={16} />
                                     </button>
                                 </div>
+                                {template.subject && (
+                                    <div className="text-[10px] font-bold text-accent uppercase tracking-wider -mt-1 truncate" title={template.subject}>
+                                        {template.subject}
+                                    </div>
+                                )}
                                 <div className="flex justify-between items-center text-xs text-gray-500">
                                     <span>ID: {template.id}</span>
                                     <span className="text-gray-400">{new Date(template.created_at).toLocaleDateString()}</span>
@@ -71,7 +76,12 @@ const EmailTemplateList = ({ isLoading, templates, viewMode, handleViewTemplate,
                                 <h3 className="font-black text-text-primary group-hover:text-accent leading-tight text-base truncate pr-2 tracking-tight text-left" title={template.email_name}>
                                     {template.email_name || 'Unnamed Template'}
                                 </h3>
-                                <div className="text-[10px] text-text-tertiary font-black uppercase tracking-[0.15em] mt-2 flex items-center gap-2">
+                                {template.subject && (
+                                    <div className="text-[10px] font-black text-accent uppercase tracking-[0.1em] mt-1 truncate" title={template.subject}>
+                                        {template.subject}
+                                    </div>
+                                )}
+                                <div className="text-[10px] text-text-tertiary font-black uppercase tracking-[0.15em] mt-1.5 flex items-center gap-2">
                                     <span>REF: {template.id}</span>
                                 </div>
                             </div>

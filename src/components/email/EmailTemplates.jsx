@@ -41,7 +41,7 @@ const EmailTemplates = ({ viewMode = 'list', onAddSignal = 0 }) => {
                 setTotalPages(1);
             } else {
                 setTemplates(data.results || []);
-                setTotalPages(Math.ceil((data.count || 0) / 10));
+                setTotalPages(Math.ceil((data.count || 0) / 20)); // Match the size=20 in emailService
             }
         } catch (error) {
             console.error('Error fetching email templates:', error);
@@ -76,6 +76,10 @@ const EmailTemplates = ({ viewMode = 'list', onAddSignal = 0 }) => {
         const newTemplate = {
             isNew: true,
             email_name: '',
+            subject: '',
+            description: '',
+            template_type: 'custom',
+            is_active: true,
             email_content: '<h1>New Template</h1><p>Edit your content here...</p>'
         };
         setPreviewTemplate(newTemplate);
@@ -95,8 +99,8 @@ const EmailTemplates = ({ viewMode = 'list', onAddSignal = 0 }) => {
         if (!eventId) return;
 
         // Basic Validation
-        if (!editFormData.email_name || !editFormData.email_content) {
-            alert("Please fill in all required fields (Name, Content).");
+        if (!editFormData.email_name || !editFormData.subject || !editFormData.email_content) {
+            alert("Please fill in all required fields (Name, Subject, Content).");
             return;
         }
 

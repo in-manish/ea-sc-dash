@@ -10,7 +10,7 @@ const MatchmakingQuestionModal = ({ isOpen, onClose, eventId, token, question, f
     const [loading, setLoading] = useState(false);
     const [attendeeTypes, setAttendeeTypes] = useState([]);
     const [formData, setFormData] = useState({
-        title: '', type: 'radio', is_mandatory: false, design_type: 'vertical', 
+        title: '', type: 'radio', is_mandatory: false, is_filter: false, design_type: 'vertical', 
         row_no: 1, attendee_types: [], options: [{ name: '' }]
     });
 
@@ -19,8 +19,8 @@ const MatchmakingQuestionModal = ({ isOpen, onClose, eventId, token, question, f
             eventService.getAttendeeTypes(eventId, token).then(d => setAttendeeTypes(d.attendee_types || []));
             if (question) {
                 const initialOptions = question.options?.length > 0 ? question.options : (question.type === 'grouped_array' ? [{ name: '', values: [{ name: '' }] }] : [{ name: '' }]);
-                setFormData({ ...question, attendee_types: question.attendee_types || [], options: initialOptions });
-            } else setFormData({ title: '', type: 'radio', is_mandatory: false, design_type: 'vertical', row_no: 1, attendee_types: [], options: [{ name: '' }] });
+                setFormData({ ...question, attendee_types: question.attendee_types || [], is_filter: question.is_filter || false, options: initialOptions });
+            } else setFormData({ title: '', type: 'radio', is_mandatory: false, is_filter: false, design_type: 'vertical', row_no: 1, attendee_types: [], options: [{ name: '' }] });
         }
     }, [isOpen, question]);
 
@@ -135,6 +135,16 @@ const MatchmakingQuestionModal = ({ isOpen, onClose, eventId, token, question, f
                                     <div>
                                         <p className="text-sm font-bold text-text-primary tracking-tight">Mandatory Question</p>
                                         <p className="text-xs text-text-tertiary mt-0.5">Required for registration</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-4 p-5 bg-bg-secondary/30 rounded-2xl border border-border/40 group cursor-pointer hover:border-accent/30 transition-all" onClick={() => setFormData({ ...formData, is_filter: !formData.is_filter })}>
+                                    <div className={`w-10 h-6 rounded-full p-1 transition-colors relative ${formData.is_filter ? 'bg-accent' : 'bg-bg-tertiary'}`}>
+                                        <div className={`w-4 h-4 bg-white rounded-full transition-transform shadow-md ${formData.is_filter ? 'translate-x-4' : 'translate-x-0'}`} />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold text-text-primary tracking-tight">Use as Filter</p>
+                                        <p className="text-xs text-text-tertiary mt-0.5">Allow attendees to filter by this question</p>
                                     </div>
                                 </div>
                             </div>

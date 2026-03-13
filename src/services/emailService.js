@@ -129,11 +129,11 @@ export const emailService = {
     // ------------------------------------------------------------------------
     // 4) Template Email API
     // ------------------------------------------------------------------------
-    getTemplates: async (token, page = 1, size = 20, sortBy = 'email_name', sortOrder = 'asc') => {
+    getEmailTemplates: async (eventId, token, page = 1, size = 20, sortBy = 'email_name', sortOrder = 'asc') => {
         try {
             const response = await axios.get(`${getApiUrl()}/templates/email/`, {
                 headers: getHeaders(token),
-                params: { page, size, sort_by: sortBy, sort_order: sortOrder }
+                params: { event: eventId, page, size, sort_by: sortBy, sort_order: sortOrder }
             });
             return response.data;
         } catch (error) {
@@ -142,9 +142,10 @@ export const emailService = {
         }
     },
 
-    createTemplate: async (token, data) => {
+    createEmailTemplate: async (eventId, token, data) => {
         try {
-            const response = await axios.post(`${getApiUrl()}/templates/email/`, data, {
+            const payload = { ...data, event: eventId };
+            const response = await axios.post(`${getApiUrl()}/templates/email/`, payload, {
                 headers: getHeaders(token)
             });
             return response.data;
@@ -154,7 +155,7 @@ export const emailService = {
         }
     },
 
-    getTemplate: async (templateId, token) => {
+    getEmailTemplate: async (eventId, templateId, token) => {
         try {
             const response = await axios.get(`${getApiUrl()}/templates/${templateId}/email/`, {
                 headers: getHeaders(token)
@@ -166,8 +167,9 @@ export const emailService = {
         }
     },
 
-    updateTemplate: async (templateId, token, data) => {
+    updateEmailTemplate: async (eventId, templateId, token, data) => {
         try {
+            // Partial update supports email_name and email_content according to docs
             const response = await axios.patch(`${getApiUrl()}/templates/${templateId}/email/`, data, {
                 headers: getHeaders(token)
             });
@@ -178,7 +180,7 @@ export const emailService = {
         }
     },
 
-    deleteTemplate: async (templateId, token) => {
+    deleteEmailTemplate: async (eventId, templateId, token) => {
         try {
             const response = await axios.delete(`${getApiUrl()}/templates/${templateId}/email/`, {
                 headers: getHeaders(token)
