@@ -227,10 +227,7 @@ const EventLayout = () => {
                                     to={`/event/${selectedEvent.id}/companies?tab=company_products`}
                                     className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 flex items-center justify-between ${location.pathname.includes('/companies') && new URLSearchParams(location.search).get('tab') === 'company_products' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
                                 >
-                                    <span className="flex items-center gap-2">
-                                        <div className="w-1 h-1 rounded-full bg-border"></div>
-                                        Company Products
-                                    </span>
+                                    <span>Company Products</span>
                                     <span className="bg-success text-white text-[8px] px-1 py-0.5 rounded-sm font-bold uppercase tracking-tighter leading-none animate-pulse">New</span>
                                 </NavLink>
                                 <NavLink
