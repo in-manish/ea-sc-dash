@@ -150,6 +150,23 @@ export const paymentService = {
         return await response.json();
     },
 
+    updateConfig: async (token, data) => {
+        const response = await fetch(`${getApiUrl()}/payment/config/`, {
+            method: 'PATCH',
+            headers: {
+                ...getHeaders(token),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        if (!response.ok) {
+            let errData;
+            try { errData = await response.json(); } catch (e) { }
+            throw { response: { data: errData } };
+        }
+        return await response.json();
+    },
+
     testConfig: async (token, data) => {
         const response = await fetch(`${getApiUrl()}/payment/config/`, {
             method: 'PUT',

@@ -59,18 +59,24 @@ const PaymentConfig = ({ token }) => {
         setActionLoading(true);
         try {
             const payload = {
-                id: editingId, // Include ID if editing
+                config_id: editingId, // Include ID if editing
                 gateway: formData.gateway,
                 mode: formData.mode,
                 is_active: formData.is_active,
-                credentials: {
-                    key_id: formData.key_id,
-                    key_secret: formData.key_secret
-                },
                 webhook_url: formData.webhook_url
             };
-            // Assuming createConfig can handle updates if 'id' is present, or a separate updateConfig would be used
-            await paymentService.createConfig(token, payload);
+            
+            // Only send credentials if they're provided, or if creating new
+            if (!editingId || formData.key_id || formData.key_secret) {
+                payload.credentials = {};
+                if (formData.key_id) payload.credentials.key_id = formData.key_id;
+                if (formData.key_secret) payload.credentials.key_secret = formData.key_secret;
+            }
+            if (editingId) {
+                await paymentService.updateConfig(token, payload);
+            } else {
+                await paymentService.createConfig(token, payload);
+            }
             showMessage('success', `Configuration ${editingId ? 'updated' : 'saved'} successfully.`);
             setShowForm(false);
             resetForm();
@@ -138,17 +144,36 @@ const PaymentConfig = ({ token }) => {
         }
     };
 
-    const handleDeactivate = async (configId) => {
-        if (!window.confirm('Are you sure you want to deactivate this configuration?')) return;
+    const handleToggleActive = async (config) => {
+        setActionLoading(true);
+        try {
+            const payload = {
+                config_id: config.id,
+                is_active: !config.is_active
+            };
+            await paymentService.updateConfig(token, payload);
+            showMessage('success', `Configuration ${!config.is_active ? 'activated' : 'deactivated'} successfully.`);
+            fetchConfigs();
+        } catch (err) {
+            console.error(err);
+            showMessage('error', 'Failed to update configuration status.');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+    
+    // Kept handleDeactivate as reference, but replacing its usage with handleToggleActive if they just want status toggle
+    const handleDelete = async (configId) => {
+        if (!window.confirm('Are you sure you want to permanently delete this configuration?')) return;
 
         setActionLoading(true);
         try {
             await paymentService.deactivateConfig(token, configId);
-            showMessage('success', 'Configuration deactivated.');
+            showMessage('success', 'Configuration deleted.');
             fetchConfigs();
         } catch (err) {
             console.error(err);
-            showMessage('error', 'Failed to deactivate configuration.');
+            showMessage('error', 'Failed to delete configuration.');
         } finally {
             setActionLoading(false);
         }
@@ -249,7 +274,7 @@ const PaymentConfig = ({ token }) => {
                                     value={formData.key_id}
                                     onChange={handleInputChange}
                                     className="w-full p-2.5 border border-border rounded-md text-sm bg-bg-primary font-mono"
-                                    required
+                                    required={!editingId}
                                     placeholder={formData.gateway === 'stripe'
                                         ? (formData.mode === 'live' ? 'pk_live_xxxxxx' : 'pk_test_xxxxxx')
                                         : (formData.mode === 'live' ? 'rzp_live_xxxxxx' : 'rzp_test_xxxxxx')
@@ -326,13 +351,13 @@ const PaymentConfig = ({ token }) => {
                                         <h4 className="font-semibold text-text-primary capitalize flex items-center gap-2">
                                             {config.gateway_name || config.gateway || 'Provider'}
                                             {config.is_active ? (
-                                                <span className="flex items-center gap-1 text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-semibold tracking-wide">
+                                                <button onClick={() => handleToggleActive(config)} disabled={actionLoading} className="flex items-center gap-1 text-[10px] bg-green-100 hover:bg-green-200 text-green-700 px-1.5 py-0.5 rounded-full font-semibold tracking-wide transition-colors cursor-pointer" title="Click to deactivate">
                                                   <CheckCircle2 size={12} /> Active
-                                                </span>
+                                                </button>
                                             ) : (
-                                                <span className="flex items-center gap-1 text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded-full font-semibold tracking-wide">
+                                                <button onClick={() => handleToggleActive(config)} disabled={actionLoading} className="flex items-center gap-1 text-[10px] bg-slate-200 hover:bg-slate-300 text-slate-700 px-1.5 py-0.5 rounded-full font-semibold tracking-wide transition-colors cursor-pointer" title="Click to activate">
                                                   <XCircle size={12} /> Inactive
-                                                </span>
+                                                </button>
                                             )}
                                         </h4>
                                         <span className={`inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-bold uppercase tracking-wider ${config.mode === 'live' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
@@ -366,11 +391,27 @@ const PaymentConfig = ({ token }) => {
                                             <ShieldCheck size={14} className="text-accent" /> Test Connection
                                         </button>
                                         <button
-                                            onClick={() => handleDeactivate(config.id)}
-                                            disabled={actionLoading || !config.is_active}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-bg-secondary text-danger rounded hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            onClick={() => handleToggleActive(config)}
+                                            disabled={actionLoading}
+                                            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                                                config.is_active 
+                                                ? 'bg-bg-secondary text-danger hover:bg-red-50' 
+                                                : 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-200'
+                                            }`}
                                         >
-                                            <Trash2 size={14} /> Deactivate
+                                            {config.is_active ? (
+                                                <><XCircle size={14} /> Deactivate</>
+                                            ) : (
+                                                <><CheckCircle2 size={14} /> Activate</>
+                                            )}
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(config.id)}
+                                            disabled={actionLoading}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-bg-secondary text-danger rounded hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ml-1"
+                                            title="Permanently Delete"
+                                        >
+                                            <Trash2 size={14} />
                                         </button>
                                     </div>
                                 </div>
