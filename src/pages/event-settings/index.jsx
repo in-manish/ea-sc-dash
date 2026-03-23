@@ -129,7 +129,10 @@ const EventSettings = () => {
                 // Skip unchanged images if they are strings (URLs)
                 if (imageFields.includes(key) && typeof value === 'string') return;
                 
-                if (value === null) return;
+                if (value === null) {
+                    formData.append(key, '');
+                    return;
+                }
 
                 if (typeof value === 'object' && !(value instanceof File)) {
                     formData.append(key, JSON.stringify(value));
