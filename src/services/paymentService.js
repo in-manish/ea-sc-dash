@@ -98,6 +98,32 @@ export const paymentService = {
 
     // -- Config APIs --
 
+    getPaymentMode: async (token) => {
+        const response = await fetch(`${getApiUrl()}/payment/mode/`, {
+            method: 'GET',
+            headers: getHeaders(token)
+        });
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return await response.json();
+    },
+
+    setPaymentMode: async (token, mode) => {
+        const response = await fetch(`${getApiUrl()}/payment/mode/`, {
+            method: 'PUT',
+            headers: {
+                ...getHeaders(token),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ mode })
+        });
+        if (!response.ok) {
+            let errData;
+            try { errData = await response.json(); } catch (e) { }
+            throw { response: { data: errData } };
+        }
+        return await response.json();
+    },
+
     getConfigs: async (token) => {
         const response = await fetch(`${getApiUrl()}/payment/config/`, {
             method: 'GET',

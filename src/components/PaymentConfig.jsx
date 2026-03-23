@@ -4,6 +4,7 @@ import { Loader2, Key, CheckCircle2, XCircle, Plus, Trash2, ShieldCheck, Server,
 
 const PaymentConfig = ({ token }) => {
     const [configs, setConfigs] = useState([]);
+    const [globalMode, setGlobalMode] = useState('test');
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
@@ -16,7 +17,8 @@ const PaymentConfig = ({ token }) => {
         mode: 'test',
         key_id: '',
         key_secret: '',
-        webhook_url: ''
+        webhook_url: '',
+        is_active: true
     });
 
     useEffect(() => {
@@ -26,8 +28,14 @@ const PaymentConfig = ({ token }) => {
     const fetchConfigs = async () => {
         setLoading(true);
         try {
-            const data = await paymentService.getConfigs(token);
+            const [data, modeData] = await Promise.all([
+                paymentService.getConfigs(token),
+                paymentService.getPaymentMode(token).catch(() => ({ mode: 'test' }))
+            ]);
             setConfigs(data.configurations || []);
+            if (modeData && modeData.mode) {
+                setGlobalMode(modeData.mode);
+            }
         } catch (err) {
             console.error("Failed to fetch payment configs:", err);
             showMessage('error', 'Failed to load configurations.');
@@ -54,6 +62,7 @@ const PaymentConfig = ({ token }) => {
                 id: editingId, // Include ID if editing
                 gateway: formData.gateway,
                 mode: formData.mode,
+                is_active: formData.is_active,
                 credentials: {
                     key_id: formData.key_id,
                     key_secret: formData.key_secret
@@ -75,8 +84,27 @@ const PaymentConfig = ({ token }) => {
     };
 
     const resetForm = () => {
-        setFormData({ gateway: 'razorpay', mode: 'test', key_id: '', key_secret: '', webhook_url: '' });
+        setFormData({ gateway: 'razorpay', mode: 'test', key_id: '', key_secret: '', webhook_url: '', is_active: true });
         setEditingId(null);
+    };
+
+    const handleModeToggle = async () => {
+        const newMode = globalMode === 'live' ? 'test' : 'live';
+        if (newMode === 'live') {
+            if (!window.confirm('Are you sure you want to switch to Live mode? Real transactions will be processed.')) return;
+        }
+
+        setActionLoading(true);
+        try {
+            await paymentService.setPaymentMode(token, newMode);
+            setGlobalMode(newMode);
+            showMessage('success', `Payment mode changed to ${newMode.toUpperCase()}`);
+        } catch (err) {
+            console.error(err);
+            showMessage('error', 'Failed to update payment mode.');
+        } finally {
+            setActionLoading(false);
+        }
     };
 
     const handleEdit = (config) => {
@@ -86,7 +114,8 @@ const PaymentConfig = ({ token }) => {
             mode: config.mode || 'test',
             key_id: config.credentials?.key_id || '', // Note: Secrets aren't usually returned, user must re-enter if updating keys
             key_secret: '', // Keep empty for security
-            webhook_url: config.webhook_url || ''
+            webhook_url: config.webhook_url || '',
+            is_active: config.is_active === undefined ? true : config.is_active
         });
         setShowForm(true);
     };
@@ -145,15 +174,31 @@ const PaymentConfig = ({ token }) => {
             <div className="bg-bg-primary border border-border rounded-lg p-6 mb-6">
                 <div className="flex justify-between items-center mb-6 pb-2 border-b border-border">
                     <h3 className="text-base font-semibold text-text-primary m-0">Payment Gateways</h3>
-                    {!showForm && (
-                        <button
-                            className="btn btn-sm btn-primary flex items-center gap-1.5"
-                            onClick={() => { resetForm(); setShowForm(true); }}
-                            disabled={actionLoading}
-                        >
-                            <Plus size={16} /> Add Configuration
-                        </button>
-                    )}
+                    <div className="flex gap-4 items-center">
+                        {!showForm && (
+                            <div className="flex items-center gap-3 bg-bg-secondary px-3 py-1.5 rounded-lg border border-border">
+                                <span className={`text-xs font-semibold ${globalMode === 'test' ? 'text-blue-600' : 'text-text-tertiary'}`}>Test</span>
+                                <button 
+                                    onClick={handleModeToggle}
+                                    disabled={actionLoading}
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${globalMode === 'live' ? 'bg-red-500' : 'bg-blue-500'} disabled:opacity-50`}
+                                    title="Toggle global payment mode"
+                                >
+                                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${globalMode === 'live' ? 'translate-x-6' : 'translate-x-1'}`} />
+                                </button>
+                                <span className={`text-xs font-semibold ${globalMode === 'live' ? 'text-red-600' : 'text-text-tertiary'}`}>Live</span>
+                            </div>
+                        )}
+                        {!showForm && (
+                            <button
+                                className="btn btn-sm btn-primary flex items-center gap-1.5"
+                                onClick={() => { resetForm(); setShowForm(true); }}
+                                disabled={actionLoading}
+                            >
+                                <Plus size={16} /> Add Configuration
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 {showForm && (
@@ -241,11 +286,25 @@ const PaymentConfig = ({ token }) => {
                                 <p className="text-xs text-text-tertiary mt-1">Leave blank to use default system webhook endpoint.</p>
                             </div>
 
-                            <div className="md:col-span-2 flex justify-end gap-3 mt-2 pt-4 border-t border-border">
-                                <button type="button" className="btn btn-secondary" onClick={() => { setShowForm(false); resetForm(); }}>Cancel</button>
-                                <button type="submit" className="btn btn-primary" disabled={actionLoading}>
-                                    {actionLoading ? <Loader2 className="animate-spin" size={16} /> : (editingId ? 'Update Configuration' : 'Save Configuration')}
-                                </button>
+                            <div className="md:col-span-2 flex justify-between items-center mt-2 pt-4 border-t border-border">
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData(p => ({ ...p, is_active: !p.is_active }))}
+                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${formData.is_active ? 'bg-green-500' : 'bg-slate-300'}`}
+                                    >
+                                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formData.is_active ? 'translate-x-6' : 'translate-x-1'}`} />
+                                    </button>
+                                    <span className={`text-sm font-semibold ${formData.is_active ? 'text-green-600' : 'text-text-tertiary'}`}>
+                                        {formData.is_active ? 'Active' : 'Inactive'}
+                                    </span>
+                                </div>
+                                <div className="flex gap-3">
+                                    <button type="button" className="btn btn-secondary" onClick={() => { setShowForm(false); resetForm(); }}>Cancel</button>
+                                    <button type="submit" className="btn btn-primary" disabled={actionLoading}>
+                                        {actionLoading ? <Loader2 className="animate-spin" size={16} /> : (editingId ? 'Update Configuration' : 'Save Configuration')}
+                                    </button>
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -259,15 +318,22 @@ const PaymentConfig = ({ token }) => {
                         </div>
                     ) : (
                         configs.map(config => (
-                            <div key={config.id} className="border border-border rounded-lg p-5 bg-bg-primary shadow-sm flex flex-col relative overflow-hidden group">
+                            <div key={config.id} className={`border border-border rounded-lg p-5 bg-bg-primary shadow-sm flex flex-col relative overflow-hidden group ${!config.is_active ? 'opacity-75 bg-slate-50' : ''}`}>
                                 <div className={`absolute top-0 left-0 w-1 h-full ${config.mode === 'live' ? 'bg-red-500' : 'bg-blue-500'}`}></div>
 
                                 <div className="flex justify-between items-start mb-4 pl-2">
                                     <div>
                                         <h4 className="font-semibold text-text-primary capitalize flex items-center gap-2">
                                             {config.gateway_name || config.gateway || 'Provider'}
-                                            {config.is_active && <CheckCircle2 size={14} className="text-success" />}
-                                            {!config.is_active && <XCircle size={14} className="text-text-tertiary" />}
+                                            {config.is_active ? (
+                                                <span className="flex items-center gap-1 text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-semibold tracking-wide">
+                                                  <CheckCircle2 size={12} /> Active
+                                                </span>
+                                            ) : (
+                                                <span className="flex items-center gap-1 text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded-full font-semibold tracking-wide">
+                                                  <XCircle size={12} /> Inactive
+                                                </span>
+                                            )}
                                         </h4>
                                         <span className={`inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-bold uppercase tracking-wider ${config.mode === 'live' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
                                             {config.mode} Environment
