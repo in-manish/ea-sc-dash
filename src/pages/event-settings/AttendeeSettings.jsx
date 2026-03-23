@@ -1,8 +1,14 @@
 import React from 'react';
-import { Users } from 'lucide-react';
+import { Users, FileText } from 'lucide-react';
 import { SectionHeader, ToggleSwitch } from './components/SharedComponents';
+import EBadgeEditor from '../../components/common/EBadgeEditor';
+import EBadgeTemplateInfo from '../../components/common/EBadgeTemplateInfo';
 
 const AttendeeSettings = ({ eventData, handleInputChange, isFieldModified }) => {
+    const handleEBadgeChange = (name, value) => {
+        handleInputChange({ target: { name, value, type: 'text' } });
+    };
+
     return (
         <div className="animate-fade-in space-y-6">
             {/* Section 1: Modules & Services */}
@@ -48,7 +54,28 @@ const AttendeeSettings = ({ eventData, handleInputChange, isFieldModified }) => 
                 </div>
             </div>
 
-            {/* Section 2: Registration Policy */}
+            {/* Section 2: Global E-Badge Content */}
+            <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm space-y-6">
+                <SectionHeader icon={FileText} title="Global E-Badge Content" colorClass="text-accent" borderClass="bg-accent" />
+                
+                <EBadgeEditor
+                    label="TV Display E-Badge Content"
+                    description="Default content shown on e-badges for attendees registering via TV displays."
+                    value={eventData.tv_ebadge_content || ''}
+                    onChange={(val) => handleEBadgeChange('tv_ebadge_content', val)}
+                />
+
+                <EBadgeEditor
+                    label="Standard E-Badge Content"
+                    description="Default content shown on e-badges for attendees registering via standard methods (Mobile/Web)."
+                    value={eventData.non_tv_ebadge_content || ''}
+                    onChange={(val) => handleEBadgeChange('non_tv_ebadge_content', val)}
+                />
+                
+                <EBadgeTemplateInfo />
+            </div>
+
+            {/* Section 3: Registration Policy */}
             <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
                 <SectionHeader icon={Users} title="Attendee Categories" colorClass="text-teal-500" borderClass="bg-teal-500" />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

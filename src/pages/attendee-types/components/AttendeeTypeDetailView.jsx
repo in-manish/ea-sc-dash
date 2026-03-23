@@ -1,9 +1,10 @@
 import React from 'react';
-import { ArrowLeft, UserCog, ImageIcon, Mail, ArrowRightLeft, Loader2, X } from 'lucide-react';
+import { ArrowLeft, UserCog, ImageIcon, Mail, ArrowRightLeft, Loader2, X, FileText } from 'lucide-react';
 import GeneralTab from './GeneralTab';
 import BadgeTab from './BadgeTab';
 import DraftsTab from './DraftsTab';
 import TransferTab from './TransferTab';
+import EBadgeContentTab from './EBadgeContentTab';
 
 const AttendeeTypeDetailView = ({
     selectedType,
@@ -31,6 +32,7 @@ const AttendeeTypeDetailView = ({
     handleUpdateDesign,
     handleSaveDrafts,
     handleTransferAttendees,
+    handleSaveEBadgeContent,
     attendeeTypes,
     transferTargetId,
     setTransferTargetId,
@@ -41,6 +43,7 @@ const AttendeeTypeDetailView = ({
         { id: 'general', label: 'General Settings', icon: UserCog },
         { id: 'badge', label: 'Badge Design', icon: ImageIcon },
         { id: 'drafts', label: 'Email & SMS Drafts', icon: Mail },
+        { id: 'ebadge', label: 'E-Badge Content', icon: FileText },
         { id: 'transfer', label: 'Transfer Attendees', icon: ArrowRightLeft },
     ];
 
@@ -76,6 +79,16 @@ const AttendeeTypeDetailView = ({
                         isPreviewMode={isPreviewMode}
                         setIsPreviewMode={setIsPreviewMode}
                         handleSaveDrafts={handleSaveDrafts}
+                        isActionLoading={isActionLoading}
+                    />
+                );
+            case 'ebadge':
+                return (
+                    <EBadgeContentTab 
+                        selectedType={selectedType} 
+                        setSelectedType={setSelectedType} 
+                        attendeeTypes={attendeeTypes} 
+                        handleSaveEBadgeContent={handleSaveEBadgeContent}
                         isActionLoading={isActionLoading}
                     />
                 );

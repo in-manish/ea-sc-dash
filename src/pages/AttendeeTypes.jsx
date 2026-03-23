@@ -43,7 +43,7 @@ const AttendeeTypes = () => {
     const fetchAttendeeTypes = async () => {
         setIsLoading(true);
         try {
-            const data = await eventService.getAttendeeTypes(id, token);
+            const data = await eventService.getAttendeeTypes(id, token, true);
             setAttendeeTypes(data.attendee_types || []);
         } catch (err) {
             console.error(err);
@@ -78,6 +78,28 @@ const AttendeeTypes = () => {
             setIsAttendeeSaving(false);
         }
     };
+
+    const handleSaveEBadgeContent = async () => {
+        setIsActionLoading(true);
+        try {
+            const payload = [{
+                id: selectedType.id,
+                name: selectedType.name,
+                is_special: !!selectedType.is_special,
+                ebadge_content: selectedType.ebadge_content
+            }];
+            await eventService.updateAttendeeTypes(id, token, payload);
+            setMessage({ type: 'success', text: 'E-Badge Content saved successfully.' });
+            
+            // Update local state to match returned array or just the current element
+            setAttendeeTypes(prev => prev.map(at => at.id === selectedType.id ? { ...at, ebadge_content: selectedType.ebadge_content } : at));
+        } catch (error) {
+            console.error(error);
+            setMessage({ type: 'error', text: 'Failed to save E-Badge Content.' });
+        } finally {
+            setIsActionLoading(false);
+        }
+    }
 
     const handleDeleteAttendeeType = async (typeId) => {
         if (!window.confirm('Are you sure you want to delete this attendee type?')) return;
@@ -201,7 +223,7 @@ const AttendeeTypes = () => {
                         message, setMessage, badgeDesign, setBadgeDesign, emailDraft, setEmailDraft,
                         smsDraft, setSmsDraft, isBadgeFlipped, setIsBadgeFlipped, setIsFullscreenPreviewOpen,
                         setFullscreenPreviewType, isPreviewMode, setIsPreviewMode, handleUploadBadgeImage,
-                        handleUploadEmailTemplate, handleUpdateDesign, handleSaveDrafts, handleTransferAttendees,
+                        handleUploadEmailTemplate, handleUpdateDesign, handleSaveDrafts, handleTransferAttendees, handleSaveEBadgeContent,
                         attendeeTypes, transferTargetId, setTransferTargetId, getFullUrl, handleSelectType
                     }}
                 />

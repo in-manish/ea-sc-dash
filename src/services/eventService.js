@@ -715,11 +715,35 @@ export const eventService = {
         }
     },
 
+    async sendAttendeeWhatsApp(eventId, token, payload) {
+        try {
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/attendee_types/send_whatsapp/`, {
+                method: 'POST',
+                headers: {
+                    ...getHeaders(token),
+                    'Content-Type': 'application/json;charset=UTF-8'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const responseData = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                throw new Error(responseData.msg || responseData.message || `HTTP error! status: ${response.status}`);
+            }
+
+            return responseData;
+        } catch (error) {
+            console.error('Send Attendee WhatsApp Error:', error);
+            throw error;
+        }
+    },
+
     // --- Attendee Type CRUD ---
 
     async getAttendeeTypes(eventId, token) {
         try {
-            const response = await fetch(`${getApiUrl()}/events/${eventId}/attendee_types/`, {
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/attendee_types/?include_internal=true`, {
                 method: 'GET',
                 headers: getHeaders(token)
             });
@@ -734,7 +758,7 @@ export const eventService = {
 
     async updateAttendeeTypes(eventId, token, attendeeTypes) {
         try {
-            const response = await fetch(`${getApiUrl()}/events/${eventId}/attendee_types/`, {
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/attendee_types/?include_internal=true`, {
                 method: 'PUT',
                 headers: {
                     ...getHeaders(token),
@@ -770,5 +794,4 @@ export const eventService = {
         }
     }
 };
-
 

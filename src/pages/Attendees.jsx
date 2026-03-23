@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
-import { Loader2, Search, Filter, Phone, Mail, Globe, X, ShieldCheck, Building2, Calendar, UserCheck, MessageSquare, Send } from 'lucide-react';
+import { attendeeSelectionService } from '../services/attendeeSelectionService';
+import { whatsappService } from '../services/whatsappService';
+import { Loader2, Search, Filter, Phone, Mail, Globe, X, ShieldCheck, Building2, CheckSquare, Square, MessageCircle, CheckCircle2, ChevronDown, ChevronUp, List, LayoutGrid, Smartphone, Eye, Code } from 'lucide-react';
 
 const pillColors = {
     attendee_type: "bg-blue-50 text-blue-800 border-blue-200",
@@ -15,6 +17,60 @@ const pillColors = {
     whatsapp_sent: "bg-pink-50 text-pink-800 border-pink-200",
     created_at_start: "bg-slate-50 text-slate-700 border-slate-200",
     created_at_end: "bg-slate-50 text-slate-700 border-slate-200",
+};
+
+const getTemplatePreview = (template) => {
+    if (!template?.msg_text) return 'No message preview available.';
+    return template.msg_text
+        .replace(/\\n/g, '\n')
+        .replace(/\{\{([^}]+)\}\}/g, (_, key) => `[${key}]`);
+};
+
+const getPreviewAttendeeValue = (attendee, key) => {
+    if (!attendee) return `[${key}]`;
+
+    const normalizedKey = String(key).trim().toLowerCase();
+    const orderedValues = {
+        '1': attendee.name,
+        '2': attendee.attendee_type,
+        '3': attendee.event_name,
+        '4': attendee.company,
+        '5': attendee.reg_id,
+        '6': attendee.email,
+        '7': attendee.phone_number ? `+${attendee.country_code || ''} ${attendee.phone_number}`.trim() : '',
+        '8': attendee.city,
+        '9': attendee.country,
+    };
+
+    const keyMap = {
+        name: attendee.name,
+        attendee_name: attendee.name,
+        full_name: attendee.name,
+        first_name: attendee.name,
+        email: attendee.email,
+        phone: attendee.phone_number ? `+${attendee.country_code || ''} ${attendee.phone_number}`.trim() : '',
+        phone_number: attendee.phone_number ? `+${attendee.country_code || ''} ${attendee.phone_number}`.trim() : '',
+        company: attendee.company,
+        organization: attendee.company,
+        attendee_type: attendee.attendee_type,
+        reg_id: attendee.reg_id,
+        registration_id: attendee.reg_id,
+        city: attendee.city,
+        country: attendee.country,
+        event_name: attendee.event_name,
+        designation: attendee.designation,
+    };
+
+    return orderedValues[normalizedKey] || keyMap[normalizedKey] || `[${key}]`;
+};
+
+const renderWhatsAppPreview = (template, attendee) => {
+    if (!template?.msg_text) return 'No preview available.';
+
+    return template.msg_text
+        .replace(/\\n/g, '\n')
+        .replace(/\{\{([^}]+)\}\}/g, (_, key) => getPreviewAttendeeValue(attendee, key))
+        .replace(/\*([^*]+)\*/g, '$1');
 };
 
 const Attendees = () => {
@@ -31,6 +87,19 @@ const Attendees = () => {
     const [selectedAttendee, setSelectedAttendee] = useState(null);
     const [isModalMaximized, setIsModalMaximized] = useState(false);
     const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
+    const [selectionMode, setSelectionMode] = useState('none');
+    const [selectedAttendeeUuids, setSelectedAttendeeUuids] = useState([]);
+    const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
+    const [whatsAppTemplates, setWhatsAppTemplates] = useState([]);
+    const [whatsAppTemplatesLoading, setWhatsAppTemplatesLoading] = useState(false);
+    const [whatsAppTemplatesError, setWhatsAppTemplatesError] = useState('');
+    const [selectedTemplateId, setSelectedTemplateId] = useState(null);
+    const [whatsAppActionError, setWhatsAppActionError] = useState('');
+    const [whatsAppActionSuccess, setWhatsAppActionSuccess] = useState('');
+    const [isSendingWhatsApp, setIsSendingWhatsApp] = useState(false);
+    const [templateViewMode, setTemplateViewMode] = useState('list');
+    const [expandedTemplateId, setExpandedTemplateId] = useState(null);
+    const [previewContentMode, setPreviewContentMode] = useState('preview');
 
     // Search and Filter State
     const [search, setSearch] = useState(searchParams.get('q') || '');
@@ -119,6 +188,148 @@ const Attendees = () => {
             fetchAttendees();
         }
     }, [selectedEvent, page, debouncedSearch, filters, token]);
+
+    useEffect(() => {
+        if (!isWhatsAppModalOpen || !token) return;
+
+        const fetchWhatsAppTemplates = async () => {
+            setWhatsAppTemplatesLoading(true);
+            setWhatsAppTemplatesError('');
+
+            try {
+                const response = await whatsappService.getTemplates(token, 'attendee');
+                if (response?.success) {
+                    setWhatsAppTemplates(response.templates || []);
+                    return;
+                }
+
+                throw new Error(response?.message || 'Failed to load WhatsApp templates.');
+            } catch (err) {
+                setWhatsAppTemplates([]);
+                setWhatsAppTemplatesError(err.message || 'Failed to load WhatsApp templates.');
+            } finally {
+                setWhatsAppTemplatesLoading(false);
+            }
+        };
+
+        fetchWhatsAppTemplates();
+    }, [isWhatsAppModalOpen, token]);
+
+    const hasActiveSearchOrFilters = Boolean(debouncedSearch) || Object.keys(filters).length > 0;
+    const selectedAttendees = attendees.filter((attendee) => selectedAttendeeUuids.includes(attendee.uuid));
+    const isGlobalSelectionMode = selectionMode === 'all' || selectionMode === 'filtered';
+    const allVisibleSelected = isGlobalSelectionMode || (attendees.length > 0 && attendees.every((attendee) => selectedAttendeeUuids.includes(attendee.uuid)));
+    const selectedCount = selectionMode === 'selected'
+        ? selectedAttendeeUuids.length
+        : isGlobalSelectionMode
+            ? total
+            : 0;
+
+    const toggleAttendeeSelection = (attendeeUuid) => {
+        if (isGlobalSelectionMode) return;
+
+        setWhatsAppActionError('');
+        setWhatsAppActionSuccess('');
+
+        setSelectedAttendeeUuids((prev) => {
+            const next = prev.includes(attendeeUuid)
+                ? prev.filter((uuid) => uuid !== attendeeUuid)
+                : [...prev, attendeeUuid];
+
+            setSelectionMode(next.length > 0 ? 'selected' : 'none');
+            return next;
+        });
+    };
+
+    const clearSelection = () => {
+        setWhatsAppActionError('');
+        setWhatsAppActionSuccess('');
+        setSelectionMode('none');
+        setSelectedAttendeeUuids([]);
+    };
+
+    const selectAllMatchingAttendees = () => {
+        setWhatsAppActionError('');
+        setWhatsAppActionSuccess('');
+        setSelectedAttendeeUuids([]);
+        setSelectionMode(hasActiveSearchOrFilters ? 'filtered' : 'all');
+    };
+
+    const toggleSelectAll = () => {
+        if (selectionMode === 'selected' && allVisibleSelected) {
+            selectAllMatchingAttendees();
+            return;
+        }
+
+        if (isGlobalSelectionMode) {
+            clearSelection();
+            return;
+        }
+
+        if (allVisibleSelected) {
+            clearSelection();
+            return;
+        }
+
+        setWhatsAppActionError('');
+        setWhatsAppActionSuccess('');
+        setSelectionMode('selected');
+        setSelectedAttendeeUuids(attendees.map((attendee) => attendee.uuid));
+    };
+
+    const handleOpenWhatsAppModal = () => {
+        setSelectedTemplateId(null);
+        setTemplateViewMode('list');
+        setExpandedTemplateId(null);
+        setPreviewContentMode('preview');
+        setWhatsAppActionError('');
+        setWhatsAppActionSuccess('');
+        setIsWhatsAppModalOpen(true);
+    };
+
+    const handleCloseWhatsAppModal = () => {
+        setIsWhatsAppModalOpen(false);
+        setSelectedTemplateId(null);
+        setExpandedTemplateId(null);
+        setPreviewContentMode('preview');
+        setWhatsAppActionError('');
+    };
+
+    const handleSendWhatsApp = async () => {
+        if (!selectedTemplateId || selectionMode === 'none' || !selectedEvent) return;
+
+        setIsSendingWhatsApp(true);
+        setWhatsAppActionError('');
+
+        try {
+            const selection = attendeeSelectionService.buildSelection({
+                mode: selectionMode,
+                attendeeUuids: selectedAttendeeUuids,
+                search: debouncedSearch,
+                filters
+            });
+
+            if (!selection.payload) {
+                throw new Error('No attendees selected.');
+            }
+
+            const response = await eventService.sendAttendeeWhatsApp(selectedEvent.id, token, {
+                ...selection.payload,
+                wa_template_id: selectedTemplateId
+            });
+
+            setWhatsAppActionSuccess(response?.msg || 'WhatsApp message sent successfully.');
+            clearSelection();
+            setIsWhatsAppModalOpen(false);
+            setSelectedTemplateId(null);
+        } catch (err) {
+            setWhatsAppActionError(err.message || 'Failed to send WhatsApp message.');
+        } finally {
+            setIsSendingWhatsApp(false);
+        }
+    };
+
+    const previewAttendee = selectedAttendees[0] || attendees[0] || null;
 
     // Group fields logic - Includes ALL fields
     const getGroupedFields = (attendee) => {
@@ -283,11 +494,67 @@ const Attendees = () => {
             )}
 
             {error && <div className="bg-red-50 text-red-800 p-4 border border-red-200 rounded-md mb-6">{error}</div>}
+            {whatsAppActionSuccess && <div className="bg-emerald-50 text-emerald-800 p-4 border border-emerald-200 rounded-md mb-6">{whatsAppActionSuccess}</div>}
+            {whatsAppActionError && <div className="bg-red-50 text-red-800 p-4 border border-red-200 rounded-md mb-6">{whatsAppActionError}</div>}
+
+            {selectionMode !== 'none' && (
+                <div className="mb-6 bg-bg-primary border border-border rounded-lg px-5 py-6 shadow-sm animate-fade-in">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                        <div className="text-text-primary">
+                            <span className="text-sm font-semibold">
+                                {selectionMode === 'selected'
+                                    ? `${selectedAttendeeUuids.length} attendee${selectedAttendeeUuids.length === 1 ? '' : 's'} selected on this page.`
+                                    : selectionMode === 'filtered'
+                                        ? `All ${total} attendees matching this search are selected.`
+                                        : `All ${total} attendees are selected.`}
+                            </span>
+                            {selectionMode === 'selected' && allVisibleSelected && (
+                                <>
+                                    {' '}
+                                    <button
+                                        type="button"
+                                        className="bg-transparent border-none p-0 text-sm font-semibold text-text-primary underline underline-offset-2 cursor-pointer hover:text-accent"
+                                        onClick={selectAllMatchingAttendees}
+                                    >
+                                        {hasActiveSearchOrFilters ? 'Select all attendees that match this search' : `Select all ${total} attendees`}
+                                    </button>
+                                </>
+                            )}
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                            <button className="btn btn-secondary" onClick={clearSelection}>
+                                Clear Selection
+                            </button>
+                            <button className="btn btn-primary" onClick={handleOpenWhatsAppModal}>
+                                <MessageCircle size={16} style={{ marginRight: '0.5rem' }} />
+                                WhatsApp
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className="bg-bg-primary border border-border rounded-lg overflow-x-auto shadow-sm">
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr>
+                            <th className="bg-bg-secondary py-3 px-4 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border w-12">
+                                <button
+                                    type="button"
+                                    className="bg-transparent border-none p-0 text-text-secondary hover:text-accent transition-colors"
+                                    onClick={toggleSelectAll}
+                                    aria-label={
+                                        selectionMode === 'selected' && allVisibleSelected
+                                            ? 'Select all matching attendees'
+                                            : allVisibleSelected
+                                                ? 'Clear attendee selection'
+                                                : 'Select visible attendees'
+                                    }
+                                >
+                                    {allVisibleSelected ? <CheckSquare size={18} /> : <Square size={18} />}
+                                </button>
+                            </th>
                             <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Name</th>
                             <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Contact</th>
                             <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Company</th>
@@ -298,13 +565,13 @@ const Attendees = () => {
                     <tbody>
                         {loading ? (
                             <tr>
-                                <td colSpan="5" className="text-center p-12 text-text-secondary">
+                                <td colSpan="6" className="text-center p-12 text-text-secondary">
                                     <Loader2 className="animate-spin text-accent mx-auto" size={24} />
                                 </td>
                             </tr>
                         ) : attendees.length === 0 ? (
                             <tr>
-                                <td colSpan="5" className="text-center p-12 text-text-secondary">No attendees found.</td>
+                                <td colSpan="6" className="text-center p-12 text-text-secondary">No attendees found.</td>
                             </tr>
                         ) : (
                             attendees.map((attendee) => (
@@ -313,6 +580,16 @@ const Attendees = () => {
                                     className="cursor-pointer transition-colors duration-200 hover:bg-bg-secondary [&>td]:border-b [&>td]:border-border group"
                                     onClick={() => setSelectedAttendee(attendee)}
                                 >
+                                    <td className="py-4 px-4 align-top group-last:border-b-0" onClick={(e) => e.stopPropagation()}>
+                                        <input
+                                            type="checkbox"
+                                            className={`w-4 h-4 accent-accent ${isGlobalSelectionMode ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}
+                                            checked={isGlobalSelectionMode || selectedAttendeeUuids.includes(attendee.uuid)}
+                                            onChange={() => toggleAttendeeSelection(attendee.uuid)}
+                                            disabled={isGlobalSelectionMode}
+                                            aria-label={`Select ${attendee.name}`}
+                                        />
+                                    </td>
                                     <td className="py-4 px-6 align-top group-last:border-b-0">
                                         <div className="font-semibold text-text-primary text-sm flex items-center">
                                             {attendee.name}
@@ -631,6 +908,216 @@ const Attendees = () => {
                     </div>
                 </div>
             </div>
+
+            {isWhatsAppModalOpen && (
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-[1200] animate-fade-in" onClick={handleCloseWhatsAppModal}>
+                    <div className="bg-bg-primary rounded-lg border border-border shadow-xl w-[92%] max-w-[920px] max-h-[88vh] flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                        <div className="p-6 border-b border-border flex items-start justify-between bg-bg-secondary">
+                            <div>
+                                <h2 className="text-xl font-bold text-text-primary mb-1">Send WhatsApp</h2>
+                                <p className="text-sm text-text-secondary">
+                                    Choose one template for {selectedCount} attendee{selectedCount === 1 ? '' : 's'}.
+                                </p>
+                            </div>
+                            <button className="bg-transparent border-none text-text-tertiary cursor-pointer p-1 rounded-sm flex items-center justify-center transition-colors hover:bg-bg-tertiary hover:text-text-primary" onClick={handleCloseWhatsAppModal}>
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div className="px-6 py-4 border-b border-border bg-bg-primary">
+                            {selectionMode === 'selected' ? (
+                                <div className="flex flex-wrap gap-2">
+                                    {selectedAttendees.map((attendee) => (
+                                        <span key={attendee.uuid} className="inline-flex items-center rounded-full bg-accent/10 text-accent px-3 py-1 text-xs font-semibold">
+                                            {attendee.name}
+                                        </span>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-sm text-text-secondary">
+                                    {selectionMode === 'filtered' ? 'Applies to all attendees matching the current search and filters.' : 'Applies to all attendees in this event.'}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="p-6 overflow-y-auto flex-1">
+                            {whatsAppTemplatesLoading ? (
+                                <div className="flex flex-col items-center justify-center py-16 text-text-tertiary gap-3">
+                                    <Loader2 className="animate-spin text-accent" size={28} />
+                                    <p>Loading WhatsApp templates...</p>
+                                </div>
+                            ) : whatsAppTemplatesError ? (
+                                <div className="bg-red-50 text-red-800 p-4 border border-red-200 rounded-md">
+                                    {whatsAppTemplatesError}
+                                </div>
+                            ) : whatsAppTemplates.length === 0 ? (
+                                <div className="text-center p-10 border border-dashed border-border rounded-lg text-text-secondary">
+                                    No WhatsApp templates available for attendees.
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="flex items-center justify-between gap-4 mb-4">
+                                        <div>
+                                            <div className="text-sm font-semibold text-text-primary">Templates</div>
+                                            <div className="text-xs text-text-tertiary">
+                                                Preview uses selected attendee data.
+                                            </div>
+                                        </div>
+                                        <div className="flex bg-bg-primary border border-border rounded-md p-1">
+                                            <button
+                                                type="button"
+                                                onClick={() => setTemplateViewMode('list')}
+                                                className={`flex items-center justify-center w-9 h-8 rounded-sm bg-transparent border-none transition-all duration-200 hover:text-text-primary hover:bg-bg-secondary ${templateViewMode === 'list' ? 'bg-bg-tertiary text-accent' : 'text-text-secondary'}`}
+                                                title="List View"
+                                                aria-label="List View"
+                                            >
+                                                <List size={18} />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setTemplateViewMode('card')}
+                                                className={`flex items-center justify-center w-9 h-8 rounded-sm bg-transparent border-none transition-all duration-200 hover:text-text-primary hover:bg-bg-secondary ${templateViewMode === 'card' ? 'bg-bg-tertiary text-accent' : 'text-text-secondary'}`}
+                                                title="Card View"
+                                                aria-label="Card View"
+                                            >
+                                                <LayoutGrid size={18} />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className={templateViewMode === 'card' ? 'grid gap-4 md:grid-cols-2' : 'space-y-3'}>
+                                        {whatsAppTemplates.map((template) => {
+                                            const isSelected = selectedTemplateId === template.id;
+                                            const isExpanded = expandedTemplateId === template.id;
+                                            const previewMessage = renderWhatsAppPreview(template, previewAttendee);
+
+                                            return (
+                                                <div
+                                                    key={template.id}
+                                                    className={`rounded-xl border transition-all ${isSelected ? 'border-accent bg-accent/5 shadow-md' : 'border-border bg-bg-primary'}`}
+                                                >
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setSelectedTemplateId(template.id)}
+                                                        className={`w-full text-left p-5 ${templateViewMode === 'list' ? 'flex items-start justify-between gap-4' : ''}`}
+                                                    >
+                                                        <div className="min-w-0 flex-1">
+                                                            <div className="flex items-start justify-between gap-4">
+                                                                <div className="min-w-0">
+                                                                    <div className="text-sm font-bold text-text-primary truncate">{template.template_name}</div>
+                                                                    {template.description && (
+                                                                        <p className="text-sm text-text-secondary mt-1 line-clamp-1">{template.description}</p>
+                                                                    )}
+                                                                </div>
+                                                                {isSelected ? <CheckCircle2 size={18} className="text-accent shrink-0" /> : <Square size={18} className="text-text-tertiary shrink-0" />}
+                                                            </div>
+
+                                                            <div className="flex flex-wrap gap-2 mt-3">
+                                                                <span className="inline-flex rounded-full bg-bg-secondary px-2.5 py-1 text-[11px] font-semibold text-text-secondary border border-border">
+                                                                    {template.provider || 'Unknown'}
+                                                                </span>
+                                                                <span className="inline-flex rounded-full bg-bg-secondary px-2.5 py-1 text-[11px] font-semibold text-text-secondary border border-border">
+                                                                    ID {template.id}
+                                                                </span>
+                                                            </div>
+
+                                                            {templateViewMode === 'card' && (
+                                                                <p className="text-sm text-text-secondary mt-3 line-clamp-3">
+                                                                    {getTemplatePreview(template)}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </button>
+
+                                                    <div className="px-5 pb-4">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setExpandedTemplateId(isExpanded ? null : template.id)}
+                                                            className="inline-flex items-center gap-2 text-sm text-accent font-medium bg-transparent border-none p-0"
+                                                        >
+                                                            <Smartphone size={15} />
+                                                            Preview message
+                                                            {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                                                        </button>
+
+                                                        {isExpanded && (
+                                                            <div className="mt-4 rounded-2xl border border-border bg-bg-secondary/40 p-4">
+                                                                <div className="mb-4 flex items-center justify-end">
+                                                                    <div className="flex bg-bg-primary border border-border rounded-md p-1">
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => setPreviewContentMode('raw')}
+                                                                            className={`flex items-center justify-center w-9 h-8 rounded-sm bg-transparent border-none transition-all duration-200 hover:text-text-primary hover:bg-bg-secondary ${previewContentMode === 'raw' ? 'bg-bg-tertiary text-accent' : 'text-text-secondary'}`}
+                                                                            title="Raw View"
+                                                                            aria-label="Raw View"
+                                                                        >
+                                                                            <Code size={18} />
+                                                                        </button>
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => setPreviewContentMode('preview')}
+                                                                            className={`flex items-center justify-center w-9 h-8 rounded-sm bg-transparent border-none transition-all duration-200 hover:text-text-primary hover:bg-bg-secondary ${previewContentMode === 'preview' ? 'bg-bg-tertiary text-accent' : 'text-text-secondary'}`}
+                                                                            title="Preview Mode"
+                                                                            aria-label="Preview Mode"
+                                                                        >
+                                                                            <Eye size={18} />
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+
+                                                                {previewContentMode === 'raw' ? (
+                                                                    <div className="rounded-xl border border-border bg-slate-950 p-4 overflow-x-auto">
+                                                                        <pre className="m-0 whitespace-pre-wrap break-words text-[13px] leading-6 text-slate-100 font-mono">
+                                                                            {(template.msg_text || 'No raw message available.').replace(/\\n/g, '\n')}
+                                                                        </pre>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="mx-auto w-full max-w-[290px] rounded-[28px] border border-slate-300 bg-slate-900 p-2 shadow-lg">
+                                                                        <div className="rounded-[22px] bg-[#e5ddd5] p-3 min-h-[360px] bg-[linear-gradient(180deg,rgba(255,255,255,0.25),rgba(229,221,213,0.95))] flex flex-col">
+                                                                            <div className="mb-3 flex items-center justify-between rounded-full bg-[#075e54] px-4 py-2 text-white">
+                                                                                <div className="min-w-0">
+                                                                                    <div className="text-sm font-semibold truncate">Sample preview</div>
+                                                                                    <div className="text-[11px] text-white/80 truncate">{previewAttendee?.phone_number ? `+${previewAttendee.country_code || ''} ${previewAttendee.phone_number}` : 'WhatsApp preview'}</div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div className="mt-2 rounded-2xl rounded-tl-sm bg-white px-4 py-3 text-[13px] leading-6 text-slate-800 shadow-sm whitespace-pre-wrap max-w-[92%] self-start">
+                                                                                {previewMessage}
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
+                        <div className="p-6 border-t border-border bg-bg-secondary flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                            <p className="text-xs text-text-tertiary m-0">
+                                The selected template will be sent to the attendee WhatsApp numbers directly.
+                            </p>
+                            <div className="flex items-center gap-3">
+                                <button className="btn btn-secondary" onClick={handleCloseWhatsAppModal} disabled={isSendingWhatsApp}>
+                                    Cancel
+                                </button>
+                                <button
+                                    className="btn btn-primary"
+                                    onClick={handleSendWhatsApp}
+                                    disabled={!selectedTemplateId || isSendingWhatsApp || whatsAppTemplatesLoading}
+                                >
+                                    {isSendingWhatsApp ? <Loader2 size={16} className="animate-spin" /> : <MessageCircle size={16} style={{ marginRight: '0.5rem' }} />}
+                                    {isSendingWhatsApp ? 'Sending...' : 'Send WhatsApp'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
