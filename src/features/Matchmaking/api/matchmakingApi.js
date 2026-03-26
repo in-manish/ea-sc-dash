@@ -102,5 +102,81 @@ export const matchmakingApi = {
 
         if (response.status === 204) return true;
         return await response.json();
+    },
+
+    /**
+     * Save survey question mapping for an event
+     * @param {string|number} eventId 
+     * @param {Object} payload - { form_value, questions }
+     * @param {string} token 
+     * @returns {Promise<Object>}
+     */
+    saveSurveyMapping: async (eventId, payload, token) => {
+        const baseUrl = getApiUrl();
+        const response = await fetch(`${baseUrl}/events/${eventId}/matchmaking/surveyjs-question-mapping/`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json, text/plain, */*',
+                'Content-Type': 'application/json',
+                'Authorization': `Token ${token}`,
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.detail || errorData.message || `Failed to save mapping: ${response.statusText}`);
+        }
+
+        return await response.json();
+    },
+
+    /**
+     * Fetch SurveyJS form JSON from external API
+     * @param {string} formValue 
+     * @param {string} eventCode 
+     * @returns {Promise<Object>}
+     */
+    getSurveyForm: async (formValue, eventCode) => {
+        const response = await fetch(`https://api-stage.otm.co.in/api/get-form-json`, {
+            method: 'POST',
+            headers: {
+                'accept': 'application/json, text/plain, */*',
+                'content-type': 'application/json'
+            },
+            body: JSON.stringify({
+                form_value: formValue,
+                eventCode: eventCode
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch survey form: ${response.statusText}`);
+        }
+
+        return await response.json();
+    },
+
+    /**
+     * Fetch existing survey mapping for an event and form
+     * @param {string|number} eventId 
+     * @param {string} formValue 
+     * @param {string} token 
+     * @returns {Promise<Object>}
+     */
+    getSurveyMapping: async (eventId, formValue, token) => {
+        const baseUrl = getApiUrl();
+        const response = await fetch(`${baseUrl}/events/${eventId}/matchmaking/surveyjs-question-mapping/?form_value=${formValue}`, {
+            headers: {
+                'Accept': 'application/json, text/plain, */*',
+                'Authorization': `Token ${token}`,
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch survey mapping: ${response.statusText}`);
+        }
+
+        return await response.json();
     }
 };
