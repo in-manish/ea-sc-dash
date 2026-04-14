@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink, useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, Users, Calendar, Settings, ChevronLeft, Building2, ArrowLeft, LogOut, MessageSquare, BarChart2, UserCog, ShieldCheck, IdCard, ChevronDown, CreditCard, Wrench } from 'lucide-react';
+import { Menu, X, Users, Calendar, Settings, ChevronLeft, Building2, ArrowLeft, LogOut, MessageSquare, BarChart2, UserCog, ShieldCheck, IdCard, ChevronDown, CreditCard, Wrench, Layout } from 'lucide-react';
 
 import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
@@ -324,6 +324,15 @@ const EventLayout = () => {
                         )}
                     </div>
 
+                    <NavLink
+                        to={`/event/${selectedEvent.id}/matchmaking`}
+                        className={navLinkClass}
+                        title={isCollapsed ? "Matchmaking" : ""}
+                    >
+                        <Layout size={20} className="shrink-0" />
+                        {!isCollapsed && <span className="flex-1">Matchmaking</span>}
+                    </NavLink>
+
                     <div className="mt-auto flex flex-col gap-1">
                         <div className={`h-px bg-border my-2 ${isCollapsed ? 'mx-1' : ''}`}></div>
 
@@ -352,12 +361,6 @@ const EventLayout = () => {
                                         className={({ isActive }) => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${isActive ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
                                     >
                                         Attendee Types
-                                    </NavLink>
-                                    <NavLink
-                                        to={`/event/${selectedEvent.id}/matchmaking`}
-                                        className={({ isActive }) => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${isActive ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
-                                    >
-                                        Matchmaking
                                     </NavLink>
                                     <NavLink
                                         to={`/event/${selectedEvent.id}/exhibitor-portal-setup`}

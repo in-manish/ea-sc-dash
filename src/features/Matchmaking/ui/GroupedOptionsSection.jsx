@@ -11,7 +11,10 @@ const GroupedOptionsSection = ({ options, onUpdateGroup, onAddGroup, onRemoveGro
             {options.map((group, gi) => (
                 <div key={gi} className="p-4 bg-bg-secondary/30 rounded-xl border border-border/80 group relative">
                     <div className="flex gap-3 mb-4">
-                        <input required type="text" className="input-field py-2 text-xs font-bold bg-white" placeholder="Group Name (e.g. INDIA)" value={group.name} onChange={e => onUpdateGroup(gi, e.target.value)} />
+                        <div className="relative flex-1">
+                            <input required type="text" className="input-field py-2 text-xs font-bold bg-white pr-12" placeholder="Group Name (e.g. INDIA)" value={group.name} onChange={e => onUpdateGroup(gi, e.target.value)} />
+                            {group.id && <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[8px] font-mono text-text-tertiary opacity-40 bg-white/50 px-1 rounded">#{group.id}</span>}
+                        </div>
                         <button type="button" onClick={() => onRemoveGroup(gi)} className="p-1.5 text-text-tertiary hover:text-status-danger transition-colors" disabled={options.length <= 1}><Trash2 size={16} /></button>
                     </div>
                     <div className="pl-6 border-l-2 border-border/50 space-y-3">
@@ -22,7 +25,10 @@ const GroupedOptionsSection = ({ options, onUpdateGroup, onAddGroup, onRemoveGro
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             {group.values?.map((val, vi) => (
                                 <div key={vi} className="flex gap-2">
-                                    <input required type="text" className="input-field py-1.5 text-xs bg-white" placeholder="Value..." value={val.name} onChange={e => onUpdateValue(gi, vi, e.target.value)} />
+                                    <div className="relative flex-1">
+                                        <input required type="text" className="input-field py-1.5 text-xs bg-white pr-12" placeholder="Value..." value={val.name} onChange={e => onUpdateValue(gi, vi, e.target.value)} />
+                                        {val.id && <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[8px] font-mono text-text-tertiary opacity-40 bg-bg-tertiary/50 px-1 rounded">#{val.id}</span>}
+                                    </div>
                                     <button type="button" onClick={() => onRemoveValue(gi, vi)} className="p-1.5 text-text-tertiary hover:text-status-danger transition-colors" disabled={group.values.length <= 1}><X size={14} /></button>
                                 </div>
                             ))}

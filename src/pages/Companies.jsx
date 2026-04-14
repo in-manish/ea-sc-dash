@@ -263,12 +263,13 @@ const Companies = () => {
                                                         </div>
                                                     )}
                                                     <div>
-                                                        <div className="font-semibold text-text-primary text-sm flex items-center">
+                                                        <div className="font-semibold text-text-primary text-sm flex items-center gap-2">
                                                             {company.company_name}
+                                                            <span className="text-[10px] font-mono text-text-tertiary opacity-40">#{company.id}</span>
                                                             {company.is_badge_printed && (
                                                                 <Printer
                                                                     size={14}
-                                                                    className="ml-2 text-green-600"
+                                                                    className="text-green-600"
                                                                     title="Badge Printed"
                                                                 />
                                                             )}

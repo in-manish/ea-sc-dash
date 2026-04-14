@@ -591,12 +591,13 @@ const Attendees = () => {
                                         />
                                     </td>
                                     <td className="py-4 px-6 align-top group-last:border-b-0">
-                                        <div className="font-semibold text-text-primary text-sm flex items-center">
+                                        <div className="font-semibold text-text-primary text-sm flex items-center gap-2">
                                             {attendee.name}
+                                            <span className="text-[10px] font-mono text-text-tertiary opacity-40">#{attendee.id}</span>
                                             {attendee.is_poc && (
                                                 <ShieldCheck
                                                     size={16}
-                                                    className="ml-1.5 align-text-bottom text-accent"
+                                                    className="align-text-bottom text-accent"
                                                     title="Point of Contact (POC)"
                                                 />
                                             )}

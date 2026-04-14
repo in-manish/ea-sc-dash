@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth';
 import { useAuth } from '../contexts/AuthContext';
-import { ArrowRight, Lock, Mail, KeyRound, Loader2 } from 'lucide-react';
+import { ArrowRight, Lock, Mail, KeyRound, Loader2, Globe } from 'lucide-react';
 
 const Login = () => {
     const [step, setStep] = useState(1);
@@ -201,6 +201,15 @@ const Login = () => {
                         </div>
                     </form>
                 )}
+                <div className="mt-8 pt-6 border-t border-border text-center">
+                    <button 
+                        onClick={() => navigate('/login-local')}
+                        className="text-sm text-text-secondary hover:text-accent transition-colors flex items-center justify-center gap-2 mx-auto"
+                    >
+                        <Globe size={14} />
+                        Local environment login
+                    </button>
+                </div>
             </div>
         </div>
     );

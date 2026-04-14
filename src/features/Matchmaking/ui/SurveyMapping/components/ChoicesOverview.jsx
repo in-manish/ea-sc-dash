@@ -27,10 +27,10 @@ const ChoicesOverview = ({ selectedSurveyQuestion, matchmakingData, mappings }) 
             </div>
             <div className="grid grid-cols-2 gap-0 divide-x divide-border">
                 <div className="p-4 bg-accent/[0.02]">
-                    <p className="text-[9px] font-black text-accent uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                    <div className="text-[9px] font-black text-accent uppercase tracking-widest mb-3 flex items-center gap-1.5">
                         <div className="w-1.5 h-1.5 rounded-full bg-accent shadow-sm" />
                         SurveyJS Source
-                    </p>
+                    </div>
                     <div className="space-y-1.5 max-h-[250px] overflow-y-auto custom-scrollbar pr-1">
                         {selectedSurveyQuestion.choices.map((c, i) => (
                             <div key={i} className="text-[11px] font-semibold text-text-primary bg-white px-3 py-2 rounded-xl border border-border/60 shadow-sm hover:border-accent/30 transition-colors">
@@ -41,10 +41,10 @@ const ChoicesOverview = ({ selectedSurveyQuestion, matchmakingData, mappings }) 
                     </div>
                 </div>
                 <div className="p-4 bg-emerald-[0.02]">
-                    <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                    <div className="text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-3 flex items-center gap-1.5">
                         <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-sm" />
                         Matchmaking Target
-                    </p>
+                    </div>
                     <div className="space-y-1.5 max-h-[250px] overflow-y-auto custom-scrollbar pr-1">
                         {mmOptions.map((opt, i) => (
                             <div key={i} className="text-[11px] font-semibold text-text-primary bg-white px-3 py-2 rounded-xl border border-border/60 shadow-sm hover:border-emerald-300/30 transition-colors">

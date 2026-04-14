@@ -22,6 +22,24 @@ const getHeaders = (token) => {
 };
 
 export const eventService = {
+    async getEvents(token) {
+        try {
+            const response = await fetch(`${getApiUrl()}/events/`, {
+                method: 'GET',
+                headers: getHeaders(token)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Get Events Error:', error);
+            throw error;
+        }
+    },
+
     async getAttendees(eventId, token, options = {}) {
         const {
             page = 1,

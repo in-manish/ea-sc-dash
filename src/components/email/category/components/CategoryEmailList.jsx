@@ -45,6 +45,7 @@ const CategoryEmailList = ({ isLoading, emails, viewMode, handleViewEmail, handl
                             <span className="px-3 py-1 rounded-lg text-[10px] font-black tracking-widest uppercase bg-accent text-white border border-accent shadow-sm">
                                 {email.category_name || 'General Category'}
                             </span>
+                            {email.id && <span className="text-[10px] font-mono text-text-tertiary opacity-40 bg-bg-secondary px-2 py-1 rounded-lg border border-border">#{email.id}</span>}
                         </div>
                     </div>
 
@@ -74,7 +75,9 @@ const CategoryEmailList = ({ isLoading, emails, viewMode, handleViewEmail, handl
                         <h3 className="font-black text-text-primary group-hover:text-accent leading-tight text-base truncate pr-2 tracking-tight text-left" title={email.email_name}>
                             {email.email_name || 'Unnamed Email'}
                         </h3>
-                        <div className="text-[10px] text-text-tertiary font-black uppercase tracking-[0.15em] mt-2">DRAFT IDENTIFIER</div>
+                        <div className="text-[10px] text-text-tertiary font-black uppercase tracking-[0.15em] mt-2 flex items-center gap-2">
+                            DRAFT IDENTIFIER {email.id && <span className="text-accent/50 opacity-60">#{email.id}</span>}
+                        </div>
                     </div>
 
                     <div className="sm:w-40 px-5 py-3 sm:py-0 shrink-0 flex items-center sm:justify-center border-b sm:border-b-0 sm:border-r border-border">

@@ -10,7 +10,10 @@ const StandardOptionsSection = ({ options, onUpdate, onAdd, onRemove }) => (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {options.map((opt, i) => (
                 <div key={i} className="flex gap-2 group">
-                    <input required type="text" className="input-field py-1.5 text-xs bg-bg-secondary/30 group-hover:bg-bg-secondary transition-colors" placeholder={`Option ${i+1}`} value={opt.name} onChange={e => onUpdate(i, e.target.value)} />
+                    <div className="relative flex-1">
+                        <input required type="text" className="input-field py-1.5 text-xs bg-bg-secondary/30 group-hover:bg-bg-secondary transition-colors pr-12" placeholder={`Option ${i+1}`} value={opt.name} onChange={e => onUpdate(i, e.target.value)} />
+                        {opt.id && <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[8px] font-mono text-text-tertiary opacity-40 bg-white/50 px-1 rounded">#{opt.id}</span>}
+                    </div>
                     <button type="button" onClick={() => onRemove(i)} className="p-1.5 text-text-tertiary hover:text-status-danger transition-colors" disabled={options.length <= 1}><Trash2 size={14} /></button>
                 </div>
             ))}

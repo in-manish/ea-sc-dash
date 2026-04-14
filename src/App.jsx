@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import Login from './pages/Login';
+import LoginLocal from './pages/LoginLocal';
 import HomeLayout from './layouts/HomeLayout';
 import EventLayout from './layouts/EventLayout';
 import Dashboard from './pages/Dashboard';
@@ -17,7 +18,7 @@ import UserManagement from './pages/UserManagement';
 import ProtectedRoute from './components/ProtectedRoute';
 import Payments from './pages/payments/Payments';
 import ExhibitorPortalSetup from './pages/exhibitor-portal-setup/ExhibitorPortalSetup';
-import MatchmakingQuestions from './features/Matchmaking/ui/MatchmakingQuestions';
+import Matchmaking from './features/Matchmaking/ui/Matchmaking';
 
 
 const App = () => {
@@ -28,6 +29,7 @@ const App = () => {
       <Router basename={basename}>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/login-local" element={<LoginLocal />} />
 
           {/* Home Layout (Event Selection) */}
           <Route path="/" element={
@@ -55,7 +57,7 @@ const App = () => {
             <Route path="settings" element={<Settings />} />
             <Route path="payments" element={<Payments />} />
             <Route path="exhibitor-portal-setup" element={<ExhibitorPortalSetup />} />
-            <Route path="matchmaking" element={<MatchmakingQuestions />} />
+            <Route path="matchmaking" element={<Matchmaking />} />
 
           </Route>
 

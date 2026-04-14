@@ -57,8 +57,13 @@ const MatchmakingQuestionModal = ({ isOpen, onClose, eventId, token, question, f
                         </button>
                         <div className="w-px h-8 bg-border/60 mx-2" />
                         <div>
-                            <h2 className="text-xl font-bold text-text-primary tracking-tight">
+                            <h2 className="text-xl font-bold text-text-primary tracking-tight flex items-center gap-3">
                                 {question ? 'Refine Configuration' : 'Create New Parameter'}
+                                {question?.id && (
+                                    <span className="text-[10px] font-mono bg-bg-secondary text-text-tertiary px-2 py-0.5 rounded-full border border-border/60">
+                                        #{question.id}
+                                    </span>
+                                )}
                             </h2>
                             <p className="text-[11px] text-text-tertiary mt-1 uppercase tracking-wider font-bold">
                                 {formName} <span className="text-accent/40 mx-1">/</span> Event #{eventId}

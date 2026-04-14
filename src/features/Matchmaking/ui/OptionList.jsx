@@ -30,7 +30,8 @@ const OptionList = ({ options, type }) => {
                                 </p>
                                 <div className="flex flex-wrap gap-1.5">
                                     {group.values?.map((opt) => (
-                                        <span key={opt.id} className="inline-flex items-center px-2 py-0.5 rounded-md bg-white text-[10px] font-semibold text-text-secondary border border-border shadow-sm">
+                                        <span key={opt.id} className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white text-[10px] font-semibold text-text-secondary border border-border shadow-sm">
+                                            {opt.id && <span className="text-[8px] opacity-40 font-mono">#{opt.id}</span>}
                                             {opt.name}
                                         </span>
                                     ))}
@@ -41,7 +42,8 @@ const OptionList = ({ options, type }) => {
                 ) : (
                     <div className="flex flex-wrap gap-2 pt-1">
                         {options.map((option) => (
-                            <span key={option.id} className="inline-flex items-center px-3 py-1 rounded-lg text-[11px] font-bold bg-bg-secondary text-text-secondary border border-border/80 transition-all hover:border-accent/30 hover:bg-white hover:shadow-sm">
+                            <span key={option.id} className="inline-flex items-center gap-2 px-3 py-1 rounded-lg text-[11px] font-bold bg-bg-secondary text-text-secondary border border-border/80 transition-all hover:border-accent/30 hover:bg-white hover:shadow-sm">
+                                {option.id && <span className="text-[9px] opacity-40 font-mono">#{option.id}</span>}
                                 {option.name}
                             </span>
                         ))}

@@ -88,7 +88,9 @@ const MatchmakingQuestions = () => {
                             </h1>
                             <p className="text-sm font-medium text-text-secondary flex items-center gap-2">
                                 <span className="w-1.5 h-1.5 rounded-full bg-accent/40" />
-                                {data?.form_name || 'Configuration Gateway'} · {data?.questions?.length || 0} active parameters
+                                {data?.form_name || 'Configuration Gateway'}
+                                {data?.id && <span className="text-[10px] font-mono opacity-40">#{data.id}</span>}
+                                · {data?.questions?.length || 0} active parameters
                             </p>
                         </div>
                     </div>

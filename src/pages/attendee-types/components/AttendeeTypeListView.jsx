@@ -60,6 +60,7 @@ const AttendeeTypeListView = ({
                                 <div className="flex flex-col gap-1">
                                     <div className="flex items-center gap-3">
                                         <span className="text-[15px] font-bold text-text-primary">{type.name}</span>
+                                        {type.id && <span className="text-[10px] font-mono text-text-tertiary bg-bg-secondary px-1.5 py-0.5 rounded border border-border">#{type.id}</span>}
                                         {type.is_special && (
                                             <span className="px-2 py-0.5 rounded-[4px] text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200 uppercase tracking-tight">Special Category</span>
                                         )}

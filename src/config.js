@@ -16,6 +16,15 @@ export const ENV_CONFIG = {
             '--color-accent-hover': '#b91c1c', // Red 700
             '--color-bg-tertiary': '#fef2f2' // Red 50
         }
+    },
+    LOCAL: {
+        BASE_URL: '', // Will be overridden by localStorage
+        NAME: 'Local',
+        THEME: {
+            '--color-accent': '#7c3aed', // Violet 600
+            '--color-accent-hover': '#6d28d9',
+            '--color-bg-tertiary': '#f5f3ff'
+        }
     }
 };
 
@@ -36,7 +45,18 @@ export const setEnv = (env) => {
 
 export const getApiUrl = () => {
     const env = getEnv();
+    if (env === 'LOCAL') {
+        return localStorage.getItem('local_base_url') || 'http://localhost:8000';
+    }
     return ENV_CONFIG[env].BASE_URL;
+};
+
+export const setLocalBaseUrl = (url) => {
+    localStorage.setItem('local_base_url', url);
+};
+
+export const getLocalBaseUrl = () => {
+    return localStorage.getItem('local_base_url') || 'http://localhost:8000';
 };
 
 export const getEnvName = () => {
