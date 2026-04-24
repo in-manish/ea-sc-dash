@@ -4,6 +4,7 @@ import { Menu, X, Users, Calendar, Settings, ChevronLeft, Building2, ArrowLeft, 
 
 import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
+import FloatingFileUploadTool from '../components/FloatingFileUploadTool';
 
 const EventLayout = () => {
     const { selectedEvent, selectEvent, clearEvent, logout, token, recentEvents } = useAuth();
@@ -456,6 +457,7 @@ const EventLayout = () => {
             <main className={`flex-1 bg-bg-secondary p-8 min-h-screen overflow-hidden min-w-0 transition-[margin-left] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${isCollapsed ? 'ml-[72px]' : 'ml-[260px]'}`}>
                 <Outlet />
             </main>
+            <FloatingFileUploadTool />
         </div>
     );
 };
