@@ -19,6 +19,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Payments from './pages/payments/Payments';
 import ExhibitorPortalSetup from './pages/exhibitor-portal-setup/ExhibitorPortalSetup';
 import Matchmaking from './features/Matchmaking/ui/Matchmaking';
+import CeleryManage from './pages/celery-manage/CeleryManage';
 
 
 const App = () => {
@@ -58,6 +59,7 @@ const App = () => {
             <Route path="payments" element={<Payments />} />
             <Route path="exhibitor-portal-setup" element={<ExhibitorPortalSetup />} />
             <Route path="matchmaking" element={<Matchmaking />} />
+            <Route path="celery-manage" element={<CeleryManage />} />
 
           </Route>
 
