@@ -186,6 +186,26 @@ const CompanySettings = ({
                                 placeholder="e.g. 500+ Exhibitors"
                             />
                         </FormField>
+                        <FormField label="Country Statistics Description" description="Additional details for countries">
+                            <textarea
+                                name="country_stat_description"
+                                value={eventData.exhibitor_stats?.country_stat_description || ''}
+                                onChange={(e) => handleExhibitorStatsChange('country_stat_description', e.target.value)}
+                                className={getInputClass('country_stat_description', isExhibitorStatModified('country_stat_description'))}
+                                rows={2}
+                                placeholder="Describe country statistics..."
+                            />
+                        </FormField>
+                        <FormField label="Exhibitor Statistics Description" description="Additional details for exhibitors">
+                            <textarea
+                                name="exhibitor_stat_description"
+                                value={eventData.exhibitor_stats?.exhibitor_stat_description || ''}
+                                onChange={(e) => handleExhibitorStatsChange('exhibitor_stat_description', e.target.value)}
+                                className={getInputClass('exhibitor_stat_description', isExhibitorStatModified('exhibitor_stat_description'))}
+                                rows={2}
+                                placeholder="Describe exhibitor statistics..."
+                            />
+                        </FormField>
                     </div>
                 </div>
             </div>

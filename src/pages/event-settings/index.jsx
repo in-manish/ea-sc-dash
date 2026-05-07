@@ -114,7 +114,13 @@ const EventSettings = () => {
         setEventData(prev => ({
             ...prev,
             exhibitor_stats: {
-                ...(prev.exhibitor_stats || { is_active: false, country_stat_text: '', exhibitor_stat_text: '' }),
+                ...(prev.exhibitor_stats || { 
+                    is_active: false, 
+                    country_stat_text: '', 
+                    exhibitor_stat_text: '',
+                    country_stat_description: '',
+                    exhibitor_stat_description: ''
+                }),
                 [field]: value
             }
         }));
@@ -194,7 +200,13 @@ const EventSettings = () => {
             // Re-append complex fields stringified
             formData.append('social_links', JSON.stringify(eventData.social_links || {}));
             formData.append('company_complimentary_invitee_info', JSON.stringify(eventData.company_complimentary_invitee_info || []));
-            formData.append('exhibitor_stats', JSON.stringify(eventData.exhibitor_stats || { is_active: false, country_stat_text: '', exhibitor_stat_text: '' }));
+            formData.append('exhibitor_stats', JSON.stringify(eventData.exhibitor_stats || { 
+                is_active: false, 
+                country_stat_text: '', 
+                exhibitor_stat_text: '',
+                country_stat_description: '',
+                exhibitor_stat_description: ''
+            }));
             
             if (eventData.intl_meta) formData.append('intl_meta', JSON.stringify(eventData.intl_meta));
             if (eventData.intl_data) formData.append('intl_data', JSON.stringify(eventData.intl_data));
