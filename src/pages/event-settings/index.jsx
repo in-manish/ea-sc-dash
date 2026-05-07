@@ -12,6 +12,7 @@ import PaymentSettings from './PaymentSettings';
 import CommunicationSettings from './CommunicationSettings';
 import IntegrationSettings from './IntegrationSettings';
 import LocalizationSettings from './LocalizationSettings';
+import JsonTree from './components/JsonTree';
 
 const EventSettings = () => {
     const { id } = useParams();
@@ -23,12 +24,20 @@ const EventSettings = () => {
     const [isSaving, setIsSaving] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
     const [previewStates, setPreviewStates] = useState({});
+    const [editableJson, setEditableJson] = useState('');
+    const [payloadView, setPayloadView] = useState('tree'); // 'tree' or 'editor'
 
     useEffect(() => {
         if (id && token) {
             fetchEventDetails();
         }
     }, [id, token]);
+
+    useEffect(() => {
+        if (eventData) {
+            setEditableJson(JSON.stringify(eventData, null, 2));
+        }
+    }, [activeTab === 'payload']);
 
     const fetchEventDetails = async () => {
         setIsLoading(true);
@@ -101,6 +110,46 @@ const EventSettings = () => {
         });
     };
 
+    const handleExhibitorStatsChange = (field, value) => {
+        setEventData(prev => ({
+            ...prev,
+            exhibitor_stats: {
+                ...(prev.exhibitor_stats || { is_active: false, country_stat_text: '', exhibitor_stat_text: '' }),
+                [field]: value
+            }
+        }));
+    };
+
+    const isExhibitorStatModified = (field) => {
+        if (!originalEventData) return false;
+        const current = eventData.exhibitor_stats?.[field];
+        const original = originalEventData.exhibitor_stats?.[field];
+        return current !== original;
+    };
+
+    const handleApplyJson = () => {
+        try {
+            const parsed = JSON.parse(editableJson);
+            setEventData(parsed);
+            setMessage({ type: 'success', text: 'JSON applied to state. Don\'t forget to Save Changes to persist.' });
+        } catch (err) {
+            setMessage({ type: 'error', text: 'Invalid JSON: ' + err.message });
+        }
+    };
+
+    const handleUpdatePayloadPath = (path, value) => {
+        setEventData(prev => {
+            const newData = JSON.parse(JSON.stringify(prev));
+            let current = newData;
+            for (let i = 0; i < path.length - 1; i++) {
+                current = current[path[i]];
+            }
+            current[path[path.length - 1]] = value;
+            return newData;
+        });
+        setMessage({ type: 'success', text: `Field "${path.join('.')}" updated locally.` });
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSaving(true);
@@ -116,7 +165,8 @@ const EventSettings = () => {
                 'company_complimentary_invitee_info', 
                 'location', 
                 'intl_meta', 
-                'intl_data'
+                'intl_data',
+                'exhibitor_stats'
             ];
             
             const imageFields = ['logo', 'logo2', 'event_background_image', 'event_banner_logo', 'meetingdiary_portal_bg_image'];
@@ -144,9 +194,18 @@ const EventSettings = () => {
             // Re-append complex fields stringified
             formData.append('social_links', JSON.stringify(eventData.social_links || {}));
             formData.append('company_complimentary_invitee_info', JSON.stringify(eventData.company_complimentary_invitee_info || []));
+            formData.append('exhibitor_stats', JSON.stringify(eventData.exhibitor_stats || { is_active: false, country_stat_text: '', exhibitor_stat_text: '' }));
             
             if (eventData.intl_meta) formData.append('intl_meta', JSON.stringify(eventData.intl_meta));
             if (eventData.intl_data) formData.append('intl_data', JSON.stringify(eventData.intl_data));
+
+            // --- MANUAL PAYLOAD MODIFICATION AREA ---
+            // You can manually add or override any keys here before the update request.
+            // Example: formData.append('new_feature_key', 'true');
+            // formData.append('another_key', JSON.stringify({ a: 1 }));
+            // ---------------------------------------
+
+            // console.log('Final Payload:', Object.fromEntries(formData.entries()));
 
             await eventService.updateEvent(id, token, formData);
             setMessage({ type: 'success', text: 'Settings updated successfully!' });
@@ -179,6 +238,7 @@ const EventSettings = () => {
         { id: 'integrations', label: 'Integrations' },
         { id: 'payments', label: 'Payments' },
         { id: 'localization', label: 'Localization' },
+        { id: 'payload', label: 'Payload' },
     ];
 
     return (
@@ -231,6 +291,8 @@ const EventSettings = () => {
                         togglePreview={togglePreview}
                         moveInviteeInfo={moveInviteeInfo}
                         previewStates={previewStates}
+                        handleExhibitorStatsChange={handleExhibitorStatsChange}
+                        isExhibitorStatModified={isExhibitorStatModified}
                     />
                 )}
                 {activeTab === 'attendees' && (
@@ -268,6 +330,89 @@ const EventSettings = () => {
                         handleInputChange={handleInputChange} 
                         isFieldModified={isFieldModified} 
                     />
+                )}
+                {activeTab === 'payload' && (
+                    <div className="space-y-6 animate-fade-in">
+                        <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
+                            <div className="flex justify-between items-center mb-4">
+                                <div className="flex items-center gap-4">
+                                    <h3 className="text-base font-semibold text-text-primary m-0">Current Working Data</h3>
+                                    <div className="flex bg-bg-secondary rounded-md p-1 border border-border">
+                                        <button 
+                                            className={`px-3 py-1 text-[10px] font-bold rounded transition-all ${payloadView === 'editor' ? 'bg-accent text-white shadow-sm' : 'text-text-tertiary hover:text-text-secondary'}`}
+                                            onClick={() => setPayloadView('editor')}
+                                        >
+                                            EDITOR
+                                        </button>
+                                        <button 
+                                            className={`px-3 py-1 text-[10px] font-bold rounded transition-all ${payloadView === 'tree' ? 'bg-accent text-white shadow-sm' : 'text-text-tertiary hover:text-text-secondary'}`}
+                                            onClick={() => setPayloadView('tree')}
+                                        >
+                                            TREE
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="flex gap-2">
+                                    {payloadView === 'editor' && (
+                                        <button 
+                                            className="btn btn-sm btn-primary"
+                                            onClick={handleApplyJson}
+                                        >
+                                            Apply Changes
+                                        </button>
+                                    )}
+                                    <button 
+                                        className="btn btn-sm btn-secondary"
+                                        onClick={() => {
+                                            const original = JSON.parse(JSON.stringify(originalEventData));
+                                            setEventData(original);
+                                            setEditableJson(JSON.stringify(original, null, 2));
+                                            setMessage({ type: 'success', text: 'Reset to original data.' });
+                                        }}
+                                    >
+                                        Reset
+                                    </button>
+                                    <button 
+                                        className="btn btn-sm btn-secondary"
+                                        onClick={() => navigator.clipboard.writeText(editableJson)}
+                                    >
+                                        Copy JSON
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            {payloadView === 'editor' ? (
+                                <textarea 
+                                    className="w-full bg-bg-secondary p-4 rounded-md text-[11px] font-mono border border-border text-text-secondary leading-relaxed shadow-inner min-h-[500px] focus:outline-none focus:ring-1 focus:ring-accent"
+                                    value={editableJson}
+                                    onChange={(e) => setEditableJson(e.target.value)}
+                                    spellCheck={false}
+                                />
+                            ) : (
+                                <div className="animate-fade-in">
+                                    <JsonTree 
+                                        data={eventData} 
+                                        onUpdate={handleUpdatePayloadPath}
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-base font-semibold text-text-primary m-0">Original Loaded Data</h3>
+                                <button 
+                                    className="btn btn-sm btn-secondary"
+                                    onClick={() => navigator.clipboard.writeText(JSON.stringify(originalEventData, null, 2))}
+                                >
+                                    Copy JSON
+                                </button>
+                            </div>
+                            <div className="animate-fade-in">
+                                <JsonTree data={originalEventData} />
+                            </div>
+                        </div>
+                    </div>
                 )}
             </div>
         </div>
