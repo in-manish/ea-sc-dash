@@ -77,6 +77,42 @@ const GeneralSettings = ({ eventData, handleInputChange, isFieldModified }) => {
                             />
                         </FormField>
                     </div>
+                    <div>
+                        <FormField label="Start Time">
+                            <input
+                                type="time"
+                                step="1"
+                                name="start_time"
+                                value={eventData.start_time || '00:00:00'}
+                                onChange={handleInputChange}
+                                className={getInputClass('start_time', isFieldModified('start_time'))}
+                            />
+                        </FormField>
+                    </div>
+                    <div>
+                        <FormField label="End Time">
+                            <div className="flex flex-col gap-2">
+                                <input
+                                    type="time"
+                                    step="1"
+                                    name="end_time"
+                                    value={eventData.end_time || '18:59:00'}
+                                    onChange={handleInputChange}
+                                    className={getInputClass('end_time', isFieldModified('end_time'))}
+                                />
+                                <button 
+                                    type="button"
+                                    onClick={() => {
+                                        handleInputChange({ target: { name: 'start_time', value: '10:00:00' } });
+                                        handleInputChange({ target: { name: 'end_time', value: '20:00:00' } });
+                                    }}
+                                    className="text-[10px] bg-bg-secondary hover:bg-bg-tertiary border border-border px-2 py-1 rounded text-accent font-semibold transition-all w-fit"
+                                >
+                                    Set Default (10 AM - 8 PM)
+                                </button>
+                            </div>
+                        </FormField>
+                    </div>
                     <div className="md:col-span-2">
                         <FormField label="Venue Address">
                             <div className="relative flex items-center">

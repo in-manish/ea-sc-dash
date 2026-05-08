@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
-import { Loader2, ArrowLeft, Building2, MapPin, Globe, Phone, Ticket, LayoutDashboard, User } from 'lucide-react';
+import { Loader2, ArrowLeft, Building2, MapPin, Globe, Phone, Ticket, LayoutDashboard, User, Star } from 'lucide-react';
 
 const CompanyDetails = () => {
     const { selectedEvent, token } = useAuth();
@@ -75,7 +75,16 @@ const CompanyDetails = () => {
                             </div>
                         )}
                         <div>
-                            <h1 className="text-3xl font-bold mb-2 text-text-primary">{company.company_name}</h1>
+                            <h1 className="text-3xl font-bold mb-2 text-text-primary flex items-center gap-3">
+                                {company.company_name}
+                                {company.is_featured && (
+                                    <Star
+                                        size={24}
+                                        className="text-yellow-500 fill-yellow-500"
+                                        title="Featured Company"
+                                    />
+                                )}
+                            </h1>
                             <div className="flex flex-wrap gap-3">
                                 <span className="inline-flex py-1 px-2.5 rounded-full text-xs font-medium tracking-wide bg-purple-100 text-purple-800">{company.category}</span>
                                 {company.stall_number && <span className="inline-flex py-1 px-2.5 rounded-full text-xs font-semibold tracking-wide bg-bg-tertiary text-text-primary font-mono border border-border">Stall: {company.stall_number}</span>}
