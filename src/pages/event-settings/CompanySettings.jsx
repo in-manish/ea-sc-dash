@@ -210,6 +210,25 @@ const CompanySettings = ({
                 </div>
             </div>
 
+            {/* Section 4.5: Exhibitor Preview Mode */}
+            <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
+                <SectionHeader icon={Eye} title="Exhibitor Preview Mode" colorClass="text-emerald-500" borderClass="bg-emerald-500" />
+                <div className="space-y-4">
+                    <div className="flex justify-between items-center p-4 bg-bg-secondary rounded-lg border border-border text-sm">
+                        <div>
+                            <p className="font-semibold text-text-primary m-0">Enable Preview Mode</p>
+                            <p className="text-xs text-text-tertiary mt-0.5">Toggle exhibitor preview mode across the platform.</p>
+                        </div>
+                        <ToggleSwitch
+                            name="is_exhibitor_preview_mode_on"
+                            checked={eventData.is_exhibitor_preview_mode_on || false}
+                            isModified={isFieldModified('is_exhibitor_preview_mode_on')}
+                            onChange={handleInputChange}
+                        />
+                    </div>
+                </div>
+            </div>
+
             {/* Section 5: Complimentary Invitee Info */}
             <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
                 <div className="flex justify-between items-center mb-6 pb-2 border-b border-border">
