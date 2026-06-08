@@ -12,6 +12,7 @@ import PaymentSettings from './PaymentSettings';
 import CommunicationSettings from './CommunicationSettings';
 import IntegrationSettings from './IntegrationSettings';
 import LocalizationSettings from './LocalizationSettings';
+import MeetingDiarySettings from './MeetingDiarySettings';
 import JsonTree from './components/JsonTree';
 
 const EventSettings = () => {
@@ -133,6 +134,47 @@ const EventSettings = () => {
         return current !== original;
     };
 
+    const handleInterestedInChange = (field, value) => {
+        setEventData(prev => ({
+            ...prev,
+            interested_in: {
+                ...(prev.interested_in || { 
+                    is_active: true, 
+                    exhibit_url: '', 
+                    visit_url: ''
+                }),
+                [field]: value
+            }
+        }));
+    };
+
+    const isInterestedInModified = (field) => {
+        if (!originalEventData) return false;
+        const current = eventData.interested_in?.[field];
+        const original = originalEventData.interested_in?.[field];
+        return current !== original;
+    };
+
+    const handleMeetingDiaryChange = (field, value) => {
+        setEventData(prev => ({
+            ...prev,
+            meeting_diary: {
+                ...(prev.meeting_diary || { 
+                    active_login_text_display: '', 
+                    inactive_login_text_display: ''
+                }),
+                [field]: value
+            }
+        }));
+    };
+
+    const isMeetingDiaryModified = (field) => {
+        if (!originalEventData) return false;
+        const current = eventData.meeting_diary?.[field];
+        const original = originalEventData.meeting_diary?.[field];
+        return current !== original;
+    };
+
     const handleApplyJson = () => {
         try {
             const parsed = JSON.parse(editableJson);
@@ -172,7 +214,9 @@ const EventSettings = () => {
                 'location', 
                 'intl_meta', 
                 'intl_data',
-                'exhibitor_stats'
+                'exhibitor_stats',
+                'interested_in',
+                'meeting_diary'
             ];
             
             const imageFields = ['logo', 'logo2', 'event_background_image', 'event_banner_logo', 'meetingdiary_portal_bg_image'];
@@ -206,6 +250,15 @@ const EventSettings = () => {
                 exhibitor_stat_text: '',
                 country_stat_description: '',
                 exhibitor_stat_description: ''
+            }));
+            formData.append('interested_in', JSON.stringify(eventData.interested_in || {
+                is_active: true,
+                exhibit_url: '',
+                visit_url: ''
+            }));
+            formData.append('meeting_diary', JSON.stringify(eventData.meeting_diary || {
+                active_login_text_display: '',
+                inactive_login_text_display: ''
             }));
             
             if (eventData.intl_meta) formData.append('intl_meta', JSON.stringify(eventData.intl_meta));
@@ -250,6 +303,7 @@ const EventSettings = () => {
         { id: 'integrations', label: 'Integrations' },
         { id: 'payments', label: 'Payments' },
         { id: 'localization', label: 'Localization' },
+        { id: 'meeting_diary', label: 'Meeting Diary' },
         { id: 'payload', label: 'Payload' },
     ];
 
@@ -305,6 +359,8 @@ const EventSettings = () => {
                         previewStates={previewStates}
                         handleExhibitorStatsChange={handleExhibitorStatsChange}
                         isExhibitorStatModified={isExhibitorStatModified}
+                        handleInterestedInChange={handleInterestedInChange}
+                        isInterestedInModified={isInterestedInModified}
                     />
                 )}
                 {activeTab === 'attendees' && (
@@ -341,6 +397,15 @@ const EventSettings = () => {
                         eventData={eventData} 
                         handleInputChange={handleInputChange} 
                         isFieldModified={isFieldModified} 
+                    />
+                )}
+                {activeTab === 'meeting_diary' && (
+                    <MeetingDiarySettings 
+                        eventData={eventData} 
+                        handleInputChange={handleInputChange} 
+                        isFieldModified={isFieldModified} 
+                        handleMeetingDiaryChange={handleMeetingDiaryChange}
+                        isMeetingDiaryModified={isMeetingDiaryModified}
                     />
                 )}
                 {activeTab === 'payload' && (

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Building2, MapPin, Users, Plus, Trash2, Eye, EyeOff, ArrowUp, ArrowDown, Save } from 'lucide-react';
+import { Building2, MapPin, Users, Plus, Trash2, Eye, EyeOff, ArrowUp, ArrowDown, Save, MousePointerClick } from 'lucide-react';
 import { SectionHeader, FormField, ToggleSwitch, getInputClass } from './components/SharedComponents';
 
 const CompanySettings = ({ 
@@ -13,7 +13,9 @@ const CompanySettings = ({
     moveInviteeInfo,
     previewStates,
     handleExhibitorStatsChange,
-    isExhibitorStatModified
+    isExhibitorStatModified,
+    handleInterestedInChange,
+    isInterestedInModified
 }) => {
     const getInviteeInputClass = (index, fieldName) => {
         const isModified = !eventData.originalData?.company_complimentary_invitee_info?.[index] || 
@@ -40,34 +42,7 @@ const CompanySettings = ({
                         />
                     </div>
 
-                    <div className="p-4 bg-bg-secondary rounded-lg border border-border">
-                        <div className="flex justify-between items-center text-sm mb-4">
-                            <div>
-                                <p className="font-semibold text-text-primary m-0">Meeting Diary Portal</p>
-                                <p className="text-xs text-text-tertiary mt-0.5">Enable the dedicated B2B meeting diary for exhibitors.</p>
-                            </div>
-                            <ToggleSwitch
-                                name="meeting_diary_enabled"
-                                checked={!!eventData.meeting_diary_enabled}
-                                isModified={isFieldModified('meeting_diary_enabled')}
-                                onChange={handleInputChange}
-                            />
-                        </div>
-                        {eventData.meeting_diary_enabled && (
-                            <div className="animate-fade-in pt-4 border-t border-dashed border-border">
-                                <FormField label="Diary Sub-Domain">
-                                    <input
-                                        type="text"
-                                        name="meetingdiary_domain"
-                                        value={eventData.meetingdiary_domain || ''}
-                                        onChange={handleInputChange}
-                                        className={getInputClass('meetingdiary_domain', isFieldModified('meetingdiary_domain'))}
-                                        placeholder="example.meetingdiary.com"
-                                    />
-                                </FormField>
-                            </div>
-                        )}
-                    </div>
+
                 </div>
             </div>
 
@@ -92,26 +67,6 @@ const CompanySettings = ({
                             value={eventData.badge_limit_default_formula || ''}
                             onChange={handleInputChange}
                             className={getInputClass('badge_limit_default_formula', isFieldModified('badge_limit_default_formula'))}
-                            placeholder="2"
-                        />
-                    </FormField>
-                    <FormField label="Default Meeting Limit" description="Base meeting diary access count">
-                        <input
-                            type="number"
-                            name="meeting_diary_limit_default"
-                            value={eventData.meeting_diary_limit_default || ''}
-                            onChange={handleInputChange}
-                            className={getInputClass('meeting_diary_limit_default', isFieldModified('meeting_diary_limit_default'))}
-                            placeholder="2"
-                        />
-                    </FormField>
-                    <FormField label="Meeting Formula Divisor" description="Derived from space // divisor">
-                        <input
-                            type="number"
-                            name="meeting_diary_limit_default_formula"
-                            value={eventData.meeting_diary_limit_default_formula || ''}
-                            onChange={handleInputChange}
-                            className={getInputClass('meeting_diary_limit_default_formula', isFieldModified('meeting_diary_limit_default_formula'))}
                             placeholder="2"
                         />
                     </FormField>
@@ -210,7 +165,49 @@ const CompanySettings = ({
                 </div>
             </div>
 
-            {/* Section 4.5: Exhibitor Preview Mode */}
+            {/* Section 4.5: Interested In CTA */}
+            <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
+                <SectionHeader icon={MousePointerClick} title="Interested In CTA" colorClass="text-pink-500" borderClass="bg-pink-500" />
+                <div className="space-y-6">
+                    <div className="flex justify-between items-center p-4 bg-bg-secondary rounded-lg border border-border text-sm">
+                        <div>
+                            <p className="font-semibold text-text-primary m-0">Show Interested In CTA</p>
+                            <p className="text-xs text-text-tertiary mt-0.5">Toggle visibility of the "Interested In" call to action.</p>
+                        </div>
+                        <ToggleSwitch
+                            name="is_active"
+                            checked={eventData.interested_in?.is_active ?? true}
+                            isModified={isInterestedInModified('is_active')}
+                            onChange={(e) => handleInterestedInChange('is_active', e.target.checked)}
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormField label="Exhibit URL" description="Link for exhibit inquiry">
+                            <input
+                                type="url"
+                                name="exhibit_url"
+                                value={eventData.interested_in?.exhibit_url || ''}
+                                onChange={(e) => handleInterestedInChange('exhibit_url', e.target.value)}
+                                className={getInputClass('exhibit_url', isInterestedInModified('exhibit_url'))}
+                                placeholder="https://example.com/exhibit"
+                            />
+                        </FormField>
+                        <FormField label="Visit URL" description="Link for visit inquiry">
+                            <input
+                                type="url"
+                                name="visit_url"
+                                value={eventData.interested_in?.visit_url || ''}
+                                onChange={(e) => handleInterestedInChange('visit_url', e.target.value)}
+                                className={getInputClass('visit_url', isInterestedInModified('visit_url'))}
+                                placeholder="https://example.com/visit"
+                            />
+                        </FormField>
+                    </div>
+                </div>
+            </div>
+
+            {/* Section 4.6: Exhibitor Preview Mode */}
             <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
                 <SectionHeader icon={Eye} title="Exhibitor Preview Mode" colorClass="text-emerald-500" borderClass="bg-emerald-500" />
                 <div className="space-y-4">

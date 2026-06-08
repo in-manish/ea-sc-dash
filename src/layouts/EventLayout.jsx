@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink, useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, Users, Calendar, Settings, ChevronLeft, Building2, ArrowLeft, LogOut, MessageSquare, BarChart2, UserCog, ShieldCheck, IdCard, ChevronDown, CreditCard, Wrench, Layout } from 'lucide-react';
+import { Menu, X, Users, Calendar, Settings, ChevronLeft, Building2, ArrowLeft, LogOut, MessageSquare, BarChart2, UserCog, ShieldCheck, IdCard, ChevronDown, CreditCard, Wrench, Layout, Video } from 'lucide-react';
 
 import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
@@ -18,6 +18,7 @@ const EventLayout = () => {
         'Companies': location.pathname.includes('/companies'),
         'Communication': location.pathname.includes('/communication'),
         'Reports': location.pathname.includes('/reports'),
+        'Meetings': location.pathname.includes('/meetings'),
         'Staff Management': location.pathname.includes('/staff'),
         'Utils Config': location.pathname.includes('/attendee-types') || location.pathname.includes('/exhibitor-portal-setup') || location.pathname.includes('/celery-manage') || location.pathname.includes('/email-kill-switch')
     });
@@ -333,6 +334,45 @@ const EventLayout = () => {
                         <Layout size={20} className="shrink-0" />
                         {!isCollapsed && <span className="flex-1">Matchmaking</span>}
                     </NavLink>
+
+                    {/* Meetings with Submenu */}
+                    <div className="flex flex-col gap-1">
+                        <div
+                            className={navLinkClass({ isActive: location.pathname.includes('/meetings') })}
+                            onClick={() => {
+                                toggleExpand('Meetings');
+                                if (!location.pathname.includes('/meetings')) {
+                                    navigate(`/event/${selectedEvent.id}/meetings`);
+                                }
+                            }}
+                            style={{ cursor: 'pointer' }}
+                            title={isCollapsed ? "Meetings" : ""}
+                        >
+                            <Video size={20} className="shrink-0" />
+                            {!isCollapsed && (
+                                <>
+                                    <span className="flex-1">Meetings</span>
+                                    <ChevronDown size={14} className={`transition-transform duration-200 ${expandedItems['Meetings'] ? 'rotate-180' : ''}`} />
+                                </>
+                            )}
+                        </div>
+                        {!isCollapsed && expandedItems['Meetings'] && (
+                            <div className="ml-9 flex flex-col gap-1 border-l border-border pl-2 my-1 animate-fade-in">
+                                <NavLink
+                                    to={`/event/${selectedEvent.id}/meetings?tab=list`}
+                                    className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/meetings') && (new URLSearchParams(location.search).get('tab') === 'list' || !new URLSearchParams(location.search).get('tab')) ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
+                                >
+                                    List Meetings
+                                </NavLink>
+                                <NavLink
+                                    to={`/event/${selectedEvent.id}/meetings?tab=restore`}
+                                    className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/meetings') && new URLSearchParams(location.search).get('tab') === 'restore' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
+                                >
+                                    Restore Meeting
+                                </NavLink>
+                            </div>
+                        )}
+                    </div>
 
                     <div className="mt-auto flex flex-col gap-1">
                         <div className={`h-px bg-border my-2 ${isCollapsed ? 'mx-1' : ''}`}></div>

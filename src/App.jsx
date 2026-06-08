@@ -21,6 +21,7 @@ import ExhibitorPortalSetup from './pages/exhibitor-portal-setup/ExhibitorPortal
 import Matchmaking from './features/Matchmaking/ui/Matchmaking';
 import CeleryManage from './pages/celery-manage/CeleryManage';
 import EmailKillSwitch from './pages/email-kill-switch/EmailKillSwitch';
+import Meetings from './pages/meetings/Meetings';
 
 
 
@@ -63,6 +64,7 @@ const App = () => {
             <Route path="matchmaking" element={<Matchmaking />} />
             <Route path="celery-manage" element={<CeleryManage />} />
             <Route path="email-kill-switch" element={<EmailKillSwitch />} />
+            <Route path="meetings" element={<Meetings />} />
 
 
           </Route>
