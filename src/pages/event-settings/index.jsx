@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { eventService } from '../../services/eventService';
 import { Save, Loader2 } from 'lucide-react';
@@ -13,12 +13,27 @@ import CommunicationSettings from './CommunicationSettings';
 import IntegrationSettings from './IntegrationSettings';
 import LocalizationSettings from './LocalizationSettings';
 import MeetingDiarySettings from './MeetingDiarySettings';
+import AgendaSettings from './AgendaSettings';
 import JsonTree from './components/JsonTree';
 
 const EventSettings = () => {
     const { id } = useParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     const { token } = useAuth();
-    const [activeTab, setActiveTab] = useState('general');
+    
+    const urlTab = searchParams.get('tab');
+    const [activeTab, setActiveTab] = useState(urlTab || 'general');
+
+    useEffect(() => {
+        if (urlTab && urlTab !== activeTab) {
+            setActiveTab(urlTab);
+        }
+    }, [urlTab]);
+
+    const handleTabChange = (tabId) => {
+        setActiveTab(tabId);
+        setSearchParams({ tab: tabId }, { replace: true });
+    };
     const [eventData, setEventData] = useState(null);
     const [originalEventData, setOriginalEventData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -175,6 +190,57 @@ const EventSettings = () => {
         return current !== original;
     };
 
+    const handleAgendaChange = (field, value) => {
+        setEventData(prev => ({
+            ...prev,
+            agenda: {
+                ...(prev.agenda || {
+                    preview_active: false,
+                    preview_title: '',
+                    preview_description: '',
+                    preview_cta: {
+                        is_active: true,
+                        title: '',
+                        description: '',
+                        exhibit_url: '',
+                        visit_url: ''
+                    },
+                    preview_stats: {
+                        is_active: true,
+                        speaker_text: '',
+                        speaker_description: '',
+                        session_text: '',
+                        session_description: ''
+                    }
+                }),
+                [field]: value
+            }
+        }));
+    };
+
+    const handleAgendaNestedChange = (section, field, value) => {
+        setEventData(prev => {
+            const currentAgenda = prev.agenda || {};
+            return {
+                ...prev,
+                agenda: {
+                    ...currentAgenda,
+                    [section]: {
+                        ...(currentAgenda[section] || {}),
+                        [field]: value
+                    }
+                }
+            };
+        });
+    };
+
+    const isAgendaModified = (field, section = null) => {
+        if (!originalEventData) return false;
+        const current = section ? eventData.agenda?.[section]?.[field] : eventData.agenda?.[field];
+        const original = section ? originalEventData.agenda?.[section]?.[field] : originalEventData.agenda?.[field];
+        return current !== original;
+    };
+
     const handleApplyJson = () => {
         try {
             const parsed = JSON.parse(editableJson);
@@ -216,7 +282,8 @@ const EventSettings = () => {
                 'intl_data',
                 'exhibitor_stats',
                 'interested_in',
-                'meeting_diary'
+                'meeting_diary',
+                'agenda'
             ];
             
             const imageFields = ['logo', 'logo2', 'event_background_image', 'event_banner_logo', 'meetingdiary_portal_bg_image'];
@@ -259,6 +326,25 @@ const EventSettings = () => {
             formData.append('meeting_diary', JSON.stringify(eventData.meeting_diary || {
                 active_login_text_display: '',
                 inactive_login_text_display: ''
+            }));
+            formData.append('agenda', JSON.stringify(eventData.agenda || {
+                preview_active: false,
+                preview_title: '',
+                preview_description: '',
+                preview_cta: {
+                    is_active: true,
+                    title: '',
+                    description: '',
+                    exhibit_url: '',
+                    visit_url: ''
+                },
+                preview_stats: {
+                    is_active: true,
+                    speaker_text: '',
+                    speaker_description: '',
+                    session_text: '',
+                    session_description: ''
+                }
             }));
             
             if (eventData.intl_meta) formData.append('intl_meta', JSON.stringify(eventData.intl_meta));
@@ -304,6 +390,7 @@ const EventSettings = () => {
         { id: 'payments', label: 'Payments' },
         { id: 'localization', label: 'Localization' },
         { id: 'meeting_diary', label: 'Meeting Diary' },
+        { id: 'agenda', label: 'Agenda' },
         { id: 'payload', label: 'Payload' },
     ];
 
@@ -331,7 +418,7 @@ const EventSettings = () => {
                     <button
                         key={tab.id}
                         className={`bg-transparent border-none py-3 px-6 text-sm font-medium cursor-pointer border-b-2 transition-all duration-200 ${activeTab === tab.id ? 'text-accent border-accent font-semibold' : 'text-text-secondary border-transparent hover:text-text-primary'}`}
-                        onClick={() => setActiveTab(tab.id)}
+                        onClick={() => handleTabChange(tab.id)}
                     >
                         {tab.label}
                     </button>
@@ -406,6 +493,14 @@ const EventSettings = () => {
                         isFieldModified={isFieldModified} 
                         handleMeetingDiaryChange={handleMeetingDiaryChange}
                         isMeetingDiaryModified={isMeetingDiaryModified}
+                    />
+                )}
+                {activeTab === 'agenda' && (
+                    <AgendaSettings
+                        eventData={eventData}
+                        handleAgendaChange={handleAgendaChange}
+                        handleAgendaNestedChange={handleAgendaNestedChange}
+                        isAgendaModified={isAgendaModified}
                     />
                 )}
                 {activeTab === 'payload' && (
