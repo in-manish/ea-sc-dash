@@ -98,6 +98,15 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem(keys.event);
     };
 
+    const updateUserEvents = (events) => {
+        const keys = getStorageKeys();
+        if (user) {
+            const updatedUser = { ...user, events };
+            setUser(updatedUser);
+            localStorage.setItem(keys.user, JSON.stringify(updatedUser));
+        }
+    };
+
     const switchEnvironment = (newEnv) => {
         if (newEnv === currentEnv) return;
 
@@ -118,6 +127,7 @@ export const AuthProvider = ({ children }) => {
             selectedEvent,
             selectEvent,
             clearEvent,
+            updateUserEvents,
             recentEvents,
             currentEnv,
             switchEnvironment

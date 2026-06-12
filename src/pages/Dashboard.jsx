@@ -1,15 +1,31 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { LayoutGrid, List, Calendar, MapPin, Clock, Save, X } from 'lucide-react';
+import { eventService } from '../services/eventService';
+import { LayoutGrid, List, Calendar, MapPin, Clock, Save, X, RefreshCw } from 'lucide-react';
 
 const Dashboard = () => {
-    const { user, selectEvent } = useAuth();
+    const { user, selectEvent, token, updateUserEvents } = useAuth();
     const navigate = useNavigate();
     const [viewMode, setViewMode] = useState('card');
     const [pendingEvent, setPendingEvent] = useState(null);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
     const events = user?.events || [];
+
+    const handleRefreshEvents = async () => {
+        if (!token) return;
+        setIsRefreshing(true);
+        try {
+            const data = await eventService.getEvents(token);
+            const newEvents = data.events || data.results || (Array.isArray(data) ? data : []);
+            updateUserEvents(newEvents);
+        } catch (error) {
+            console.error('Failed to refresh events:', error);
+        } finally {
+            setIsRefreshing(false);
+        }
+    };
 
     const handleEventClick = (event) => {
         setPendingEvent(event);
@@ -44,8 +60,18 @@ const Dashboard = () => {
                     <p className="text-sm text-text-secondary">Select an event to manage</p>
                 </div>
 
-                <div className="flex bg-bg-primary border border-border rounded-md p-1">
+                <div className="flex items-center gap-3">
                     <button
+                        className="btn btn-secondary flex items-center gap-2 py-1.5 px-3 text-sm h-8"
+                        onClick={handleRefreshEvents}
+                        disabled={isRefreshing}
+                        title="Refresh Events"
+                    >
+                        <RefreshCw size={14} className={isRefreshing ? "animate-spin" : ""} />
+                        {isRefreshing ? 'Refreshing...' : 'Refresh'}
+                    </button>
+                    <div className="flex bg-bg-primary border border-border rounded-md p-1">
+                        <button
                         className={`flex items-center justify-center w-9 h-8 rounded-sm bg-transparent border-none transition-all duration-200 hover:text-text-primary hover:bg-bg-secondary ${viewMode === 'card' ? 'bg-bg-tertiary text-accent' : 'text-text-secondary'}`}
                         onClick={() => setViewMode('card')}
                         title="Card View"
@@ -59,6 +85,7 @@ const Dashboard = () => {
                     >
                         <List size={18} />
                     </button>
+                </div>
                 </div>
             </div>
 
