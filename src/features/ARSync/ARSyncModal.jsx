@@ -88,7 +88,7 @@ const ARSyncModal = ({ targetEventId, token, onClose, onRefresh }) => {
                     <button onClick={onClose} className="p-1 hover:bg-red-50 text-text-tertiary hover:text-red-500 rounded-lg transition-colors"><X size={20} /></button>
                 </div>
 
-                <div className="flex-1 overflow-hidden">
+                <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
                     {step === 'selector' && <EventSelector currentEventId={targetEventId} onSelect={handleLoadSource} loading={loading} />}
                     {step === 'selection' && (
                         <ARSelectionList

@@ -15,7 +15,7 @@ const ARSelectionList = ({ groups, selectedItems, onToggleGroup, onToggleProduct
     const isProductSelected = (productId) => selectedItems.products.has(productId);
 
     return (
-        <div className="flex flex-col h-full overflow-hidden">
+        <div className="flex flex-col flex-1 w-full overflow-hidden min-h-0">
             <div className="p-4 border-b border-border bg-bg-secondary flex justify-between items-center">
                 <span className="text-sm font-semibold">{groups.length} Groups Found</span>
                 <button
