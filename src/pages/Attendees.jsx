@@ -376,13 +376,15 @@ const Attendees = () => {
         );
 
         return {
+            Contact: [
+                { label: 'Email ID', value: attendee.email },
+                { label: 'Phone Number', value: `+${attendee.country_code || ''} ${attendee.phone_number || ''}` },
+            ],
             Identity: [
                 { label: 'Full Name', value: attendee.name },
-                { label: 'Email', value: attendee.email },
-                { label: 'Phone', value: `+${attendee.country_code || ''} ${attendee.phone_number || ''}` },
-                { label: 'ID', value: attendee.id },
-                { label: 'UUID', value: attendee.uuid },
+                { label: 'Race ID', value: attendee.evc_id },
                 { label: 'Tracking UUID', value: attendee.tracking_uuid },
+                { label: 'UID', value: attendee.uuid },
             ],
             Professional: professionalFields,
             Registration: registrationFields,
