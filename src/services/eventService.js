@@ -9,6 +9,7 @@ const getHeaders = (token) => {
         'Accept-Language': 'en-US,en;q=0.9,hi;q=0.8',
         'Authorization': `Token ${token}`,
         'Connection': 'keep-alive',
+        'Content-Type': 'application/json',
         'Origin': origin,
         'Referer': `${origin}/`,
         'Sec-Fetch-Dest': 'empty',
@@ -22,6 +23,24 @@ const getHeaders = (token) => {
 };
 
 export const eventService = {
+    async searchSnapcardUsers(token, query) {
+        try {
+            const response = await fetch(`${getApiUrl()}/evc/scuser-projection/search/?search=${encodeURIComponent(query)}`, {
+                method: 'GET',
+                headers: getHeaders(token)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Search Snapcard Users Error:', error);
+            throw error;
+        }
+    },
+
     async getEvents(token) {
         try {
             const response = await fetch(`${getApiUrl()}/events/`, {
@@ -93,6 +112,40 @@ export const eventService = {
             return await response.json();
         } catch (error) {
             console.error('Get Attendees Error:', error);
+            throw error;
+        }
+    },
+
+    async createAttendee(eventId, token, payload) {
+        try {
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/attendees/`, {
+                method: 'POST',
+                headers: getHeaders(token),
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Create Attendee Error:', error);
+            throw error;
+        }
+    },
+
+    async updateAttendee(eventId, token, uuid, payload) {
+        try {
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/attendees/${uuid}/`, {
+                method: 'PATCH',
+                headers: getHeaders(token),
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Update Attendee Error:', error);
             throw error;
         }
     },
@@ -808,6 +861,31 @@ export const eventService = {
             return true;
         } catch (error) {
             console.error('Delete Attendee Type Error:', error);
+            throw error;
+        }
+    },
+
+    async verifyOfflinePayment(eventId, orderId, token) {
+        try {
+            const response = await fetch(`${getApiUrl()}/admin/events/${eventId}/additional-requirements/orders/${orderId}/verify-offline-payment/`, {
+                method: 'POST',
+                headers: {
+                    ...getHeaders(token),
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                let errData;
+                try {
+                    errData = await response.json();
+                } catch (e) {}
+                throw errData || new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Verify Offline Payment Error:', error);
             throw error;
         }
     }

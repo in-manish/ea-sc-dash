@@ -60,6 +60,9 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
     const [total, setTotal] = useState(0);
     const [stats, setStats] = useState(null);
     const [isStatsExpanded, setIsStatsExpanded] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
+    const [verifyingOrderId, setVerifyingOrderId] = useState(null);
+    const [verificationError, setVerificationError] = useState(null);
 
     // Get filters from URL
     const page = parseInt(searchParams.get('page')) || 1;
@@ -178,7 +181,7 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
         if (eventId && token) {
             fetchOrders();
         }
-    }, [eventId, page, searchParams.toString(), token]); // Depend on searchParams string to catch all URL changes
+    }, [eventId, page, searchParams.toString(), token, refreshKey]); // Depend on searchParams string to catch all URL changes
 
     const formatCurrency = (amount, currency) => {
         return new Intl.NumberFormat('en-IN', {
@@ -203,6 +206,26 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [expandedPayments, setExpandedPayments] = useState(null);
     const [previewImage, setPreviewImage] = useState(null);
+
+
+    const handleVerifyOfflinePayment = async (orderId) => {
+        setVerifyingOrderId(orderId);
+        setVerificationError(null);
+        try {
+            const data = await eventService.verifyOfflinePayment(eventId, orderId, token);
+            if (data && data.order) {
+                setSelectedOrder(prev => prev && prev.id === orderId ? data.order : prev);
+            }
+            setRefreshKey(prev => prev + 1);
+        } catch (err) {
+            console.error('Failed to verify payment:', err);
+            const errMsg = err?.details || err?.error || 'Verification failed. Please check the payment or try again.';
+            setVerificationError(errMsg);
+            alert(errMsg);
+        } finally {
+            setVerifyingOrderId(null);
+        }
+    };
 
     // Load saved emails on mount
     useEffect(() => {
@@ -961,6 +984,33 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
                                                 )}
                                             </div>
                                         )}
+                                        {o.payment_mode === 'offline' && (!o.is_verified || (o.payment?.offline && !o.payment.offline.is_verified)) && (
+                                            <div className="mt-4 pt-3 border-t border-border/30">
+                                                {verificationError && (
+                                                    <div className="bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 p-2.5 rounded-lg border border-red-200 dark:border-red-900/30 text-xs mb-3 flex items-start gap-2">
+                                                        <XCircle size={14} className="mt-0.5 flex-shrink-0" />
+                                                        <span>{verificationError}</span>
+                                                    </div>
+                                                )}
+                                                <button
+                                                    onClick={() => handleVerifyOfflinePayment(o.id)}
+                                                    disabled={verifyingOrderId === o.id}
+                                                    className="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 bg-green-600 hover:bg-green-700 disabled:bg-green-600/50 text-white rounded-xl text-xs font-semibold shadow-sm transition-colors disabled:cursor-not-allowed"
+                                                >
+                                                    {verifyingOrderId === o.id ? (
+                                                        <>
+                                                            <Loader2 size={13} className="animate-spin" />
+                                                            <span>Verifying Payment...</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <ShieldCheck size={14} />
+                                                            <span>Verify Offline Payment</span>
+                                                        </>
+                                                    )}
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                     {billing && billing.length > 0 && (
                                         <div className="bg-bg-secondary rounded-xl p-4 border border-border/50">
@@ -1093,9 +1143,29 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
                                                     <CheckCircle size={12} /> Verified
                                                 </span>
                                             ) : (
-                                                <span className="flex items-center gap-1 text-xs text-amber-600">
-                                                    <XCircle size={12} /> Unverified
-                                                </span>
+                                                <div className="flex flex-col items-start gap-1">
+                                                    <span className="flex items-center gap-1 text-xs text-amber-600">
+                                                        <XCircle size={12} /> Unverified
+                                                    </span>
+                                                    {order.payment_mode === 'offline' && (
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                e.stopPropagation();
+                                                                handleVerifyOfflinePayment(order.id);
+                                                            }}
+                                                            disabled={verifyingOrderId === order.id}
+                                                            className="mt-1 flex items-center justify-center gap-1 px-2 py-0.5 bg-green-600 hover:bg-green-700 disabled:bg-green-600/50 text-white rounded text-[10px] font-semibold transition-colors shadow-sm cursor-pointer"
+                                                        >
+                                                            {verifyingOrderId === order.id ? (
+                                                                <Loader2 size={10} className="animate-spin" />
+                                                            ) : (
+                                                                <ShieldCheck size={10} />
+                                                            )}
+                                                            Verify
+                                                        </button>
+                                                    )}
+                                                </div>
                                             )}
                                         </div>
                                     </td>
