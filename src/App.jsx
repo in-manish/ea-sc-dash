@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { AlertProvider } from './contexts/AlertContext';
 import Login from './pages/Login';
 import LoginLocal from './pages/LoginLocal';
 import HomeLayout from './layouts/HomeLayout';
@@ -30,7 +31,8 @@ const App = () => {
 
   return (
     <AuthProvider>
-      <Router basename={basename}>
+      <AlertProvider>
+        <Router basename={basename}>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/login-local" element={<LoginLocal />} />
@@ -71,7 +73,8 @@ const App = () => {
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </Router>
+        </Router>
+      </AlertProvider>
     </AuthProvider>
   );
 };

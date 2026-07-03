@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { agendaService } from '../../services/agendaService';
 import { Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useAlert } from '../../contexts/AlertContext';
 
 // Sub-components
 import AgendaHeader from './components/AgendaHeader';
@@ -17,6 +18,7 @@ const Agenda = () => {
     console.log(">>> INITIALIZING MODULAR EVENT AGENDA COMPONENT <<<");
     const { id: eventId } = useParams();
     const { token } = useAuth();
+    const { showConfirm, showAlert } = useAlert();
 
     // Data State
     const [agendas, setAgendas] = useState([]);
@@ -52,12 +54,18 @@ const Agenda = () => {
     };
 
     const handleDelete = async (agendaId) => {
-        if (!window.confirm('Are you sure you want to delete this session?')) return;
+        const confirmed = await showConfirm('Are you sure you want to delete this session?', {
+            title: 'Delete Session',
+            confirmText: 'Delete',
+            cancelText: 'Cancel'
+        });
+        if (!confirmed) return;
         try {
             await agendaService.deleteAgenda(eventId, agendaId, token);
             fetchAgendas();
+            showAlert('Session deleted successfully', 'success');
         } catch (err) {
-            alert('Failed to delete: ' + err.message);
+            showAlert('Failed to delete: ' + err.message, 'error');
         }
     };
 
