@@ -3,9 +3,21 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './contexts/AuthContext';
 import Login from './pages/Login';
 import LoginLocal from './pages/LoginLocal';
-import HomeLayout from './layouts/HomeLayout';
-import EventLayout from './layouts/EventLayout';
-import Dashboard from './pages/Dashboard';
+import ProtectedRoute from './components/ProtectedRoute';
+
+// EA Mode Components
+import HomeLayoutEA from './layouts/HomeLayout';
+import EventLayoutEA from './layouts/EventLayout';
+import DashboardEA from './pages/Dashboard';
+
+// SC Mode Components
+import HomeLayoutSC from './sc/layouts/HomeLayout';
+import EventLayoutSC from './sc/layouts/EventLayout';
+import UsersSearch from './sc/pages/UsersSearch';
+import CeleryBeat from './sc/pages/CeleryBeat';
+import UserSyncTrack from './sc/pages/UserSyncTrack';
+
+// Shared Pages
 import Attendees from './pages/Attendees';
 import Companies from './pages/Companies';
 import CompanyDetails from './pages/CompanyDetails';
@@ -15,7 +27,6 @@ import Communication from './pages/Communication';
 import Reports from './pages/Reports';
 import AttendeeTypes from './pages/AttendeeTypes';
 import UserManagement from './pages/UserManagement';
-import ProtectedRoute from './components/ProtectedRoute';
 import Payments from './pages/payments/Payments';
 import ExhibitorPortalSetup from './pages/exhibitor-portal-setup/ExhibitorPortalSetup';
 import Matchmaking from './features/Matchmaking/ui/Matchmaking';
@@ -23,10 +34,16 @@ import CeleryManage from './pages/celery-manage/CeleryManage';
 import EmailKillSwitch from './pages/email-kill-switch/EmailKillSwitch';
 import Meetings from './pages/meetings/Meetings';
 
-
-
 const App = () => {
   const basename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/';
+  
+  // Resolve dashboard mode synchronously from sessionStorage
+  const currentMode = sessionStorage.getItem('dashboard_mode') || 'EA';
+  
+  // Select components based on active mode
+  const HomeLayout = currentMode === 'SC' ? HomeLayoutSC : HomeLayoutEA;
+  const EventLayout = currentMode === 'SC' ? EventLayoutSC : EventLayoutEA;
+  const Dashboard = currentMode === 'SC' ? UsersSearch : DashboardEA;
 
   return (
     <AuthProvider>
@@ -42,6 +59,8 @@ const App = () => {
             </ProtectedRoute>
           }>
             <Route index element={<Dashboard />} />
+            <Route path="users/sync-track" element={<UserSyncTrack />} />
+            <Route path="celery-beat" element={<CeleryBeat />} />
           </Route>
 
           {/* Event Layout (Specific Event Context) */}
@@ -51,6 +70,7 @@ const App = () => {
             </ProtectedRoute>
           }>
             <Route path="attendees" element={<Attendees />} />
+            <Route path="users" element={<UsersSearch />} />
             <Route path="companies" element={<Companies />} />
             <Route path="companies/:companyId" element={<CompanyDetails />} />
             <Route path="agenda" element={<Agenda />} />
@@ -65,8 +85,6 @@ const App = () => {
             <Route path="celery-manage" element={<CeleryManage />} />
             <Route path="email-kill-switch" element={<EmailKillSwitch />} />
             <Route path="meetings" element={<Meetings />} />
-
-
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
@@ -77,3 +95,4 @@ const App = () => {
 };
 
 export default App;
+

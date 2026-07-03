@@ -5,6 +5,7 @@ import { eventService } from '../services/eventService';
 import { attendeeSelectionService } from '../services/attendeeSelectionService';
 import { whatsappService } from '../services/whatsappService';
 import { Loader2, Search, Filter, Phone, Mail, Globe, X, ShieldCheck, Building2, CheckSquare, Square, MessageCircle, CheckCircle2, ChevronDown, ChevronUp, List, LayoutGrid, Smartphone, Eye, Code } from 'lucide-react';
+import AttendeeFormDrawer from '../components/attendees/AttendeeFormDrawer';
 
 const pillColors = {
     attendee_type: "bg-blue-50 text-blue-800 border-blue-200",
@@ -100,6 +101,26 @@ const Attendees = () => {
     const [templateViewMode, setTemplateViewMode] = useState('list');
     const [expandedTemplateId, setExpandedTemplateId] = useState(null);
     const [previewContentMode, setPreviewContentMode] = useState('preview');
+
+    const [activeTab, setActiveTab] = useState('list');
+    const [isFormDrawerOpen, setIsFormDrawerOpen] = useState(false);
+    const [editingAttendeeForForm, setEditingAttendeeForForm] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [attendeeTypes, setAttendeeTypes] = useState([]);
+
+    useEffect(() => {
+        const fetchTypes = async () => {
+            if (activeTab === 'manage' && selectedEvent && token && attendeeTypes.length === 0) {
+                try {
+                    const data = await eventService.getAttendeeTypes(selectedEvent.id, token);
+                    setAttendeeTypes(data.attendee_types || []);
+                } catch (err) {
+                    console.error('Failed to fetch attendee types', err);
+                }
+            }
+        };
+        fetchTypes();
+    }, [activeTab, selectedEvent, token, attendeeTypes.length]);
 
     // Search and Filter State
     const [search, setSearch] = useState(searchParams.get('q') || '');
@@ -329,6 +350,70 @@ const Attendees = () => {
         }
     };
 
+    const handleSaveAttendee = async (payload) => {
+        setIsSubmitting(true);
+        try {
+            if (editingAttendeeForForm) {
+                await eventService.updateAttendee(selectedEvent.id, token, editingAttendeeForForm.uuid, {
+                    ...payload,
+                    uuid: editingAttendeeForForm.uuid,
+                    id: editingAttendeeForForm.id,
+                    schema: editingAttendeeForForm.schema || 'reconnect',
+                    event_id: selectedEvent.id
+                });
+            } else {
+                const attendeeItem = {
+                    name: payload.name || null,
+                    designation: payload.designation || "",
+                    uuid: crypto.randomUUID().replace(/-/g, ''),
+                    id: null,
+                    country_name: payload.country || null
+                };
+
+                if ('email' in payload) attendeeItem.email = payload.email;
+                if ('country_code' in payload) attendeeItem.country_code = payload.country_code;
+                if ('phone_number' in payload) attendeeItem.phone_number = payload.phone_number;
+                if (payload.override_name) attendeeItem.override_name = payload.override_name;
+                if (payload.evc_id) attendeeItem.evc_id = payload.evc_id;
+
+                const createPayload = {
+                    company: payload.company || "",
+                    designation: payload.designation || "",
+                    attendee_type: payload.attendee_type,
+                    company_address: payload.company_address || "",
+                    city: payload.city || null,
+                    state: payload.state || null,
+                    country: payload.country || null,
+                    website: payload.website || "",
+                    created_at: new Date().toISOString(),
+                    attendees: [attendeeItem],
+                    reg_type: payload.reg_type || "ON_SPOT",
+                    event_id: selectedEvent.id
+                };
+                await eventService.createAttendee(selectedEvent.id, token, createPayload);
+            }
+            
+            setIsFormDrawerOpen(false);
+            setEditingAttendeeForForm(null);
+            
+            // Refresh attendees
+            const data = await eventService.getAttendees(selectedEvent.id, token, {
+                page,
+                size: 50,
+                searchQuery: debouncedSearch,
+                filters: filters
+            });
+            setAttendees(data.results);
+            setTotal(data.total);
+
+        } catch (err) {
+            console.error('Failed to save attendee:', err);
+            alert('Failed to save attendee: ' + err.message);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     const previewAttendee = selectedAttendees[0] || attendees[0] || null;
 
     // Group fields logic - Includes ALL fields
@@ -414,13 +499,18 @@ const Attendees = () => {
 
     return (
         <div className="w-full animate-fade-in">
-            <div className="flex justify-between items-end mb-8">
+            <div className="flex justify-between items-end mb-4">
                 <div>
                     <h1 className="text-2xl font-bold text-text-primary mb-1">Attendees</h1>
-                    <p className="text-sm text-text-secondary">Total: {total} registered</p>
+                    <div className="text-sm text-text-secondary">Total: {total} registered</div>
                 </div>
 
-                <div className="flex gap-4">
+                <div className="flex gap-4 items-center">
+                    {activeTab === 'manage' && (
+                        <button className="btn btn-primary" onClick={() => setIsFormDrawerOpen(true)}>
+                            Create Attendees(New)
+                        </button>
+                    )}
                     <div className="relative">
                         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
                         <input
@@ -446,6 +536,23 @@ const Attendees = () => {
                             Clear
                         </button>
                     )}
+                </div>
+            </div>
+
+            <div className="border-b border-border mb-6">
+                <div className="flex gap-6">
+                    <button
+                        className={`py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'list' ? 'border-accent text-accent' : 'border-transparent text-text-secondary hover:text-text-primary'}`}
+                        onClick={() => setActiveTab('list')}
+                    >
+                        All Attendees
+                    </button>
+                    <button
+                        className={`py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'manage' ? 'border-accent text-accent' : 'border-transparent text-text-secondary hover:text-text-primary'}`}
+                        onClick={() => setActiveTab('manage')}
+                    >
+                        Manage Attendees
+                    </button>
                 </div>
             </div>
 
@@ -560,6 +667,9 @@ const Attendees = () => {
                             <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Company</th>
                             <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Type</th>
                             <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Status</th>
+                            {activeTab === 'manage' && (
+                                <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border text-right">Actions</th>
+                            )}
                         </tr>
                     </thead>
                     <tbody>
@@ -669,6 +779,20 @@ const Attendees = () => {
                                             {attendee.reg_type}
                                         </span>
                                     </td>
+                                    {activeTab === 'manage' && (
+                                        <td className="py-4 px-6 align-top group-last:border-b-0 text-right">
+                                            <button 
+                                                className="text-accent hover:text-accent/80 font-medium text-sm transition-colors"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setEditingAttendeeForForm(attendee);
+                                                    setIsFormDrawerOpen(true);
+                                                }}
+                                            >
+                                                Edit
+                                            </button>
+                                        </td>
+                                    )}
                                 </tr>
                             ))
                         )}
@@ -1119,6 +1243,18 @@ const Attendees = () => {
                     </div>
                 </div>
             )}
+
+            <AttendeeFormDrawer
+                isOpen={isFormDrawerOpen}
+                onClose={() => {
+                    setIsFormDrawerOpen(false);
+                    setEditingAttendeeForForm(null);
+                }}
+                attendee={editingAttendeeForForm}
+                onSubmit={handleSaveAttendee}
+                isSubmitting={isSubmitting}
+                attendeeTypes={attendeeTypes}
+            />
         </div>
     );
 };

@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 /* eslint-disable react-hooks/set-state-in-effect */
 import { createContext, useContext, useState, useEffect } from 'react';
-import { applyTheme } from '../config';
+import { applyTheme, getDashboardMode, setDashboardMode } from '../config';
 
 const AuthContext = createContext(null);
 
@@ -13,26 +13,29 @@ export const AuthProvider = ({ children }) => {
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [recentEvents, setRecentEvents] = useState([]);
 
-    // Get current environment
-    const currentEnv = localStorage.getItem('app_env') || 'STAGE';
+    // Get current mode (EA vs SC)
+    const [currentMode, setCurrentMode] = useState(() => getDashboardMode());
 
-    // Helper to get storage keys based on env
-    const getStorageKeys = (env = currentEnv) => ({
-        user: `user_${env}`,
-        token: `token_${env}`,
-        event: `selectedEvent_${env}`,
-        recentEvents: `recentEvents_${env}`
+    // Get current environment
+    const currentEnv = sessionStorage.getItem('app_env') || 'STAGE';
+
+    // Helper to get storage keys based on mode and env
+    const getStorageKeys = (mode = currentMode, env = currentEnv) => ({
+        user: `${mode}_user_${env}`,
+        token: `${mode}_token_${env}`,
+        event: `${mode}_selectedEvent_${env}`,
+        recentEvents: `${mode}_recentEvents_${env}`
     });
 
     useEffect(() => {
-        // Apply theme for current environment
+        // Apply theme for current environment and mode
         applyTheme();
 
         const keys = getStorageKeys();
-        const storedUser = localStorage.getItem(keys.user);
-        const storedToken = localStorage.getItem(keys.token);
-        const storedEvent = localStorage.getItem(keys.event);
-        const storedRecentEvents = localStorage.getItem(keys.recentEvents);
+        const storedUser = sessionStorage.getItem(keys.user);
+        const storedToken = sessionStorage.getItem(keys.token);
+        const storedEvent = sessionStorage.getItem(keys.event);
+        const storedRecentEvents = sessionStorage.getItem(keys.recentEvents);
 
         if (storedUser && storedToken) {
             setUser(JSON.parse(storedUser));
@@ -54,15 +57,15 @@ export const AuthProvider = ({ children }) => {
         }
 
         setIsLoading(false);
-    }, []);
+    }, [currentMode, currentEnv]);
 
     const login = (userData, authToken) => {
         const keys = getStorageKeys();
         setUser(userData);
         setToken(authToken);
         setIsAuthenticated(true);
-        localStorage.setItem(keys.user, JSON.stringify(userData));
-        localStorage.setItem(keys.token, authToken);
+        sessionStorage.setItem(keys.user, JSON.stringify(userData));
+        sessionStorage.setItem(keys.token, authToken);
     };
 
     const logout = () => {
@@ -72,22 +75,22 @@ export const AuthProvider = ({ children }) => {
         setSelectedEvent(null);
         setRecentEvents([]);
         setIsAuthenticated(false);
-        localStorage.removeItem(keys.user);
-        localStorage.removeItem(keys.token);
-        localStorage.removeItem(keys.event);
-        localStorage.removeItem(keys.recentEvents);
+        sessionStorage.removeItem(keys.user);
+        sessionStorage.removeItem(keys.token);
+        sessionStorage.removeItem(keys.event);
+        sessionStorage.removeItem(keys.recentEvents);
     };
 
     const selectEvent = (event) => {
         const keys = getStorageKeys();
         setSelectedEvent(event);
-        localStorage.setItem(keys.event, JSON.stringify(event));
+        sessionStorage.setItem(keys.event, JSON.stringify(event));
 
         // Update recent events (max 5)
         setRecentEvents(prevEvents => {
             const filtered = prevEvents.filter(e => e.id !== event.id);
             const updated = [event, ...filtered].slice(0, 5);
-            localStorage.setItem(keys.recentEvents, JSON.stringify(updated));
+            sessionStorage.setItem(keys.recentEvents, JSON.stringify(updated));
             return updated;
         });
     };
@@ -95,7 +98,7 @@ export const AuthProvider = ({ children }) => {
     const clearEvent = () => {
         const keys = getStorageKeys();
         setSelectedEvent(null);
-        localStorage.removeItem(keys.event);
+        sessionStorage.removeItem(keys.event);
     };
 
     const updateUserEvents = (events) => {
@@ -103,17 +106,26 @@ export const AuthProvider = ({ children }) => {
         if (user) {
             const updatedUser = { ...user, events };
             setUser(updatedUser);
-            localStorage.setItem(keys.user, JSON.stringify(updatedUser));
+            sessionStorage.setItem(keys.user, JSON.stringify(updatedUser));
         }
     };
 
     const switchEnvironment = (newEnv) => {
         if (newEnv === currentEnv) return;
 
-        localStorage.setItem('app_env', newEnv);
+        sessionStorage.setItem('app_env', newEnv);
         // Navigate to root to ensure we don't stay on a page with invalid ID (like an event detail page)
         // and reload to apply the new config/theme
         window.location.href = import.meta.env.BASE_URL;
+    };
+
+    const switchMode = (newMode) => {
+        if (newMode === currentMode) return;
+
+        setDashboardMode(newMode);
+        setCurrentMode(newMode);
+        // Reload the page to preserve the exact same screen path, parameters, and query state
+        window.location.reload();
     };
 
     return (
@@ -130,7 +142,9 @@ export const AuthProvider = ({ children }) => {
             updateUserEvents,
             recentEvents,
             currentEnv,
-            switchEnvironment
+            switchEnvironment,
+            currentMode,
+            switchMode
         }}>
             {children}
         </AuthContext.Provider>
@@ -138,3 +152,4 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
+

@@ -152,5 +152,65 @@ export const userService = {
             console.error('Delete Staff User Error:', error);
             throw error;
         }
+    },
+
+    /**
+     * Search Snapcard users by phone, email, id, or a combination.
+     * @param {Object} queryParams { phone, email, id }
+     * @param {string} token 
+     */
+    async searchUsers(queryParams, token) {
+        try {
+            const urlParams = new URLSearchParams();
+            Object.entries(queryParams).forEach(([key, val]) => {
+                if (val !== undefined && val !== null && val !== '') {
+                    urlParams.append(key, val);
+                }
+            });
+            const response = await fetch(`${getApiUrl()}/users/search?${urlParams.toString()}`, {
+                method: 'GET',
+                headers: getHeaders(token)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Search Users Error:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Get Snapcard user sync tracks.
+     * @param {Object} params { status, page, page_size }
+     * @param {string} token 
+     */
+    async getUserSyncTrack(params, token) {
+        try {
+            const urlParams = new URLSearchParams();
+            Object.entries(params).forEach(([key, val]) => {
+                if (val !== undefined && val !== null && val !== '') {
+                    urlParams.append(key, val);
+                }
+            });
+            const response = await fetch(`${getApiUrl()}/user/projection/sync/track/?${urlParams.toString()}`, {
+                method: 'GET',
+                headers: getHeaders(token)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Get User Sync Track Error:', error);
+            throw error;
+        }
     }
 };
+
+

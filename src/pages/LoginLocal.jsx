@@ -6,24 +6,26 @@ import { eventService } from '../services/eventService';
 import { ArrowLeft, Globe, Key, Save, Edit2, Loader2, AlertCircle } from 'lucide-react';
 
 const LoginLocal = () => {
+    const { login, currentMode, switchMode } = useAuth();
+    const navigate = useNavigate();
+    
+    const tokenKey = `${currentMode}_local_auth_token`;
+    
     const [baseUrl, setBaseUrl] = useState(getLocalBaseUrl());
-    const [token, setToken] = useState(localStorage.getItem('local_auth_token') || '');
+    const [token, setToken] = useState(sessionStorage.getItem(tokenKey) || '');
     const [isEditingUrl, setIsEditingUrl] = useState(false);
     const [isEditingToken, setIsEditingToken] = useState(true);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     
-    const { login } = useAuth();
-    const navigate = useNavigate();
-
     // Check if we already have a token in LOCAL storage to auto-fill
     useEffect(() => {
-        const storedToken = localStorage.getItem('local_auth_token');
+        const storedToken = sessionStorage.getItem(tokenKey);
         if (storedToken) {
             setToken(storedToken);
             setIsEditingToken(false);
         }
-    }, []);
+    }, [tokenKey]);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -43,23 +45,26 @@ const LoginLocal = () => {
         }
 
         try {
-            // Save settings to localStorage
+            // Save settings to sessionStorage
             setLocalBaseUrl(baseUrl);
-            localStorage.setItem('local_auth_token', token);
+            sessionStorage.setItem(tokenKey, token);
             
             // Switch to LOCAL environment in config
             setEnv('LOCAL');
             
             // Fetch events to populate the dashboard using the newly added service method
             let events = [];
-            try {
-                const data = await eventService.getEvents(token);
-                // The API might return { events: [...] } or just [...]
-                events = data.events || data.results || (Array.isArray(data) ? data : []);
-            } catch (e) {
-                console.warn("Failed to fetch events:", e);
-                // Fallback to empty list to at least allow login
-                events = [];
+            
+            if (currentMode === 'EA') {
+                try {
+                    const data = await eventService.getEvents(token);
+                    // The API might return { events: [...] } or just [...]
+                    events = data.events || data.results || (Array.isArray(data) ? data : []);
+                } catch (e) {
+                    console.warn("Failed to fetch events:", e);
+                    // Fallback to empty list to at least allow login
+                    events = [];
+                }
             }
 
             // Update user data with actual events
@@ -88,17 +93,60 @@ const LoginLocal = () => {
                 <div className="mb-8 relative">
                     <button 
                         onClick={() => navigate('/login')}
-                        className="absolute -left-2 -top-2 p-2 text-text-secondary hover:text-text-primary transition-colors"
+                        className="absolute -left-2 -top-2 p-2 text-text-secondary hover:text-text-primary transition-colors border-none bg-transparent cursor-pointer"
                         title="Back to standard login"
                     >
                         <ArrowLeft size={20} />
                     </button>
                     
                     <div className="text-center mt-4">
-                        <div className="w-12 h-12 bg-violet-600 text-white rounded-xl flex items-center justify-center text-xl mx-auto mb-4 font-bold shadow-lg shadow-violet-200">
+                        <div className="w-12 h-12 bg-accent text-white rounded-xl flex items-center justify-center text-xl mx-auto mb-4 font-bold shadow-lg">
                             L
                         </div>
-                        <h1 className="text-2xl font-bold text-text-primary mb-1">Local Login</h1>
+                        
+                        {/* Mode Switcher */}
+                        <div className="flex justify-center mb-6 bg-bg-tertiary p-1 rounded-lg w-fit mx-auto">
+                            <button
+                                type="button"
+                                onClick={() => switchMode('EA')}
+                                style={{
+                                    padding: '0.4rem 1.2rem',
+                                    borderRadius: '0.375rem',
+                                    fontSize: '0.75rem',
+                                    fontWeight: '600',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    backgroundColor: currentMode === 'EA' ? 'var(--color-bg-primary)' : 'transparent',
+                                    color: currentMode === 'EA' ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
+                                    boxShadow: currentMode === 'EA' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+                                }}
+                            >
+                                EA Local
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => switchMode('SC')}
+                                style={{
+                                    padding: '0.4rem 1.2rem',
+                                    borderRadius: '0.375rem',
+                                    fontSize: '0.75rem',
+                                    fontWeight: '600',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    backgroundColor: currentMode === 'SC' ? 'var(--color-bg-primary)' : 'transparent',
+                                    color: currentMode === 'SC' ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
+                                    boxShadow: currentMode === 'SC' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+                                }}
+                            >
+                                SC Local
+                            </button>
+                        </div>
+
+                        <h1 className="text-2xl font-bold text-text-primary mb-1">
+                            {currentMode === 'SC' ? 'SC Local Login' : 'Local Login'}
+                        </h1>
                         <p className="text-sm text-text-secondary">Configure your local development environment</p>
                     </div>
                 </div>
@@ -129,10 +177,10 @@ const LoginLocal = () => {
                             </div>
                             <input
                                 type="text"
-                                className={`w-full pl-10 pr-4 py-3 bg-bg-tertiary border border-border rounded-lg text-sm transition-all outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 ${!isEditingUrl ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                className={`w-full pl-10 pr-4 py-3 bg-bg-tertiary border border-border rounded-lg text-sm transition-all outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent ${!isEditingUrl ? 'opacity-70 cursor-not-allowed' : ''}`}
                                 value={baseUrl}
                                 onChange={(e) => setBaseUrl(e.target.value)}
-                                placeholder="http://localhost:8000"
+                                placeholder={currentMode === 'SC' ? 'http://localhost:8001' : 'http://localhost:8000'}
                                 disabled={!isEditingUrl}
                                 required
                             />
@@ -159,7 +207,7 @@ const LoginLocal = () => {
                                 <Key size={18} />
                             </div>
                             <textarea
-                                className={`w-full pl-10 pr-4 py-3 bg-bg-tertiary border border-border rounded-lg text-sm min-h-[100px] transition-all outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 resize-none ${!isEditingToken ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                className={`w-full pl-10 pr-4 py-3 bg-bg-tertiary border border-border rounded-lg text-sm min-h-[100px] transition-all outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent resize-none ${!isEditingToken ? 'opacity-70 cursor-not-allowed' : ''}`}
                                 value={token}
                                 onChange={(e) => setToken(e.target.value)}
                                 placeholder="Paste your authentication token here..."
@@ -170,8 +218,8 @@ const LoginLocal = () => {
                     </div>
 
                     {!token && (
-                        <div className="p-3 bg-violet-50 rounded-lg border border-violet-100 mb-2">
-                            <p className="text-xs text-violet-700 leading-relaxed">
+                        <div className="p-3 bg-accent/5 rounded-lg border border-accent/10 mb-2">
+                            <p className="text-xs text-accent font-medium leading-relaxed">
                                 <strong>Note:</strong> You must provide a valid authentication token to access the dashboard in local mode.
                             </p>
                         </div>
@@ -179,7 +227,7 @@ const LoginLocal = () => {
 
                     <button 
                         type="submit" 
-                        className="w-full py-3 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-lg transition-all shadow-lg shadow-violet-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4"
+                        className="w-full btn btn-primary py-3 font-bold rounded-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4 h-12 border-none"
                         disabled={loading}
                     >
                         {loading ? (
@@ -192,7 +240,7 @@ const LoginLocal = () => {
 
                 <div className="mt-8 pt-6 border-t border-border text-center">
                     <p className="text-xs text-text-secondary">
-                        Switch back to <button onClick={() => { setEnv('STAGE'); navigate('/login'); }} className="text-accent hover:underline">Staging</button> or <button onClick={() => { setEnv('PROD'); navigate('/login'); }} className="text-accent hover:underline">Production</button>
+                        Switch back to <button onClick={() => { setEnv('STAGE'); navigate('/login'); }} className="text-accent hover:underline border-none bg-transparent cursor-pointer">Staging</button> or <button onClick={() => { setEnv('PROD'); navigate('/login'); }} className="text-accent hover:underline border-none bg-transparent cursor-pointer">Production</button>
                     </p>
                 </div>
             </div>
@@ -201,3 +249,4 @@ const LoginLocal = () => {
 };
 
 export default LoginLocal;
+

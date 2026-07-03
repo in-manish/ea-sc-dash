@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink, useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, Users, Calendar, Settings, ChevronLeft, Building2, ArrowLeft, LogOut, MessageSquare, BarChart2, UserCog, ShieldCheck, IdCard, ChevronDown, CreditCard, Wrench, Layout, Video } from 'lucide-react';
+import { Menu, Users, Calendar, Settings, ArrowLeft, LogOut, MessageSquare, BarChart2, ChevronDown, CreditCard, Wrench, Layout, Video, ShieldCheck, UserCog } from 'lucide-react';
 
-import { useAuth } from '../contexts/AuthContext';
-import { eventService } from '../services/eventService';
-import FloatingFileUploadTool from '../components/FloatingFileUploadTool';
+import { useAuth } from '../../contexts/AuthContext';
+import { eventService } from '../../services/eventService';
+import FloatingFileUploadTool from '../../components/FloatingFileUploadTool';
 
 const EventLayout = () => {
     const { selectedEvent, selectEvent, clearEvent, logout, token, recentEvents, currentMode, switchMode } = useAuth();
@@ -212,6 +212,15 @@ const EventLayout = () => {
                     >
                         <Users size={20} className="shrink-0" />
                         {!isCollapsed && <span className="flex-1">Attendees</span>}
+                    </NavLink>
+
+                    <NavLink
+                        to={`/event/${selectedEvent.id}/users`}
+                        className={navLinkClass}
+                        title={isCollapsed ? "Users Search" : ""}
+                    >
+                        <UserCog size={20} className="shrink-0" />
+                        {!isCollapsed && <span className="flex-1">Users Search</span>}
                     </NavLink>
 
                     <NavLink

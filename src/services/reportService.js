@@ -1,9 +1,10 @@
 import axios from 'axios';
-import { getApiUrl } from '../config';
+import { getApiUrl, getDashboardMode } from '../config';
 
 const getToken = () => {
-    const currentEnv = localStorage.getItem('app_env') || 'STAGE';
-    return localStorage.getItem(`token_${currentEnv}`);
+    const currentEnv = sessionStorage.getItem('app_env') || 'STAGE';
+    const mode = getDashboardMode();
+    return sessionStorage.getItem(`${mode}_token_${currentEnv}`);
 };
 
 const getHeaders = () => {

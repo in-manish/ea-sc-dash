@@ -1,29 +1,79 @@
+export const DASHBOARD_MODES = {
+    EA: 'EA',
+    SC: 'SC'
+};
+
+export const DEFAULT_MODE = 'EA';
+
+export const getDashboardMode = () => {
+    return sessionStorage.getItem('dashboard_mode') || DEFAULT_MODE;
+};
+
+export const setDashboardMode = (mode) => {
+    if (DASHBOARD_MODES[mode]) {
+        sessionStorage.setItem('dashboard_mode', mode);
+        return true;
+    }
+    return false;
+};
+
 export const ENV_CONFIG = {
-    STAGE: {
-        BASE_URL: 'https://reconnect.stage-eventapp-reconnect.fairfest.in',
-        NAME: 'Staging',
-        THEME: {
-            '--color-accent': '#0f172a', // Slate 900 (Default)
-            '--color-accent-hover': '#1e293b',
-            '--color-bg-tertiary': '#f1f5f9' // Slate 100
+    EA: {
+        STAGE: {
+            BASE_URL: 'https://reconnect.stage-eventapp-reconnect.fairfest.in',
+            NAME: 'Staging',
+            THEME: {
+                '--color-accent': '#0f172a', // Slate 900 (Default)
+                '--color-accent-hover': '#1e293b',
+                '--color-bg-tertiary': '#f1f5f9' // Slate 100
+            }
+        },
+        PROD: {
+            BASE_URL: 'https://reconnect.eventapp-reconnect.fairfest.in',
+            NAME: 'Production',
+            THEME: {
+                '--color-accent': '#dc2626', // Red 600
+                '--color-accent-hover': '#b91c1c', // Red 700
+                '--color-bg-tertiary': '#fef2f2' // Red 50
+            }
+        },
+        LOCAL: {
+            BASE_URL: '', // Will be overridden by sessionStorage
+            NAME: 'Local',
+            THEME: {
+                '--color-accent': '#7c3aed', // Violet 600
+                '--color-accent-hover': '#6d28d9',
+                '--color-bg-tertiary': '#f5f3ff'
+            }
         }
     },
-    PROD: {
-        BASE_URL: 'https://reconnect.eventapp-reconnect.fairfest.in',
-        NAME: 'Production',
-        THEME: {
-            '--color-accent': '#dc2626', // Red 600
-            '--color-accent-hover': '#b91c1c', // Red 700
-            '--color-bg-tertiary': '#fef2f2' // Red 50
-        }
-    },
-    LOCAL: {
-        BASE_URL: '', // Will be overridden by localStorage
-        NAME: 'Local',
-        THEME: {
-            '--color-accent': '#7c3aed', // Violet 600
-            '--color-accent-hover': '#6d28d9',
-            '--color-bg-tertiary': '#f5f3ff'
+    SC: {
+        STAGE: {
+            BASE_URL: 'https://stage-reconnect-snapcard.fairfest.in',
+            NAME: 'Staging',
+            THEME: {
+                '--color-accent': '#0284c7', // Sky 600
+                '--color-accent-hover': '#0369a1', // Sky 700
+                '--color-bg-tertiary': '#f0f9ff' // Sky 50
+            }
+        },
+        PROD: {
+            BASE_URL: 'https://reconnect-snapcard.fairfest.in',
+            NAME: 'Production',
+            THEME: {
+                '--color-accent': '#059669', // Emerald 600
+                '--color-accent-hover': '#047857', // Emerald 700
+                '--color-bg-tertiary': '#ecfdf5' // Emerald 50
+            }
+        },
+        LOCAL: {
+            BASE_URL: '', // Will be overridden by sessionStorage
+            NAME: 'Local',
+            THEME: {
+                '--color-accent': '#d97706', // Amber 600
+                '--color-accent-hover': '#b45309', // Amber 700
+                '--color-bg-tertiary': '#fef3c7' // Amber 50
+            }
         }
     }
 };
@@ -31,13 +81,13 @@ export const ENV_CONFIG = {
 export const DEFAULT_ENV = 'STAGE';
 
 export const getEnv = () => {
-    return localStorage.getItem('app_env') || DEFAULT_ENV;
+    return sessionStorage.getItem('app_env') || DEFAULT_ENV;
 };
 
 export const setEnv = (env) => {
-    if (ENV_CONFIG[env]) {
-        localStorage.setItem('app_env', env);
-        // We might want to reload here or let the caller handle it
+    const mode = getDashboardMode();
+    if (ENV_CONFIG[mode] && ENV_CONFIG[mode][env]) {
+        sessionStorage.setItem('app_env', env);
         return true;
     }
     return false;
@@ -45,28 +95,33 @@ export const setEnv = (env) => {
 
 export const getApiUrl = () => {
     const env = getEnv();
+    const mode = getDashboardMode();
     if (env === 'LOCAL') {
-        return localStorage.getItem('local_base_url') || 'http://localhost:8000';
+        return sessionStorage.getItem(`${mode}_local_base_url`) || (mode === 'SC' ? 'http://localhost:8001' : 'http://localhost:8000');
     }
-    return ENV_CONFIG[env].BASE_URL;
+    return ENV_CONFIG[mode][env].BASE_URL;
 };
 
 export const setLocalBaseUrl = (url) => {
-    localStorage.setItem('local_base_url', url);
+    const mode = getDashboardMode();
+    sessionStorage.setItem(`${mode}_local_base_url`, url);
 };
 
 export const getLocalBaseUrl = () => {
-    return localStorage.getItem('local_base_url') || 'http://localhost:8000';
+    const mode = getDashboardMode();
+    return sessionStorage.getItem(`${mode}_local_base_url`) || (mode === 'SC' ? 'http://localhost:8001' : 'http://localhost:8000');
 };
 
 export const getEnvName = () => {
     const env = getEnv();
-    return ENV_CONFIG[env].NAME;
+    const mode = getDashboardMode();
+    return ENV_CONFIG[mode][env].NAME;
 };
 
 export const applyTheme = () => {
     const env = getEnv();
-    const theme = ENV_CONFIG[env].THEME;
+    const mode = getDashboardMode();
+    const theme = ENV_CONFIG[mode][env].THEME;
 
     if (theme) {
         const root = document.documentElement;
@@ -75,3 +130,4 @@ export const applyTheme = () => {
         });
     }
 };
+

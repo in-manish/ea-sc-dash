@@ -1,4 +1,4 @@
-import { getApiUrl } from '../config';
+import { getApiUrl, getDashboardMode } from '../config';
 
 const getHeaders = () => {
   const baseUrl = getApiUrl();
@@ -32,10 +32,25 @@ export const authService = {
 
   async login(username, password) {
     try {
-      const response = await fetch(`${getApiUrl()}/organizers/signin/`, {
+      const mode = getDashboardMode();
+      let url = `${getApiUrl()}/organizers/signin/`;
+      let body = JSON.stringify({ username, password });
+
+      if (mode === 'SC') {
+        url = `${getApiUrl()}/user/login/`;
+        body = JSON.stringify({
+          username_type: 'EMAIL',
+          device_type: 'desktop',
+          device_id: '',
+          password: password,
+          email: username
+        });
+      }
+
+      const response = await fetch(url, {
         method: 'POST',
         headers: getHeaders(),
-        body: JSON.stringify({ username, password })
+        body: body
       });
       return await response.json();
     } catch (error) {
@@ -61,3 +76,4 @@ export const authService = {
     }
   }
 };
+
