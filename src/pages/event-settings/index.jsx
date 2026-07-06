@@ -155,6 +155,8 @@ const EventSettings = () => {
             interested_in: {
                 ...(prev.interested_in || { 
                     is_active: true, 
+                    title: '',
+                    description: '',
                     exhibit_url: '', 
                     visit_url: ''
                 }),
@@ -320,6 +322,8 @@ const EventSettings = () => {
             }));
             formData.append('interested_in', JSON.stringify(eventData.interested_in || {
                 is_active: true,
+                title: '',
+                description: '',
                 exhibit_url: '',
                 visit_url: ''
             }));

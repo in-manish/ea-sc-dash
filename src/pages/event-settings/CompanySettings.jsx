@@ -182,6 +182,29 @@ const CompanySettings = ({
                         />
                     </div>
 
+                    <div className="grid grid-cols-1 gap-6">
+                        <FormField label="Title" description="The heading/title for the Interested In section">
+                            <input
+                                type="text"
+                                name="title"
+                                value={eventData.interested_in?.title || ''}
+                                onChange={(e) => handleInterestedInChange('title', e.target.value)}
+                                className={getInputClass('title', isInterestedInModified('title'))}
+                                placeholder="Enter title (e.g., Interested in participating?)"
+                            />
+                        </FormField>
+                        <FormField label="Description" description="Short description text explaining the call to action">
+                            <textarea
+                                name="description"
+                                value={eventData.interested_in?.description || ''}
+                                onChange={(e) => handleInterestedInChange('description', e.target.value)}
+                                className={getInputClass('description', isInterestedInModified('description'))}
+                                rows={2}
+                                placeholder="Enter description..."
+                            />
+                        </FormField>
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormField label="Exhibit URL" description="Link for exhibit inquiry">
                             <input
