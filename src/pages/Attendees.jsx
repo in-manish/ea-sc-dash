@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
 import { attendeeSelectionService } from '../services/attendeeSelectionService';
 import { whatsappService } from '../services/whatsappService';
-import { Loader2, Search, Filter, Phone, Mail, Globe, X, ShieldCheck, Building2, CheckSquare, Square, MessageCircle, CheckCircle2, ChevronDown, ChevronUp, List, LayoutGrid, Smartphone, Eye, Code } from 'lucide-react';
+import { Loader2, Search, Filter, Phone, Mail, Globe, X, ShieldCheck, Building2, CheckSquare, Square, MessageCircle, CheckCircle2, ChevronDown, ChevronUp, List, LayoutGrid, Smartphone, Eye, Code, IdCard } from 'lucide-react';
 
 const pillColors = {
     attendee_type: "bg-blue-50 text-blue-800 border-blue-200",
@@ -73,6 +73,15 @@ const renderWhatsAppPreview = (template, attendee) => {
         .replace(/\*([^*]+)\*/g, '$1');
 };
 
+const isUnderTwoHours = (createdAtStr) => {
+    if (!createdAtStr) return false;
+    const createdAt = new Date(createdAtStr);
+    const now = new Date();
+    const diffMs = now.getTime() - createdAt.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
+    return diffHours < 2;
+};
+
 const Attendees = () => {
     const { selectedEvent, token } = useAuth();
     const navigate = useNavigate();
@@ -100,6 +109,21 @@ const Attendees = () => {
     const [templateViewMode, setTemplateViewMode] = useState('list');
     const [expandedTemplateId, setExpandedTemplateId] = useState(null);
     const [previewContentMode, setPreviewContentMode] = useState('preview');
+
+    // E-Badge State
+    const [isEBadgeModalOpen, setIsEBadgeModalOpen] = useState(false);
+    const [isGeneratingEBadge, setIsGeneratingEBadge] = useState(false);
+    const [eBadgeResult, setEBadgeResult] = useState(null);
+    const [eBadgeError, setEBadgeError] = useState('');
+
+    const [activeTab, setActiveTab] = useState('list');
+    const [jobs, setJobs] = useState([]);
+    const [jobsLoading, setJobsLoading] = useState(false);
+    const [jobsTotal, setJobsTotal] = useState(0);
+    const [jobsPage, setJobsPage] = useState(1);
+    const [jobsError, setJobsError] = useState('');
+
+    const pollCountsRef = useRef({});
 
     // Search and Filter State
     const [search, setSearch] = useState(searchParams.get('q') || '');
@@ -215,6 +239,88 @@ const Attendees = () => {
         fetchWhatsAppTemplates();
     }, [isWhatsAppModalOpen, token]);
 
+    const fetchJobs = async (targetPage = jobsPage) => {
+        if (!selectedEvent || !token) return;
+        setJobsLoading(true);
+        setJobsError('');
+        try {
+            const data = await eventService.getEBadgeJobs(selectedEvent.id, token, {
+                page: targetPage,
+                size: 20
+            });
+            setJobs(data.results || []);
+            setJobsTotal(data.total || 0);
+            setJobsPage(data.page || 1);
+        } catch (err) {
+            setJobsError(err.message || 'Failed to load e-badge tasks.');
+        } finally {
+            setJobsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (activeTab === 'tasks') {
+            fetchJobs(1);
+        }
+    }, [activeTab, selectedEvent]);
+
+    useEffect(() => {
+        if (!selectedEvent || !token || jobs.length === 0) return;
+
+        const inProgressJobs = jobs.filter(
+            (job) => job.status === 'in_progress' && isUnderTwoHours(job.created_at)
+        );
+
+        if (inProgressJobs.length === 0) return;
+
+        const activeTimeouts = [];
+
+        inProgressJobs.forEach((job) => {
+            const uuid = job.progress_uuid;
+            if (pollCountsRef.current[uuid] === undefined) {
+                pollCountsRef.current[uuid] = 0;
+            }
+
+            const currentCount = pollCountsRef.current[uuid];
+            let delay = 2000;
+            if (currentCount >= 20) {
+                delay = 20000;
+            } else if (currentCount >= 10) {
+                delay = 5000;
+            }
+
+            const runPoll = async () => {
+                try {
+                    const progress = await eventService.getEBadgeProgress(
+                        selectedEvent.id,
+                        uuid,
+                        token
+                    );
+                    
+                    pollCountsRef.current[uuid] = currentCount + 1;
+
+                    setJobs((prevJobs) =>
+                        prevJobs.map((j) => {
+                            if (j.progress_uuid === uuid) {
+                                return { ...j, ...progress };
+                            }
+                            return j;
+                        })
+                    );
+                } catch (e) {
+                    console.error('Error polling job:', uuid, e);
+                }
+            };
+
+            const timeoutId = setTimeout(runPoll, delay);
+            activeTimeouts.push(timeoutId);
+        });
+
+        return () => {
+            activeTimeouts.forEach((id) => clearTimeout(id));
+        };
+    }, [jobs, selectedEvent, token]);
+
     const hasActiveSearchOrFilters = Boolean(debouncedSearch) || Object.keys(filters).length > 0;
     const selectedAttendees = attendees.filter((attendee) => selectedAttendeeUuids.includes(attendee.uuid));
     const isGlobalSelectionMode = selectionMode === 'all' || selectionMode === 'filtered';
@@ -244,6 +350,7 @@ const Attendees = () => {
     const clearSelection = () => {
         setWhatsAppActionError('');
         setWhatsAppActionSuccess('');
+        setEBadgeError('');
         setSelectionMode('none');
         setSelectedAttendeeUuids([]);
     };
@@ -251,6 +358,7 @@ const Attendees = () => {
     const selectAllMatchingAttendees = () => {
         setWhatsAppActionError('');
         setWhatsAppActionSuccess('');
+        setEBadgeError('');
         setSelectedAttendeeUuids([]);
         setSelectionMode(hasActiveSearchOrFilters ? 'filtered' : 'all');
     };
@@ -326,6 +434,58 @@ const Attendees = () => {
             setWhatsAppActionError(err.message || 'Failed to send WhatsApp message.');
         } finally {
             setIsSendingWhatsApp(false);
+        }
+    };
+
+    const handleCreateEBadge = async (singleAttendeeUuid = null) => {
+        if (!selectedEvent) return;
+
+        setIsGeneratingEBadge(true);
+        setEBadgeError('');
+        setEBadgeResult(null);
+        setIsEBadgeModalOpen(true);
+
+        try {
+            let payload;
+            if (singleAttendeeUuid) {
+                payload = {
+                    attendee_uuids: [singleAttendeeUuid]
+                };
+            } else {
+                const selection = attendeeSelectionService.buildSelection({
+                    mode: selectionMode,
+                    attendeeUuids: selectedAttendeeUuids,
+                    search: debouncedSearch,
+                    filters
+                });
+
+                if (!selection.payload) {
+                    throw new Error('No attendees selected.');
+                }
+                payload = selection.payload;
+            }
+
+            const data = await eventService.createEBadge(selectedEvent.id, token, payload);
+
+            if (data.badge_link) {
+                setEBadgeResult({
+                    type: 'single',
+                    link: data.badge_link
+                });
+            } else if (data.progress_uuid) {
+                setEBadgeResult({
+                    type: 'multiple',
+                    progressUuid: data.progress_uuid,
+                    total: data.total || (payload.attendee_uuids ? payload.attendee_uuids.length : total)
+                });
+                clearSelection();
+            } else {
+                throw new Error('Unexpected response format from e-badge service.');
+            }
+        } catch (err) {
+            setEBadgeError(err.message || 'Failed to generate e-badge. Please try again.');
+        } finally {
+            setIsGeneratingEBadge(false);
         }
     };
 
@@ -414,285 +574,431 @@ const Attendees = () => {
 
     return (
         <div className="w-full animate-fade-in">
-            <div className="flex justify-between items-end mb-8">
+            <div className="flex justify-between items-end mb-6">
                 <div>
                     <h1 className="text-2xl font-bold text-text-primary mb-1">Attendees</h1>
                     <p className="text-sm text-text-secondary">Total: {total} registered</p>
                 </div>
 
-                <div className="flex gap-4">
-                    <div className="relative">
-                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
-                        <input
-                            type="text"
-                            placeholder="Search attendees..."
-                            className="w-60 py-2 pr-4 pl-9 border border-border rounded-md text-sm outline-none transition-colors duration-200 focus:border-accent focus:ring-2 focus:ring-accent/10 focus:bg-white"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                        />
-                    </div>
-                    <button
-                        className={`btn ${Object.keys(filters).length > 0 ? 'btn-primary' : 'btn-secondary'}`}
-                        onClick={() => setIsFilterDrawerOpen(true)}
-                    >
-                        <Filter size={16} style={{ marginRight: '0.5rem' }} />
-                        Filter {Object.keys(filters).length > 0 && `(${Object.keys(filters).length})`}
-                    </button>
-                    {Object.keys(filters).length > 0 && (
-                        <button className="btn btn-ghost btn-sm" onClick={() => {
-                            setFilters({});
-                            setSearch('');
-                        }}>
-                            Clear
+                {activeTab === 'list' && (
+                    <div className="flex gap-4">
+                        <div className="relative">
+                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
+                            <input
+                                type="text"
+                                placeholder="Search attendees..."
+                                className="w-60 py-2 pr-4 pl-9 border border-border rounded-md text-sm outline-none transition-colors duration-200 focus:border-accent focus:ring-2 focus:ring-accent/10 focus:bg-white"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
+                        </div>
+                        <button
+                            className={`btn ${Object.keys(filters).length > 0 ? 'btn-primary' : 'btn-secondary'}`}
+                            onClick={() => setIsFilterDrawerOpen(true)}
+                        >
+                            <Filter size={16} style={{ marginRight: '0.5rem' }} />
+                            Filter {Object.keys(filters).length > 0 && `(${Object.keys(filters).length})`}
                         </button>
-                    )}
-                </div>
+                        {Object.keys(filters).length > 0 && (
+                            <button className="btn btn-ghost btn-sm" onClick={() => {
+                                setFilters({});
+                                setSearch('');
+                            }}>
+                                Clear
+                            </button>
+                        )}
+                    </div>
+                )}
             </div>
 
-            {/* Active Filter Pills */}
-            {Object.keys(filters).length > 0 && (
-                <div className="flex flex-wrap gap-3 mb-6 py-2 animate-fade-in">
-                    {Object.entries(filters).map(([key, value]) => {
-                        if (!value || (Array.isArray(value) && value.length === 0)) return null;
+            {/* Navigation Tabs */}
+            <div className="flex border-b border-border mb-6">
+                <button
+                    className={`py-2.5 px-4 font-semibold text-sm border-b-2 transition-colors duration-200 ${activeTab === 'list' ? 'border-accent text-accent' : 'border-transparent text-text-secondary hover:text-text-primary'}`}
+                    onClick={() => setActiveTab('list')}
+                >
+                    Attendee List
+                </button>
+                <button
+                    className={`py-2.5 px-4 font-semibold text-sm border-b-2 transition-colors duration-200 ${activeTab === 'tasks' ? 'border-accent text-accent' : 'border-transparent text-text-secondary hover:text-text-primary'}`}
+                    onClick={() => setActiveTab('tasks')}
+                >
+                    E-badge Tasks
+                </button>
+            </div>
 
-                        const removeFilter = (valToRemove) => {
-                            const newFilters = { ...filters };
-                            if (Array.isArray(value)) {
-                                newFilters[key] = value.filter(v => v !== valToRemove);
-                                if (newFilters[key].length === 0) delete newFilters[key];
-                            } else {
-                                delete newFilters[key];
-                            }
-                            setFilters(newFilters);
-                        };
+            {activeTab === 'list' ? (
+                <>
+                    {/* Active Filter Pills */}
+                    {Object.keys(filters).length > 0 && (
+                        <div className="flex flex-wrap gap-3 mb-6 py-2 animate-fade-in">
+                            {Object.entries(filters).map(([key, value]) => {
+                                if (!value || (Array.isArray(value) && value.length === 0)) return null;
 
-                        const pillClass = pillColors[key] || "bg-white text-gray-800 border-black/5";
+                                const removeFilter = (valToRemove) => {
+                                    const newFilters = { ...filters };
+                                    if (Array.isArray(value)) {
+                                        newFilters[key] = value.filter(v => v !== valToRemove);
+                                        if (newFilters[key].length === 0) delete newFilters[key];
+                                    } else {
+                                        delete newFilters[key];
+                                    }
+                                    setFilters(newFilters);
+                                };
 
-                        if (Array.isArray(value)) {
-                            return value.map(val => (
-                                <div key={`${key}-${val}`} className={`inline-flex items-center gap-2 py-2 px-3.5 rounded-xl text-[0.8125rem] font-semibold tracking-wide border transition-all duration-200 hover:-translate-y-px hover:shadow-md ${pillClass}`}>
-                                    <span className="uppercase text-[0.625rem] tracking-wider opacity-60">{key.replace(/_/g, ' ')}:</span>
-                                    <span>{val}</span>
-                                    <button className="flex items-center justify-center p-0.5 rounded bg-black/10 border-none transition-colors duration-200 hover:bg-black/20" onClick={() => removeFilter(val)}>
-                                        <X size={12} />
+                                const pillClass = pillColors[key] || "bg-white text-gray-800 border-black/5";
+
+                                if (Array.isArray(value)) {
+                                    return value.map(val => (
+                                        <div key={`${key}-${val}`} className={`inline-flex items-center gap-2 py-2 px-3.5 rounded-xl text-[0.8125rem] font-semibold tracking-wide border transition-all duration-200 hover:-translate-y-px hover:shadow-md ${pillClass}`}>
+                                            <span className="uppercase text-[0.625rem] tracking-wider opacity-60">{key.replace(/_/g, ' ')}:</span>
+                                            <span>{val}</span>
+                                            <button className="flex items-center justify-center p-0.5 rounded bg-black/10 border-none transition-colors duration-200 hover:bg-black/20" onClick={() => removeFilter(val)}>
+                                                <X size={12} />
+                                            </button>
+                                        </div>
+                                    ));
+                                }
+
+                                return (
+                                    <div key={key} className={`inline-flex items-center gap-2 py-2 px-3.5 rounded-xl text-[0.8125rem] font-semibold tracking-wide border transition-all duration-200 hover:-translate-y-px hover:shadow-md ${pillClass}`}>
+                                        <span className="uppercase text-[0.625rem] tracking-wider opacity-60">{key.replace(/_/g, ' ')}:</span>
+                                        <span>{value === 'true' ? 'Yes' : value}</span>
+                                        <button className="flex items-center justify-center p-0.5 rounded bg-black/10 border-none transition-colors duration-200 hover:bg-black/20" onClick={() => removeFilter()}>
+                                            <X size={12} />
+                                        </button>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+
+                    {error && <div className="bg-red-50 text-red-800 p-4 border border-red-200 rounded-md mb-6">{error}</div>}
+                    {whatsAppActionSuccess && <div className="bg-emerald-50 text-emerald-800 p-4 border border-emerald-200 rounded-md mb-6">{whatsAppActionSuccess}</div>}
+                    {whatsAppActionError && <div className="bg-red-50 text-red-800 p-4 border border-red-200 rounded-md mb-6">{whatsAppActionError}</div>}
+
+                    {selectionMode !== 'none' && (
+                        <div className="mb-6 bg-bg-primary border border-border rounded-lg px-5 py-6 shadow-sm animate-fade-in">
+                            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                                <div className="text-text-primary">
+                                    <span className="text-sm font-semibold">
+                                        {selectionMode === 'selected'
+                                            ? `${selectedAttendeeUuids.length} attendee${selectedAttendeeUuids.length === 1 ? '' : 's'} selected on this page.`
+                                            : selectionMode === 'filtered'
+                                                ? `All ${total} attendees matching this search are selected.`
+                                                : `All ${total} attendees are selected.`}
+                                    </span>
+                                    {selectionMode === 'selected' && allVisibleSelected && (
+                                        <>
+                                            {' '}
+                                            <button
+                                                type="button"
+                                                className="bg-transparent border-none p-0 text-sm font-semibold text-text-primary underline underline-offset-2 cursor-pointer hover:text-accent"
+                                                onClick={selectAllMatchingAttendees}
+                                            >
+                                                {hasActiveSearchOrFilters ? 'Select all attendees that match this search' : `Select all ${total} attendees`}
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
+
+                                <div className="flex items-center gap-3">
+                                    <button className="btn btn-secondary" onClick={clearSelection}>
+                                        Clear Selection
+                                    </button>
+                                    <button className="btn btn-primary" onClick={handleOpenWhatsAppModal}>
+                                        <MessageCircle size={16} style={{ marginRight: '0.5rem' }} />
+                                        WhatsApp
+                                    </button>
+                                    <button 
+                                        className="btn btn-primary flex items-center" 
+                                        onClick={() => handleCreateEBadge()}
+                                    >
+                                        <IdCard size={16} style={{ marginRight: '0.5rem' }} />
+                                        Create E-badge
                                     </button>
                                 </div>
-                            ));
-                        }
-
-                        return (
-                            <div key={key} className={`inline-flex items-center gap-2 py-2 px-3.5 rounded-xl text-[0.8125rem] font-semibold tracking-wide border transition-all duration-200 hover:-translate-y-px hover:shadow-md ${pillClass}`}>
-                                <span className="uppercase text-[0.625rem] tracking-wider opacity-60">{key.replace(/_/g, ' ')}:</span>
-                                <span>{value === 'true' ? 'Yes' : value}</span>
-                                <button className="flex items-center justify-center p-0.5 rounded bg-black/10 border-none transition-colors duration-200 hover:bg-black/20" onClick={() => removeFilter()}>
-                                    <X size={12} />
-                                </button>
                             </div>
-                        );
-                    })}
-                </div>
-            )}
-
-            {error && <div className="bg-red-50 text-red-800 p-4 border border-red-200 rounded-md mb-6">{error}</div>}
-            {whatsAppActionSuccess && <div className="bg-emerald-50 text-emerald-800 p-4 border border-emerald-200 rounded-md mb-6">{whatsAppActionSuccess}</div>}
-            {whatsAppActionError && <div className="bg-red-50 text-red-800 p-4 border border-red-200 rounded-md mb-6">{whatsAppActionError}</div>}
-
-            {selectionMode !== 'none' && (
-                <div className="mb-6 bg-bg-primary border border-border rounded-lg px-5 py-6 shadow-sm animate-fade-in">
-                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                        <div className="text-text-primary">
-                            <span className="text-sm font-semibold">
-                                {selectionMode === 'selected'
-                                    ? `${selectedAttendeeUuids.length} attendee${selectedAttendeeUuids.length === 1 ? '' : 's'} selected on this page.`
-                                    : selectionMode === 'filtered'
-                                        ? `All ${total} attendees matching this search are selected.`
-                                        : `All ${total} attendees are selected.`}
-                            </span>
-                            {selectionMode === 'selected' && allVisibleSelected && (
-                                <>
-                                    {' '}
-                                    <button
-                                        type="button"
-                                        className="bg-transparent border-none p-0 text-sm font-semibold text-text-primary underline underline-offset-2 cursor-pointer hover:text-accent"
-                                        onClick={selectAllMatchingAttendees}
-                                    >
-                                        {hasActiveSearchOrFilters ? 'Select all attendees that match this search' : `Select all ${total} attendees`}
-                                    </button>
-                                </>
-                            )}
                         </div>
+                    )}
 
-                        <div className="flex items-center gap-3">
-                            <button className="btn btn-secondary" onClick={clearSelection}>
-                                Clear Selection
-                            </button>
-                            <button className="btn btn-primary" onClick={handleOpenWhatsAppModal}>
-                                <MessageCircle size={16} style={{ marginRight: '0.5rem' }} />
-                                WhatsApp
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            <div className="bg-bg-primary border border-border rounded-lg overflow-x-auto shadow-sm">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr>
-                            <th className="bg-bg-secondary py-3 px-4 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border w-12">
-                                <button
-                                    type="button"
-                                    className="bg-transparent border-none p-0 text-text-secondary hover:text-accent transition-colors"
-                                    onClick={toggleSelectAll}
-                                    aria-label={
-                                        selectionMode === 'selected' && allVisibleSelected
-                                            ? 'Select all matching attendees'
-                                            : allVisibleSelected
-                                                ? 'Clear attendee selection'
-                                                : 'Select visible attendees'
-                                    }
-                                >
-                                    {allVisibleSelected ? <CheckSquare size={18} /> : <Square size={18} />}
-                                </button>
-                            </th>
-                            <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Name</th>
-                            <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Contact</th>
-                            <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Company</th>
-                            <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Type</th>
-                            <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {loading ? (
-                            <tr>
-                                <td colSpan="6" className="text-center p-12 text-text-secondary">
-                                    <Loader2 className="animate-spin text-accent mx-auto" size={24} />
-                                </td>
-                            </tr>
-                        ) : attendees.length === 0 ? (
-                            <tr>
-                                <td colSpan="6" className="text-center p-12 text-text-secondary">No attendees found.</td>
-                            </tr>
-                        ) : (
-                            attendees.map((attendee) => (
-                                <tr
-                                    key={attendee.uuid}
-                                    className="cursor-pointer transition-colors duration-200 hover:bg-bg-secondary [&>td]:border-b [&>td]:border-border group"
-                                    onClick={() => setSelectedAttendee(attendee)}
-                                >
-                                    <td className="py-4 px-4 align-top group-last:border-b-0" onClick={(e) => e.stopPropagation()}>
-                                        <input
-                                            type="checkbox"
-                                            className={`w-4 h-4 accent-accent ${isGlobalSelectionMode ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}
-                                            checked={isGlobalSelectionMode || selectedAttendeeUuids.includes(attendee.uuid)}
-                                            onChange={() => toggleAttendeeSelection(attendee.uuid)}
-                                            disabled={isGlobalSelectionMode}
-                                            aria-label={`Select ${attendee.name}`}
-                                        />
-                                    </td>
-                                    <td className="py-4 px-6 align-top group-last:border-b-0">
-                                        <div className="font-semibold text-text-primary text-sm flex items-center gap-2">
-                                            {attendee.name}
-                                            <span className="text-[10px] font-mono text-text-tertiary opacity-40">#{attendee.id}</span>
-                                            {attendee.is_poc && (
-                                                <ShieldCheck
-                                                    size={16}
-                                                    className="align-text-bottom text-accent"
-                                                    title="Point of Contact (POC)"
+                    <div className="bg-bg-primary border border-border rounded-lg overflow-x-auto shadow-sm">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr>
+                                    <th className="bg-bg-secondary py-3 px-4 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border w-12">
+                                        <button
+                                            type="button"
+                                            className="bg-transparent border-none p-0 text-text-secondary hover:text-accent transition-colors"
+                                            onClick={toggleSelectAll}
+                                            aria-label={
+                                                selectionMode === 'selected' && allVisibleSelected
+                                                    ? 'Select all matching attendees'
+                                                    : allVisibleSelected
+                                                        ? 'Clear attendee selection'
+                                                        : 'Select visible attendees'
+                                            }
+                                        >
+                                            {allVisibleSelected ? <CheckSquare size={18} /> : <Square size={18} />}
+                                        </button>
+                                    </th>
+                                    <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Name</th>
+                                    <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Contact</th>
+                                    <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Company</th>
+                                    <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Type</th>
+                                    <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Status</th>
+                                    <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {loading ? (
+                                    <tr>
+                                        <td colSpan="7" className="text-center p-12 text-text-secondary">
+                                            <Loader2 className="animate-spin text-accent mx-auto" size={24} />
+                                        </td>
+                                    </tr>
+                                ) : attendees.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="7" className="text-center p-12 text-text-secondary">No attendees found.</td>
+                                    </tr>
+                                ) : (
+                                    attendees.map((attendee) => (
+                                        <tr
+                                            key={attendee.uuid}
+                                            className="cursor-pointer transition-colors duration-200 hover:bg-bg-secondary [&>td]:border-b [&>td]:border-border group"
+                                            onClick={() => setSelectedAttendee(attendee)}
+                                        >
+                                            <td className="py-4 px-4 align-top group-last:border-b-0" onClick={(e) => e.stopPropagation()}>
+                                                <input
+                                                    type="checkbox"
+                                                    className={`w-4 h-4 accent-accent ${isGlobalSelectionMode ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}
+                                                    checked={isGlobalSelectionMode || selectedAttendeeUuids.includes(attendee.uuid)}
+                                                    onChange={() => toggleAttendeeSelection(attendee.uuid)}
+                                                    disabled={isGlobalSelectionMode}
+                                                    aria-label={`Select ${attendee.name}`}
                                                 />
-                                            )}
-                                        </div>
-                                        <div className="text-xs text-text-tertiary mt-0.5">Reg ID: {attendee.reg_id}</div>
-                                    </td>
-                                    <td className="py-4 px-6 align-top group-last:border-b-0">
-                                        <div className="flex flex-col gap-1">
-                                            <div className="flex items-center gap-2 text-[0.8125rem] text-text-secondary" title={attendee.email}>
-                                                <Mail size={12} className="shrink-0" /> <span className="truncate max-w-[180px]">{attendee.email}</span>
-                                            </div>
-                                            <div className="flex items-center gap-2 text-[0.8125rem] text-text-secondary" title={attendee.phone_number}>
-                                                <Phone size={12} className="shrink-0" /> +{attendee.country_code} {attendee.phone_number}
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="py-4 px-6 align-top group-last:border-b-0">
-                                        <div className="flex flex-col">
-                                            <div className="font-medium text-sm text-text-primary">
-                                                {attendee.exhibitor_id ? (
-                                                    <span
-                                                        className="text-accent cursor-pointer hover:underline underline-offset-2"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            navigate(`/event/${selectedEvent.id}/companies/${attendee.exhibitor_id}`);
-                                                        }}
-                                                        title="View Company Details"
-                                                    >
-                                                        {attendee.company || '-'}
-                                                    </span>
-                                                ) : (
-                                                    attendee.company || '-'
-                                                )}
-                                            </div>
-                                            <div className="text-xs text-text-secondary mt-0.5">
-                                                {[attendee.city, attendee.country].filter(Boolean).join(', ') || '-'}
-                                            </div>
-                                            {(attendee.website || attendee.parent_exhibitor_id) && (
-                                                <div className="flex gap-2.5 mt-1.5">
-                                                    {attendee.website && (
-                                                        <div className="text-xs flex items-center gap-1">
-                                                            <Globe size={10} className="text-text-tertiary" /> <a href={attendee.website} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-accent hover:underline">Website</a>
-                                                        </div>
+                                            </td>
+                                            <td className="py-4 px-6 align-top group-last:border-b-0">
+                                                <div className="font-semibold text-text-primary text-sm flex items-center gap-2">
+                                                    {attendee.name}
+                                                    <span className="text-[10px] font-mono text-text-tertiary opacity-40">#{attendee.id}</span>
+                                                    {attendee.is_poc && (
+                                                        <ShieldCheck
+                                                            size={16}
+                                                            className="align-text-bottom text-accent"
+                                                            title="Point of Contact (POC)"
+                                                        />
                                                     )}
-                                                    {attendee.parent_exhibitor_id && (
-                                                        <div className="text-xs flex items-center gap-1">
-                                                            <Building2 size={10} className="text-text-tertiary" />
+                                                </div>
+                                                <div className="text-xs text-text-tertiary mt-0.5">Reg ID: {attendee.reg_id}</div>
+                                            </td>
+                                            <td className="py-4 px-6 align-top group-last:border-b-0">
+                                                <div className="flex flex-col gap-1">
+                                                    <div className="flex items-center gap-2 text-[0.8125rem] text-text-secondary" title={attendee.email}>
+                                                        <Mail size={12} className="shrink-0" /> <span className="truncate max-w-[180px]">{attendee.email}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 text-[0.8125rem] text-text-secondary" title={attendee.phone_number}>
+                                                        <Phone size={12} className="shrink-0" /> +{attendee.country_code} {attendee.phone_number}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="py-4 px-6 align-top group-last:border-b-0">
+                                                <div className="flex flex-col">
+                                                    <div className="font-medium text-sm text-text-primary">
+                                                        {attendee.exhibitor_id ? (
                                                             <span
-                                                                className="text-accent cursor-pointer hover:underline text-[0.75rem] ml-1"
+                                                                className="text-accent cursor-pointer hover:underline underline-offset-2"
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    navigate(`/event/${selectedEvent.id}/companies/${attendee.parent_exhibitor_id}`);
+                                                                    navigate(`/event/${selectedEvent.id}/companies/${attendee.exhibitor_id}`);
                                                                 }}
-                                                                title={`Go to Parent Exhibitor (ID: ${attendee.parent_exhibitor_id})`}
+                                                                title="View Company Details"
                                                             >
-                                                                Parent Exhibitor
+                                                                {attendee.company || '-'}
                                                             </span>
+                                                        ) : (
+                                                            attendee.company || '-'
+                                                        )}
+                                                    </div>
+                                                    <div className="text-xs text-text-secondary mt-0.5">
+                                                        {[attendee.city, attendee.country].filter(Boolean).join(', ') || '-'}
+                                                    </div>
+                                                    {(attendee.website || attendee.parent_exhibitor_id) && (
+                                                        <div className="flex gap-2.5 mt-1.5">
+                                                            {attendee.website && (
+                                                                <div className="text-xs flex items-center gap-1">
+                                                                    <Globe size={10} className="text-text-tertiary" /> <a href={attendee.website} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-accent hover:underline">Website</a>
+                                                                </div>
+                                                            )}
+                                                            {attendee.parent_exhibitor_id && (
+                                                                <div className="text-xs flex items-center gap-1">
+                                                                    <Building2 size={10} className="text-text-tertiary" />
+                                                                    <span
+                                                                        className="text-accent cursor-pointer hover:underline text-[0.75rem] ml-1"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            navigate(`/event/${selectedEvent.id}/companies/${attendee.parent_exhibitor_id}`);
+                                                                        }}
+                                                                        title={`Go to Parent Exhibitor (ID: ${attendee.parent_exhibitor_id})`}
+                                                                    >
+                                                                        Parent Exhibitor
+                                                                    </span>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     )}
                                                 </div>
-                                            )}
-                                        </div>
-                                    </td>
-                                    <td className="py-4 px-6 align-top group-last:border-b-0">
-                                        <span className="inline-flex py-1 px-2.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 tracking-wide">{attendee.attendee_type}</span>
-                                    </td>
-                                    <td className="py-4 px-6 align-top group-last:border-b-0">
-                                        <span className={`inline-flex py-1 px-2.5 rounded-full text-xs font-medium tracking-wide ${attendee.reg_type === 'ON_SPOT' ? 'bg-[#fefaca] text-[#854d0e]' : 'bg-[#dcfce7] text-[#166534]'}`}>
-                                            {attendee.reg_type}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
-            </div>
+                                            </td>
+                                            <td className="py-4 px-6 align-top group-last:border-b-0">
+                                                <span className="inline-flex py-1 px-2.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 tracking-wide">{attendee.attendee_type}</span>
+                                            </td>
+                                            <td className="py-4 px-6 align-top group-last:border-b-0">
+                                                <span className={`inline-flex py-1 px-2.5 rounded-full text-xs font-medium tracking-wide ${attendee.reg_type === 'ON_SPOT' ? 'bg-[#fefaca] text-[#854d0e]' : 'bg-[#dcfce7] text-[#166534]'}`}>
+                                                    {attendee.reg_type}
+                                                </span>
+                                            </td>
+                                            <td className="py-4 px-6 align-middle group-last:border-b-0 text-right" onClick={(e) => e.stopPropagation()}>
+                                                <button
+                                                    className="btn btn-secondary btn-sm inline-flex items-center gap-1.5"
+                                                    onClick={() => handleCreateEBadge(attendee.uuid)}
+                                                    title="Re-create E-badge"
+                                                >
+                                                    <IdCard size={14} />
+                                                    Re-create E-badge
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
 
-            <div className="flex justify-end items-center gap-4 mt-6">
-                <button
-                    className="btn btn-secondary btn-sm"
-                    disabled={page === 1 || loading}
-                    onClick={() => setPage(page - 1)}
-                >
-                    Previous
-                </button>
-                <span className="text-sm text-text-secondary">Page {page}</span>
-                <button
-                    className="btn btn-secondary btn-sm"
-                    disabled={attendees.length < 50 || loading}
-                    onClick={() => setPage(page + 1)}
-                >
-                    Next
-                </button>
-            </div>
+                    <div className="flex justify-end items-center gap-4 mt-6">
+                        <button
+                            className="btn btn-secondary btn-sm"
+                            disabled={page === 1 || loading}
+                            onClick={() => setPage(page - 1)}
+                        >
+                            Previous
+                        </button>
+                        <span className="text-sm text-text-secondary">Page {page}</span>
+                        <button
+                            className="btn btn-secondary btn-sm"
+                            disabled={attendees.length < 50 || loading}
+                            onClick={() => setPage(page + 1)}
+                        >
+                            Next
+                        </button>
+                    </div>
+                </>
+            ) : (
+                <>
+                    <div className="bg-bg-primary border border-border rounded-lg overflow-x-auto shadow-sm">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr>
+                                    <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Progress UUID</th>
+                                    <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Progress</th>
+                                    <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Status</th>
+                                    <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Created At</th>
+                                    <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Finished At</th>
+                                    <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border text-right">Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {jobsLoading && jobs.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="6" className="text-center p-12 text-text-secondary">
+                                            <Loader2 className="animate-spin text-accent mx-auto" size={24} />
+                                        </td>
+                                    </tr>
+                                ) : jobsError ? (
+                                    <tr>
+                                        <td colSpan="6" className="text-center p-12 text-red-500 font-medium">{jobsError}</td>
+                                    </tr>
+                                ) : jobs.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="6" className="text-center p-12 text-text-secondary">No e-badge tasks found.</td>
+                                    </tr>
+                                ) : (
+                                    jobs.map((job) => {
+                                        let statusColor = "bg-slate-100 text-slate-800";
+                                        if (job.status === "complete") statusColor = "bg-emerald-100 text-emerald-800";
+                                        else if (job.status === "in_progress") statusColor = "bg-blue-100 text-blue-800 animate-pulse";
+                                        else if (job.status === "failed") statusColor = "bg-red-100 text-red-800";
+                                        else if (job.status === "expired") statusColor = "bg-yellow-100 text-yellow-800";
+
+                                        return (
+                                            <tr key={job.progress_uuid} className="hover:bg-bg-secondary [&>td]:border-b [&>td]:border-border group">
+                                                <td className="py-4 px-6 font-mono text-xs text-text-primary select-all">
+                                                    {job.progress_uuid}
+                                                </td>
+                                                <td className="py-4 px-6 min-w-[200px]">
+                                                    <div className="flex flex-col gap-1.5 w-full">
+                                                        <div className="flex justify-between text-xs font-medium text-text-secondary">
+                                                            <span>{job.processed} / {job.total} processed</span>
+                                                            <span>{job.percentage}%</span>
+                                                        </div>
+                                                        <div className="w-full bg-border rounded-full h-2 overflow-hidden">
+                                                            <div 
+                                                                className={`h-full rounded-full transition-all duration-300 ${job.status === 'failed' ? 'bg-red-500' : 'bg-accent'}`}
+                                                                style={{ width: `${job.percentage}%` }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="py-4 px-6">
+                                                    <span className={`inline-flex py-1 px-2.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${statusColor}`}>
+                                                        {job.status}
+                                                    </span>
+                                                </td>
+                                                <td className="py-4 px-6 text-sm text-text-secondary">
+                                                    {job.created_at ? new Date(job.created_at).toLocaleString() : '-'}
+                                                </td>
+                                                <td className="py-4 px-6 text-sm text-text-secondary">
+                                                    {job.finished_at ? new Date(job.finished_at).toLocaleString() : '-'}
+                                                </td>
+                                                <td className="py-4 px-6 text-sm text-text-primary font-medium text-right">
+                                                    {job.time_taken_display || '-'}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {jobsTotal > 20 && (
+                        <div className="flex justify-end items-center gap-4 mt-6">
+                            <button
+                                className="btn btn-secondary btn-sm"
+                                disabled={jobsPage === 1 || jobsLoading}
+                                onClick={() => {
+                                    const prev = jobsPage - 1;
+                                    setJobsPage(prev);
+                                    fetchJobs(prev);
+                                }}
+                            >
+                                Previous
+                            </button>
+                            <span className="text-sm text-text-secondary">Page {jobsPage}</span>
+                            <button
+                                className="btn btn-secondary btn-sm"
+                                disabled={jobs.length < 20 || jobsLoading}
+                                onClick={() => {
+                                    const next = jobsPage + 1;
+                                    setJobsPage(next);
+                                    fetchJobs(next);
+                                }}
+                            >
+                                Next
+                            </button>
+                        </div>
+                    )}
+                </>
+            )}
 
             {/* Attendee Detail Modal */}
             {selectedAttendee && (
@@ -734,6 +1040,22 @@ const Attendees = () => {
                                     </div>
                                 </div>
                             ))}
+                        </div>
+
+                        <div className="p-4 border-t border-border flex justify-end gap-3 bg-bg-secondary">
+                            <button
+                                className="btn btn-secondary"
+                                onClick={() => setSelectedAttendee(null)}
+                            >
+                                Close
+                            </button>
+                            <button
+                                className="btn btn-primary flex items-center gap-2"
+                                onClick={() => handleCreateEBadge(selectedAttendee.uuid)}
+                            >
+                                <IdCard size={16} />
+                                Re-create E-badge
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1115,6 +1437,96 @@ const Attendees = () => {
                                     {isSendingWhatsApp ? 'Sending...' : 'Send WhatsApp'}
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* E-Badge Modal */}
+            {isEBadgeModalOpen && (
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-[1200] animate-fade-in" onClick={() => !isGeneratingEBadge && setIsEBadgeModalOpen(false)}>
+                    <div
+                        className="bg-bg-primary rounded-lg border border-border shadow-xl w-[90%] max-w-[500px] overflow-hidden transition-all duration-300 ease-out"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="p-6 border-b border-border flex justify-between items-center bg-bg-secondary">
+                            <h3 className="text-lg font-bold text-text-primary flex items-center gap-2">
+                                <IdCard size={20} className="text-indigo-600" />
+                                E-Badge Generator
+                            </h3>
+                            {!isGeneratingEBadge && (
+                                <button className="bg-transparent border-none text-text-tertiary cursor-pointer p-1 rounded-sm flex items-center justify-center transition-colors hover:bg-bg-tertiary hover:text-text-primary" onClick={() => setIsEBadgeModalOpen(false)}>
+                                    <X size={20} />
+                                </button>
+                            )}
+                        </div>
+
+                        <div className="p-6 flex flex-col items-center justify-center text-center">
+                            {isGeneratingEBadge ? (
+                                <div className="flex flex-col items-center gap-4 py-8">
+                                    <Loader2 className="animate-spin text-indigo-600" size={48} />
+                                    <p className="text-sm text-text-secondary font-medium">Generating e-badge, please wait...</p>
+                                </div>
+                            ) : eBadgeError ? (
+                                <div className="w-full flex flex-col items-center gap-4 py-4">
+                                    <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-red-600">
+                                        <X size={24} />
+                                    </div>
+                                    <h4 className="font-bold text-text-primary">Generation Failed</h4>
+                                    <p className="text-sm text-text-secondary">{eBadgeError}</p>
+                                    <button className="btn btn-secondary mt-2" onClick={() => setIsEBadgeModalOpen(false)}>
+                                        Close
+                                    </button>
+                                </div>
+                            ) : eBadgeResult ? (
+                                <div className="w-full flex flex-col items-center gap-4 py-4">
+                                    <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                                        <CheckCircle2 size={24} />
+                                    </div>
+                                    <h4 className="font-bold text-text-primary">
+                                        {eBadgeResult.type === 'single' ? 'E-badge Created!' : 'Bulk Generation Started!'}
+                                    </h4>
+                                    
+                                    {eBadgeResult.type === 'single' ? (
+                                        <>
+                                            <p className="text-sm text-text-secondary">Your badge is ready for download.</p>
+                                            <a 
+                                                href={eBadgeResult.link} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer" 
+                                                className="btn btn-primary flex items-center gap-2 mt-2"
+                                            >
+                                                <Eye size={16} />
+                                                View E-badge
+                                            </a>
+                                        </>
+                                    ) : (
+                                        <div className="w-full text-left bg-bg-secondary p-4 rounded-lg border border-border mt-2">
+                                            <div className="flex justify-between text-xs mb-1.5">
+                                                <span className="text-text-secondary font-medium">Total Badges:</span>
+                                                <span className="text-text-primary font-bold">{eBadgeResult.total}</span>
+                                            </div>
+                                            <div className="flex justify-between text-xs">
+                                                <span className="text-text-secondary font-medium">Progress UUID:</span>
+                                                <span className="text-text-primary font-mono select-all bg-bg-tertiary px-1.5 py-0.5 rounded border border-border max-w-[200px] truncate" title={eBadgeResult.progressUuid}>{eBadgeResult.progressUuid}</span>
+                                            </div>
+                                            <p className="text-xs text-text-tertiary mt-3 pt-3 border-t border-border/50 text-center">
+                                                The badges are being generated in the background. You can safely close this window.
+                                            </p>
+                                        </div>
+                                    )}
+                                    <button 
+                                        className="btn btn-secondary mt-4" 
+                                        onClick={() => {
+                                            setIsEBadgeModalOpen(false);
+                                            if (eBadgeResult && eBadgeResult.type === 'multiple') {
+                                                setActiveTab('tasks');
+                                            }
+                                        }}
+                                    >
+                                        Dismiss
+                                    </button>
+                                </div>
+                            ) : null}
                         </div>
                     </div>
                 </div>

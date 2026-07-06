@@ -865,6 +865,62 @@ export const eventService = {
         }
     },
 
+    async createEBadge(eventId, token, payload) {
+        try {
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/ebadge/manage/`, {
+                method: 'POST',
+                headers: getHeaders(token),
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.message || `HTTP error! status: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Create E-Badge Error:', error);
+            throw error;
+        }
+    },
+
+    async getEBadgeProgress(eventId, progressUuid, token) {
+        try {
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/ebadge/progress/${progressUuid}/`, {
+                method: 'GET',
+                headers: getHeaders(token)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Get E-Badge Progress Error:', error);
+            throw error;
+        }
+    },
+
+    async getEBadgeJobs(eventId, token, { page = 1, size = 20 } = {}) {
+        try {
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/ebadge/jobs/?page=${page}&size=${size}`, {
+                method: 'GET',
+                headers: getHeaders(token)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Get E-Badge Jobs Error:', error);
+            throw error;
+        }
+    },
+
     async verifyOfflinePayment(eventId, orderId, token) {
         try {
             const response = await fetch(`${getApiUrl()}/admin/events/${eventId}/additional-requirements/orders/${orderId}/verify-offline-payment/`, {
