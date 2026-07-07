@@ -285,7 +285,9 @@ const EventSettings = () => {
                 'exhibitor_stats',
                 'interested_in',
                 'meeting_diary',
-                'agenda'
+                'agenda',
+                'exhibitor_blocking_fields',
+                'exhibitor_setup_checklist'
             ];
             
             const imageFields = ['logo', 'logo2', 'event_background_image', 'event_banner_logo', 'meetingdiary_portal_bg_image'];

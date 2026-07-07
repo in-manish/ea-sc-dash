@@ -337,6 +337,11 @@ export const eventService = {
             const headers = getHeaders(token);
             delete headers['Content-Type']; // Ensure no content type is forcing JSON
 
+            if (formData instanceof FormData) {
+                formData.delete('exhibitor_blocking_fields');
+                formData.delete('exhibitor_setup_checklist');
+            }
+
             const response = await fetch(`${getApiUrl()}/events/${eventId}/`, {
                 method: 'PATCH',
                 headers: headers,
