@@ -17,7 +17,7 @@ export const AuthProvider = ({ children }) => {
     const [currentMode, setCurrentMode] = useState(() => getDashboardMode());
 
     // Get current environment
-    const currentEnv = sessionStorage.getItem('app_env') || 'STAGE';
+    const [currentEnv, setCurrentEnv] = useState(() => sessionStorage.getItem('app_env') || 'STAGE');
 
     // Helper to get storage keys based on mode and env
     const getStorageKeys = (mode = currentMode, env = currentEnv) => ({
@@ -114,9 +114,13 @@ export const AuthProvider = ({ children }) => {
         if (newEnv === currentEnv) return;
 
         sessionStorage.setItem('app_env', newEnv);
+        setCurrentEnv(newEnv);
+        
         // Navigate to root to ensure we don't stay on a page with invalid ID (like an event detail page)
-        // and reload to apply the new config/theme
-        window.location.href = import.meta.env.BASE_URL;
+        const mode = getDashboardMode();
+        const url = new URL(import.meta.env.BASE_URL || '/', window.location.origin);
+        url.searchParams.set('mode', mode);
+        window.location.href = url.toString();
     };
 
     const switchMode = (newMode) => {
@@ -124,8 +128,19 @@ export const AuthProvider = ({ children }) => {
 
         setDashboardMode(newMode);
         setCurrentMode(newMode);
-        // Reload the page to preserve the exact same screen path, parameters, and query state
-        window.location.reload();
+        
+        // Reload the page with the mode parameter in the URL
+        const url = new URL(window.location.href);
+        url.searchParams.set('mode', newMode);
+        
+        // If we are switching to EA, and we are on an SC-specific route, redirect to root
+        const scOnlyRoutes = ['/users/manage', '/users/sync-track', '/celery-beat'];
+        const pathname = window.location.pathname;
+        if (newMode === 'EA' && scOnlyRoutes.some(route => pathname.endsWith(route))) {
+            url.pathname = import.meta.env.BASE_URL || '/';
+        }
+        
+        window.location.href = url.toString();
     };
 
     return (

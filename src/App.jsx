@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import Login from './pages/Login';
@@ -14,6 +14,7 @@ import DashboardEA from './pages/Dashboard';
 import HomeLayoutSC from './sc/layouts/HomeLayout';
 import EventLayoutSC from './sc/layouts/EventLayout';
 import UsersSearch from './sc/pages/UsersSearch';
+import ManageUsers from './sc/pages/ManageUsers';
 import CeleryBeat from './sc/pages/CeleryBeat';
 import UserSyncTrack from './sc/pages/UserSyncTrack';
 
@@ -34,11 +35,25 @@ import CeleryManage from './pages/celery-manage/CeleryManage';
 import EmailKillSwitch from './pages/email-kill-switch/EmailKillSwitch';
 import Meetings from './pages/meetings/Meetings';
 
+import { getDashboardMode } from './config';
+
 const App = () => {
   const basename = import.meta.env.BASE_URL.replace(/\/$/, '') || '/';
   
-  // Resolve dashboard mode synchronously from sessionStorage
-  const currentMode = sessionStorage.getItem('dashboard_mode') || 'EA';
+  // Resolve dashboard mode synchronously from sessionStorage / URL parameter using state
+  const [currentMode, setCurrentMode] = useState(() => getDashboardMode());
+
+  useEffect(() => {
+    const handleModeChange = () => {
+      setCurrentMode(getDashboardMode());
+    };
+    window.addEventListener('popstate', handleModeChange);
+    window.addEventListener('modechange', handleModeChange);
+    return () => {
+      window.removeEventListener('popstate', handleModeChange);
+      window.removeEventListener('modechange', handleModeChange);
+    };
+  }, []);
   
   // Select components based on active mode
   const HomeLayout = currentMode === 'SC' ? HomeLayoutSC : HomeLayoutEA;
@@ -59,6 +74,7 @@ const App = () => {
             </ProtectedRoute>
           }>
             <Route index element={<Dashboard />} />
+            <Route path="users/manage" element={<ManageUsers />} />
             <Route path="users/sync-track" element={<UserSyncTrack />} />
             <Route path="celery-beat" element={<CeleryBeat />} />
           </Route>

@@ -79,6 +79,16 @@ const HomeLayout = () => {
                                     Users Search
                                 </NavLink>
                                 <NavLink
+                                    to="/users/manage"
+                                    className={({ isActive }) =>
+                                        `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${
+                                            isActive ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'
+                                        }`
+                                    }
+                                >
+                                    Manage user
+                                </NavLink>
+                                <NavLink
                                     to="/users/sync-track"
                                     className={({ isActive }) =>
                                         `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${

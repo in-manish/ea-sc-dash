@@ -55,16 +55,14 @@ const LoginLocal = () => {
             // Fetch events to populate the dashboard using the newly added service method
             let events = [];
             
-            if (currentMode === 'EA') {
-                try {
-                    const data = await eventService.getEvents(token);
-                    // The API might return { events: [...] } or just [...]
-                    events = data.events || data.results || (Array.isArray(data) ? data : []);
-                } catch (e) {
-                    console.warn("Failed to fetch events:", e);
-                    // Fallback to empty list to at least allow login
-                    events = [];
-                }
+            try {
+                const data = await eventService.getEvents(token);
+                // The API might return { events: [...] } or just [...]
+                events = data.events || data.results || (Array.isArray(data) ? data : []);
+            } catch (e) {
+                console.warn("Failed to fetch events:", e);
+                // Fallback to empty list to at least allow login
+                events = [];
             }
 
             // Update user data with actual events
@@ -180,7 +178,7 @@ const LoginLocal = () => {
                                 className={`w-full pl-10 pr-4 py-3 bg-bg-tertiary border border-border rounded-lg text-sm transition-all outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent ${!isEditingUrl ? 'opacity-70 cursor-not-allowed' : ''}`}
                                 value={baseUrl}
                                 onChange={(e) => setBaseUrl(e.target.value)}
-                                placeholder={currentMode === 'SC' ? 'http://localhost:8001' : 'http://localhost:8000'}
+                                placeholder={currentMode === 'SC' ? 'http://localhost:8010' : 'http://localhost:8000'}
                                 disabled={!isEditingUrl}
                                 required
                             />

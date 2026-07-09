@@ -6,6 +6,14 @@ export const DASHBOARD_MODES = {
 export const DEFAULT_MODE = 'EA';
 
 export const getDashboardMode = () => {
+    if (typeof window !== 'undefined' && window.location) {
+        const params = new URLSearchParams(window.location.search);
+        const mode = params.get('mode');
+        if (mode === 'EA' || mode === 'SC') {
+            sessionStorage.setItem('dashboard_mode', mode);
+            return mode;
+        }
+    }
     return sessionStorage.getItem('dashboard_mode') || DEFAULT_MODE;
 };
 
@@ -97,7 +105,7 @@ export const getApiUrl = () => {
     const env = getEnv();
     const mode = getDashboardMode();
     if (env === 'LOCAL') {
-        return sessionStorage.getItem(`${mode}_local_base_url`) || (mode === 'SC' ? 'http://localhost:8001' : 'http://localhost:8000');
+        return sessionStorage.getItem(`${mode}_local_base_url`) || (mode === 'SC' ? 'http://localhost:8010' : 'http://localhost:8000');
     }
     return ENV_CONFIG[mode][env].BASE_URL;
 };
@@ -109,7 +117,7 @@ export const setLocalBaseUrl = (url) => {
 
 export const getLocalBaseUrl = () => {
     const mode = getDashboardMode();
-    return sessionStorage.getItem(`${mode}_local_base_url`) || (mode === 'SC' ? 'http://localhost:8001' : 'http://localhost:8000');
+    return sessionStorage.getItem(`${mode}_local_base_url`) || (mode === 'SC' ? 'http://localhost:8010' : 'http://localhost:8000');
 };
 
 export const getEnvName = () => {
