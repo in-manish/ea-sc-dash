@@ -77,8 +77,18 @@ const EventSettings = () => {
         }));
     };
 
+    const handleShowHoursChange = (value) => {
+        setEventData(prev => ({
+            ...prev,
+            show_hours: value
+        }));
+    };
+
     const isFieldModified = (fieldName) => {
         if (!originalEventData) return false;
+        if (fieldName === 'show_hours') {
+            return JSON.stringify(eventData.show_hours || {}) !== JSON.stringify(originalEventData.show_hours || {});
+        }
         if (typeof eventData[fieldName] === 'boolean' || typeof originalEventData[fieldName] === 'boolean') {
             return !!eventData[fieldName] !== !!originalEventData[fieldName];
         }
@@ -287,7 +297,8 @@ const EventSettings = () => {
                 'meeting_diary',
                 'agenda',
                 'exhibitor_blocking_fields',
-                'exhibitor_setup_checklist'
+                'exhibitor_setup_checklist',
+                'show_hours'
             ];
             
             const imageFields = ['logo', 'logo2', 'event_background_image', 'event_banner_logo', 'meetingdiary_portal_bg_image'];
@@ -355,6 +366,7 @@ const EventSettings = () => {
             
             if (eventData.intl_meta) formData.append('intl_meta', JSON.stringify(eventData.intl_meta));
             if (eventData.intl_data) formData.append('intl_data', JSON.stringify(eventData.intl_data));
+            formData.append('show_hours', JSON.stringify(eventData.show_hours || {}));
 
             // --- MANUAL PAYLOAD MODIFICATION AREA ---
             // You can manually add or override any keys here before the update request.
@@ -401,7 +413,7 @@ const EventSettings = () => {
     ];
 
     return (
-        <div className="pb-8 animate-fade-in">
+        <div className="pb-8 animate-fade-in w-full max-w-full overflow-hidden">
             <div className="flex justify-between items-start mb-8 pb-4 border-b border-border">
                 <div>
                     <h1 className="text-2xl font-bold text-text-primary mb-1">Event Settings</h1>
@@ -419,16 +431,22 @@ const EventSettings = () => {
                 </div>
             )}
 
-            <div className="flex gap-2 mb-6 border-b border-border pb-[1px]">
-                {tabs.map(tab => (
-                    <button
-                        key={tab.id}
-                        className={`bg-transparent border-none py-3 px-6 text-sm font-medium cursor-pointer border-b-2 transition-all duration-200 ${activeTab === tab.id ? 'text-accent border-accent font-semibold' : 'text-text-secondary border-transparent hover:text-text-primary'}`}
-                        onClick={() => handleTabChange(tab.id)}
-                    >
-                        {tab.label}
-                    </button>
-                ))}
+            <div className="relative mb-6 border-b border-border w-full max-w-full overflow-hidden">
+                <div className="flex items-center gap-1 overflow-x-auto whitespace-nowrap scrollbar-none pb-[1.5px] -mb-[1px] w-full">
+                    {tabs.map(tab => (
+                        <button
+                            key={tab.id}
+                            className={`bg-transparent border-none py-3 px-5 text-[13px] font-medium cursor-pointer border-b-2 transition-all duration-200 shrink-0 ${
+                                activeTab === tab.id 
+                                    ? 'text-accent border-accent font-semibold' 
+                                    : 'text-text-secondary border-transparent hover:text-text-primary hover:border-border-hover'
+                            }`}
+                            onClick={() => handleTabChange(tab.id)}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
             </div>
 
             <div className="max-w-[800px]">
@@ -437,6 +455,8 @@ const EventSettings = () => {
                         eventData={eventData} 
                         handleInputChange={handleInputChange} 
                         isFieldModified={isFieldModified} 
+                        handleShowHoursChange={handleShowHoursChange}
+                        originalShowHours={originalEventData?.show_hours}
                     />
                 )}
                 {activeTab === 'companies' && (

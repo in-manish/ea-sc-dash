@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
-import { Loader2, Search, Filter, Globe, Building2, X, Printer, ShoppingCart, Settings, Star } from 'lucide-react';
+import { Loader2, Search, Filter, Globe, Building2, X, Printer, ShoppingCart, Settings, Star, Lock } from 'lucide-react';
 import AdditionalRequirementsOrders from './AdditionalRequirementsOrders';
 import ARManager from './ARManager';
 import CompanyProductSection from './event-settings/company-products/CompanyProductSection';
@@ -31,7 +31,7 @@ const Companies = () => {
         const filters = {};
         const filterKeys = [
             'country', 'location', 'category', 'parent_exhibitor_id',
-            'parent_exhibitor_only', 'is_badge_printed', 'registered_co_exhibitor_count', 'is_featured'
+            'parent_exhibitor_only', 'is_badge_printed', 'registered_co_exhibitor_count', 'is_featured', 'is_company_submit_locked'
         ];
 
         filterKeys.forEach(key => {
@@ -82,7 +82,7 @@ const Companies = () => {
 
         const filterKeys = [
             'country', 'location', 'category', 'parent_exhibitor_id',
-            'parent_exhibitor_only', 'is_badge_printed', 'registered_co_exhibitor_count', 'is_featured'
+            'parent_exhibitor_only', 'is_badge_printed', 'registered_co_exhibitor_count', 'is_featured', 'is_company_submit_locked'
         ];
 
         filterKeys.forEach(key => {
@@ -112,6 +112,7 @@ const Companies = () => {
                     debouncedSearch,
                     filters
                 );
+                console.log("FIRST COMPANY:", data.results?.[0]);
                 setCompanies(data.results);
                 setTotal(data.exhibitor_count || 0); // Using exhibitor_count as total based on API response
             } catch (err) {
@@ -281,7 +282,12 @@ const Companies = () => {
                                                                 />
                                                             )}
                                                         </div>
-                                                        <div className="text-xs text-text-tertiary mt-0.5">{company.company_slug}</div>
+                                                        <div className="text-xs text-text-tertiary mt-0.5 flex items-center gap-1">
+                                                            <span>{company.company_slug}</span>
+                                                            {company.is_company_submit_locked && (
+                                                                <Lock size={12} className="text-red-500 shrink-0" title="Company Submit Locked" />
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </td>
@@ -466,6 +472,24 @@ const Companies = () => {
                                 <option value="">All</option>
                                 <option value="true">Featured</option>
                                 <option value="false">Not Featured</option>
+                            </select>
+                        </div>
+
+                        <div className="flex flex-col gap-2">
+                            <h4 className="text-xs font-bold text-text-tertiary uppercase tracking-wider m-0">Submit Locked</h4>
+                            <select
+                                className="w-full py-2.5 px-3.5 border border-border rounded-md text-sm bg-bg-secondary outline-none transition-colors duration-200 focus:border-accent focus:bg-white focus:ring-2 focus:ring-accent/10"
+                                value={filters.is_company_submit_locked || ''}
+                                onChange={(e) => {
+                                    const newFilters = { ...filters };
+                                    if (e.target.value) newFilters.is_company_submit_locked = e.target.value;
+                                    else delete newFilters.is_company_submit_locked;
+                                    setFilters(newFilters);
+                                }}
+                            >
+                                <option value="">All</option>
+                                <option value="true">Locked</option>
+                                <option value="false">Unlocked</option>
                             </select>
                         </div>
                     </div>
