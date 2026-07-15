@@ -20,7 +20,7 @@ const EventLayout = () => {
         'Reports': location.pathname.includes('/reports'),
         'Meetings': location.pathname.includes('/meetings'),
         'Staff Management': location.pathname.includes('/staff'),
-        'Utils Config': location.pathname.includes('/attendee-types') || location.pathname.includes('/exhibitor-portal-setup') || location.pathname.includes('/celery-manage') || location.pathname.includes('/email-kill-switch')
+        'Utils Config': location.pathname.includes('/attendee-types') || location.pathname.includes('/exhibitor-portal-setup') || location.pathname.includes('/celery-manage') || location.pathname.includes('/email-kill-switch') || location.pathname.includes('/exhibitor-certificate')
     });
 
     // Handle body class for CSS variable shifting
@@ -380,7 +380,7 @@ const EventLayout = () => {
                         {/* Utils Config with Submenu */}
                         <div className="flex flex-col gap-1">
                             <div
-                                className={navLinkClass({ isActive: location.pathname.includes('/attendee-types') || location.pathname.includes('/exhibitor-portal-setup') || location.pathname.includes('/celery-manage') || location.pathname.includes('/email-kill-switch') })}
+                                className={navLinkClass({ isActive: location.pathname.includes('/attendee-types') || location.pathname.includes('/exhibitor-portal-setup') || location.pathname.includes('/celery-manage') || location.pathname.includes('/email-kill-switch') || location.pathname.includes('/exhibitor-certificate') })}
                                 onClick={() => {
                                     toggleExpand('Utils Config');
                                 }}
@@ -408,6 +408,12 @@ const EventLayout = () => {
                                         className={({ isActive }) => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${isActive ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
                                     >
                                         Exhibitor Portal Setup
+                                    </NavLink>
+                                    <NavLink
+                                        to={`/event/${selectedEvent.id}/exhibitor-certificate`}
+                                        className={({ isActive }) => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${isActive ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
+                                    >
+                                        Exhibitor Certificate
                                     </NavLink>
                                     <NavLink
                                         to={`/event/${selectedEvent.id}/celery-manage`}
