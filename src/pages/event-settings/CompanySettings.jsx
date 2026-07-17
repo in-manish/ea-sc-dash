@@ -1,6 +1,7 @@
 import React from 'react';
 import { Building2, MapPin, Users, Plus, Trash2, Eye, EyeOff, ArrowUp, ArrowDown, Save, MousePointerClick } from 'lucide-react';
 import { SectionHeader, FormField, ToggleSwitch, getInputClass } from './components/SharedComponents';
+import ScriptEmbedEditor from '../../components/common/ScriptEmbedEditor';
 
 const CompanySettings = ({ 
     eventData, 
@@ -21,6 +22,10 @@ const CompanySettings = ({
         const isModified = !eventData.originalData?.company_complimentary_invitee_info?.[index] || 
                           eventData.company_complimentary_invitee_info[index][fieldName] !== eventData.originalData.company_complimentary_invitee_info[index][fieldName];
         return getInputClass(fieldName, isModified);
+    };
+
+    const handleScriptChange = (name, value) => {
+        handleInputChange({ target: { name, value, type: 'text' } });
     };
 
     return (
@@ -100,6 +105,13 @@ const CompanySettings = ({
                             placeholder="https://tickets.fairfest.in/e/..."
                         />
                     </FormField>
+                    <ScriptEmbedEditor
+                        label="FHT / Hotel Map Script"
+                        description="Raw Hotelmap embed script. Preview renders the map the same way accommodation pages do."
+                        value={eventData.fht_script || ''}
+                        onChange={(val) => handleScriptChange('fht_script', val)}
+                        placeholder='<script async type="text/javascript" id="hotelmap_script" src="https://hotelmap.com/api/html/v2/listing?m=..."></script>'
+                    />
                 </div>
             </div>
 
