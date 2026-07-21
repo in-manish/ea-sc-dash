@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
-import { Loader2, ArrowLeft, Building2, MapPin, Globe, Phone, Ticket, LayoutDashboard, User, Star } from 'lucide-react';
+import ExhibitorMatchmakingSection from '../features/Matchmaking/ui/ExhibitorMatchmakingSection';
+import { Loader2, ArrowLeft, Building2, MapPin, Globe, Phone, Ticket, LayoutDashboard, User, Star, Users } from 'lucide-react';
 
 const CompanyDetails = () => {
     const { selectedEvent, token } = useAuth();
@@ -134,7 +135,18 @@ const CompanyDetails = () => {
 
                 {/* Badge Stats */}
                 <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
-                    <h3 className="text-sm font-semibold uppercase text-text-tertiary mb-5 flex items-center gap-2 border-b border-border pb-3"><Ticket size={18} /> Badge Statistics</h3>
+                    <div className="flex items-center justify-between mb-5 border-b border-border pb-3">
+                        <h3 className="text-sm font-semibold uppercase text-text-tertiary flex items-center gap-2 m-0"><Ticket size={18} /> Badge Statistics</h3>
+                        <button
+                            className="btn btn-secondary btn-sm inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={() => navigate(`/event/${selectedEvent.id}/attendees?exhibitor_id=${company.id}`)}
+                            disabled={!company.badge_count}
+                            title={company.badge_count ? 'View attendees under this exhibitor' : 'No badges registered for this exhibitor'}
+                        >
+                            <Users size={14} />
+                            View Attendees
+                        </button>
+                    </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="bg-bg-secondary p-4 rounded-md flex flex-col items-center justify-center text-center">
                             <span className="text-xs text-text-secondary mb-1">Total Limit</span>
@@ -143,6 +155,10 @@ const CompanyDetails = () => {
                         <div className="bg-bg-secondary p-4 rounded-md flex flex-col items-center justify-center text-center">
                             <span className="text-xs text-text-secondary mb-1">Issued</span>
                             <span className="text-xl font-bold text-text-primary">{company.badge_issued}</span>
+                        </div>
+                        <div className="bg-bg-secondary p-4 rounded-md flex flex-col items-center justify-center text-center">
+                            <span className="text-xs text-text-secondary mb-1">Badge Count</span>
+                            <span className="text-xl font-bold text-text-primary">{company.badge_count ?? 0}</span>
                         </div>
                         <div className="bg-bg-secondary p-4 rounded-md flex flex-col items-center justify-center text-center">
                             <span className="text-xs text-text-secondary mb-1">Remaining</span>
@@ -202,6 +218,12 @@ const CompanyDetails = () => {
                     </div>
                 </div>
             </div>
+
+            <ExhibitorMatchmakingSection
+                eventId={selectedEvent.id}
+                companyId={companyId}
+                token={token}
+            />
         </div>
     );
 };

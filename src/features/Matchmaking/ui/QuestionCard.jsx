@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Filter, Star, Hash, Trash2, Layout, Layers, ChevronDown, ChevronUp, MoreHorizontal } from 'lucide-react';
+import { Filter, Star, Hash, Trash2, Layout, Layers, ChevronDown, ChevronUp, MoreHorizontal, Building2, Loader2 } from 'lucide-react';
 import OptionList from './OptionList';
 
-const QuestionCard = ({ question, attendeeTypes, onEdit, onRemove, defaultExpanded }) => {
+const QuestionCard = ({ question, attendeeTypes, onEdit, onRemove, onToggleExhibitorPortal, togglingPortal = false, defaultExpanded, readOnly = false }) => {
     const [isExpanded, setIsExpanded] = useState(defaultExpanded || false);
     const optionCount = question.options?.length || 0;
 
@@ -32,10 +32,12 @@ const QuestionCard = ({ question, attendeeTypes, onEdit, onRemove, defaultExpand
                 </div>
                 
                 <div className="flex items-center gap-2">
-                    <button onClick={(e) => { e.stopPropagation(); onEdit?.(question); }} className="flex items-center gap-1.5 px-3 py-1.5 text-[9px] font-bold text-accent bg-white hover:bg-accent hover:text-white rounded-lg transition-all duration-300 active:scale-95 border border-accent/20 shadow-sm group/edit" title="Edit Configuration">
-                        <MoreHorizontal size={14} className="group-hover/edit:rotate-90 transition-transform" />
-                        EDIT
-                    </button>
+                    {!readOnly && (
+                        <button onClick={(e) => { e.stopPropagation(); onEdit?.(question); }} className="flex items-center gap-1.5 px-3 py-1.5 text-[9px] font-bold text-accent bg-white hover:bg-accent hover:text-white rounded-lg transition-all duration-300 active:scale-95 border border-accent/20 shadow-sm group/edit" title="Edit Configuration">
+                            <MoreHorizontal size={14} className="group-hover/edit:rotate-90 transition-transform" />
+                            EDIT
+                        </button>
+                    )}
                     <button onClick={() => setIsExpanded(!isExpanded)} className={`p-1.5 rounded-lg transition-all duration-300 ${isExpanded ? 'bg-accent text-white shadow-lg shadow-accent/20' : 'bg-white text-text-tertiary hover:bg-accent/10 hover:text-accent border border-border/40'}`}>
                         {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                     </button>
@@ -72,6 +74,7 @@ const QuestionCard = ({ question, attendeeTypes, onEdit, onRemove, defaultExpand
                         )}
                         {question.is_filter && <span className="text-[8px] font-bold text-status-success bg-status-success/5 px-2 py-0.5 rounded-lg border border-status-success/10 uppercase tracking-tighter">Filterable</span>}
                         {question.is_mandatory && <span className="text-[8px] font-bold text-status-danger bg-status-danger/5 px-2 py-0.5 rounded-lg border border-status-danger/10 uppercase tracking-tighter">Required</span>}
+                        {question.can_support_exhibitor_portal && <span className="text-[8px] font-bold text-accent bg-accent/5 px-2 py-0.5 rounded-lg border border-accent/10 uppercase tracking-tighter">Exhibitor Portal</span>}
                     </div>
                 </div>
 
@@ -97,16 +100,46 @@ const QuestionCard = ({ question, attendeeTypes, onEdit, onRemove, defaultExpand
                         </div>
                     </div>
 
-                    <div className="relative z-10 mt-4 pt-4 border-t border-border/40">
-                        <div className="flex items-center justify-between">
-                            <button onClick={(e) => { e.stopPropagation(); onEdit?.(question); }} className="flex-1 py-2.5 text-[10px] font-bold text-accent bg-accent/5 hover:bg-accent hover:text-white rounded-xl transition-all duration-300 active:scale-[0.97] border border-accent/10 hover:border-accent shadow-sm uppercase tracking-wider">
-                                Refine Configuration
+                    {!readOnly && (
+                        <div className="relative z-10 mt-4 pt-4 border-t border-border/40 space-y-3">
+                            <button
+                                type="button"
+                                disabled={togglingPortal}
+                                onClick={(e) => { e.stopPropagation(); onToggleExhibitorPortal?.(question); }}
+                                className={`w-full flex items-center justify-between gap-3 p-3 rounded-xl border transition-all duration-300 ${
+                                    question.can_support_exhibitor_portal
+                                        ? 'bg-accent/5 border-accent/20 hover:bg-accent/10'
+                                        : 'bg-bg-secondary/30 border-border/40 hover:border-accent/30'
+                                }`}
+                            >
+                                <div className="flex items-center gap-3">
+                                    {togglingPortal ? (
+                                        <Loader2 size={14} className="text-accent animate-spin" />
+                                    ) : (
+                                        <Building2 size={14} className={question.can_support_exhibitor_portal ? 'text-accent' : 'text-text-tertiary'} />
+                                    )}
+                                    <div className="text-left">
+                                        <p className="text-[10px] font-bold text-text-primary uppercase tracking-wider">Exhibitor Portal</p>
+                                        <p className="text-[10px] text-text-tertiary mt-0.5">
+                                            {question.can_support_exhibitor_portal ? 'Visible on exhibitor portal' : 'Not shown on exhibitor portal'}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className={`w-9 h-5 rounded-full p-0.5 transition-colors shrink-0 ${question.can_support_exhibitor_portal ? 'bg-accent' : 'bg-bg-tertiary'}`}>
+                                    <div className={`w-4 h-4 bg-white rounded-full transition-transform shadow-md ${question.can_support_exhibitor_portal ? 'translate-x-4' : 'translate-x-0'}`} />
+                                </div>
                             </button>
-                            <button onClick={(e) => { e.stopPropagation(); onRemove?.(question.id); }} className="ml-3 p-2.5 text-text-tertiary/40 hover:text-status-danger hover:bg-status-danger/5 rounded-xl transition-all duration-300 border border-transparent hover:border-status-danger/10" title="Delete Question">
-                                <Trash2 size={16} />
-                            </button>
+
+                            <div className="flex items-center justify-between">
+                                <button onClick={(e) => { e.stopPropagation(); onEdit?.(question); }} className="flex-1 py-2.5 text-[10px] font-bold text-accent bg-accent/5 hover:bg-accent hover:text-white rounded-xl transition-all duration-300 active:scale-[0.97] border border-accent/10 hover:border-accent shadow-sm uppercase tracking-wider">
+                                    Refine Configuration
+                                </button>
+                                <button onClick={(e) => { e.stopPropagation(); onRemove?.(question.id); }} className="ml-3 p-2.5 text-text-tertiary/40 hover:text-status-danger hover:bg-status-danger/5 rounded-xl transition-all duration-300 border border-transparent hover:border-status-danger/10" title="Delete Question">
+                                    <Trash2 size={16} />
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
         </div>

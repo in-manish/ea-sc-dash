@@ -123,12 +123,79 @@ export const eventService = {
                 headers: getHeaders(token),
                 body: JSON.stringify(payload)
             });
+
+            const data = await response.json().catch(() => null);
+
+            if (!response.ok) {
+                const error = new Error(
+                    (data && (data.detail || data.message)) || `Failed to create attendee (status ${response.status})`
+                );
+                error.data = data;
+                error.status = response.status;
+                throw error;
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Create Attendee Error:', error);
+            throw error;
+        }
+    },
+
+    async uploadCompaniesCsv(eventId, token, file) {
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const headers = getHeaders(token);
+            delete headers['Content-Type']; // Browser sets multipart boundary
+
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/company/upload/`, {
+                method: 'POST',
+                headers,
+                body: formData
+            });
+
+            const data = await response.json().catch(() => null);
+
+            if (!response.ok) {
+                const error = new Error(
+                    (data && (data.detail || data.message || data.msg)) || `Failed to upload companies (status ${response.status})`
+                );
+                error.data = data;
+                error.status = response.status;
+                throw error;
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Upload Companies CSV Error:', error);
+            throw error;
+        }
+    },
+
+    async getCompanyUploads(eventId, token, { page = 1, page_size = 20, uploadId = null } = {}) {
+        try {
+            const queryParams = new URLSearchParams();
+            if (uploadId) {
+                queryParams.append('upload_id', uploadId);
+            } else {
+                queryParams.append('page', page);
+                queryParams.append('page_size', page_size);
+            }
+
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/company/upload/?${queryParams}`, {
+                method: 'GET',
+                headers: getHeaders(token)
+            });
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
+
             return await response.json();
         } catch (error) {
-            console.error('Create Attendee Error:', error);
+            console.error('Get Company Uploads Error:', error);
             throw error;
         }
     },

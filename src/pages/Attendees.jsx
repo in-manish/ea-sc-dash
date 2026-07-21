@@ -4,7 +4,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
 import { attendeeSelectionService } from '../services/attendeeSelectionService';
 import { whatsappService } from '../services/whatsappService';
-import { Loader2, Search, Filter, Phone, Mail, Globe, X, ShieldCheck, Building2, CheckSquare, Square, MessageCircle, CheckCircle2, ChevronDown, ChevronUp, List, LayoutGrid, Smartphone, Eye, Code, IdCard } from 'lucide-react';
+import AttendeeMatchmakingAnswers from '../features/Matchmaking/ui/AttendeeMatchmakingAnswers';
+import CreateAttendeeModal from '../components/attendees/CreateAttendeeModal';
+import { Loader2, Search, Filter, Phone, Mail, Globe, X, ShieldCheck, Building2, CheckSquare, Square, MessageCircle, CheckCircle2, ChevronDown, ChevronUp, List, LayoutGrid, Smartphone, Eye, Code, IdCard, HeartHandshake, UserPlus } from 'lucide-react';
 
 const pillColors = {
     attendee_type: "bg-blue-50 text-blue-800 border-blue-200",
@@ -17,6 +19,8 @@ const pillColors = {
     whatsapp_sent: "bg-pink-50 text-pink-800 border-pink-200",
     created_at_start: "bg-slate-50 text-slate-700 border-slate-200",
     created_at_end: "bg-slate-50 text-slate-700 border-slate-200",
+    exhibitor_id: "bg-indigo-50 text-indigo-800 border-indigo-200",
+    parent_exhibitor_id: "bg-indigo-50 text-indigo-800 border-indigo-200",
 };
 
 const getTemplatePreview = (template) => {
@@ -94,6 +98,8 @@ const Attendees = () => {
     const [page, setPage] = useState(parseInt(searchParams.get('page')) || 1);
     const [hasLoaded, setHasLoaded] = useState(false);
     const [selectedAttendee, setSelectedAttendee] = useState(null);
+    const [matchmakingAttendee, setMatchmakingAttendee] = useState(null);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isModalMaximized, setIsModalMaximized] = useState(false);
     const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
     const [selectionMode, setSelectionMode] = useState('none');
@@ -135,7 +141,8 @@ const Attendees = () => {
         const filterKeys = [
             'attendee_type', 'reg_type', 'city', 'state', 'country',
             'is_poc', 'email_sent', 'sms_sent', 'check_in', 'whatsapp_sent',
-            'created_at_start', 'created_at_end', 'modified_at_start', 'modified_at_end'
+            'created_at_start', 'created_at_end', 'modified_at_start', 'modified_at_end',
+            'exhibitor_id', 'parent_exhibitor_id'
         ];
 
         filterKeys.forEach(key => {
@@ -582,6 +589,10 @@ const Attendees = () => {
 
                 {activeTab === 'list' && (
                     <div className="flex gap-4">
+                        <button className="btn btn-primary" onClick={() => setIsCreateModalOpen(true)}>
+                            <UserPlus size={16} style={{ marginRight: '0.5rem' }} />
+                            Create Attendee
+                        </button>
                         <div className="relative">
                             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
                             <input
@@ -858,14 +869,24 @@ const Attendees = () => {
                                                 </span>
                                             </td>
                                             <td className="py-4 px-6 align-middle group-last:border-b-0 text-right" onClick={(e) => e.stopPropagation()}>
-                                                <button
-                                                    className="btn btn-secondary btn-sm inline-flex items-center gap-1.5"
-                                                    onClick={() => handleCreateEBadge(attendee.uuid)}
-                                                    title="Re-create E-badge"
-                                                >
-                                                    <IdCard size={14} />
-                                                    Re-create E-badge
-                                                </button>
+                                                <div className="inline-flex items-center gap-2">
+                                                    <button
+                                                        className="btn btn-secondary btn-sm inline-flex items-center gap-1.5"
+                                                        onClick={() => setMatchmakingAttendee(attendee)}
+                                                        title="View Matchmaking Answers"
+                                                    >
+                                                        <HeartHandshake size={14} />
+                                                        Matchmaking
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-secondary btn-sm inline-flex items-center gap-1.5"
+                                                        onClick={() => handleCreateEBadge(attendee.uuid)}
+                                                        title="Re-create E-badge"
+                                                    >
+                                                        <IdCard size={14} />
+                                                        Re-create E-badge
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
@@ -1050,6 +1071,13 @@ const Attendees = () => {
                                 Close
                             </button>
                             <button
+                                className="btn btn-secondary flex items-center gap-2"
+                                onClick={() => setMatchmakingAttendee(selectedAttendee)}
+                            >
+                                <HeartHandshake size={16} />
+                                View Matchmaking
+                            </button>
+                            <button
                                 className="btn btn-primary flex items-center gap-2"
                                 onClick={() => handleCreateEBadge(selectedAttendee.uuid)}
                             >
@@ -1093,6 +1121,39 @@ const Attendees = () => {
                                         {type}
                                     </button>
                                 ))}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-2">
+                                <h4 className="text-xs font-bold text-text-tertiary uppercase tracking-wider m-0">Exhibitor ID</h4>
+                                <input
+                                    type="text"
+                                    className="w-full py-2.5 px-3.5 border border-border rounded-md text-sm bg-bg-secondary outline-none"
+                                    placeholder="Enter exhibitor ID..."
+                                    value={filters.exhibitor_id || ''}
+                                    onChange={(e) => {
+                                        const newFilters = { ...filters };
+                                        if (e.target.value) newFilters.exhibitor_id = e.target.value;
+                                        else delete newFilters.exhibitor_id;
+                                        setFilters(newFilters);
+                                    }}
+                                />
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <h4 className="text-xs font-bold text-text-tertiary uppercase tracking-wider m-0">Parent Exhibitor ID</h4>
+                                <input
+                                    type="text"
+                                    className="w-full py-2.5 px-3.5 border border-border rounded-md text-sm bg-bg-secondary outline-none"
+                                    placeholder="Enter parent exhibitor ID..."
+                                    value={filters.parent_exhibitor_id || ''}
+                                    onChange={(e) => {
+                                        const newFilters = { ...filters };
+                                        if (e.target.value) newFilters.parent_exhibitor_id = e.target.value;
+                                        else delete newFilters.parent_exhibitor_id;
+                                        setFilters(newFilters);
+                                    }}
+                                />
                             </div>
                         </div>
 
@@ -1530,6 +1591,29 @@ const Attendees = () => {
                         </div>
                     </div>
                 </div>
+            )}
+            {/* Attendee Matchmaking Answers Modal */}
+            {matchmakingAttendee && selectedEvent && (
+                <AttendeeMatchmakingAnswers
+                    eventId={selectedEvent.id}
+                    badgeUid={matchmakingAttendee.uuid}
+                    attendeeName={matchmakingAttendee.name}
+                    token={token}
+                    onClose={() => setMatchmakingAttendee(null)}
+                />
+            )}
+            {/* Create Attendee Modal */}
+            {isCreateModalOpen && selectedEvent && (
+                <CreateAttendeeModal
+                    eventId={selectedEvent.id}
+                    token={token}
+                    onClose={() => setIsCreateModalOpen(false)}
+                    onCreated={() => {
+                        setPage(1);
+                        setSearch('');
+                        setFilters({});
+                    }}
+                />
             )}
         </div>
     );

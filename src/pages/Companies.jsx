@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
-import { Loader2, Search, Filter, Globe, Building2, X, Printer, ShoppingCart, Settings, Star, Lock } from 'lucide-react';
+import { Loader2, Search, Filter, Globe, Building2, X, Printer, ShoppingCart, Settings, Star, Lock, IdCard, Upload } from 'lucide-react';
 import AdditionalRequirementsOrders from './AdditionalRequirementsOrders';
 import ARManager from './ARManager';
 import CompanyProductSection from './event-settings/company-products/CompanyProductSection';
+import CompanyUploadModal from '../components/companies/CompanyUploadModal';
+import CompanyUploadStatus from '../components/companies/CompanyUploadStatus';
 
 const Companies = () => {
     const { selectedEvent, token } = useAuth();
@@ -15,6 +17,7 @@ const Companies = () => {
     // Helper to get active tab and view from URL
     const activeTab = searchParams.get('tab') || 'exhibitors';
     const arView = searchParams.get('ar_view') || 'orders';
+    const exhView = searchParams.get('exh_view') || 'list';
 
     const [companies, setCompanies] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -43,6 +46,15 @@ const Companies = () => {
     };
 
     const [filters, setFilters] = useState(getInitialFilters());
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+    const [uploadRefreshKey, setUploadRefreshKey] = useState(0);
+
+    const handleExhViewChange = (viewName) => {
+        const newParams = new URLSearchParams(searchParams);
+        if (viewName === 'list') newParams.delete('exh_view');
+        else newParams.set('exh_view', viewName);
+        setSearchParams(newParams);
+    };
 
     const handleTabChange = (tabName) => {
         const newParams = new URLSearchParams(searchParams);
@@ -144,27 +156,35 @@ const Companies = () => {
                 <div className="flex gap-2">
                     {activeTab === 'exhibitors' && (
                         <div className="flex gap-4 items-center">
-                            <div className="relative">
-                                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
-                                <input
-                                    type="text"
-                                    placeholder="Search companies..."
-                                    className="w-60 py-2 pr-4 pl-9 border border-border rounded-md text-sm outline-none transition-colors duration-200 focus:border-accent focus:ring-2 focus:ring-accent/10 focus:bg-white"
-                                    value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
-                                />
-                            </div>
-                            <button
-                                className={`btn ${Object.keys(filters).length > 0 ? 'btn-primary' : 'btn-secondary'}`}
-                                onClick={() => setIsFilterDrawerOpen(true)}
-                            >
-                                <Filter size={16} style={{ marginRight: '0.5rem' }} />
-                                Filter {Object.keys(filters).length > 0 && `(${Object.keys(filters).length})`}
+                            <button className="btn btn-primary" onClick={() => setIsUploadModalOpen(true)}>
+                                <Upload size={16} style={{ marginRight: '0.5rem' }} />
+                                Upload CSV
                             </button>
-                            {Object.keys(filters).length > 0 && (
-                                <button className="btn btn-ghost btn-sm" onClick={() => setFilters({})}>
-                                    Clear
-                                </button>
+                            {exhView === 'list' && (
+                                <>
+                                    <div className="relative">
+                                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
+                                        <input
+                                            type="text"
+                                            placeholder="Search companies..."
+                                            className="w-60 py-2 pr-4 pl-9 border border-border rounded-md text-sm outline-none transition-colors duration-200 focus:border-accent focus:ring-2 focus:ring-accent/10 focus:bg-white"
+                                            value={search}
+                                            onChange={(e) => setSearch(e.target.value)}
+                                        />
+                                    </div>
+                                    <button
+                                        className={`btn ${Object.keys(filters).length > 0 ? 'btn-primary' : 'btn-secondary'}`}
+                                        onClick={() => setIsFilterDrawerOpen(true)}
+                                    >
+                                        <Filter size={16} style={{ marginRight: '0.5rem' }} />
+                                        Filter {Object.keys(filters).length > 0 && `(${Object.keys(filters).length})`}
+                                    </button>
+                                    {Object.keys(filters).length > 0 && (
+                                        <button className="btn btn-ghost btn-sm" onClick={() => setFilters({})}>
+                                            Clear
+                                        </button>
+                                    )}
+                                </>
                             )}
                         </div>
                     )}
@@ -202,6 +222,25 @@ const Companies = () => {
                 </button>
             </div>
 
+            {activeTab === 'exhibitors' && (
+                <div className="mb-6 flex items-center gap-1 p-1 bg-bg-secondary border border-border rounded-lg inline-flex">
+                    <button
+                        className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${exhView === 'list' ? 'bg-white text-accent shadow-sm' : 'text-text-secondary hover:text-text-primary'}`}
+                        onClick={() => handleExhViewChange('list')}
+                    >
+                        <Building2 size={16} />
+                        Exhibitors
+                    </button>
+                    <button
+                        className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${exhView === 'upload_status' ? 'bg-white text-accent shadow-sm' : 'text-text-secondary hover:text-text-primary'}`}
+                        onClick={() => handleExhViewChange('upload_status')}
+                    >
+                        <Upload size={16} />
+                        Upload Status
+                    </button>
+                </div>
+            )}
+
             {activeTab === 'additional_requirements' && (
                 <div className="mb-6 flex items-center gap-1 p-1 bg-bg-secondary border border-border rounded-lg inline-flex">
                     <button
@@ -221,7 +260,11 @@ const Companies = () => {
                 </div>
             )}
 
-            {activeTab === 'exhibitors' && (
+            {activeTab === 'exhibitors' && exhView === 'upload_status' && (
+                <CompanyUploadStatus eventId={selectedEvent.id} token={token} refreshKey={uploadRefreshKey} />
+            )}
+
+            {activeTab === 'exhibitors' && exhView === 'list' && (
                 <>
                     {error && <div className="bg-red-50 text-red-800 p-4 border border-red-200 rounded-md mb-6">{error}</div>}
 
@@ -303,11 +346,19 @@ const Companies = () => {
                                             <td className="py-4 px-6 align-middle group-last:border-b-0">
                                                 <span className="inline-flex py-1 px-2.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 tracking-wide">{company.category}</span>
                                             </td>
-                                            <td className="py-4 px-6 align-middle group-last:border-b-0">
-                                                <div className="flex flex-col gap-1 text-xs text-text-secondary">
+                                            <td className="py-4 px-6 align-middle group-last:border-b-0" onClick={(e) => e.stopPropagation()}>
+                                                <button
+                                                    type="button"
+                                                    className="flex flex-col gap-1 text-xs text-text-secondary text-left rounded-md px-2 py-1 -mx-2 transition-colors hover:bg-accent/5 hover:text-accent cursor-pointer group/badges"
+                                                    onClick={() => navigate(`/event/${selectedEvent.id}/attendees?exhibitor_id=${company.id}`)}
+                                                    title="View attendees under this exhibitor"
+                                                >
                                                     <span>Limit: {company.badge_limit}</span>
-                                                    <span>Issued: {company.badge_issued}</span>
-                                                </div>
+                                                    <span className="inline-flex items-center gap-1">
+                                                        Issued: {company.badge_issued}
+                                                        <IdCard size={12} className="opacity-0 group-hover/badges:opacity-100 transition-opacity" />
+                                                    </span>
+                                                </button>
                                             </td>
                                         </tr>
                                     ))
@@ -504,6 +555,19 @@ const Companies = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Bulk Company Upload Modal */}
+            {isUploadModalOpen && selectedEvent && (
+                <CompanyUploadModal
+                    eventId={selectedEvent.id}
+                    token={token}
+                    onClose={() => setIsUploadModalOpen(false)}
+                    onUploaded={() => {
+                        setUploadRefreshKey((k) => k + 1);
+                        handleExhViewChange('upload_status');
+                    }}
+                />
+            )}
         </div>
     );
 };
