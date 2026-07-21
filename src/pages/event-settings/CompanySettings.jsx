@@ -1,7 +1,15 @@
 import React from 'react';
-import { Building2, MapPin, Users, Plus, Trash2, Eye, EyeOff, ArrowUp, ArrowDown, Save, MousePointerClick } from 'lucide-react';
+import { Building2, MapPin, Users, Plus, Trash2, Eye, EyeOff, ArrowUp, ArrowDown, Save, MousePointerClick, LayoutGrid } from 'lucide-react';
 import { SectionHeader, FormField, ToggleSwitch, getInputClass } from './components/SharedComponents';
 import ScriptEmbedEditor from '../../components/common/ScriptEmbedEditor';
+
+export const STALL_SCHEMA_TYPES = [
+    { value: 'BRSP', label: 'Bare space' },
+    { value: 'BTUP', label: 'Built Up' },
+    { value: 'TURNKEY', label: 'Turnkey' },
+];
+
+export const DEFAULT_STALL_SCHEMA_TYPES = ['BRSP', 'BTUP'];
 
 const CompanySettings = ({ 
     eventData, 
@@ -16,8 +24,11 @@ const CompanySettings = ({
     handleExhibitorStatsChange,
     isExhibitorStatModified,
     handleInterestedInChange,
-    isInterestedInModified
+    isInterestedInModified,
+    handleStallSchemaTypeToggle,
+    isStallSchemaTypesModified
 }) => {
+    const selectedStallTypes = Array.isArray(eventData.stall_schem_types) ? eventData.stall_schem_types : [];
     const getInviteeInputClass = (index, fieldName) => {
         const isModified = !eventData.originalData?.company_complimentary_invitee_info?.[index] || 
                           eventData.company_complimentary_invitee_info[index][fieldName] !== eventData.originalData.company_complimentary_invitee_info[index][fieldName];
@@ -76,6 +87,36 @@ const CompanySettings = ({
                         />
                     </FormField>
                 </div>
+            </div>
+
+            {/* Section 2.5: Stall Schema Types */}
+            <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
+                <SectionHeader icon={LayoutGrid} title="Stall Schema Types" colorClass="text-teal-500" borderClass="bg-teal-500" />
+                <FormField label="Available Stall Types" description="Select which stall schema types exhibitors can be assigned for this event.">
+                    <div className={`grid grid-cols-1 sm:grid-cols-3 gap-3 ${isStallSchemaTypesModified() ? 'ring-1 ring-accent/40 rounded-lg p-1' : ''}`}>
+                        {STALL_SCHEMA_TYPES.map(({ value, label }) => {
+                            const checked = selectedStallTypes.includes(value);
+                            return (
+                                <label
+                                    key={value}
+                                    className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all text-sm ${
+                                        checked
+                                            ? 'bg-accent/5 border-accent text-text-primary'
+                                            : 'bg-bg-secondary border-border text-text-secondary hover:border-border-hover'
+                                    }`}
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={checked}
+                                        onChange={() => handleStallSchemaTypeToggle(value)}
+                                        className="w-4 h-4 accent-accent cursor-pointer"
+                                    />
+                                    <span className="font-medium">{label}</span>
+                                </label>
+                            );
+                        })}
+                    </div>
+                </FormField>
             </div>
 
             {/* Section 3: Resources */}

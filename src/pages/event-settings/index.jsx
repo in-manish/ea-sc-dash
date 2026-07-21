@@ -15,6 +15,7 @@ import LocalizationSettings from './LocalizationSettings';
 import MeetingDiarySettings from './MeetingDiarySettings';
 import AgendaSettings from './AgendaSettings';
 import JsonTree from './components/JsonTree';
+import { DEFAULT_STALL_SCHEMA_TYPES } from './CompanySettings';
 
 const EventSettings = () => {
     const { id } = useParams();
@@ -59,6 +60,9 @@ const EventSettings = () => {
         setIsLoading(true);
         try {
             const data = await eventService.getEventDetails(id, token);
+            if (!Array.isArray(data.stall_schem_types) || data.stall_schem_types.length === 0) {
+                data.stall_schem_types = [...DEFAULT_STALL_SCHEMA_TYPES];
+            }
             setEventData(data);
             setOriginalEventData(JSON.parse(JSON.stringify(data)));
         } catch (err) {
@@ -182,6 +186,21 @@ const EventSettings = () => {
         return current !== original;
     };
 
+    const handleStallSchemaTypeToggle = (value) => {
+        setEventData(prev => {
+            const current = Array.isArray(prev.stall_schem_types) ? prev.stall_schem_types : [];
+            const next = current.includes(value)
+                ? current.filter(v => v !== value)
+                : [...current, value];
+            return { ...prev, stall_schem_types: next };
+        });
+    };
+
+    const isStallSchemaTypesModified = () => {
+        if (!originalEventData) return false;
+        return JSON.stringify(eventData.stall_schem_types || []) !== JSON.stringify(originalEventData.stall_schem_types || []);
+    };
+
     const handleMeetingDiaryChange = (field, value) => {
         setEventData(prev => ({
             ...prev,
@@ -298,7 +317,8 @@ const EventSettings = () => {
                 'agenda',
                 'exhibitor_blocking_fields',
                 'exhibitor_setup_checklist',
-                'show_hours'
+                'show_hours',
+                'stall_schem_types'
             ];
             
             const imageFields = ['logo', 'logo2', 'event_background_image', 'event_banner_logo', 'meetingdiary_portal_bg_image'];
@@ -367,6 +387,12 @@ const EventSettings = () => {
             if (eventData.intl_meta) formData.append('intl_meta', JSON.stringify(eventData.intl_meta));
             if (eventData.intl_data) formData.append('intl_data', JSON.stringify(eventData.intl_data));
             formData.append('show_hours', JSON.stringify(eventData.show_hours || {}));
+
+            // Multi-value choice field: send as a single comma-separated value.
+            const stallSchemaTypes = Array.isArray(eventData.stall_schem_types) && eventData.stall_schem_types.length > 0
+                ? eventData.stall_schem_types
+                : DEFAULT_STALL_SCHEMA_TYPES;
+            formData.append('stall_schem_types', stallSchemaTypes.join(','));
 
             // --- MANUAL PAYLOAD MODIFICATION AREA ---
             // You can manually add or override any keys here before the update request.
@@ -474,6 +500,8 @@ const EventSettings = () => {
                         isExhibitorStatModified={isExhibitorStatModified}
                         handleInterestedInChange={handleInterestedInChange}
                         isInterestedInModified={isInterestedInModified}
+                        handleStallSchemaTypeToggle={handleStallSchemaTypeToggle}
+                        isStallSchemaTypesModified={isStallSchemaTypesModified}
                     />
                 )}
                 {activeTab === 'attendees' && (
