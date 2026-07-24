@@ -63,8 +63,11 @@ const EventSettings = () => {
             if (!Array.isArray(data.stall_schem_types) || data.stall_schem_types.length === 0) {
                 data.stall_schem_types = [...DEFAULT_STALL_SCHEMA_TYPES];
             }
+            // Single-select currency: keep at most one value for the UI
             if (!Array.isArray(data.currencies)) {
                 data.currencies = [];
+            } else if (data.currencies.length > 1) {
+                data.currencies = [data.currencies[0]];
             }
             setEventData(data);
             setOriginalEventData(JSON.parse(JSON.stringify(data)));
@@ -204,21 +207,15 @@ const EventSettings = () => {
         return JSON.stringify(eventData.stall_schem_types || []) !== JSON.stringify(originalEventData.stall_schem_types || []);
     };
 
-    const handleCurrencyToggle = (value) => {
-        setEventData(prev => {
-            const current = Array.isArray(prev.currencies) ? prev.currencies : [];
-            const next = current.includes(value)
-                ? current.filter(v => v !== value)
-                : [...current, value];
-            return { ...prev, currencies: next };
-        });
+    const handleCurrencySelect = (value) => {
+        setEventData(prev => ({ ...prev, currencies: [value] }));
     };
 
     const isCurrenciesModified = () => {
         if (!originalEventData) return false;
-        const current = [...(eventData.currencies || [])].sort();
-        const original = [...(originalEventData.currencies || [])].sort();
-        return JSON.stringify(current) !== JSON.stringify(original);
+        const current = eventData.currencies?.[0] || '';
+        const original = originalEventData.currencies?.[0] || '';
+        return current !== original;
     };
 
     const handleMeetingDiaryChange = (field, value) => {
@@ -415,9 +412,9 @@ const EventSettings = () => {
                 : DEFAULT_STALL_SCHEMA_TYPES;
             formData.append('stall_schem_types', stallSchemaTypes.join(','));
 
-            // Currencies: multiple choice field — append each code separately
-            const currencies = Array.isArray(eventData.currencies) ? eventData.currencies : [];
-            currencies.forEach((code) => formData.append('currencies', code));
+            // Currency: single choice — send one code (API still expects the currencies field)
+            const currency = Array.isArray(eventData.currencies) ? eventData.currencies[0] : null;
+            if (currency) formData.append('currencies', currency);
 
             // --- MANUAL PAYLOAD MODIFICATION AREA ---
             // You can manually add or override any keys here before the update request.
@@ -555,7 +552,7 @@ const EventSettings = () => {
                         eventData={eventData} 
                         handleInputChange={handleInputChange} 
                         isFieldModified={isFieldModified}
-                        handleCurrencyToggle={handleCurrencyToggle}
+                        handleCurrencySelect={handleCurrencySelect}
                         isCurrenciesModified={isCurrenciesModified}
                     />
                 )}

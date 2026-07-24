@@ -11,10 +11,12 @@ const PaymentSettings = ({
     eventData,
     handleInputChange,
     isFieldModified,
-    handleCurrencyToggle,
+    handleCurrencySelect,
     isCurrenciesModified,
 }) => {
-    const selectedCurrencies = Array.isArray(eventData.currencies) ? eventData.currencies : [];
+    const selectedCurrency = Array.isArray(eventData.currencies) && eventData.currencies.length > 0
+        ? eventData.currencies[0]
+        : '';
 
     return (
         <div className="animate-fade-in space-y-6">
@@ -41,14 +43,14 @@ const PaymentSettings = ({
             </div>
 
             <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
-                <SectionHeader icon={Coins} title="Accepted Currencies" colorClass="text-emerald-500" borderClass="bg-emerald-500" />
+                <SectionHeader icon={Coins} title="Accepted Currency" colorClass="text-emerald-500" borderClass="bg-emerald-500" />
                 <FormField
-                    label="Currencies"
-                    description="Select which currencies are accepted for payments on this event."
+                    label="Currency"
+                    description="Choose the single currency accepted for payments on this event."
                 >
                     <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg ${isCurrenciesModified?.() ? 'ring-1 ring-accent/40 rounded-lg p-1' : ''}`}>
                         {EVENT_CURRENCIES.map(({ value, label }) => {
-                            const checked = selectedCurrencies.includes(value);
+                            const checked = selectedCurrency === value;
                             return (
                                 <label
                                     key={value}
@@ -59,9 +61,10 @@ const PaymentSettings = ({
                                     }`}
                                 >
                                     <input
-                                        type="checkbox"
+                                        type="radio"
+                                        name="event_currency"
                                         checked={checked}
-                                        onChange={() => handleCurrencyToggle?.(value)}
+                                        onChange={() => handleCurrencySelect?.(value)}
                                         className="w-4 h-4 accent-accent cursor-pointer"
                                     />
                                     <span className="font-medium">{label}</span>
