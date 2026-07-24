@@ -63,6 +63,9 @@ const EventSettings = () => {
             if (!Array.isArray(data.stall_schem_types) || data.stall_schem_types.length === 0) {
                 data.stall_schem_types = [...DEFAULT_STALL_SCHEMA_TYPES];
             }
+            if (!Array.isArray(data.currencies)) {
+                data.currencies = [];
+            }
             setEventData(data);
             setOriginalEventData(JSON.parse(JSON.stringify(data)));
         } catch (err) {
@@ -201,6 +204,23 @@ const EventSettings = () => {
         return JSON.stringify(eventData.stall_schem_types || []) !== JSON.stringify(originalEventData.stall_schem_types || []);
     };
 
+    const handleCurrencyToggle = (value) => {
+        setEventData(prev => {
+            const current = Array.isArray(prev.currencies) ? prev.currencies : [];
+            const next = current.includes(value)
+                ? current.filter(v => v !== value)
+                : [...current, value];
+            return { ...prev, currencies: next };
+        });
+    };
+
+    const isCurrenciesModified = () => {
+        if (!originalEventData) return false;
+        const current = [...(eventData.currencies || [])].sort();
+        const original = [...(originalEventData.currencies || [])].sort();
+        return JSON.stringify(current) !== JSON.stringify(original);
+    };
+
     const handleMeetingDiaryChange = (field, value) => {
         setEventData(prev => ({
             ...prev,
@@ -318,7 +338,8 @@ const EventSettings = () => {
                 'exhibitor_blocking_fields',
                 'exhibitor_setup_checklist',
                 'show_hours',
-                'stall_schem_types'
+                'stall_schem_types',
+                'currencies'
             ];
             
             const imageFields = ['logo', 'logo2', 'event_background_image', 'event_banner_logo', 'meetingdiary_portal_bg_image'];
@@ -393,6 +414,10 @@ const EventSettings = () => {
                 ? eventData.stall_schem_types
                 : DEFAULT_STALL_SCHEMA_TYPES;
             formData.append('stall_schem_types', stallSchemaTypes.join(','));
+
+            // Currencies: multiple choice field — append each code separately
+            const currencies = Array.isArray(eventData.currencies) ? eventData.currencies : [];
+            currencies.forEach((code) => formData.append('currencies', code));
 
             // --- MANUAL PAYLOAD MODIFICATION AREA ---
             // You can manually add or override any keys here before the update request.
@@ -529,8 +554,9 @@ const EventSettings = () => {
                     <PaymentSettings 
                         eventData={eventData} 
                         handleInputChange={handleInputChange} 
-                        isFieldModified={isFieldModified} 
-                        token={token}
+                        isFieldModified={isFieldModified}
+                        handleCurrencyToggle={handleCurrencyToggle}
+                        isCurrenciesModified={isCurrenciesModified}
                     />
                 )}
                 {activeTab === 'localization' && (

@@ -1,8 +1,21 @@
 import React from 'react';
-import { ShieldCheck } from 'lucide-react';
-import { SectionHeader, getInputClass } from './components/SharedComponents';
+import { ShieldCheck, Coins } from 'lucide-react';
+import { SectionHeader, FormField, getInputClass } from './components/SharedComponents';
 
-const PaymentSettings = ({ eventData, handleInputChange, isFieldModified }) => {
+export const EVENT_CURRENCIES = [
+    { value: 'INR', label: 'INR — Indian Rupee' },
+    { value: 'USD', label: 'USD — US Dollar' },
+];
+
+const PaymentSettings = ({
+    eventData,
+    handleInputChange,
+    isFieldModified,
+    handleCurrencyToggle,
+    isCurrenciesModified,
+}) => {
+    const selectedCurrencies = Array.isArray(eventData.currencies) ? eventData.currencies : [];
+
     return (
         <div className="animate-fade-in space-y-6">
             <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm overflow-hidden relative">
@@ -25,6 +38,38 @@ const PaymentSettings = ({ eventData, handleInputChange, isFieldModified }) => {
                         </p>
                     </div>
                 </div>
+            </div>
+
+            <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
+                <SectionHeader icon={Coins} title="Accepted Currencies" colorClass="text-emerald-500" borderClass="bg-emerald-500" />
+                <FormField
+                    label="Currencies"
+                    description="Select which currencies are accepted for payments on this event."
+                >
+                    <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg ${isCurrenciesModified?.() ? 'ring-1 ring-accent/40 rounded-lg p-1' : ''}`}>
+                        {EVENT_CURRENCIES.map(({ value, label }) => {
+                            const checked = selectedCurrencies.includes(value);
+                            return (
+                                <label
+                                    key={value}
+                                    className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all text-sm ${
+                                        checked
+                                            ? 'bg-accent/5 border-accent text-text-primary'
+                                            : 'bg-bg-secondary border-border text-text-secondary hover:border-border-hover'
+                                    }`}
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={checked}
+                                        onChange={() => handleCurrencyToggle?.(value)}
+                                        className="w-4 h-4 accent-accent cursor-pointer"
+                                    />
+                                    <span className="font-medium">{label}</span>
+                                </label>
+                            );
+                        })}
+                    </div>
+                </FormField>
             </div>
         </div>
     );
