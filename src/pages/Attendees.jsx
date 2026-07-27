@@ -6,7 +6,7 @@ import { attendeeSelectionService } from '../services/attendeeSelectionService';
 import { whatsappService } from '../services/whatsappService';
 import AttendeeMatchmakingAnswers from '../features/Matchmaking/ui/AttendeeMatchmakingAnswers';
 import CreateAttendeeModal from '../components/attendees/CreateAttendeeModal';
-import { Loader2, Search, Filter, Phone, Mail, Globe, X, ShieldCheck, Building2, CheckSquare, Square, MessageCircle, CheckCircle2, ChevronDown, ChevronUp, List, LayoutGrid, Smartphone, Eye, Code, IdCard, HeartHandshake, UserPlus, RefreshCw, AlertCircle } from 'lucide-react';
+import { Loader2, Search, Filter, Phone, Mail, Globe, X, ShieldCheck, Building2, CheckSquare, Square, MessageCircle, CheckCircle2, ChevronDown, ChevronUp, List, LayoutGrid, Smartphone, Eye, Code, IdCard, HeartHandshake, UserPlus, RefreshCw, AlertCircle, Copy, Check } from 'lucide-react';
 
 const pillColors = {
     attendee_type: "bg-blue-50 text-blue-800 border-blue-200",
@@ -84,6 +84,45 @@ const isUnderTwoHours = (createdAtStr) => {
     const diffMs = now.getTime() - createdAt.getTime();
     const diffHours = diffMs / (1000 * 60 * 60);
     return diffHours < 2;
+};
+
+const CopyableValue = ({ value, label, prefix = '', className = '', hideLabel = false }) => {
+    const [copied, setCopied] = React.useState(false);
+
+    if (value === null || value === undefined || value === '') {
+        if (hideLabel) return null;
+        return (
+            <span className={`text-xs text-text-tertiary ${className}`}>
+                {label}: -
+            </span>
+        );
+    }
+
+    const handleCopy = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        navigator.clipboard.writeText(String(value));
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+    };
+
+    const displayText = hideLabel ? `${prefix}${value}` : `${label}: ${prefix}${value}`;
+
+    return (
+        <button
+            type="button"
+            onClick={handleCopy}
+            title={`Copy ${label}`}
+            className={`inline-flex items-center gap-1 text-xs text-text-tertiary hover:text-accent transition-colors group/copy bg-transparent border-none p-0 cursor-pointer ${className}`}
+        >
+            <span>{displayText}</span>
+            {copied ? (
+                <Check size={11} className="text-green-600 shrink-0" />
+            ) : (
+                <Copy size={11} className="opacity-0 group-hover/copy:opacity-60 transition-opacity shrink-0" />
+            )}
+        </button>
+    );
 };
 
 const Attendees = () => {
@@ -837,7 +876,13 @@ const Attendees = () => {
                                             <td className="py-4 px-6 align-top group-last:border-b-0">
                                                 <div className="font-semibold text-text-primary text-sm flex items-center gap-2">
                                                     {attendee.name}
-                                                    <span className="text-[10px] font-mono text-text-tertiary opacity-40">#{attendee.id}</span>
+                                                    <CopyableValue
+                                                        value={attendee.id}
+                                                        label="ID"
+                                                        prefix="#"
+                                                        hideLabel
+                                                        className="text-[10px] font-mono opacity-60 hover:opacity-100"
+                                                    />
                                                     {attendee.is_poc && (
                                                         <ShieldCheck
                                                             size={16}
@@ -846,7 +891,10 @@ const Attendees = () => {
                                                         />
                                                     )}
                                                 </div>
-                                                <div className="text-xs text-text-tertiary mt-0.5">Reg ID: {attendee.reg_id}</div>
+                                                <div className="mt-0.5 flex flex-col gap-0.5">
+                                                    <CopyableValue value={attendee.reg_id} label="Reg ID" />
+                                                    <CopyableValue value={attendee.evc_id} label="EVC ID" />
+                                                </div>
                                             </td>
                                             <td className="py-4 px-6 align-top group-last:border-b-0">
                                                 <div className="flex flex-col gap-1">
