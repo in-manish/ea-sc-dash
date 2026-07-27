@@ -6,7 +6,7 @@ import { attendeeSelectionService } from '../services/attendeeSelectionService';
 import { whatsappService } from '../services/whatsappService';
 import AttendeeMatchmakingAnswers from '../features/Matchmaking/ui/AttendeeMatchmakingAnswers';
 import CreateAttendeeModal from '../components/attendees/CreateAttendeeModal';
-import { Loader2, Search, Filter, Phone, Mail, Globe, X, ShieldCheck, Building2, CheckSquare, Square, MessageCircle, CheckCircle2, ChevronDown, ChevronUp, List, LayoutGrid, Smartphone, Eye, Code, IdCard, HeartHandshake, UserPlus, RefreshCw } from 'lucide-react';
+import { Loader2, Search, Filter, Phone, Mail, Globe, X, ShieldCheck, Building2, CheckSquare, Square, MessageCircle, CheckCircle2, ChevronDown, ChevronUp, List, LayoutGrid, Smartphone, Eye, Code, IdCard, HeartHandshake, UserPlus, RefreshCw, AlertCircle } from 'lucide-react';
 
 const pillColors = {
     attendee_type: "bg-blue-50 text-blue-800 border-blue-200",
@@ -126,6 +126,7 @@ const Attendees = () => {
     const [syncingScUuid, setSyncingScUuid] = useState(null);
     const [scSyncError, setScSyncError] = useState('');
     const [scSyncSuccess, setScSyncSuccess] = useState('');
+    const [isScSyncErrorModalOpen, setIsScSyncErrorModalOpen] = useState(false);
 
     const [activeTab, setActiveTab] = useState('list');
     const [jobs, setJobs] = useState([]);
@@ -509,6 +510,7 @@ const Attendees = () => {
         setSyncingScUuid(attendee.uuid);
         setScSyncError('');
         setScSyncSuccess('');
+        setIsScSyncErrorModalOpen(false);
 
         try {
             const data = await eventService.syncAttendeeWithSC(selectedEvent.id, token, attendee.uuid);
@@ -521,10 +523,16 @@ const Attendees = () => {
             );
             setScSyncSuccess(`Synced with SC. EVC ID: ${data.evc_id}`);
         } catch (err) {
-            setScSyncError(err.message || 'Failed to sync badge with SC.');
+            const reason = err.message || 'Failed to sync badge with SC.';
+            setScSyncError(reason);
+            setIsScSyncErrorModalOpen(true);
         } finally {
             setSyncingScUuid(null);
         }
+    };
+
+    const closeScSyncErrorModal = () => {
+        setIsScSyncErrorModalOpen(false);
     };
 
     const previewAttendee = selectedAttendees[0] || attendees[0] || null;
@@ -1597,6 +1605,33 @@ const Attendees = () => {
                     </div>
                 </div>
             )}
+            {/* SC Sync Error Modal */}
+            {isScSyncErrorModalOpen && scSyncError && (
+                <div
+                    className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-[1300] animate-fade-in p-4"
+                    onClick={closeScSyncErrorModal}
+                >
+                    <div
+                        className="bg-bg-primary rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.2)] ring-1 ring-border/50 w-full max-w-sm p-8 text-center"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="mx-auto w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-5">
+                            <AlertCircle className="text-red-600" size={32} />
+                        </div>
+                        <h3 className="text-xl font-semibold text-text-primary mb-2">Sync SC Failed</h3>
+                        <p className="text-sm text-text-secondary mb-6 break-words">
+                            {scSyncError}
+                        </p>
+                        <button
+                            className="btn btn-primary w-full"
+                            onClick={closeScSyncErrorModal}
+                        >
+                            OK
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* E-Badge Modal */}
             {isEBadgeModalOpen && (
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-[1200] animate-fade-in" onClick={() => !isGeneratingEBadge && setIsEBadgeModalOpen(false)}>

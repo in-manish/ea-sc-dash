@@ -224,14 +224,20 @@ export const eventService = {
                 headers: getHeaders(token),
             });
 
-            if (response.status === 404) {
-                throw new Error('Badge not found for this event.');
-            }
-
             const data = await response.json().catch(() => ({}));
 
+            if (response.status === 404) {
+                const error = new Error(data.error || 'Badge not found for this event.');
+                error.status = 404;
+                throw error;
+            }
+
             if (!response.ok || data.success === false) {
-                throw new Error(data.error || `HTTP error! status: ${response.status}`);
+                const error = new Error(
+                    data.error || (response.status === 400 ? 'Failed to sync badge with SC.' : `HTTP error! status: ${response.status}`)
+                );
+                error.status = response.status;
+                throw error;
             }
 
             return data;
