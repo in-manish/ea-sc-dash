@@ -6,7 +6,7 @@ import { attendeeSelectionService } from '../services/attendeeSelectionService';
 import { whatsappService } from '../services/whatsappService';
 import AttendeeMatchmakingAnswers from '../features/Matchmaking/ui/AttendeeMatchmakingAnswers';
 import CreateAttendeeModal from '../components/attendees/CreateAttendeeModal';
-import { Loader2, Search, Filter, Phone, Mail, Globe, X, ShieldCheck, Building2, CheckSquare, Square, MessageCircle, CheckCircle2, ChevronDown, ChevronUp, List, LayoutGrid, Smartphone, Eye, Code, IdCard, HeartHandshake, UserPlus } from 'lucide-react';
+import { Loader2, Search, Filter, Phone, Mail, Globe, X, ShieldCheck, Building2, CheckSquare, Square, MessageCircle, CheckCircle2, ChevronDown, ChevronUp, List, LayoutGrid, Smartphone, Eye, Code, IdCard, HeartHandshake, UserPlus, RefreshCw } from 'lucide-react';
 
 const pillColors = {
     attendee_type: "bg-blue-50 text-blue-800 border-blue-200",
@@ -121,6 +121,11 @@ const Attendees = () => {
     const [isGeneratingEBadge, setIsGeneratingEBadge] = useState(false);
     const [eBadgeResult, setEBadgeResult] = useState(null);
     const [eBadgeError, setEBadgeError] = useState('');
+
+    // SC Sync State
+    const [syncingScUuid, setSyncingScUuid] = useState(null);
+    const [scSyncError, setScSyncError] = useState('');
+    const [scSyncSuccess, setScSyncSuccess] = useState('');
 
     const [activeTab, setActiveTab] = useState('list');
     const [jobs, setJobs] = useState([]);
@@ -496,6 +501,32 @@ const Attendees = () => {
         }
     };
 
+    const needsScSync = (attendee) => !attendee?.evc_id;
+
+    const handleSyncWithSC = async (attendee) => {
+        if (!selectedEvent || !attendee?.uuid) return;
+
+        setSyncingScUuid(attendee.uuid);
+        setScSyncError('');
+        setScSyncSuccess('');
+
+        try {
+            const data = await eventService.syncAttendeeWithSC(selectedEvent.id, token, attendee.uuid);
+
+            setAttendees((prev) =>
+                prev.map((item) => (item.uuid === attendee.uuid ? { ...item, evc_id: data.evc_id } : item))
+            );
+            setSelectedAttendee((prev) =>
+                prev?.uuid === attendee.uuid ? { ...prev, evc_id: data.evc_id } : prev
+            );
+            setScSyncSuccess(`Synced with SC. EVC ID: ${data.evc_id}`);
+        } catch (err) {
+            setScSyncError(err.message || 'Failed to sync badge with SC.');
+        } finally {
+            setSyncingScUuid(null);
+        }
+    };
+
     const previewAttendee = selectedAttendees[0] || attendees[0] || null;
 
     // Group fields logic - Includes ALL fields
@@ -687,6 +718,8 @@ const Attendees = () => {
                     {error && <div className="bg-red-50 text-red-800 p-4 border border-red-200 rounded-md mb-6">{error}</div>}
                     {whatsAppActionSuccess && <div className="bg-emerald-50 text-emerald-800 p-4 border border-emerald-200 rounded-md mb-6">{whatsAppActionSuccess}</div>}
                     {whatsAppActionError && <div className="bg-red-50 text-red-800 p-4 border border-red-200 rounded-md mb-6">{whatsAppActionError}</div>}
+                    {!selectedAttendee && scSyncSuccess && <div className="bg-emerald-50 text-emerald-800 p-4 border border-emerald-200 rounded-md mb-6">{scSyncSuccess}</div>}
+                    {!selectedAttendee && scSyncError && <div className="bg-red-50 text-red-800 p-4 border border-red-200 rounded-md mb-6">{scSyncError}</div>}
 
                     {selectionMode !== 'none' && (
                         <div className="mb-6 bg-bg-primary border border-border rounded-lg px-5 py-6 shadow-sm animate-fade-in">
@@ -777,7 +810,11 @@ const Attendees = () => {
                                         <tr
                                             key={attendee.uuid}
                                             className="cursor-pointer transition-colors duration-200 hover:bg-bg-secondary [&>td]:border-b [&>td]:border-border group"
-                                            onClick={() => setSelectedAttendee(attendee)}
+                                            onClick={() => {
+                                                setScSyncError('');
+                                                setScSyncSuccess('');
+                                                setSelectedAttendee(attendee);
+                                            }}
                                         >
                                             <td className="py-4 px-4 align-top group-last:border-b-0" onClick={(e) => e.stopPropagation()}>
                                                 <input
@@ -870,6 +907,21 @@ const Attendees = () => {
                                             </td>
                                             <td className="py-4 px-6 align-middle group-last:border-b-0 text-right" onClick={(e) => e.stopPropagation()}>
                                                 <div className="inline-flex items-center gap-2">
+                                                    {needsScSync(attendee) && (
+                                                        <button
+                                                            className="btn btn-secondary btn-sm inline-flex items-center gap-1.5"
+                                                            onClick={() => handleSyncWithSC(attendee)}
+                                                            disabled={syncingScUuid === attendee.uuid}
+                                                            title="Sync badge with SnapCard"
+                                                        >
+                                                            {syncingScUuid === attendee.uuid ? (
+                                                                <Loader2 size={14} className="animate-spin" />
+                                                            ) : (
+                                                                <RefreshCw size={14} />
+                                                            )}
+                                                            Sync SC
+                                                        </button>
+                                                    )}
                                                     <button
                                                         className="btn btn-secondary btn-sm inline-flex items-center gap-1.5"
                                                         onClick={() => setMatchmakingAttendee(attendee)}
@@ -1023,7 +1075,14 @@ const Attendees = () => {
 
             {/* Attendee Detail Modal */}
             {selectedAttendee && (
-                <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-[1000] animate-fade-in" onClick={() => setSelectedAttendee(null)}>
+                <div
+                    className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-[1000] animate-fade-in"
+                    onClick={() => {
+                        setSelectedAttendee(null);
+                        setScSyncError('');
+                        setScSyncSuccess('');
+                    }}
+                >
                     <div
                         className={`bg-bg-primary rounded-lg border border-border shadow-xl flex flex-col overflow-hidden transition-all duration-300 ease-out ${isModalMaximized ? 'w-[95vw] h-[95vh] max-w-[95vw] max-h-[95vh]' : 'w-[90%] max-w-[600px] max-h-[85vh]'}`}
                         onClick={(e) => e.stopPropagation()}
@@ -1041,13 +1100,30 @@ const Attendees = () => {
                                 >
                                     <div className={`w-[14px] h-[14px] rounded-[2px] border-[1.5px] border-current transition-all ${isModalMaximized ? 'border-t-[3px] border-b-transparent border-l-transparent border-r-transparent h-0 mt-1.5 rounded-none' : ''}`}></div>
                                 </button>
-                                <button className="bg-transparent border-none text-text-tertiary cursor-pointer p-1 rounded-sm flex items-center justify-center transition-colors hover:bg-bg-tertiary hover:text-text-primary" onClick={() => setSelectedAttendee(null)}>
+                                <button
+                                    className="bg-transparent border-none text-text-tertiary cursor-pointer p-1 rounded-sm flex items-center justify-center transition-colors hover:bg-bg-tertiary hover:text-text-primary"
+                                    onClick={() => {
+                                        setSelectedAttendee(null);
+                                        setScSyncError('');
+                                        setScSyncSuccess('');
+                                    }}
+                                >
                                     <X size={20} />
                                 </button>
                             </div>
                         </div>
 
                         <div className="p-6 overflow-y-auto flex-1">
+                            {scSyncSuccess && (
+                                <div className="bg-emerald-50 text-emerald-800 p-3 border border-emerald-200 rounded-md mb-4 text-sm">
+                                    {scSyncSuccess}
+                                </div>
+                            )}
+                            {scSyncError && (
+                                <div className="bg-red-50 text-red-800 p-3 border border-red-200 rounded-md mb-4 text-sm">
+                                    {scSyncError}
+                                </div>
+                            )}
                             {Object.entries(getGroupedFields(selectedAttendee)).map(([group, fields]) => (
                                 <div key={group} className="mb-8 last:mb-0">
                                     <h4 className="text-xs uppercase tracking-wider text-text-tertiary mb-4 font-bold border-b border-border pb-2">{group}</h4>
@@ -1063,10 +1139,14 @@ const Attendees = () => {
                             ))}
                         </div>
 
-                        <div className="p-4 border-t border-border flex justify-end gap-3 bg-bg-secondary">
+                        <div className="p-4 border-t border-border flex flex-wrap justify-end gap-3 bg-bg-secondary">
                             <button
                                 className="btn btn-secondary"
-                                onClick={() => setSelectedAttendee(null)}
+                                onClick={() => {
+                                    setSelectedAttendee(null);
+                                    setScSyncError('');
+                                    setScSyncSuccess('');
+                                }}
                             >
                                 Close
                             </button>
@@ -1077,6 +1157,21 @@ const Attendees = () => {
                                 <HeartHandshake size={16} />
                                 View Matchmaking
                             </button>
+                            {needsScSync(selectedAttendee) && (
+                                <button
+                                    className="btn btn-secondary flex items-center gap-2"
+                                    onClick={() => handleSyncWithSC(selectedAttendee)}
+                                    disabled={syncingScUuid === selectedAttendee.uuid}
+                                    title="Create/link SnapCard account for this badge"
+                                >
+                                    {syncingScUuid === selectedAttendee.uuid ? (
+                                        <Loader2 size={16} className="animate-spin" />
+                                    ) : (
+                                        <RefreshCw size={16} />
+                                    )}
+                                    Sync SC
+                                </button>
+                            )}
                             <button
                                 className="btn btn-primary flex items-center gap-2"
                                 onClick={() => handleCreateEBadge(selectedAttendee.uuid)}

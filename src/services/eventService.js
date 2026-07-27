@@ -217,6 +217,30 @@ export const eventService = {
         }
     },
 
+    async syncAttendeeWithSC(eventId, token, uuid) {
+        try {
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/attendees/${uuid}/sync-sc/`, {
+                method: 'POST',
+                headers: getHeaders(token),
+            });
+
+            if (response.status === 404) {
+                throw new Error('Badge not found for this event.');
+            }
+
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok || data.success === false) {
+                throw new Error(data.error || `HTTP error! status: ${response.status}`);
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Sync Attendee with SC Error:', error);
+            throw error;
+        }
+    },
+
     async getCompanies(eventId, token, page = 1, size = 20, sortBy = 'obf_number', sortOrder = 'desc', search = '', filters = {}, includeStats = false) {
         // Note: The curl command shows a different base URL for companies list: https://reconnect.stage-eventapp-reconnect.fairfest.in/evc/events/...
         // I need to handle this URL difference safely.
