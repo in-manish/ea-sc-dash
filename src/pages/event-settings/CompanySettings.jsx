@@ -2,6 +2,7 @@ import React from 'react';
 import { Building2, MapPin, Users, Plus, Trash2, Eye, EyeOff, ArrowUp, ArrowDown, Save, MousePointerClick, LayoutGrid } from 'lucide-react';
 import { SectionHeader, FormField, ToggleSwitch, getInputClass } from './components/SharedComponents';
 import ScriptEmbedEditor from '../../components/common/ScriptEmbedEditor';
+import ComplimentaryInviteeLinks from './ComplimentaryInviteeLinks';
 
 export const STALL_SCHEMA_TYPES = [
     { value: 'BRSP', label: 'Bare space' },
@@ -21,6 +22,11 @@ const CompanySettings = ({
     togglePreview,
     moveInviteeInfo,
     previewStates,
+    addInviteeLink,
+    removeInviteeLink,
+    handleInviteeLinkChange,
+    moveInviteeLink,
+    isInviteeLinkModified,
     handleExhibitorStatsChange,
     isExhibitorStatModified,
     handleInterestedInChange,
@@ -388,6 +394,16 @@ const CompanySettings = ({
                     )}
                 </div>
             </div>
+
+            {/* Section 6: Complimentary Invitee Links */}
+            <ComplimentaryInviteeLinks
+                eventData={eventData}
+                addInviteeLink={addInviteeLink}
+                removeInviteeLink={removeInviteeLink}
+                handleInviteeLinkChange={handleInviteeLinkChange}
+                moveInviteeLink={moveInviteeLink}
+                isInviteeLinkModified={isInviteeLinkModified}
+            />
         </div>
     );
 };

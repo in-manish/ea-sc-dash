@@ -146,6 +146,109 @@ const EventSettings = () => {
         });
     };
 
+    const buildComplimentaryInviteeLink = (eventId, formValue = '') =>
+        `https://tickets.fairfest.com/e/reconnect_${eventId}?r=${formValue || ''}`;
+
+    const normalizeInviteeLink = (item) => {
+        const next = {
+            form_value: item.form_value || '',
+            link: item.link || '',
+            is_complementary: !!item.is_complementary,
+        };
+        if (item.limit_mode === 'fixed') {
+            next.limit_mode = 'fixed';
+            if (item.invitee_limit !== '' && item.invitee_limit != null) {
+                next.invitee_limit = Number(item.invitee_limit);
+            }
+        } else if (item.limit_mode === 'formula') {
+            next.limit_mode = 'formula';
+            if (item.invitee_limit_formula !== '' && item.invitee_limit_formula != null) {
+                next.invitee_limit_formula = Number(item.invitee_limit_formula);
+            }
+        }
+        return next;
+    };
+
+    const addInviteeLink = () => {
+        setEventData(prev => {
+            const eventId = prev.id || id;
+            return {
+                ...prev,
+                complimentary_invitee_links: [
+                    ...(prev.complimentary_invitee_links || []),
+                    {
+                        form_value: '',
+                        link: buildComplimentaryInviteeLink(eventId, ''),
+                        is_complementary: true,
+                        limit_mode: 'fixed',
+                        invitee_limit: ''
+                    }
+                ]
+            };
+        });
+    };
+
+    const removeInviteeLink = (index) => {
+        setEventData(prev => ({
+            ...prev,
+            complimentary_invitee_links: (prev.complimentary_invitee_links || []).filter((_, i) => i !== index)
+        }));
+    };
+
+    const handleInviteeLinkChange = (index, field, value) => {
+        setEventData(prev => {
+            const updated = [...(prev.complimentary_invitee_links || [])];
+            const previous = updated[index] || {};
+            const current = { ...previous, [field]: value };
+            const eventId = prev.id || id;
+
+            if (field === 'form_value') {
+                const previousAutoLink = buildComplimentaryInviteeLink(eventId, previous.form_value || '');
+                const linkStillAuto =
+                    !previous.link ||
+                    previous.link === previousAutoLink;
+                if (linkStillAuto) {
+                    current.link = buildComplimentaryInviteeLink(eventId, value);
+                }
+            }
+
+            if (field === 'limit_mode') {
+                if (value === 'fixed') {
+                    delete current.invitee_limit_formula;
+                    if (current.invitee_limit == null) current.invitee_limit = '';
+                } else if (value === 'formula') {
+                    delete current.invitee_limit;
+                    if (current.invitee_limit_formula == null) current.invitee_limit_formula = '';
+                } else {
+                    delete current.limit_mode;
+                    delete current.invitee_limit;
+                    delete current.invitee_limit_formula;
+                }
+            }
+
+            updated[index] = current;
+            return { ...prev, complimentary_invitee_links: updated };
+        });
+    };
+
+    const moveInviteeLink = (index, direction) => {
+        setEventData(prev => {
+            const updated = [...(prev.complimentary_invitee_links || [])];
+            const targetIndex = index + direction;
+            if (targetIndex >= 0 && targetIndex < updated.length) {
+                [updated[index], updated[targetIndex]] = [updated[targetIndex], updated[index]];
+            }
+            return { ...prev, complimentary_invitee_links: updated };
+        });
+    };
+
+    const isInviteeLinkModified = (index, fieldName) => {
+        if (!originalEventData) return false;
+        const current = eventData.complimentary_invitee_links?.[index]?.[fieldName];
+        const original = originalEventData.complimentary_invitee_links?.[index]?.[fieldName];
+        return current !== original;
+    };
+
     const handleExhibitorStatsChange = (field, value) => {
         setEventData(prev => ({
             ...prev,
@@ -324,7 +427,8 @@ const EventSettings = () => {
             const excludedFields = [
                 'social_links', 
                 'attendee_types', 
-                'company_complimentary_invitee_info', 
+                'company_complimentary_invitee_info',
+                'complimentary_invitee_links',
                 'location', 
                 'intl_meta', 
                 'intl_data',
@@ -364,6 +468,10 @@ const EventSettings = () => {
             // Re-append complex fields stringified
             formData.append('social_links', JSON.stringify(eventData.social_links || {}));
             formData.append('company_complimentary_invitee_info', JSON.stringify(eventData.company_complimentary_invitee_info || []));
+            formData.append(
+                'complimentary_invitee_links',
+                JSON.stringify((eventData.complimentary_invitee_links || []).map(normalizeInviteeLink))
+            );
             formData.append('exhibitor_stats', JSON.stringify(eventData.exhibitor_stats || { 
                 is_active: false, 
                 country_stat_text: '', 
@@ -518,6 +626,11 @@ const EventSettings = () => {
                         togglePreview={togglePreview}
                         moveInviteeInfo={moveInviteeInfo}
                         previewStates={previewStates}
+                        addInviteeLink={addInviteeLink}
+                        removeInviteeLink={removeInviteeLink}
+                        handleInviteeLinkChange={handleInviteeLinkChange}
+                        moveInviteeLink={moveInviteeLink}
+                        isInviteeLinkModified={isInviteeLinkModified}
                         handleExhibitorStatsChange={handleExhibitorStatsChange}
                         isExhibitorStatModified={isExhibitorStatModified}
                         handleInterestedInChange={handleInterestedInChange}
