@@ -1,6 +1,6 @@
 import React from 'react';
 import { Building2, MapPin, Users, Plus, Trash2, Eye, EyeOff, ArrowUp, ArrowDown, Save, MousePointerClick, LayoutGrid } from 'lucide-react';
-import { SectionHeader, FormField, ToggleSwitch, getInputClass } from './components/SharedComponents';
+import { SectionHeader, FormField, ToggleSwitch, getInputClass, LimitStatField } from './components/SharedComponents';
 import ScriptEmbedEditor from '../../components/common/ScriptEmbedEditor';
 import ComplimentaryInviteeLinks from './ComplimentaryInviteeLinks';
 
@@ -71,27 +71,34 @@ const CompanySettings = ({
             {/* Section 2: Allocation Limits */}
             <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
                 <SectionHeader icon={Users} title="Allocation & Limits" colorClass="text-blue-500" borderClass="bg-blue-500" />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField label="Default Badge Limit" description="Base maximum badge limit per exhibitor">
-                        <input
-                            type="number"
-                            name="badge_limit_default"
-                            value={eventData.badge_limit_default || ''}
-                            onChange={handleInputChange}
-                            className={getInputClass('badge_limit_default', isFieldModified('badge_limit_default'))}
-                            placeholder="5"
-                        />
-                    </FormField>
-                    <FormField label="Badge Formula Divisor" description="Derived from space // divisor">
-                        <input
-                            type="number"
-                            name="badge_limit_default_formula"
-                            value={eventData.badge_limit_default_formula || ''}
-                            onChange={handleInputChange}
-                            className={getInputClass('badge_limit_default_formula', isFieldModified('badge_limit_default_formula'))}
-                            placeholder="2"
-                        />
-                    </FormField>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <LimitStatField
+                        label="Default Badge Limit"
+                        description="Base maximum per exhibitor"
+                        name="badge_limit_default"
+                        value={eventData.badge_limit_default || ''}
+                        onChange={handleInputChange}
+                        isModified={isFieldModified('badge_limit_default')}
+                        placeholder="5"
+                    />
+                    <LimitStatField
+                        label="Formula Divisor"
+                        description="Derived from space ÷ divisor"
+                        name="badge_limit_default_formula"
+                        value={eventData.badge_limit_default_formula || ''}
+                        onChange={handleInputChange}
+                        isModified={isFieldModified('badge_limit_default_formula')}
+                        placeholder="2"
+                    />
+                    <LimitStatField
+                        label="Static Value"
+                        description="Fixed override limit"
+                        name="badge_limit_static_value"
+                        value={eventData.badge_limit_static_value ?? ''}
+                        onChange={handleInputChange}
+                        isModified={isFieldModified('badge_limit_static_value')}
+                        placeholder="0"
+                    />
                 </div>
             </div>
 

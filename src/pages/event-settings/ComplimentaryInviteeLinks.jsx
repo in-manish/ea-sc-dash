@@ -75,7 +75,29 @@ const ComplimentaryInviteeLinks = ({
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4">
+                            <FormField label="Title *">
+                                <input
+                                    type="text"
+                                    value={item.title || ''}
+                                    onChange={(e) => handleInviteeLinkChange(index, 'title', e.target.value)}
+                                    className={getLinkInputClass(index, 'title')}
+                                    placeholder="e.g. VIP Invitee Access"
+                                    required
+                                />
+                            </FormField>
+                            <FormField label="Description">
+                                <textarea
+                                    value={item.description || ''}
+                                    onChange={(e) => handleInviteeLinkChange(index, 'description', e.target.value)}
+                                    className={getLinkInputClass(index, 'description')}
+                                    rows={3}
+                                    placeholder="Short description for this invitee link..."
+                                />
+                            </FormField>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             <FormField label="Form Value" description="Value matched from the exhibitor form">
                                 <input
                                     type="text"

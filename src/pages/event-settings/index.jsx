@@ -153,6 +153,8 @@ const EventSettings = () => {
         const next = {
             form_value: item.form_value || '',
             link: item.link || '',
+            title: item.title || '',
+            description: item.description || '',
             is_complementary: !!item.is_complementary,
         };
         if (item.limit_mode === 'fixed') {
@@ -179,6 +181,8 @@ const EventSettings = () => {
                     {
                         form_value: '',
                         link: buildComplimentaryInviteeLink(eventId, ''),
+                        title: '',
+                        description: '',
                         is_complementary: true,
                         limit_mode: 'fixed',
                         invitee_limit: ''
@@ -419,6 +423,17 @@ const EventSettings = () => {
         e.preventDefault();
         setIsSaving(true);
         setMessage({ type: '', text: '' });
+
+        const inviteeLinks = eventData.complimentary_invitee_links || [];
+        const missingTitleIndex = inviteeLinks.findIndex(item => !(item.title || '').trim());
+        if (missingTitleIndex !== -1) {
+            setIsSaving(false);
+            setMessage({
+                type: 'error',
+                text: `Complimentary Invitee Link #${missingTitleIndex + 1}: Title is required.`
+            });
+            return;
+        }
 
         try {
             const formData = new FormData();

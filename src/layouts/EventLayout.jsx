@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink, useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, Users, Calendar, Settings, ChevronLeft, Building2, ArrowLeft, LogOut, MessageSquare, BarChart2, UserCog, ShieldCheck, IdCard, ChevronDown, CreditCard, Wrench, Layout, Video } from 'lucide-react';
+import { Menu, X, Users, Calendar, Settings, ChevronLeft, Building2, ArrowLeft, LogOut, MessageSquare, BarChart2, UserCog, ShieldCheck, IdCard, ChevronDown, CreditCard, Wrench, Layout, Video, Tag } from 'lucide-react';
 
 import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
@@ -481,6 +481,15 @@ const EventLayout = () => {
                                 </div>
                             )}
                         </div>
+
+                        <NavLink
+                            to={`/event/${selectedEvent.id}/brand-manage`}
+                            className={navLinkClass}
+                            title={isCollapsed ? "Brand Manage" : ""}
+                        >
+                            <Tag size={20} className="shrink-0" />
+                            {!isCollapsed && <span className="flex-1">Brand Manage</span>}
+                        </NavLink>
 
                         <NavLink
                             to={`/event/${selectedEvent.id}/payments`}

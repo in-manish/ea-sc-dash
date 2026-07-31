@@ -24,6 +24,8 @@ import CeleryManage from './pages/celery-manage/CeleryManage';
 import EmailKillSwitch from './pages/email-kill-switch/EmailKillSwitch';
 import Meetings from './pages/meetings/Meetings';
 import ExhibitorCertificate from './pages/exhibitor-certificate/ExhibitorCertificate';
+import BrandManage from './pages/brand-manage/BrandManage';
+import ExhibitorPortalLanding from './pages/exhibitor-portal/ExhibitorPortalLanding';
 
 
 
@@ -37,6 +39,7 @@ const App = () => {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/login-local" element={<LoginLocal />} />
+          <Route path="/exhibitor-portal" element={<ExhibitorPortalLanding />} />
 
           {/* Home Layout (Event Selection) */}
           <Route path="/" element={
@@ -69,6 +72,7 @@ const App = () => {
             <Route path="email-kill-switch" element={<EmailKillSwitch />} />
             <Route path="meetings" element={<Meetings />} />
             <Route path="exhibitor-certificate" element={<ExhibitorCertificate />} />
+            <Route path="brand-manage" element={<BrandManage />} />
 
 
           </Route>

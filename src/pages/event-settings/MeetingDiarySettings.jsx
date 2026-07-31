@@ -1,6 +1,6 @@
 import React from 'react';
 import { Calendar, Users, Settings, ExternalLink } from 'lucide-react';
-import { SectionHeader, FormField, ToggleSwitch, getInputClass } from './components/SharedComponents';
+import { SectionHeader, FormField, ToggleSwitch, getInputClass, LimitStatField } from './components/SharedComponents';
 
 const MeetingDiarySettings = ({ 
     eventData, 
@@ -91,27 +91,34 @@ const MeetingDiarySettings = ({
             {/* Section 3: Allocation */}
             <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
                 <SectionHeader icon={Users} title="Meeting Allocation & Limits" colorClass="text-blue-500" borderClass="bg-blue-500" />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField label="Default Meeting Limit" description="Base meeting diary access count">
-                        <input
-                            type="number"
-                            name="meeting_diary_limit_default"
-                            value={eventData.meeting_diary_limit_default || ''}
-                            onChange={handleInputChange}
-                            className={getInputClass('meeting_diary_limit_default', isFieldModified('meeting_diary_limit_default'))}
-                            placeholder="2"
-                        />
-                    </FormField>
-                    <FormField label="Meeting Formula Divisor" description="Derived from space // divisor">
-                        <input
-                            type="number"
-                            name="meeting_diary_limit_default_formula"
-                            value={eventData.meeting_diary_limit_default_formula || ''}
-                            onChange={handleInputChange}
-                            className={getInputClass('meeting_diary_limit_default_formula', isFieldModified('meeting_diary_limit_default_formula'))}
-                            placeholder="2"
-                        />
-                    </FormField>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <LimitStatField
+                        label="Default Meeting Limit"
+                        description="Base access count"
+                        name="meeting_diary_limit_default"
+                        value={eventData.meeting_diary_limit_default || ''}
+                        onChange={handleInputChange}
+                        isModified={isFieldModified('meeting_diary_limit_default')}
+                        placeholder="2"
+                    />
+                    <LimitStatField
+                        label="Formula Divisor"
+                        description="Derived from space ÷ divisor"
+                        name="meeting_diary_limit_default_formula"
+                        value={eventData.meeting_diary_limit_default_formula || ''}
+                        onChange={handleInputChange}
+                        isModified={isFieldModified('meeting_diary_limit_default_formula')}
+                        placeholder="2"
+                    />
+                    <LimitStatField
+                        label="Static Value"
+                        description="Fixed override limit"
+                        name="meeting_diary_limit_static_value"
+                        value={eventData.meeting_diary_limit_static_value ?? ''}
+                        onChange={handleInputChange}
+                        isModified={isFieldModified('meeting_diary_limit_static_value')}
+                        placeholder="0"
+                    />
                 </div>
             </div>
         </div>
