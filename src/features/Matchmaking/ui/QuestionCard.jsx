@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Filter, Star, Hash, Trash2, Layout, Layers, ChevronDown, ChevronUp, MoreHorizontal, Building2, Loader2 } from 'lucide-react';
+import { Hash, Trash2, Layout, Layers, ChevronDown, ChevronUp, MoreHorizontal, Building2, Loader2, GripVertical } from 'lucide-react';
 import OptionList from './OptionList';
 
-const QuestionCard = ({ question, attendeeTypes, onEdit, onRemove, onToggleExhibitorPortal, togglingPortal = false, defaultExpanded, readOnly = false }) => {
+const QuestionCard = ({ question, attendeeTypes, onEdit, onRemove, onToggleExhibitorPortal, togglingPortal = false, defaultExpanded, readOnly = false, draggable = false }) => {
     const [isExpanded, setIsExpanded] = useState(defaultExpanded || false);
     const optionCount = question.options?.length || 0;
 
@@ -21,19 +21,38 @@ const QuestionCard = ({ question, attendeeTypes, onEdit, onRemove, onToggleExhib
     }, [defaultExpanded]);
 
     return (
-        <div className={`group relative bg-white rounded-2xl border transition-all duration-500 ease-out animate-fade-in flex flex-col overflow-hidden ${isExpanded ? 'shadow-lg border-accent/20 h-fit' : 'shadow-sm hover:shadow-md border-border/50 hover:border-accent/30 h-fit'}`}>
+        <div
+            data-question-id={question.id}
+            className={`group relative bg-white rounded-2xl border transition-all duration-500 ease-out animate-fade-in flex flex-col overflow-hidden ${isExpanded ? 'shadow-lg border-accent/20 h-fit' : 'shadow-sm hover:shadow-md border-border/50 hover:border-accent/30 h-fit'}`}
+        >
             <div className={`absolute top-0 right-0 w-48 h-48 bg-accent/5 blur-[100px] rounded-full -mr-24 -mt-24 transition-opacity duration-1000 ${isExpanded ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
             
-            {/* Header: Utility Row (ID, Step, Edit, Toggle) */}
+            {/* Header: Utility Row (Drag, ID, Row, Sort, Edit, Toggle) */}
             <div className="relative z-10 px-6 pt-5 pb-3 flex items-center justify-between border-b border-border/40 bg-bg-secondary/20">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 flex-wrap">
+                    {draggable && !readOnly && (
+                        <button
+                            type="button"
+                            className="drag-handle cursor-grab active:cursor-grabbing p-1.5 -ml-1 rounded-lg text-text-tertiary hover:text-accent hover:bg-accent/10 border border-transparent hover:border-accent/20 transition-all"
+                            title="Drag to reorder"
+                            aria-label="Drag to reorder"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <GripVertical size={14} />
+                        </button>
+                    )}
                     <span className="text-[8px] font-bold bg-white text-text-tertiary px-2 py-0.5 rounded-full uppercase tracking-tighter border border-border/40 shadow-sm">#{question.id}</span>
-                    <span className="text-[9px] font-bold text-text-tertiary flex items-center gap-1 uppercase tracking-tight opacity-70"><Hash size={10} className="text-accent" /> Step {question.sort_key || 0}</span>
+                    <span className="text-[9px] font-bold text-accent bg-accent/10 px-2.5 py-1 rounded-lg border border-accent/25 uppercase tracking-tight shadow-sm">
+                        Row {question.row_no ?? '—'}
+                    </span>
+                    <span className="text-[9px] font-bold text-accent bg-accent/10 px-2.5 py-1 rounded-lg border border-accent/25 uppercase tracking-tight shadow-sm flex items-center gap-1">
+                        <Hash size={10} /> Sort {question.sort_key ?? '—'}
+                    </span>
                 </div>
                 
                 <div className="flex items-center gap-2">
-                    {!readOnly && (
-                        <button onClick={(e) => { e.stopPropagation(); onEdit?.(question); }} className="flex items-center gap-1.5 px-3 py-1.5 text-[9px] font-bold text-accent bg-white hover:bg-accent hover:text-white rounded-lg transition-all duration-300 active:scale-95 border border-accent/20 shadow-sm group/edit" title="Edit Configuration">
+                    {onEdit && (
+                        <button onClick={(e) => { e.stopPropagation(); onEdit(question); }} className="flex items-center gap-1.5 px-3 py-1.5 text-[9px] font-bold text-accent bg-white hover:bg-accent hover:text-white rounded-lg transition-all duration-300 active:scale-95 border border-accent/20 shadow-sm group/edit" title="Edit Configuration">
                             <MoreHorizontal size={14} className="group-hover/edit:rotate-90 transition-transform" />
                             EDIT
                         </button>
@@ -100,7 +119,7 @@ const QuestionCard = ({ question, attendeeTypes, onEdit, onRemove, onToggleExhib
                         </div>
                     </div>
 
-                    {!readOnly && (
+                    {!readOnly ? (
                         <div className="relative z-10 mt-4 pt-4 border-t border-border/40 space-y-3">
                             <button
                                 type="button"
@@ -139,7 +158,13 @@ const QuestionCard = ({ question, attendeeTypes, onEdit, onRemove, onToggleExhib
                                 </button>
                             </div>
                         </div>
-                    )}
+                    ) : onEdit ? (
+                        <div className="relative z-10 mt-4 pt-4 border-t border-border/40">
+                            <button onClick={(e) => { e.stopPropagation(); onEdit(question); }} className="w-full py-2.5 text-[10px] font-bold text-accent bg-accent/5 hover:bg-accent hover:text-white rounded-xl transition-all duration-300 active:scale-[0.97] border border-accent/10 hover:border-accent shadow-sm uppercase tracking-wider">
+                                Edit in Matchmaking Questions
+                            </button>
+                        </div>
+                    ) : null}
                 </div>
             </div>
         </div>

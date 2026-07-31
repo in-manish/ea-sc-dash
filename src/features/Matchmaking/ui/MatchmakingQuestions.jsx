@@ -1,27 +1,42 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { matchmakingApi } from '../api/matchmakingApi';
 import { Loader2, RefreshCw, AlertCircle, Copy, Hash, ChevronLeft, ChevronRight, Trash2, X, Plus, Layout, ChevronDown, ChevronUp } from 'lucide-react';
+import Sortable from 'sortablejs';
 import QuestionCard from './QuestionCard';
 import CopyMatchmakingModal from './CopyMatchmakingModal';
 import DeleteConfirmationModal from './DeleteConfirmationModal';
 import MatchmakingQuestionModal from './MatchmakingQuestionModal';
 import { eventService } from '../../../services/eventService';
 
-const MatchmakingQuestions = () => {
+const sortQuestions = (questions = []) =>
+    [...questions].sort((a, b) => {
+        const sortDiff = (a.sort_key ?? 0) - (b.sort_key ?? 0);
+        if (sortDiff !== 0) return sortDiff;
+        return (a.id ?? 0) - (b.id ?? 0);
+    });
+
+const MatchmakingQuestions = ({ pendingEdit = null, onPendingEditConsumed }) => {
     const { selectedEvent, token } = useAuth();
-    const [currentId, setCurrentId] = useState(selectedEvent?.id);
-    const [tempId, setTempId] = useState(selectedEvent?.id || '');
+    const [currentId, setCurrentId] = useState(pendingEdit?.eventId || selectedEvent?.id);
+    const [tempId, setTempId] = useState(pendingEdit?.eventId || selectedEvent?.id || '');
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [attendeeTypes, setAttendeeTypes] = useState([]);
     const [modals, setModals] = useState({ copy: false, del: false, delLoading: false, ques: false, selectedQues: null });
+    const [reordering, setReordering] = useState(false);
+    const listRef = useRef(null);
+    const sortableRef = useRef(null);
+    const dataRef = useRef(data);
+    dataRef.current = data;
 
     const ids = useMemo(() => {
         const start = Math.max(1, currentId - 4);
         return Array.from({ length: 5 }, (_, i) => start + i);
     }, [currentId]);
+
+    const sortedQuestions = useMemo(() => sortQuestions(data?.questions), [data?.questions]);
 
     const fetchData = async () => {
         if (!currentId) return;
@@ -40,6 +55,85 @@ const MatchmakingQuestions = () => {
 
     useEffect(() => { setCurrentId(selectedEvent?.id); setTempId(selectedEvent?.id); }, [selectedEvent]);
     useEffect(() => { fetchData(); }, [currentId, token]);
+
+    useEffect(() => {
+        if (!pendingEdit?.questionId) return;
+
+        if (pendingEdit.eventId && pendingEdit.eventId !== currentId) {
+            setCurrentId(pendingEdit.eventId);
+            setTempId(pendingEdit.eventId);
+            return;
+        }
+
+        if (loading || !data?.questions) return;
+
+        const question = data.questions.find(q => q.id === pendingEdit.questionId);
+        if (question) {
+            setModals(m => ({ ...m, ques: true, selectedQues: question }));
+        }
+        onPendingEditConsumed?.();
+    }, [pendingEdit, currentId, loading, data, onPendingEditConsumed]);
+
+    const handleReorder = useCallback(async (oldIndex, newIndex) => {
+        if (oldIndex === newIndex) return;
+        const current = dataRef.current;
+        if (!current?.questions?.length || !current.id) return;
+
+        const ordered = sortQuestions(current.questions);
+        const [moved] = ordered.splice(oldIndex, 1);
+        ordered.splice(newIndex, 0, moved);
+        const reindexed = ordered.map((q, i) => ({ ...q, sort_key: i + 1 }));
+
+        setData(prev => prev ? { ...prev, questions: reindexed } : prev);
+        setReordering(true);
+        setError(null);
+        try {
+            const updated = await matchmakingApi.saveMatchmakingQuestions(currentId, {
+                form_id: current.id,
+                form_name: current.form_name,
+                questions: reindexed,
+            }, token);
+            if (updated?.questions) setData(updated);
+        } catch (err) {
+            setError(err.message || 'Failed to update sort order.');
+            fetchData();
+        } finally {
+            setReordering(false);
+        }
+    }, [currentId, token]);
+
+    useEffect(() => {
+        if (!listRef.current || sortedQuestions.length === 0 || loading) {
+            if (sortableRef.current) {
+                sortableRef.current.destroy();
+                sortableRef.current = null;
+            }
+            return;
+        }
+
+        if (sortableRef.current) {
+            sortableRef.current.destroy();
+            sortableRef.current = null;
+        }
+
+        sortableRef.current = Sortable.create(listRef.current, {
+            animation: 200,
+            handle: '.drag-handle',
+            ghostClass: 'opacity-40',
+            disabled: reordering,
+            onEnd: (evt) => {
+                if (evt.oldIndex == null || evt.newIndex == null || evt.oldIndex === evt.newIndex) return;
+                handleReorder(evt.oldIndex, evt.newIndex);
+            },
+        });
+
+        return () => {
+            if (sortableRef.current) {
+                sortableRef.current.destroy();
+                sortableRef.current = null;
+            }
+        };
+    }, [sortedQuestions.length, loading, reordering, handleReorder]);
 
     const handleDelete = async () => {
         setModals(m => ({ ...m, delLoading: true }));
@@ -104,6 +198,12 @@ const MatchmakingQuestions = () => {
                             <span className="text-accent">Module:</span> Matchmaking
                             <div className="w-1 h-1 rounded-full bg-border mx-1" />
                             {data?.modified_at && <span>Synced: {new Date(data.modified_at).toLocaleDateString()}</span>}
+                            {reordering && (
+                                <>
+                                    <div className="w-1 h-1 rounded-full bg-border mx-1" />
+                                    <span className="text-accent flex items-center gap-1.5"><Loader2 size={10} className="animate-spin" /> Saving order…</span>
+                                </>
+                            )}
                         </div>
                         <div className="flex flex-col gap-1">
                             <h1 className="text-2xl font-bold text-text-primary tracking-tight">
@@ -166,7 +266,7 @@ const MatchmakingQuestions = () => {
                         <p className="text-xs font-bold text-text-tertiary uppercase tracking-wider">Matchmaking Data Layer</p>
                     </div>
                 </div>
-            ) : error ? (
+            ) : error && !data ? (
                 <div className="bg-white rounded-2xl border border-border/60 p-12 text-center animate-fade-in shadow-lg shadow-accent/5 max-w-2xl mx-auto">
                     <div className="w-16 h-16 bg-status-danger/5 rounded-full flex items-center justify-center mx-auto mb-6 border border-status-danger/10">
                         <AlertCircle className="text-status-danger" size={32} />
@@ -176,34 +276,39 @@ const MatchmakingQuestions = () => {
                     <button onClick={fetchData} className="btn btn-secondary py-3 px-8 rounded-xl gap-2 mx-auto flex font-bold text-xs border-none bg-bg-secondary hover:bg-bg-tertiary"><RefreshCw size={16} /> RETRY CONNECTION</button>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-10 items-start">
-                    {data?.questions?.map(q => (
-                        <QuestionCard
-                            key={q.id}
-                            question={q}
-                            attendeeTypes={attendeeTypes}
-                            onEdit={q => setModals(m => ({ ...m, ques: true, selectedQues: q }))}
-                            onRemove={handleRemoveQuestion}
-                            onToggleExhibitorPortal={handleToggleExhibitorPortal}
-                            togglingPortal={togglingPortalId === q.id}
-                            defaultExpanded={allExpanded}
-                        />
-                    ))}
-                    
-                    {(!data?.questions || data.questions.length === 0) && (
-                        <div className="col-span-full py-32 px-10 text-center bg-white rounded-[3rem] border-2 border-dashed border-border/60 flex flex-col items-center group hover:border-accent/40 transition-colors duration-500">
-                            <div className="mb-8 p-8 bg-bg-secondary rounded-[2rem] text-text-tertiary group-hover:bg-accent/5 group-hover:text-accent transition-all duration-500 transform group-hover:scale-110">
-                                <Layout size={48} className="animate-pulse" />
-                            </div>
-                            <h3 className="text-2xl font-bold text-text-primary mb-3 tracking-tight">Empty Canvas</h3>
-                            <p className="text-xs text-text-secondary max-w-xs mx-auto mb-8 leading-relaxed font-medium"> The matchmaking module <b>{data?.form_name}</b> is initialized but contains no logical branches.</p>
-                            <div className="flex flex-col sm:flex-row gap-3 items-center">
-                                <button onClick={() => setModals(m => ({ ...m, ques: true, selectedQues: null }))} className="btn btn-primary py-3 px-8 rounded-xl gap-2 shadow-lg shadow-accent/10 font-bold text-[11px] border-none"><Plus size={18} /> DEFINE FIRST QUESTION</button>
-                                {data?.modified_at && <div className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary bg-white px-4 py-2 rounded-xl border border-border/80">Active Since {new Date(data.modified_at).getFullYear()}</div>}
+                <>
+                    {sortedQuestions.length > 0 ? (
+                        <div ref={listRef} className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-10 items-start">
+                            {sortedQuestions.map(q => (
+                                <QuestionCard
+                                    key={q.id}
+                                    question={q}
+                                    attendeeTypes={attendeeTypes}
+                                    onEdit={q => setModals(m => ({ ...m, ques: true, selectedQues: q }))}
+                                    onRemove={handleRemoveQuestion}
+                                    onToggleExhibitorPortal={handleToggleExhibitorPortal}
+                                    togglingPortal={togglingPortalId === q.id}
+                                    defaultExpanded={allExpanded}
+                                    draggable
+                                />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1">
+                            <div className="col-span-full py-32 px-10 text-center bg-white rounded-[3rem] border-2 border-dashed border-border/60 flex flex-col items-center group hover:border-accent/40 transition-colors duration-500">
+                                <div className="mb-8 p-8 bg-bg-secondary rounded-[2rem] text-text-tertiary group-hover:bg-accent/5 group-hover:text-accent transition-all duration-500 transform group-hover:scale-110">
+                                    <Layout size={48} className="animate-pulse" />
+                                </div>
+                                <h3 className="text-2xl font-bold text-text-primary mb-3 tracking-tight">Empty Canvas</h3>
+                                <p className="text-xs text-text-secondary max-w-xs mx-auto mb-8 leading-relaxed font-medium"> The matchmaking module <b>{data?.form_name}</b> is initialized but contains no logical branches.</p>
+                                <div className="flex flex-col sm:flex-row gap-3 items-center">
+                                    <button onClick={() => setModals(m => ({ ...m, ques: true, selectedQues: null }))} className="btn btn-primary py-3 px-8 rounded-xl gap-2 shadow-lg shadow-accent/10 font-bold text-[11px] border-none"><Plus size={18} /> DEFINE FIRST QUESTION</button>
+                                    {data?.modified_at && <div className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary bg-white px-4 py-2 rounded-xl border border-border/80">Active Since {new Date(data.modified_at).getFullYear()}</div>}
+                                </div>
                             </div>
                         </div>
                     )}
-                </div>
+                </>
             )}
             <CopyMatchmakingModal isOpen={modals.copy} onClose={() => setModals(m => ({ ...m, copy: false }))} toEventId={selectedEvent?.id} onSuccess={fetchData} />
             <DeleteConfirmationModal isOpen={modals.del} onClose={() => setModals(m => ({ ...m, del: false }))} onConfirm={handleDelete} formName={data?.form_name} loading={modals.delLoading} />

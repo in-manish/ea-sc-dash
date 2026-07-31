@@ -11,7 +11,7 @@ const MatchmakingQuestionModal = ({ isOpen, onClose, eventId, token, question, f
     const [attendeeTypes, setAttendeeTypes] = useState([]);
     const [formData, setFormData] = useState({
         title: '', type: 'radio', is_mandatory: false, is_filter: false, can_support_exhibitor_portal: false,
-        design_type: 'vertical', row_no: 1, attendee_types: [], options: [{ name: '' }]
+        design_type: 'vertical', row_no: 1, sort_key: 1, attendee_types: [], options: [{ name: '' }]
     });
 
     useEffect(() => {
@@ -29,7 +29,7 @@ const MatchmakingQuestionModal = ({ isOpen, onClose, eventId, token, question, f
             } else {
                 setFormData({
                     title: '', type: 'radio', is_mandatory: false, is_filter: false, can_support_exhibitor_portal: false,
-                    design_type: 'vertical', row_no: 1, attendee_types: [], options: [{ name: '' }],
+                    design_type: 'vertical', row_no: 1, sort_key: 1, attendee_types: [], options: [{ name: '' }],
                 });
             }
         }
@@ -124,6 +124,38 @@ const MatchmakingQuestionModal = ({ isOpen, onClose, eventId, token, question, f
                                         <option value="grid">Multi-Column Grid</option>
                                         <option value="select">Native Dropdown</option>
                                     </select>
+                                </div>
+
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-[10px] font-medium text-text-tertiary uppercase tracking-wider ml-1">Row Number</label>
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        className="input-field py-2.5 px-5 text-sm font-semibold bg-white border border-border/60 rounded-xl shadow-sm"
+                                        placeholder="e.g. 1"
+                                        value={formData.row_no ?? ''}
+                                        onChange={e => setFormData({
+                                            ...formData,
+                                            row_no: e.target.value === '' ? null : Number(e.target.value),
+                                        })}
+                                    />
+                                    <p className="text-[10px] text-text-tertiary ml-1">Short key used to place this question on a form row</p>
+                                </div>
+
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-[10px] font-medium text-text-tertiary uppercase tracking-wider ml-1">Sort Key</label>
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        className="input-field py-2.5 px-5 text-sm font-semibold bg-white border border-border/60 rounded-xl shadow-sm"
+                                        placeholder="e.g. 1"
+                                        value={formData.sort_key ?? ''}
+                                        onChange={e => setFormData({
+                                            ...formData,
+                                            sort_key: e.target.value === '' ? null : Number(e.target.value),
+                                        })}
+                                    />
+                                    <p className="text-[10px] text-text-tertiary ml-1">Controls display order within the form</p>
                                 </div>
                             </div>
                         </section>

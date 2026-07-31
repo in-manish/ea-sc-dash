@@ -6,12 +6,18 @@ import { Layout, GitMerge, Building2 } from 'lucide-react';
 
 const Matchmaking = () => {
     const [activeTab, setActiveTab] = useState('questions');
+    const [pendingEdit, setPendingEdit] = useState(null);
 
     const tabs = [
         { id: 'questions', label: 'Matchmaking Questions', icon: Layout },
         { id: 'exhibitor', label: 'Exhibitor Portal Questions', icon: Building2 },
         { id: 'mapping', label: 'SurveyJs Mapping', icon: GitMerge },
     ];
+
+    const handleEditFromExhibitor = (question, eventId) => {
+        setPendingEdit({ questionId: question.id, eventId });
+        setActiveTab('questions');
+    };
 
     return (
         <div className="flex flex-col h-full">
@@ -33,8 +39,15 @@ const Matchmaking = () => {
             </div>
 
             <div className="flex-1 overflow-auto">
-                {activeTab === 'questions' && <MatchmakingQuestions />}
-                {activeTab === 'exhibitor' && <ExhibitorPortalQuestions />}
+                {activeTab === 'questions' && (
+                    <MatchmakingQuestions
+                        pendingEdit={pendingEdit}
+                        onPendingEditConsumed={() => setPendingEdit(null)}
+                    />
+                )}
+                {activeTab === 'exhibitor' && (
+                    <ExhibitorPortalQuestions onEditQuestion={handleEditFromExhibitor} />
+                )}
                 {activeTab === 'mapping' && <SurveyMapping />}
             </div>
         </div>

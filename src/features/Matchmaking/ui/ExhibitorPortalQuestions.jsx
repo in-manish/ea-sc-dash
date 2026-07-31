@@ -5,7 +5,7 @@ import { Loader2, RefreshCw, AlertCircle, Hash, ChevronLeft, ChevronRight, X, La
 import QuestionCard from './QuestionCard';
 import { eventService } from '../../../services/eventService';
 
-const ExhibitorPortalQuestions = () => {
+const ExhibitorPortalQuestions = ({ onEditQuestion }) => {
     const { selectedEvent, token } = useAuth();
     const [currentId, setCurrentId] = useState(selectedEvent?.id);
     const [tempId, setTempId] = useState(selectedEvent?.id || '');
@@ -68,7 +68,7 @@ const ExhibitorPortalQuestions = () => {
                         <div className="flex items-center gap-2 mb-6 text-[10px] font-bold text-text-tertiary uppercase tracking-widest bg-bg-secondary w-fit px-4 py-1.5 rounded-full border border-border/40">
                             <span className="text-accent">Module:</span> Exhibitor Portal
                             <div className="w-1 h-1 rounded-full bg-border mx-1" />
-                            <span>Read-only view</span>
+                            <span>Portal-enabled questions</span>
                         </div>
                         <div className="flex flex-col gap-1">
                             <h1 className="text-2xl font-bold text-text-primary tracking-tight">
@@ -143,6 +143,7 @@ const ExhibitorPortalQuestions = () => {
                             attendeeTypes={attendeeTypes}
                             defaultExpanded={allExpanded}
                             readOnly
+                            onEdit={(question) => onEditQuestion?.(question, currentId)}
                         />
                     ))}
 
