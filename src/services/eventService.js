@@ -409,9 +409,15 @@ export const eventService = {
         }
     },
 
-    async getEventDetails(eventId, token) {
+    async getEventDetails(eventId, token, options = {}) {
         try {
-            const response = await fetch(`${getApiUrl()}/events/${eventId}/?add_details=true`, {
+            const params = new URLSearchParams({ add_details: 'true' });
+            // Portal fields (exhibitor_portal_data) are omitted unless exhibitor_portal=true
+            if (options.exhibitorPortal) {
+                params.set('exhibitor_portal', 'true');
+            }
+
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/?${params.toString()}`, {
                 method: 'GET',
                 headers: getHeaders(token)
             });

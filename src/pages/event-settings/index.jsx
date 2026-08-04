@@ -16,6 +16,10 @@ import MeetingDiarySettings from './MeetingDiarySettings';
 import AgendaSettings from './AgendaSettings';
 import JsonTree from './components/JsonTree';
 import { DEFAULT_STALL_SCHEMA_TYPES } from './CompanySettings';
+import {
+    DEFAULT_ADDITIONAL_REQUIREMENT,
+    normalizeExhibitorPortalData,
+} from './exhibitorPortalDefaults';
 
 const EventSettings = () => {
     const { id } = useParams();
@@ -59,7 +63,8 @@ const EventSettings = () => {
     const fetchEventDetails = async () => {
         setIsLoading(true);
         try {
-            const data = await eventService.getEventDetails(id, token);
+            // exhibitor_portal=true required so exhibitor_portal_data (tax/footer) is included
+            const data = await eventService.getEventDetails(id, token, { exhibitorPortal: true });
             if (!Array.isArray(data.stall_schem_types) || data.stall_schem_types.length === 0) {
                 data.stall_schem_types = [...DEFAULT_STALL_SCHEMA_TYPES];
             }
@@ -69,6 +74,7 @@ const EventSettings = () => {
             } else if (data.currencies.length > 1) {
                 data.currencies = [data.currencies[0]];
             }
+            data.exhibitor_portal_data = normalizeExhibitorPortalData(data.exhibitor_portal_data);
             setEventData(data);
             setOriginalEventData(JSON.parse(JSON.stringify(data)));
         } catch (err) {
@@ -325,6 +331,35 @@ const EventSettings = () => {
         return current !== original;
     };
 
+    const handleAdditionalRequirementChange = (section, field, value) => {
+        setEventData(prev => {
+            const current = prev.exhibitor_portal_data?.additional_requirement || {
+                tax: { ...DEFAULT_ADDITIONAL_REQUIREMENT.tax },
+                page: { ...DEFAULT_ADDITIONAL_REQUIREMENT.page },
+            };
+            return {
+                ...prev,
+                exhibitor_portal_data: {
+                    ...(prev.exhibitor_portal_data || {}),
+                    additional_requirement: {
+                        ...current,
+                        [section]: {
+                            ...(current[section] || {}),
+                            [field]: value,
+                        },
+                    },
+                },
+            };
+        });
+    };
+
+    const isAdditionalRequirementModified = (section, field) => {
+        if (!originalEventData) return false;
+        const current = eventData.exhibitor_portal_data?.additional_requirement?.[section]?.[field];
+        const original = originalEventData.exhibitor_portal_data?.additional_requirement?.[section]?.[field];
+        return current !== original;
+    };
+
     const handleMeetingDiaryChange = (field, value) => {
         setEventData(prev => ({
             ...prev,
@@ -435,6 +470,21 @@ const EventSettings = () => {
             return;
         }
 
+        const arTax = eventData.exhibitor_portal_data?.additional_requirement?.tax;
+        if (arTax) {
+            const rate = Number(arTax.rate);
+            if (Number.isNaN(rate) || rate < 0 || (arTax.type === 'percentage' && rate > 100)) {
+                setIsSaving(false);
+                setMessage({
+                    type: 'error',
+                    text: arTax.type === 'percentage'
+                        ? 'Tax rate must be a number between 0 and 100.'
+                        : 'Tax rate must be a non-negative number.',
+                });
+                return;
+            }
+        }
+
         try {
             const formData = new FormData();
             
@@ -455,7 +505,8 @@ const EventSettings = () => {
                 'exhibitor_setup_checklist',
                 'show_hours',
                 'stall_schem_types',
-                'currencies'
+                'currencies',
+                'exhibitor_portal_data',
             ];
             
             const imageFields = ['logo', 'logo2', 'event_background_image', 'event_banner_logo', 'meetingdiary_portal_bg_image'];
@@ -538,6 +589,21 @@ const EventSettings = () => {
             // Currency: single choice — send one code (API still expects the currencies field)
             const currency = Array.isArray(eventData.currencies) ? eventData.currencies[0] : null;
             if (currency) formData.append('currencies', currency);
+
+            // Exhibitor portal AR tax + stall detail footer (partial merge on API)
+            const ar = eventData.exhibitor_portal_data?.additional_requirement || DEFAULT_ADDITIONAL_REQUIREMENT;
+            formData.append('exhibitor_portal_data', JSON.stringify({
+                additional_requirement: {
+                    tax: {
+                        name: (ar.tax?.name || 'GST').trim() || 'GST',
+                        type: ar.tax?.type === 'fixed' ? 'fixed' : 'percentage',
+                        rate: Number(ar.tax?.rate),
+                    },
+                    page: {
+                        footer: typeof ar.page?.footer === 'string' ? ar.page.footer : '',
+                    },
+                },
+            }));
 
             // --- MANUAL PAYLOAD MODIFICATION AREA ---
             // You can manually add or override any keys here before the update request.
@@ -682,6 +748,8 @@ const EventSettings = () => {
                         isFieldModified={isFieldModified}
                         handleCurrencySelect={handleCurrencySelect}
                         isCurrenciesModified={isCurrenciesModified}
+                        handleAdditionalRequirementChange={handleAdditionalRequirementChange}
+                        isAdditionalRequirementModified={isAdditionalRequirementModified}
                     />
                 )}
                 {activeTab === 'localization' && (

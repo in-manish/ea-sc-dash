@@ -1,6 +1,7 @@
-import React from 'react';
-import { ShieldCheck, Coins } from 'lucide-react';
+import React, { useState } from 'react';
+import { ShieldCheck, Coins, Receipt, FileText, Eye, EyeOff } from 'lucide-react';
 import { SectionHeader, FormField, getInputClass } from './components/SharedComponents';
+import { getAdditionalRequirement } from './exhibitorPortalDefaults';
 
 export const EVENT_CURRENCIES = [
     { value: 'INR', label: 'INR — Indian Rupee' },
@@ -13,10 +14,14 @@ const PaymentSettings = ({
     isFieldModified,
     handleCurrencySelect,
     isCurrenciesModified,
+    handleAdditionalRequirementChange,
+    isAdditionalRequirementModified,
 }) => {
     const selectedCurrency = Array.isArray(eventData.currencies) && eventData.currencies.length > 0
         ? eventData.currencies[0]
         : '';
+    const { tax, page } = getAdditionalRequirement(eventData);
+    const [showFooterPreview, setShowFooterPreview] = useState(false);
 
     return (
         <div className="animate-fade-in space-y-6">
@@ -71,6 +76,102 @@ const PaymentSettings = ({
                                 </label>
                             );
                         })}
+                    </div>
+                </FormField>
+            </div>
+
+            <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
+                <SectionHeader icon={Receipt} title="Additional Requirements Tax" colorClass="text-orange-500" borderClass="bg-orange-500" />
+                <p className="text-xs text-text-tertiary -mt-4 mb-6">
+                    Tax applied to exhibitor portal additional-requirement orders. Order totals still return <code className="text-[10px]">gst_rate</code> / <code className="text-[10px]">gst_amount</code>; labels use this name and rate.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl">
+                    <FormField label="Tax Name" description="Shown on AR order totals">
+                        <input
+                            type="text"
+                            value={tax.name}
+                            onChange={(e) => handleAdditionalRequirementChange?.('tax', 'name', e.target.value)}
+                            className={getInputClass('tax.name', isAdditionalRequirementModified?.('tax', 'name'))}
+                            placeholder="GST"
+                        />
+                    </FormField>
+                    <FormField label="Type">
+                        <select
+                            value={tax.type}
+                            onChange={(e) => handleAdditionalRequirementChange?.('tax', 'type', e.target.value)}
+                            className={getInputClass('tax.type', isAdditionalRequirementModified?.('tax', 'type'))}
+                        >
+                            <option value="percentage">Percentage</option>
+                            <option value="fixed">Fixed</option>
+                        </select>
+                    </FormField>
+                    <FormField
+                        label="Rate"
+                        description={tax.type === 'percentage' ? '0–100' : 'Fixed amount'}
+                    >
+                        <input
+                            type="number"
+                            min={0}
+                            max={tax.type === 'percentage' ? 100 : undefined}
+                            step="any"
+                            value={tax.rate}
+                            onChange={(e) => {
+                                const raw = e.target.value;
+                                if (raw === '') {
+                                    handleAdditionalRequirementChange?.('tax', 'rate', '');
+                                    return;
+                                }
+                                let next = Number(raw);
+                                if (tax.type === 'percentage') {
+                                    next = Math.min(100, Math.max(0, next));
+                                }
+                                handleAdditionalRequirementChange?.('tax', 'rate', next);
+                            }}
+                            className={getInputClass('tax.rate', isAdditionalRequirementModified?.('tax', 'rate'))}
+                            placeholder="18"
+                        />
+                    </FormField>
+                </div>
+            </div>
+
+            <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
+                <SectionHeader icon={FileText} title="AR Stall Detail Footer" colorClass="text-sky-500" borderClass="bg-sky-500" />
+                <FormField
+                    label="Footer HTML"
+                    description="Shown on stall detail as additional_requirements_footer in the exhibitor portal."
+                >
+                    <div className="space-y-2">
+                        <div className="flex justify-end">
+                            <button
+                                type="button"
+                                onClick={() => setShowFooterPreview((v) => !v)}
+                                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs font-medium transition-all ${
+                                    showFooterPreview
+                                        ? 'bg-accent text-white border-accent'
+                                        : 'border-border bg-bg-primary text-text-secondary hover:bg-bg-tertiary'
+                                }`}
+                            >
+                                {showFooterPreview ? <EyeOff size={14} /> : <Eye size={14} />}
+                                {showFooterPreview ? 'Edit HTML' : 'Preview'}
+                            </button>
+                        </div>
+                        {showFooterPreview ? (
+                            <div
+                                className="bg-bg-secondary border border-border rounded-md p-4 min-h-[120px] text-sm leading-relaxed prose prose-sm max-w-none shadow-inner text-text-primary"
+                                dangerouslySetInnerHTML={{
+                                    __html: page.footer || '<span class="text-text-tertiary italic">No footer content</span>',
+                                }}
+                            />
+                        ) : (
+                            <textarea
+                                value={page.footer}
+                                onChange={(e) => handleAdditionalRequirementChange?.('page', 'footer', e.target.value)}
+                                className={`${getInputClass('page.footer', isAdditionalRequirementModified?.('page', 'footer'))} font-mono text-xs min-h-[120px]`}
+                                placeholder='<strong>Orders valid with full remittance.</strong>'
+                                rows={5}
+                                spellCheck={false}
+                            />
+                        )}
                     </div>
                 </FormField>
             </div>
