@@ -25,6 +25,7 @@ import EmailKillSwitch from './pages/email-kill-switch/EmailKillSwitch';
 import Meetings from './pages/meetings/Meetings';
 import ExhibitorCertificate from './pages/exhibitor-certificate/ExhibitorCertificate';
 import BrandManage from './pages/brand-manage/BrandManage';
+import ManageUsers from './pages/ManageUsers';
 import ExhibitorPortalLanding from './pages/exhibitor-portal/ExhibitorPortalLanding';
 
 
@@ -73,6 +74,7 @@ const App = () => {
             <Route path="meetings" element={<Meetings />} />
             <Route path="exhibitor-certificate" element={<ExhibitorCertificate />} />
             <Route path="brand-manage" element={<BrandManage />} />
+            <Route path="manage-users" element={<ManageUsers />} />
 
 
           </Route>

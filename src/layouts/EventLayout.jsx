@@ -472,15 +472,18 @@ const EventLayout = () => {
                                     >
                                         Kiosk
                                     </NavLink>
-                                    <NavLink
-                                        to={`/event/${selectedEvent.id}/staff?tab=organizer`}
-                                        className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/staff') && new URLSearchParams(location.search).get('tab') === 'organizer' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
-                                    >
-                                        Organizer
-                                    </NavLink>
                                 </div>
                             )}
                         </div>
+
+                        <NavLink
+                            to={`/event/${selectedEvent.id}/manage-users`}
+                            className={navLinkClass}
+                            title={isCollapsed ? "Manage Users" : ""}
+                        >
+                            <UserCog size={20} className="shrink-0" />
+                            {!isCollapsed && <span className="flex-1">Manage Users</span>}
+                        </NavLink>
 
                         <NavLink
                             to={`/event/${selectedEvent.id}/brand-manage`}
