@@ -35,7 +35,7 @@ const Companies = () => {
         const filters = {};
         const filterKeys = [
             'country', 'location', 'category', 'parent_exhibitor_id',
-            'parent_exhibitor_only', 'is_badge_printed', 'registered_co_exhibitor_count', 'is_featured', 'is_company_submit_locked'
+            'parent_exhibitor_only', 'is_badge_printed', 'registered_co_exhibitor_count', 'is_featured', 'is_company_submit_locked', 'hand_over'
         ];
 
         filterKeys.forEach(key => {
@@ -95,7 +95,7 @@ const Companies = () => {
 
         const filterKeys = [
             'country', 'location', 'category', 'parent_exhibitor_id',
-            'parent_exhibitor_only', 'is_badge_printed', 'registered_co_exhibitor_count', 'is_featured', 'is_company_submit_locked'
+            'parent_exhibitor_only', 'is_badge_printed', 'registered_co_exhibitor_count', 'is_featured', 'is_company_submit_locked', 'hand_over'
         ];
 
         filterKeys.forEach(key => {
@@ -533,6 +533,39 @@ const Companies = () => {
                                 <option value="true">Featured</option>
                                 <option value="false">Not Featured</option>
                             </select>
+                        </div>
+
+                        <div className="flex flex-col gap-2">
+                            <h4 className="text-xs font-bold text-text-tertiary uppercase tracking-wider m-0">Handover</h4>
+                            <div className="flex flex-wrap gap-2 mt-1">
+                                {[
+                                    { value: '', label: 'All' },
+                                    { value: 'true', label: 'Handed Over' },
+                                    { value: 'false', label: 'Not Handed Over' },
+                                ].map((opt) => {
+                                    const isActive = (filters.hand_over || '') === opt.value;
+                                    return (
+                                        <button
+                                            key={opt.label}
+                                            type="button"
+                                            className={`py-2 px-3.5 border rounded-full text-xs font-medium transition-all duration-200 ${
+                                                isActive
+                                                    ? 'bg-accent text-white border-accent'
+                                                    : 'bg-bg-primary border-border text-text-secondary hover:border-accent hover:text-text-primary hover:bg-bg-secondary'
+                                            }`}
+                                            onClick={() => {
+                                                const newFilters = { ...filters };
+                                                if (opt.value) newFilters.hand_over = opt.value;
+                                                else delete newFilters.hand_over;
+                                                setFilters(newFilters);
+                                                setPage(1);
+                                            }}
+                                        >
+                                            {opt.label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
 
                         <div className="flex flex-col gap-2">
