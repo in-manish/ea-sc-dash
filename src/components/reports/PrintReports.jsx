@@ -4,6 +4,7 @@ import ReportService from '../../services/reportService';
 import { eventService } from '../../services/eventService';
 import { Loader2, Download, Search, Filter, AlertCircle, RefreshCw, MapPin, Hash, User, Mail, Building, Clock, Map, Phone, Briefcase, X, AlignLeft, LayoutIcon, Info, Calendar } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
+import { formatApiDateTime } from '../../utils/formatApiDateTime';
 
 
 const PrintReports = () => {
@@ -410,10 +411,7 @@ const PrintReports = () => {
                                         className="hover:bg-bg-tertiary transition-colors cursor-pointer group"
                                     >
                                         <td className="py-3 px-4 font-medium text-text-primary whitespace-nowrap align-top">
-                                            {item.printed_at ? new Date(item.printed_at).toLocaleString([], {
-                                                year: 'numeric', month: 'short', day: 'numeric',
-                                                hour: '2-digit', minute: '2-digit'
-                                            }) : '-'}
+                                            {item.printed_at ? formatApiDateTime(item.printed_at) : '-'}
                                         </td>
                                         <td className="py-3 px-4 align-top">
                                             <div className="flex flex-col gap-0.5">
@@ -745,7 +743,7 @@ const PrintReports = () => {
                                     <div className="bg-accent/10 p-1.5 rounded-md"><Clock size={16} className="text-accent" /></div> Print & Location Information
                                 </h4>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <DetailItem icon={<Clock />} label="Printed At" value={selectedRecord.printed_at ? new Date(selectedRecord.printed_at).toLocaleString() : 'N/A'} />
+                                    <DetailItem icon={<Clock />} label="Printed At" value={selectedRecord.printed_at ? formatApiDateTime(selectedRecord.printed_at) : 'N/A'} />
                                     <DetailItem icon={<MapPin />} label="Print Location" value={selectedRecord.print_location?.name} />
                                     <DetailItem icon={<Map />} label="Kiosk Location" value={selectedRecord.kiosk_location?.location} />
                                     <DetailItem icon={<Hash />} label="Print ID" value={selectedRecord.id} />
