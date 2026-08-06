@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Hash, Trash2, Layout, Layers, ChevronDown, ChevronUp, MoreHorizontal, Building2, Loader2, GripVertical } from 'lucide-react';
 import OptionList from './OptionList';
+import { getQuestionTypeLabel } from '../constants/questionTypes';
 
 const QuestionCard = ({ question, attendeeTypes, onEdit, onRemove, onToggleExhibitorPortal, togglingPortal = false, defaultExpanded, readOnly = false, draggable = false }) => {
     const [isExpanded, setIsExpanded] = useState(defaultExpanded || false);
@@ -15,6 +16,7 @@ const QuestionCard = ({ question, attendeeTypes, onEdit, onRemove, onToggleExhib
     };
 
     const attendeeNames = getAttendeeNames();
+    const questionTypeLabel = getQuestionTypeLabel(question.question_type);
 
     React.useEffect(() => {
         setIsExpanded(defaultExpanded);
@@ -91,6 +93,7 @@ const QuestionCard = ({ question, attendeeTypes, onEdit, onRemove, onToggleExhib
                                 ))}
                             </div>
                         )}
+                        {questionTypeLabel && <span className="text-[8px] font-bold text-text-secondary bg-bg-secondary px-2 py-0.5 rounded-lg border border-border/40 uppercase tracking-tighter">{questionTypeLabel}</span>}
                         {question.is_filter && <span className="text-[8px] font-bold text-status-success bg-status-success/5 px-2 py-0.5 rounded-lg border border-status-success/10 uppercase tracking-tighter">Filterable</span>}
                         {question.is_mandatory && <span className="text-[8px] font-bold text-status-danger bg-status-danger/5 px-2 py-0.5 rounded-lg border border-status-danger/10 uppercase tracking-tighter">Required</span>}
                         {question.can_support_exhibitor_portal && <span className="text-[8px] font-bold text-accent bg-accent/5 px-2 py-0.5 rounded-lg border border-accent/10 uppercase tracking-tighter">Exhibitor Portal</span>}
