@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
-import { Loader2, Search, Filter, Globe, Building2, X, Printer, ShoppingCart, Settings, Star, Lock, IdCard, Upload } from 'lucide-react';
+import { Loader2, Search, Filter, Building2, X, Printer, ShoppingCart, Settings, Star, Lock, IdCard, Upload } from 'lucide-react';
 import AdditionalRequirementsOrders from './AdditionalRequirementsOrders';
 import ARManager from './ARManager';
 import CompanyProductSection from './event-settings/company-products/CompanyProductSection';
 import CompanyUploadModal from '../components/companies/CompanyUploadModal';
 import CompanyUploadStatus from '../components/companies/CompanyUploadStatus';
+import CompanyComprehensiveReportPanel from '../components/companies/CompanyComprehensiveReportPanel';
 
 const Companies = () => {
     const { selectedEvent, token } = useAuth();
@@ -153,9 +154,9 @@ const Companies = () => {
                     {activeTab === 'exhibitors' && <p className="text-sm text-text-secondary mt-1">Total: {total} exhibitors</p>}
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2 min-w-0">
                     {activeTab === 'exhibitors' && (
-                        <div className="flex gap-4 items-center">
+                        <div className="flex gap-3 items-center flex-wrap justify-end">
                             <button className="btn btn-primary" onClick={() => setIsUploadModalOpen(true)}>
                                 <Upload size={16} style={{ marginRight: '0.5rem' }} />
                                 Upload CSV
@@ -167,7 +168,7 @@ const Companies = () => {
                                         <input
                                             type="text"
                                             placeholder="Search companies..."
-                                            className="w-60 py-2 pr-4 pl-9 border border-border rounded-md text-sm outline-none transition-colors duration-200 focus:border-accent focus:ring-2 focus:ring-accent/10 focus:bg-white"
+                                            className="w-48 lg:w-60 py-2 pr-4 pl-9 border border-border rounded-md text-sm outline-none transition-colors duration-200 focus:border-accent focus:ring-2 focus:ring-accent/10 focus:bg-white"
                                             value={search}
                                             onChange={(e) => setSearch(e.target.value)}
                                         />
@@ -239,6 +240,14 @@ const Companies = () => {
                         Upload Status
                     </button>
                 </div>
+            )}
+
+            {activeTab === 'exhibitors' && exhView === 'list' && selectedEvent && (
+                <CompanyComprehensiveReportPanel
+                    eventId={selectedEvent.id}
+                    token={token}
+                    parentExhibitorId={filters.parent_exhibitor_id || ''}
+                />
             )}
 
             {activeTab === 'additional_requirements' && (

@@ -409,6 +409,44 @@ export const eventService = {
         }
     },
 
+    async getCompanyComprehensiveReport(eventId, token, parentExhibitorId = null) {
+        const params = new URLSearchParams();
+        if (parentExhibitorId !== null && parentExhibitorId !== undefined && parentExhibitorId !== '') {
+            params.set('parent_exhibitor_id', parentExhibitorId);
+        }
+
+        const query = params.toString();
+        const url = `${getApiUrl()}/events/${eventId}/company/comprehensive-report/${query ? `?${query}` : ''}`;
+
+        try {
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: getHeaders(token)
+            });
+
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                if (response.status === 404) {
+                    throw new Error(data.detail || 'Event not found');
+                }
+                if (data.parent_exhibitor_id) {
+                    throw new Error(
+                        Array.isArray(data.parent_exhibitor_id)
+                            ? data.parent_exhibitor_id.join(' ')
+                            : String(data.parent_exhibitor_id)
+                    );
+                }
+                throw new Error(data.detail || data.message || `Failed to load company report (status ${response.status})`);
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Get Company Comprehensive Report Error:', error);
+            throw error;
+        }
+    },
+
     async getEventDetails(eventId, token, options = {}) {
         try {
             const params = new URLSearchParams({ add_details: 'true' });
