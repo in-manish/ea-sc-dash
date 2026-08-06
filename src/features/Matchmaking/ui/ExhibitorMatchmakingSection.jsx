@@ -331,7 +331,7 @@ const ExhibitorMatchmakingSection = ({ eventId, companyId, token }) => {
     };
 
     return (
-        <div className="mt-8 bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
+        <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-border pb-4">
                 <h3 className="text-sm font-semibold uppercase text-text-tertiary m-0 flex items-center gap-2">
                     Exhibitor Portal Matchmaking

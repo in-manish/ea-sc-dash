@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
 import ExhibitorMatchmakingSection from '../features/Matchmaking/ui/ExhibitorMatchmakingSection';
-import { Loader2, ArrowLeft, Building2, MapPin, Globe, Phone, Ticket, LayoutDashboard, User, Star, Users } from 'lucide-react';
+import CoExhibitorsList from '../components/companies/CoExhibitorsList';
+import { Loader2, ArrowLeft, Building2, Globe, Phone, Ticket, LayoutDashboard, Star, Users, Handshake } from 'lucide-react';
 
 const CompanyDetails = () => {
     const { selectedEvent, token } = useAuth();
@@ -13,6 +14,7 @@ const CompanyDetails = () => {
     const [company, setCompany] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [detailTab, setDetailTab] = useState('co-exhibitors');
 
     useEffect(() => {
         const fetchDetails = async () => {
@@ -38,6 +40,10 @@ const CompanyDetails = () => {
         }
     }, [selectedEvent, companyId, token]);
 
+    useEffect(() => {
+        setDetailTab('co-exhibitors');
+    }, [companyId]);
+
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center h-[50vh] text-text-tertiary gap-4">
@@ -55,6 +61,15 @@ const CompanyDetails = () => {
             </div>
         );
     }
+
+    const parentExhibitor = company.parent_exhibitor;
+    const isCoExhibitor = Boolean(
+        parentExhibitor?.id
+        || company.parent_exhibitor_id
+        || (typeof parentExhibitor === 'number' && parentExhibitor)
+    );
+    const parentExhibitorId = parentExhibitor?.id || company.parent_exhibitor_id || (typeof parentExhibitor === 'number' ? parentExhibitor : null);
+    const parentExhibitorName = parentExhibitor?.company_name;
 
     return (
         <div className="max-w-[1000px] mx-auto animate-fade-in">
@@ -86,9 +101,24 @@ const CompanyDetails = () => {
                                     />
                                 )}
                             </h1>
-                            <div className="flex flex-wrap gap-3">
+                            <div className="flex flex-wrap gap-3 items-center">
+                                {isCoExhibitor && (
+                                    <span className="inline-flex py-1 px-2.5 rounded-full text-xs font-medium tracking-wide bg-indigo-100 text-indigo-800">
+                                        Co-exhibitor
+                                    </span>
+                                )}
                                 <span className="inline-flex py-1 px-2.5 rounded-full text-xs font-medium tracking-wide bg-purple-100 text-purple-800">{company.category}</span>
                                 {company.stall_number && <span className="inline-flex py-1 px-2.5 rounded-full text-xs font-semibold tracking-wide bg-bg-tertiary text-text-primary font-mono border border-border">Stall: {company.stall_number}</span>}
+                                {isCoExhibitor && parentExhibitorId && (
+                                    <button
+                                        type="button"
+                                        className="inline-flex items-center gap-1 text-xs text-accent hover:underline bg-transparent border-none p-0 cursor-pointer font-medium"
+                                        title="Open parent exhibitor"
+                                        onClick={() => navigate(`/event/${selectedEvent.id}/companies/${parentExhibitorId}`)}
+                                    >
+                                        Parent: {parentExhibitorName || `#${parentExhibitorId}`}
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -219,11 +249,58 @@ const CompanyDetails = () => {
                 </div>
             </div>
 
-            <ExhibitorMatchmakingSection
-                eventId={selectedEvent.id}
-                companyId={companyId}
-                token={token}
-            />
+            {isCoExhibitor ? (
+                <div className="mt-8">
+                    <ExhibitorMatchmakingSection
+                        eventId={selectedEvent.id}
+                        companyId={companyId}
+                        token={token}
+                    />
+                </div>
+            ) : (
+                <div className="mt-8">
+                    <div className="mb-6 flex items-center gap-1 p-1 bg-bg-secondary border border-border rounded-lg inline-flex">
+                        <button
+                            type="button"
+                            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${
+                                detailTab === 'co-exhibitors'
+                                    ? 'bg-white text-accent shadow-sm'
+                                    : 'text-text-secondary hover:text-text-primary'
+                            }`}
+                            onClick={() => setDetailTab('co-exhibitors')}
+                        >
+                            <Users size={16} />
+                            Co-exhibitors
+                        </button>
+                        <button
+                            type="button"
+                            className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${
+                                detailTab === 'matchmaking'
+                                    ? 'bg-white text-accent shadow-sm'
+                                    : 'text-text-secondary hover:text-text-primary'
+                            }`}
+                            onClick={() => setDetailTab('matchmaking')}
+                        >
+                            <Handshake size={16} />
+                            Exhibitor Portal Matchmaking
+                        </button>
+                    </div>
+
+                    {detailTab === 'co-exhibitors' ? (
+                        <CoExhibitorsList
+                            eventId={selectedEvent.id}
+                            parentExhibitorId={companyId}
+                            token={token}
+                        />
+                    ) : (
+                        <ExhibitorMatchmakingSection
+                            eventId={selectedEvent.id}
+                            companyId={companyId}
+                            token={token}
+                        />
+                    )}
+                </div>
+            )}
         </div>
     );
 };

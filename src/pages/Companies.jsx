@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
-import { Loader2, Search, Filter, Building2, X, Printer, ShoppingCart, Settings, Star, Lock, IdCard, Upload } from 'lucide-react';
+import { Loader2, Search, Filter, Building2, X, Printer, ShoppingCart, Settings, Star, Lock, IdCard, Upload, ExternalLink } from 'lucide-react';
 import AdditionalRequirementsOrders from './AdditionalRequirementsOrders';
 import ARManager from './ARManager';
 import CompanyProductSection from './event-settings/company-products/CompanyProductSection';
@@ -300,10 +300,19 @@ const Companies = () => {
                                         <td colSpan="5" className="text-center p-12 text-text-secondary">No companies found.</td>
                                     </tr>
                                 ) : (
-                                    companies.map((company) => (
+                                    companies.map((company) => {
+                                        const parentExhibitor = company.parent_exhibitor;
+                                        const isCoExhibitor = Boolean(parentExhibitor?.id || parentExhibitor);
+                                        const parentId = parentExhibitor?.id;
+                                        const parentName = parentExhibitor?.company_name;
+                                        return (
                                         <tr
                                             key={company.id}
-                                            className="cursor-pointer transition-colors duration-200 hover:bg-bg-secondary [&>td]:border-b [&>td]:border-border group"
+                                            className={`cursor-pointer transition-colors duration-200 [&>td]:border-b [&>td]:border-border group ${
+                                                isCoExhibitor
+                                                    ? 'bg-indigo-50/70 hover:bg-indigo-100/80'
+                                                    : 'bg-emerald-50/40 hover:bg-emerald-50'
+                                            }`}
                                             onClick={() => handleCompanyClick(company.id)}
                                         >
                                             <td className="py-4 px-6 align-middle group-last:border-b-0">
@@ -316,9 +325,18 @@ const Companies = () => {
                                                         </div>
                                                     )}
                                                     <div>
-                                                        <div className="font-semibold text-text-primary text-sm flex items-center gap-2">
+                                                        <div className="font-semibold text-text-primary text-sm flex items-center gap-2 flex-wrap">
                                                             {company.company_name}
                                                             <span className="text-[10px] font-mono text-text-tertiary opacity-40">#{company.id}</span>
+                                                            <span
+                                                                className={`inline-flex py-0.5 px-1.5 rounded text-[10px] font-semibold tracking-wide ${
+                                                                    isCoExhibitor
+                                                                        ? 'bg-indigo-100 text-indigo-800'
+                                                                        : 'bg-emerald-100 text-emerald-800'
+                                                                }`}
+                                                            >
+                                                                {isCoExhibitor ? 'Co-exhibitor' : 'Exhibitor'}
+                                                            </span>
                                                             {company.is_badge_printed && (
                                                                 <Printer
                                                                     size={14}
@@ -340,6 +358,20 @@ const Companies = () => {
                                                                 <Lock size={12} className="text-red-500 shrink-0" title="Company Submit Locked" />
                                                             )}
                                                         </div>
+                                                        {isCoExhibitor && parentId && (
+                                                            <button
+                                                                type="button"
+                                                                className="mt-1.5 inline-flex items-center gap-1 text-xs text-accent hover:underline bg-transparent border-none p-0 cursor-pointer font-medium"
+                                                                title={`Open parent exhibitor: ${parentName || `#${parentId}`}`}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    navigate(`/event/${selectedEvent.id}/companies/${parentId}`);
+                                                                }}
+                                                            >
+                                                                <ExternalLink size={11} />
+                                                                {parentName || `Exhibitor #${parentId}`}
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </td>
@@ -370,7 +402,8 @@ const Companies = () => {
                                                 </button>
                                             </td>
                                         </tr>
-                                    ))
+                                        );
+                                    })
                                 )}
                             </tbody>
                         </table>

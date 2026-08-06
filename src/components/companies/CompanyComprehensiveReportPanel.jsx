@@ -260,6 +260,7 @@ const CompanyComprehensiveReportPanel = ({
                                     <MetricRow
                                         label="Handover companies"
                                         value={formatNumber(report.handover_details?.company_count)}
+                                        hint={`${formatNumber(report.handover_details?.marked_handed_over_count)} marked handed over`}
                                         progressDone={report.handover_details?.company_count}
                                         progressTotal={report.parent_exhibitor_count}
                                     />
