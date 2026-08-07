@@ -7,6 +7,8 @@ Session schedule management for an event: list, create/edit on a flat page (spea
 | Path | Owns |
 |------|------|
 | `ui/AgendaListPage.jsx` | List + pagination + view modal |
+| `ui/AgendaListEmptyState.jsx` | Empty / no-search-results CTA |
+| `ui/AgendaListErrorBanner.jsx` | Fetch error banner + retry |
 | `ui/AgendaEditPage.jsx` | Flat create/edit page |
 | `ui/SessionDetailsFields.jsx` | Title, time, location, flags |
 | `ui/SpeakerRosterSection.jsx` / `SpeakerCard.jsx` | Speakers + alpha/custom sort |

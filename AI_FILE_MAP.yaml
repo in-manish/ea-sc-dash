@@ -2,6 +2,8 @@ tasks:
   agenda_list:
     files:
       - src/features/Agenda/ui/AgendaListPage.jsx
+      - src/features/Agenda/ui/AgendaListEmptyState.jsx
+      - src/features/Agenda/ui/AgendaListErrorBanner.jsx
       - src/features/Agenda/ui/AgendaCard.jsx
       - src/features/Agenda/ui/AgendaRow.jsx
       - src/services/agendaService.js
