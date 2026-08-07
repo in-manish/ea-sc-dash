@@ -129,6 +129,7 @@ const AttendeesPage = () => {
                     eBadge={eBadge}
                     scSync={scSync}
                     selectedEvent={selectedEvent}
+                    token={token}
                     hasActiveSearchOrFilters={hasActiveSearchOrFilters}
                 />
             ) : (

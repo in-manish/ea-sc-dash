@@ -4,6 +4,7 @@ import AttendeeStatusBanners from './AttendeeStatusBanners';
 import AttendeeSelectionBar from './AttendeeSelectionBar';
 import AttendeeTable from './AttendeeTable';
 import ListPagination from './ListPagination';
+import AttendeesReportPanel from './AttendeesReportPanel';
 
 const AttendeesListView = ({
     page,
@@ -16,9 +17,18 @@ const AttendeesListView = ({
     eBadge,
     scSync,
     selectedEvent,
+    token,
     hasActiveSearchOrFilters,
 }) => (
     <>
+        {selectedEvent?.id && token && (
+            <AttendeesReportPanel
+                eventId={selectedEvent.id}
+                token={token}
+                filters={filtersApi.filters}
+            />
+        )}
+
         <AttendeeSearchToolbar
             search={searchApi.search}
             onSearchChange={searchApi.setSearch}
