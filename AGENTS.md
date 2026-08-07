@@ -8,7 +8,7 @@
 
 | Service | Run | Notes |
 |---------|-----|-------|
-| Vite dev server | `npm run dev` (add `-- --host 0.0.0.0` for external access) | Serves on port `5173` with HMR. |
+| Vite dev server | Auto-started via `.cursor/environment.json` `terminals` (`npm run dev -- --host 0.0.0.0`), or run that manually | Serves on port `5173` with HMR. |
 
 - Lint: `npm run lint` — note the repo currently has many pre-existing lint errors, so this command exits non-zero. That is the existing state of the codebase, not an environment problem.
 - Build: `npm run build` (Vite production build).
