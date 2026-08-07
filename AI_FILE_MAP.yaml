@@ -1,0 +1,35 @@
+tasks:
+  agenda_list:
+    files:
+      - src/features/Agenda/ui/AgendaListPage.jsx
+      - src/features/Agenda/ui/AgendaCard.jsx
+      - src/features/Agenda/ui/AgendaRow.jsx
+      - src/services/agendaService.js
+  agenda_edit_speakers_moderators:
+    files:
+      - src/features/Agenda/ui/AgendaEditPage.jsx
+      - src/features/Agenda/hooks/useAgendaForm.js
+      - src/features/Agenda/domain/buildAgendaFormData.js
+      - src/features/Agenda/domain/normalizePeople.js
+      - src/features/Agenda/ui/SpeakerRosterSection.jsx
+      - src/features/Agenda/ui/ModeratorRosterSection.jsx
+      - src/services/agendaService.js
+    routes:
+      - /event/:id/agenda
+      - /event/:id/agenda/new
+      - /event/:id/agenda/:agendaId/edit
+
+features:
+  Agenda:
+    root: src/features/Agenda/
+    entry: src/pages/event-agenda/index.jsx
+    edit_entry: src/pages/event-agenda/AgendaEdit.jsx
+
+critical_paths:
+  - src/services/agendaService.js
+  - src/App.jsx
+
+glossary:
+  speaker_default_alpha_sort: When true, speakers sorted A-Z by name; when false, by speaker_sort_order
+  speaker_image_N: Multipart file field index aligned with speaker array
+  moderator_image_N: Multipart file field index aligned with moderator array

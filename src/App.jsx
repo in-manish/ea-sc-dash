@@ -11,6 +11,7 @@ import Attendees from './pages/Attendees';
 import Companies from './pages/Companies';
 import CompanyDetails from './pages/CompanyDetails';
 import Agenda from './pages/event-agenda';
+import AgendaEdit from './pages/event-agenda/AgendaEdit';
 import Settings from './pages/Settings';
 import Communication from './pages/Communication';
 import Reports from './pages/Reports';
@@ -61,6 +62,8 @@ const App = () => {
             <Route path="companies" element={<Companies />} />
             <Route path="companies/:companyId" element={<CompanyDetails />} />
             <Route path="agenda" element={<Agenda />} />
+            <Route path="agenda/new" element={<AgendaEdit />} />
+            <Route path="agenda/:agendaId/edit" element={<AgendaEdit />} />
             <Route path="communication" element={<Communication />} />
             <Route path="reports" element={<Reports />} />
             <Route path="attendee-types" element={<AttendeeTypes />} />

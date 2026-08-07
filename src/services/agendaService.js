@@ -1,4 +1,5 @@
 import { getApiUrl } from '../config';
+import { parseAgendaError } from '../features/Agenda/domain/parseAgendaError';
 
 const getHeaders = (token) => {
     const baseUrl = getApiUrl();
@@ -59,7 +60,7 @@ export const agendaService = {
 
             if (!response.ok) {
                 const result = await response.json().catch(() => ({}));
-                throw new Error(result.error || result.message || `HTTP error! status: ${response.status}`);
+                throw new Error(parseAgendaError(result, response.status));
             }
 
             return await response.json();
@@ -81,7 +82,7 @@ export const agendaService = {
 
             if (!response.ok) {
                 const result = await response.json().catch(() => ({}));
-                throw new Error(result.error || result.message || `HTTP error! status: ${response.status}`);
+                throw new Error(parseAgendaError(result, response.status));
             }
 
             return await response.json();

@@ -72,24 +72,47 @@ const AgendaViewModal = ({ isOpen, onClose, selectedAgenda }) => {
                         )}
 
                         {selectedAgenda.speaker && selectedAgenda.speaker.length > 0 && (
-                            <div>
-                                <h4 className="text-[9px] font-black uppercase text-text-tertiary tracking-[0.2em] mb-4 flex items-center gap-3 after:content-[''] after:h-px after:flex-1 after:bg-border/50">Session Contributors</h4>
+                            <div className="mb-8">
+                                <h4 className="text-[9px] font-black uppercase text-text-tertiary tracking-[0.2em] mb-4 flex items-center gap-3 after:content-[''] after:h-px after:flex-1 after:bg-border/50">Speakers</h4>
                                 <div className="grid grid-cols-1 gap-3">
                                     {selectedAgenda.speaker.map((s, idx) => (
-                                        <div key={idx} className="flex items-center gap-4 p-4 rounded-2xl border border-border bg-white shadow-sm hover:shadow-premium hover:-translate-y-0.5 transition-all duration-300 group">
-                                            <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 border-[3px] border-bg-secondary shadow-sm transition-transform group-hover:scale-105">
+                                        <div key={idx} className="flex items-center gap-4 p-4 rounded-2xl border border-border bg-white shadow-sm">
+                                            <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 border-[3px] border-bg-secondary bg-bg-tertiary flex items-center justify-center">
                                                 {s.speaker_image ? (
                                                     <img src={s.speaker_image} alt={s.speaker_name} className="w-full h-full object-cover" />
                                                 ) : (
-                                                    <div className="w-full h-full bg-bg-tertiary flex items-center justify-center">
-                                                        <Users size={24} className="text-text-tertiary" />
-                                                    </div>
+                                                    <Users size={22} className="text-text-tertiary" />
                                                 )}
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <h5 className="font-black text-xs text-text-primary truncate">{s.speaker_name}</h5>
                                                 {s.speaker_designation && (
                                                     <p className="text-[9px] font-bold text-text-tertiary uppercase tracking-widest truncate mt-0.5">{s.speaker_designation}</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {selectedAgenda.moderator && selectedAgenda.moderator.length > 0 && (
+                            <div>
+                                <h4 className="text-[9px] font-black uppercase text-text-tertiary tracking-[0.2em] mb-4 flex items-center gap-3 after:content-[''] after:h-px after:flex-1 after:bg-border/50">Moderators</h4>
+                                <div className="grid grid-cols-1 gap-3">
+                                    {selectedAgenda.moderator.map((m, idx) => (
+                                        <div key={idx} className="flex items-center gap-4 p-4 rounded-2xl border border-border bg-white shadow-sm">
+                                            <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 border-[3px] border-bg-secondary bg-bg-tertiary flex items-center justify-center">
+                                                {m.moderator_image ? (
+                                                    <img src={m.moderator_image} alt={m.moderator_name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <Users size={22} className="text-text-tertiary" />
+                                                )}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <h5 className="font-black text-xs text-text-primary truncate">{m.moderator_name}</h5>
+                                                {m.moderator_designation && (
+                                                    <p className="text-[9px] font-bold text-text-tertiary uppercase tracking-widest truncate mt-0.5">{m.moderator_designation}</p>
                                                 )}
                                             </div>
                                         </div>
