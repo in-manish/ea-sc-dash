@@ -17,6 +17,8 @@ const AttendeesModals = ({
     selectedEvent,
     token,
     previewAttendee,
+    attendeeTypes = [],
+    attendeeTypesLoading = false,
 }) => (
     <>
         <AttendeeDetailModal
@@ -44,6 +46,8 @@ const AttendeesModals = ({
             toggleAttendeeType={filtersApi.toggleAttendeeType}
             toggleBooleanFilter={filtersApi.toggleBooleanFilter}
             clearFilters={filtersApi.clearFilters}
+            attendeeTypes={attendeeTypes}
+            attendeeTypesLoading={attendeeTypesLoading}
         />
 
         <WhatsAppSendModal

@@ -1,5 +1,5 @@
 import { X } from 'lucide-react';
-import { ATTENDEE_TYPE_OPTIONS } from '../constants';
+import AttendeeTypeFilterChips from './AttendeeTypeFilterChips';
 
 const AttendeeFilterDrawer = ({
     isOpen,
@@ -10,6 +10,8 @@ const AttendeeFilterDrawer = ({
     toggleAttendeeType,
     toggleBooleanFilter,
     clearFilters,
+    attendeeTypes = [],
+    attendeeTypesLoading = false,
 }) => (
     <div
         className={`fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[1100] transition-opacity duration-300 ${isOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
@@ -30,22 +32,12 @@ const AttendeeFilterDrawer = ({
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
-                <div className="flex flex-col gap-2">
-                    <h4 className="text-xs font-bold text-text-tertiary uppercase tracking-wider m-0">
-                        Attendee Type
-                    </h4>
-                    <div className="flex flex-wrap gap-2 mt-1">
-                        {ATTENDEE_TYPE_OPTIONS.map((type) => (
-                            <button
-                                key={type}
-                                className={`py-2 px-3.5 border rounded-full text-xs font-medium transition-all duration-200 ${filters.attendee_type?.includes(type) ? 'bg-accent text-white border-accent' : 'bg-bg-primary border-border text-text-secondary hover:border-accent hover:text-text-primary hover:bg-bg-secondary'}`}
-                                onClick={() => toggleAttendeeType(type)}
-                            >
-                                {type}
-                            </button>
-                        ))}
-                    </div>
-                </div>
+                <AttendeeTypeFilterChips
+                    attendeeTypes={attendeeTypes}
+                    loading={attendeeTypesLoading}
+                    selected={filters.attendee_type || []}
+                    onToggle={toggleAttendeeType}
+                />
 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="flex flex-col gap-2">

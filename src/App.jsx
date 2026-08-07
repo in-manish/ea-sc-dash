@@ -19,12 +19,10 @@ import AttendeeTypes from './pages/AttendeeTypes';
 import UserManagement from './pages/UserManagement';
 import ProtectedRoute from './components/ProtectedRoute';
 import Payments from './pages/payments/Payments';
-import ExhibitorPortalSetup from './pages/exhibitor-portal-setup/ExhibitorPortalSetup';
 import Matchmaking from './features/Matchmaking/ui/Matchmaking';
-import CeleryManage from './pages/celery-manage/CeleryManage';
-import EmailKillSwitch from './pages/email-kill-switch/EmailKillSwitch';
 import Meetings from './pages/meetings/Meetings';
-import ExhibitorCertificate from './pages/exhibitor-certificate/ExhibitorCertificate';
+import UtilsConfig from './pages/utils-config/UtilsConfig';
+import RedirectToUtilsTab from './pages/utils-config/RedirectToUtilsTab';
 import BrandManage from './pages/brand-manage/BrandManage';
 import ManageUsers from './pages/ManageUsers';
 import ExhibitorPortalLanding from './pages/exhibitor-portal/ExhibitorPortalLanding';
@@ -70,12 +68,13 @@ const App = () => {
             <Route path="staff" element={<UserManagement />} />
             <Route path="settings" element={<Settings />} />
             <Route path="payments" element={<Payments />} />
-            <Route path="exhibitor-portal-setup" element={<ExhibitorPortalSetup />} />
+            <Route path="utils-config" element={<UtilsConfig />} />
+            <Route path="exhibitor-portal-setup" element={<RedirectToUtilsTab tab="exhibitor_portal" />} />
             <Route path="matchmaking" element={<Matchmaking />} />
-            <Route path="celery-manage" element={<CeleryManage />} />
-            <Route path="email-kill-switch" element={<EmailKillSwitch />} />
+            <Route path="celery-manage" element={<RedirectToUtilsTab tab="celery" />} />
+            <Route path="email-kill-switch" element={<RedirectToUtilsTab tab="email_kill_switch" />} />
             <Route path="meetings" element={<Meetings />} />
-            <Route path="exhibitor-certificate" element={<ExhibitorCertificate />} />
+            <Route path="exhibitor-certificate" element={<RedirectToUtilsTab tab="exhibitor_certificate" />} />
             <Route path="brand-manage" element={<BrandManage />} />
             <Route path="manage-users" element={<ManageUsers />} />
 

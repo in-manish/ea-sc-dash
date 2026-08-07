@@ -11,6 +11,7 @@ import {
     IdCard,
 } from 'lucide-react';
 import CopyableValue from './CopyableValue';
+import ObfCopyChip from './ObfCopyChip';
 
 const AttendeeTableRow = ({
     attendee,
@@ -100,6 +101,7 @@ const AttendeeTableRow = ({
                             attendee.company || '-'
                         )}
                     </div>
+                    <ObfCopyChip value={attendee.obf_number} />
                     <div className="text-xs text-text-secondary mt-0.5">
                         {[attendee.city, attendee.country].filter(Boolean).join(', ') || '-'}
                     </div>

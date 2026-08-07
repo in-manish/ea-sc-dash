@@ -20,7 +20,7 @@ const EventLayout = () => {
         'Reports': location.pathname.includes('/reports'),
         'Meetings': location.pathname.includes('/meetings'),
         'Staff Management': location.pathname.includes('/staff'),
-        'Utils Config': location.pathname.includes('/attendee-types') || location.pathname.includes('/exhibitor-portal-setup') || location.pathname.includes('/celery-manage') || location.pathname.includes('/email-kill-switch') || location.pathname.includes('/exhibitor-certificate')
+        'Utils Config': location.pathname.includes('/utils-config')
     });
 
     // Handle body class for CSS variable shifting
@@ -380,9 +380,12 @@ const EventLayout = () => {
                         {/* Utils Config with Submenu */}
                         <div className="flex flex-col gap-1">
                             <div
-                                className={navLinkClass({ isActive: location.pathname.includes('/attendee-types') || location.pathname.includes('/exhibitor-portal-setup') || location.pathname.includes('/celery-manage') || location.pathname.includes('/email-kill-switch') || location.pathname.includes('/exhibitor-certificate') })}
+                                className={navLinkClass({ isActive: location.pathname.includes('/utils-config') })}
                                 onClick={() => {
                                     toggleExpand('Utils Config');
+                                    if (!location.pathname.includes('/utils-config')) {
+                                        navigate(`/event/${selectedEvent.id}/utils-config?tab=exhibitor_portal`);
+                                    }
                                 }}
                                 style={{ cursor: 'pointer' }}
                                 title={isCollapsed ? "Utils Config" : ""}
@@ -398,32 +401,26 @@ const EventLayout = () => {
                             {!isCollapsed && expandedItems['Utils Config'] && (
                                 <div className="ml-9 flex flex-col gap-1 border-l border-border pl-2 my-1 animate-fade-in">
                                     <NavLink
-                                        to={`/event/${selectedEvent.id}/attendee-types`}
-                                        className={({ isActive }) => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${isActive ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
-                                    >
-                                        Attendee Types
-                                    </NavLink>
-                                    <NavLink
-                                        to={`/event/${selectedEvent.id}/exhibitor-portal-setup`}
-                                        className={({ isActive }) => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${isActive ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
+                                        to={`/event/${selectedEvent.id}/utils-config?tab=exhibitor_portal`}
+                                        className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/utils-config') && (new URLSearchParams(location.search).get('tab') === 'exhibitor_portal' || !new URLSearchParams(location.search).get('tab')) ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
                                     >
                                         Exhibitor Portal Setup
                                     </NavLink>
                                     <NavLink
-                                        to={`/event/${selectedEvent.id}/exhibitor-certificate`}
-                                        className={({ isActive }) => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${isActive ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
+                                        to={`/event/${selectedEvent.id}/utils-config?tab=exhibitor_certificate`}
+                                        className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/utils-config') && new URLSearchParams(location.search).get('tab') === 'exhibitor_certificate' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
                                     >
                                         Exhibitor Certificate
                                     </NavLink>
                                     <NavLink
-                                        to={`/event/${selectedEvent.id}/celery-manage`}
-                                        className={({ isActive }) => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${isActive ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
+                                        to={`/event/${selectedEvent.id}/utils-config?tab=celery`}
+                                        className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/utils-config') && new URLSearchParams(location.search).get('tab') === 'celery' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
                                     >
                                         Celery Manage
                                     </NavLink>
                                     <NavLink
-                                        to={`/event/${selectedEvent.id}/email-kill-switch`}
-                                        className={({ isActive }) => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${isActive ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
+                                        to={`/event/${selectedEvent.id}/utils-config?tab=email_kill_switch`}
+                                        className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/utils-config') && new URLSearchParams(location.search).get('tab') === 'email_kill_switch' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
                                     >
                                         Email Kill Switch
                                     </NavLink>
@@ -506,6 +503,15 @@ const EventLayout = () => {
                 </nav>
 
                 <div className={`border-t border-border flex flex-col gap-1 ${isCollapsed ? 'py-4 px-2' : 'py-4 px-3'}`}>
+                    <NavLink
+                        to={`/event/${selectedEvent.id}/attendee-types`}
+                        className={navLinkClass}
+                        title={isCollapsed ? "Attendee Types" : ""}
+                    >
+                        <IdCard size={20} className="shrink-0" />
+                        {!isCollapsed && <span className="flex-1">Attendee Types</span>}
+                    </NavLink>
+
                     <button
                         className={`flex items-center gap-3 w-full border-none bg-transparent text-text-secondary rounded-md text-sm font-medium cursor-pointer transition-all duration-200 hover:bg-bg-secondary hover:text-text-primary whitespace-nowrap ${isCollapsed ? 'justify-center p-[10px]' : 'py-2.5 px-3'}`}
                         title={isCollapsed ? "Settings" : ""}

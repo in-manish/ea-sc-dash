@@ -11,7 +11,7 @@ Event attendee list, filters, WhatsApp send, e-badge jobs, and SC badge sync.
 |------|------|
 | `constants.js` | Pill colors, action button style, filter URL keys |
 | `domain/` | Pure helpers — WhatsApp preview, job timing, field groups |
-| `hooks/` | List / search / filters / selection + WhatsApp / e-badge / SC / jobs |
+| `hooks/` | List / search / filters / types / selection + WhatsApp / e-badge / SC / jobs |
 | `ui/` | Page composition, table, toolbar, modals |
 
 ## Key UI files
@@ -23,7 +23,7 @@ Event attendee list, filters, WhatsApp send, e-badge jobs, and SC badge sync.
 
 ## Common edits
 
-- Filters UI → `ui/AttendeeFilterDrawer.jsx` + `hooks/useAttendeeFilters.js`
+- Filters UI → `ui/AttendeeFilterDrawer.jsx` + `hooks/useAttendeeFilters.js` + `hooks/useAttendeeTypes.js`
 - Table row actions → `ui/AttendeeTableRow.jsx`
 - WhatsApp send → `hooks/useWhatsAppSend.js` + `ui/WhatsAppSendModal.jsx`
 - E-badge create/poll → `hooks/useEBadgeActions.js` + `hooks/useEBadgeJobs.js`

@@ -10,6 +10,7 @@ import useWhatsAppSend from '../hooks/useWhatsAppSend';
 import useEBadgeActions from '../hooks/useEBadgeActions';
 import useScBadgeSync from '../hooks/useScBadgeSync';
 import useEBadgeJobs from '../hooks/useEBadgeJobs';
+import useAttendeeTypes from '../hooks/useAttendeeTypes';
 import AttendeesPageHeader from './AttendeesPageHeader';
 import AttendeesTabs from './AttendeesTabs';
 import AttendeesListView from './AttendeesListView';
@@ -28,6 +29,10 @@ const AttendeesPage = () => {
     }));
 
     const filtersApi = useAttendeeFilters(searchParams);
+    const { attendeeTypes, loading: attendeeTypesLoading } = useAttendeeTypes(
+        selectedEvent?.id,
+        token,
+    );
     const searchApi = useAttendeeSearch(searchParams, setPage);
     const list = useAttendeeList({
         selectedEvent,
@@ -157,6 +162,8 @@ const AttendeesPage = () => {
                 selectedEvent={selectedEvent}
                 token={token}
                 previewAttendee={previewAttendee}
+                attendeeTypes={attendeeTypes}
+                attendeeTypesLoading={attendeeTypesLoading}
             />
         </div>
     );

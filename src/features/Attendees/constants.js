@@ -41,12 +41,3 @@ export const FILTER_PARAM_KEYS = [
     'exhibitor_id',
     'parent_exhibitor_id',
 ];
-
-export const ATTENDEE_TYPE_OPTIONS = [
-    'Exhibitor',
-    'Visitor',
-    'VIP',
-    'Speaker',
-    'Media',
-    'Contractor',
-];
