@@ -6,7 +6,7 @@ import { attendeeSelectionService } from '../services/attendeeSelectionService';
 import { whatsappService } from '../services/whatsappService';
 import AttendeeMatchmakingAnswers from '../features/Matchmaking/ui/AttendeeMatchmakingAnswers';
 import CreateAttendeeModal from '../components/attendees/CreateAttendeeModal';
-import { Loader2, Search, Filter, Phone, Mail, Globe, X, ShieldCheck, Building2, CheckSquare, Square, MessageCircle, CheckCircle2, ChevronDown, ChevronUp, List, LayoutGrid, Smartphone, Eye, Code, IdCard, HeartHandshake, UserPlus, RefreshCw, AlertCircle, Copy, Check } from 'lucide-react';
+import { Loader2, Search, Filter, Phone, Mail, Globe, MapPin, X, ShieldCheck, Building2, CheckSquare, Square, MessageCircle, CheckCircle2, ChevronDown, ChevronUp, List, LayoutGrid, Smartphone, Eye, Code, IdCard, HeartHandshake, UserPlus, RefreshCw, AlertCircle, Copy, Check } from 'lucide-react';
 
 const pillColors = {
     attendee_type: "bg-blue-50 text-blue-800 border-blue-200",
@@ -21,6 +21,16 @@ const pillColors = {
     created_at_end: "bg-slate-50 text-slate-700 border-slate-200",
     exhibitor_id: "bg-indigo-50 text-indigo-800 border-indigo-200",
     parent_exhibitor_id: "bg-indigo-50 text-indigo-800 border-indigo-200",
+};
+
+/** Shared size for Create Attendee + Filter so they always match. */
+const ACTION_BTN_STYLE = {
+    height: 48,
+    minHeight: 48,
+    minWidth: 176,
+    paddingLeft: 20,
+    paddingRight: 20,
+    boxSizing: 'border-box',
 };
 
 const getTemplatePreview = (template) => {
@@ -179,6 +189,11 @@ const Attendees = () => {
     // Search and Filter State
     const [search, setSearch] = useState(searchParams.get('q') || '');
     const [debouncedSearch, setDebouncedSearch] = useState(search);
+    const [searchType, setSearchType] = useState(
+        searchParams.get('search_type') === 'global' ? 'global' : 'local'
+    );
+    const [isSearchTypeOpen, setIsSearchTypeOpen] = useState(false);
+    const searchTypeRef = useRef(null);
 
     // Initialize filters from searchParams
     const getInitialFilters = () => {
@@ -215,11 +230,26 @@ const Attendees = () => {
         return () => clearTimeout(timer);
     }, [search]);
 
+    // Close local/global search dropdown on outside click
+    useEffect(() => {
+        if (!isSearchTypeOpen) return undefined;
+
+        const handleClickOutside = (event) => {
+            if (searchTypeRef.current && !searchTypeRef.current.contains(event.target)) {
+                setIsSearchTypeOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [isSearchTypeOpen]);
+
     // Update searchParams
     useEffect(() => {
         const params = new URLSearchParams();
         if (page > 1) params.set('page', page);
         if (debouncedSearch) params.set('q', debouncedSearch);
+        if (searchType && searchType !== 'local') params.set('search_type', searchType);
 
         Object.keys(filters).forEach(key => {
             const value = filters[key];
@@ -233,7 +263,7 @@ const Attendees = () => {
         });
 
         setSearchParams(params, { replace: true });
-    }, [page, debouncedSearch, filters, setSearchParams]);
+    }, [page, debouncedSearch, searchType, filters, setSearchParams]);
 
     useEffect(() => {
         const fetchAttendees = async () => {
@@ -247,6 +277,7 @@ const Attendees = () => {
                     page,
                     size: 50,
                     searchQuery: debouncedSearch,
+                    searchType,
                     filters: filters
                 });
                 setAttendees(data.results);
@@ -263,7 +294,7 @@ const Attendees = () => {
         if (selectedEvent && token) {
             fetchAttendees();
         }
-    }, [selectedEvent, page, debouncedSearch, filters, token]);
+    }, [selectedEvent, page, debouncedSearch, searchType, filters, token]);
 
     useEffect(() => {
         if (!isWhatsAppModalOpen || !token) return;
@@ -466,6 +497,7 @@ const Attendees = () => {
                 mode: selectionMode,
                 attendeeUuids: selectedAttendeeUuids,
                 search: debouncedSearch,
+                searchType,
                 filters
             });
 
@@ -508,6 +540,7 @@ const Attendees = () => {
                     mode: selectionMode,
                     attendeeUuids: selectedAttendeeUuids,
                     search: debouncedSearch,
+                    searchType,
                     filters
                 });
 
@@ -666,42 +699,21 @@ const Attendees = () => {
                 </div>
 
                 {activeTab === 'list' && (
-                    <div className="flex gap-4">
-                        <button className="btn btn-primary" onClick={() => setIsCreateModalOpen(true)}>
-                            <UserPlus size={16} style={{ marginRight: '0.5rem' }} />
-                            Create Attendee
-                        </button>
-                        <div className="relative">
-                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
-                            <input
-                                type="text"
-                                placeholder="Search attendees..."
-                                className="w-60 py-2 pr-4 pl-9 border border-border rounded-md text-sm outline-none transition-colors duration-200 focus:border-accent focus:ring-2 focus:ring-accent/10 focus:bg-white"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                            />
-                        </div>
-                        <button
-                            className={`btn ${Object.keys(filters).length > 0 ? 'btn-primary' : 'btn-secondary'}`}
-                            onClick={() => setIsFilterDrawerOpen(true)}
-                        >
-                            <Filter size={16} style={{ marginRight: '0.5rem' }} />
-                            Filter {Object.keys(filters).length > 0 && `(${Object.keys(filters).length})`}
-                        </button>
-                        {Object.keys(filters).length > 0 && (
-                            <button className="btn btn-ghost btn-sm" onClick={() => {
-                                setFilters({});
-                                setSearch('');
-                            }}>
-                                Clear
-                            </button>
-                        )}
-                    </div>
+                    <button
+                        type="button"
+                        data-testid="create-attendee-btn"
+                        style={ACTION_BTN_STYLE}
+                        className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-all border border-transparent bg-accent text-accent-text hover:bg-accent-hover"
+                        onClick={() => setIsCreateModalOpen(true)}
+                    >
+                        <UserPlus size={16} style={{ marginRight: '0.5rem' }} />
+                        Create Attendee
+                    </button>
                 )}
             </div>
 
             {/* Navigation Tabs */}
-            <div className="flex border-b border-border mb-6">
+            <div className="flex border-b border-border mb-4">
                 <button
                     className={`py-2.5 px-4 font-semibold text-sm border-b-2 transition-colors duration-200 ${activeTab === 'list' ? 'border-accent text-accent' : 'border-transparent text-text-secondary hover:text-text-primary'}`}
                     onClick={() => setActiveTab('list')}
@@ -718,6 +730,118 @@ const Attendees = () => {
 
             {activeTab === 'list' ? (
                 <>
+                    {/* Search toolbar — between tabs and table */}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-5">
+                        <div className="flex flex-1 items-stretch min-w-0">
+                            <div className="relative flex-1 min-w-0">
+                                <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-tertiary pointer-events-none" />
+                                <input
+                                    type="text"
+                                    placeholder="Search by name, email, phone, reg ID…"
+                                    style={{ height: 48, minHeight: 48, boxSizing: 'border-box' }}
+                                    className="w-full pl-11 pr-9 border border-border rounded-l-md rounded-r-none text-sm outline-none transition-colors duration-200 bg-bg-primary focus:border-accent focus:ring-2 focus:ring-accent/10"
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                />
+                                {search && (
+                                    <button
+                                        type="button"
+                                        aria-label="Clear search"
+                                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-primary p-0.5"
+                                        onClick={() => setSearch('')}
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="relative" ref={searchTypeRef}>
+                                <button
+                                    type="button"
+                                    title={searchType === 'global' ? 'Global search' : 'Local search'}
+                                    aria-label={`Search type: ${searchType}`}
+                                    aria-expanded={isSearchTypeOpen}
+                                    onClick={() => setIsSearchTypeOpen((open) => !open)}
+                                    style={{ height: 48, minHeight: 48, boxSizing: 'border-box' }}
+                                    className="px-3.5 border border-l-0 border-border rounded-r-md bg-bg-primary text-text-secondary hover:text-accent hover:bg-bg-secondary transition-colors inline-flex items-center gap-1.5"
+                                >
+                                    {searchType === 'global' ? <Globe size={18} /> : <MapPin size={18} />}
+                                    <ChevronDown size={14} className={`transition-transform ${isSearchTypeOpen ? 'rotate-180' : ''}`} />
+                                </button>
+
+                                {isSearchTypeOpen && (
+                                    <div className="absolute right-0 top-[calc(100%+4px)] z-30 min-w-[44px] bg-bg-primary border border-border rounded-lg shadow-lg overflow-hidden py-1">
+                                        <button
+                                            type="button"
+                                            title="Local search"
+                                            aria-label="Local search"
+                                            onClick={() => {
+                                                setSearchType('local');
+                                                setPage(1);
+                                                setIsSearchTypeOpen(false);
+                                            }}
+                                            className={`w-full flex items-center justify-center px-3 py-2.5 transition-colors ${
+                                                searchType === 'local'
+                                                    ? 'text-accent bg-accent/5'
+                                                    : 'text-text-secondary hover:bg-bg-secondary hover:text-text-primary'
+                                            }`}
+                                        >
+                                            <MapPin size={16} />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            title="Global search"
+                                            aria-label="Global search"
+                                            onClick={() => {
+                                                setSearchType('global');
+                                                setPage(1);
+                                                setIsSearchTypeOpen(false);
+                                            }}
+                                            className={`w-full flex items-center justify-center px-3 py-2.5 transition-colors ${
+                                                searchType === 'global'
+                                                    ? 'text-accent bg-accent/5'
+                                                    : 'text-text-secondary hover:bg-bg-secondary hover:text-text-primary'
+                                            }`}
+                                        >
+                                            <Globe size={16} />
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                            <button
+                                type="button"
+                                data-testid="filter-attendees-btn"
+                                style={ACTION_BTN_STYLE}
+                                className={`inline-flex items-center justify-center rounded-md text-sm font-medium transition-all border ${
+                                    Object.keys(filters).length > 0
+                                        ? 'border-transparent bg-accent text-accent-text hover:bg-accent-hover'
+                                        : 'bg-bg-primary border-border text-text-primary hover:bg-bg-secondary hover:border-border-hover'
+                                }`}
+                                onClick={() => setIsFilterDrawerOpen(true)}
+                            >
+                                <Filter size={16} style={{ marginRight: '0.5rem' }} />
+                                Filter{Object.keys(filters).length > 0 ? ` (${Object.keys(filters).length})` : ''}
+                            </button>
+                            {(Object.keys(filters).length > 0 || search) && (
+                                <button
+                                    type="button"
+                                    style={{ height: 48, minHeight: 48, boxSizing: 'border-box' }}
+                                    className="inline-flex items-center justify-center px-4 rounded-md text-sm font-medium text-text-secondary hover:bg-bg-secondary hover:text-text-primary transition-colors"
+                                    onClick={() => {
+                                        setFilters({});
+                                        setSearch('');
+                                        setSearchType('local');
+                                    }}
+                                >
+                                    Clear
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
                     {/* Active Filter Pills */}
                     {Object.keys(filters).length > 0 && (
                         <div className="flex flex-wrap gap-3 mb-6 py-2 animate-fade-in">
