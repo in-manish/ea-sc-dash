@@ -1,31 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getLocalBaseUrl, setLocalBaseUrl, setEnv } from '../config';
 import { eventService } from '../services/eventService';
 import { ArrowLeft, Globe, Key, Save, Edit2, Loader2, AlertCircle } from 'lucide-react';
 
 const LoginLocal = () => {
-    const { login, currentMode, switchMode } = useAuth();
+    const { login, currentMode, switchMode, isAuthenticated, isLoading } = useAuth();
     const navigate = useNavigate();
+
+    if (!isLoading && isAuthenticated) {
+        return <Navigate to="/" replace />;
+    }
     
     const tokenKey = `${currentMode}_local_auth_token`;
     
-    const [baseUrl, setBaseUrl] = useState(getLocalBaseUrl());
-    const [token, setToken] = useState(sessionStorage.getItem(tokenKey) || '');
+    const [baseUrl, setBaseUrl] = useState(() => getLocalBaseUrl());
+    const [token, setToken] = useState(() => sessionStorage.getItem(tokenKey) || '');
     const [isEditingUrl, setIsEditingUrl] = useState(false);
     const [isEditingToken, setIsEditingToken] = useState(true);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    
-    // Check if we already have a token in LOCAL storage to auto-fill
+
+    // Re-bind URL + token whenever EA/SC changes (each project owns its own).
     useEffect(() => {
+        setBaseUrl(getLocalBaseUrl());
         const storedToken = sessionStorage.getItem(tokenKey);
-        if (storedToken) {
-            setToken(storedToken);
-            setIsEditingToken(false);
-        }
-    }, [tokenKey]);
+        setToken(storedToken || '');
+        setIsEditingToken(!storedToken);
+        setError('');
+    }, [currentMode, tokenKey]);
 
     const handleLogin = async (e) => {
         e.preventDefault();

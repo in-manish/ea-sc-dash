@@ -3,9 +3,11 @@ import { useAuth } from '../../contexts/AuthContext';
 import { userService } from '../../services/userService';
 import { 
   Search, Loader2, Mail, Phone, MapPin, Building, 
-  ShieldCheck, ShieldAlert, X, ChevronLeft, ChevronRight,
-  Filter, RotateCcw, User, Info, CheckCircle2, AlertCircle, Edit2, Copy
+  ShieldCheck, ShieldAlert, ChevronLeft, ChevronRight,
+  User, Info, Edit2, AlertCircle
 } from 'lucide-react';
+import ManageUsersSearchActions from '../../features/ScManageUsers/ui/ManageUsersSearchActions';
+import EditUserModal from '../../features/ScManageUsers/ui/EditUserModal';
 
 const ManageUsers = () => {
   const { token } = useAuth();
@@ -16,8 +18,8 @@ const ManageUsers = () => {
     name: '',
     email: '',
     phone_number: '',
-    is_verified_email: '', // empty string for all/null, 'true', 'false'
-    is_verified_phone_number: '' // empty string for all/null, 'true', 'false'
+    is_verified_email: '',
+    is_verified_phone_number: ''
   });
 
   const [pagination, setPagination] = useState({
@@ -31,18 +33,7 @@ const ManageUsers = () => {
   const [error, setError] = useState('');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [enableHighlighting, setEnableHighlighting] = useState(true);
-
-  // Edit user state
-  const [editingUser, setEditingUser] = useState(null);
-  const [originalUserValues, setOriginalUserValues] = useState(null);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [updateError, setUpdateError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
-  const [duplicateUsersByEmail, setDuplicateUsersByEmail] = useState([]);
-  const [duplicateUsersByPhone, setDuplicateUsersByPhone] = useState([]);
-  const [ignoreEmailWarnings, setIgnoreEmailWarnings] = useState(false);
-  const [ignorePhoneWarnings, setIgnorePhoneWarnings] = useState(false);
+  const [editUser, setEditUser] = useState(null);
 
   // Fetch users function
   const fetchUsers = async () => {
@@ -95,67 +86,6 @@ const ManageUsers = () => {
     fetchUsers();
   }, [pagination.limit, pagination.offset, token]);
 
-  // Debounced duplication check for Email & Phone
-  useEffect(() => {
-    if (!editingUser || !isEditModalOpen) return;
-
-    const checkEmailDup = async () => {
-      const email = editingUser.email;
-      console.log("Checking duplicate email:", email, "original:", originalUserValues?.email);
-      if (!email || email === originalUserValues?.email) {
-        setDuplicateUsersByEmail([]);
-        return;
-      }
-      try {
-        const response = await userService.adminGetUsers({ email }, token);
-        console.log("Duplicate email response:", response);
-        if (response && response.results) {
-          // Filter out the current user being edited (type-safe comparison)
-          const matches = response.results.filter(u => String(u.id) !== String(editingUser.id));
-          console.log("Duplicate email matches found:", matches);
-          setDuplicateUsersByEmail(matches);
-        } else {
-          setDuplicateUsersByEmail([]);
-        }
-      } catch (err) {
-        console.error("Email duplicate check failed:", err);
-        setDuplicateUsersByEmail([]);
-      }
-    };
-
-    const checkPhoneDup = async () => {
-      const phone = editingUser.phone_number;
-      console.log("Checking duplicate phone:", phone, "original:", originalUserValues?.phone_number);
-      if (!phone || phone === originalUserValues?.phone_number) {
-        setDuplicateUsersByPhone([]);
-        return;
-      }
-      try {
-        const response = await userService.adminGetUsers({ phone_number: phone }, token);
-        console.log("Duplicate phone response:", response);
-        if (response && response.results) {
-          // Filter out the current user being edited (type-safe comparison)
-          const matches = response.results.filter(u => String(u.id) !== String(editingUser.id));
-          console.log("Duplicate phone matches found:", matches);
-          setDuplicateUsersByPhone(matches);
-        } else {
-          setDuplicateUsersByPhone([]);
-        }
-      } catch (err) {
-        console.error("Phone duplicate check failed:", err);
-        setDuplicateUsersByPhone([]);
-      }
-    };
-
-    const emailTimer = setTimeout(checkEmailDup, 400);
-    const phoneTimer = setTimeout(checkPhoneDup, 400);
-
-    return () => {
-      clearTimeout(emailTimer);
-      clearTimeout(phoneTimer);
-    };
-  }, [editingUser?.email, editingUser?.phone_number, isEditModalOpen, originalUserValues, token]);
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFilters(prev => ({
@@ -201,103 +131,7 @@ const ManageUsers = () => {
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
 
-  const handleEditClick = (user) => {
-    const userVals = {
-      id: user.id,
-      name: user.name || '',
-      email: user.email || '',
-      phone_number: user.phone_number || '',
-      is_verified_email: user.is_verified_email === true,
-      is_verified_phone_number: user.is_verified_phone_number === true
-    };
-    setEditingUser(userVals);
-    setEditingUser(userVals);
-    setOriginalUserValues(userVals);
-    setDuplicateUsersByEmail([]);
-    setDuplicateUsersByPhone([]);
-    setIgnoreEmailWarnings(false);
-    setIgnorePhoneWarnings(false);
-    setUpdateError('');
-    setIsEditModalOpen(true);
-  };
-
-  const closeEditModal = () => {
-    setIsEditModalOpen(false);
-    setEditingUser(null);
-    setOriginalUserValues(null);
-    setDuplicateUsersByEmail([]);
-    setDuplicateUsersByPhone([]);
-    setIgnoreEmailWarnings(false);
-    setIgnorePhoneWarnings(false);
-    setUpdateError('');
-    setSuccessMessage('');
-  };
-
-  const handleCopy = (text, typeLabel) => {
-    navigator.clipboard.writeText(String(text));
-  };
-
-  const handleNavigateToMatch = (matchedUser) => {
-    const userVals = {
-      id: matchedUser.id,
-      name: matchedUser.name || '',
-      email: matchedUser.email || '',
-      phone_number: matchedUser.phone_number || '',
-      is_verified_email: matchedUser.is_verified_email === true,
-      is_verified_phone_number: matchedUser.is_verified_phone_number === true
-    };
-    setEditingUser(userVals);
-    setOriginalUserValues(userVals);
-    setDuplicateUsersByEmail([]);
-    setDuplicateUsersByPhone([]);
-    setIgnoreEmailWarnings(false);
-    setIgnorePhoneWarnings(false);
-    setUpdateError('');
-  };
-
-  const handleEditChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setEditingUser(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-    if (name === 'email') setIgnoreEmailWarnings(false);
-    if (name === 'phone_number') setIgnorePhoneWarnings(false);
-  };
-
-  const handleUpdateSubmit = async (e) => {
-    e.preventDefault();
-    setIsUpdating(true);
-    setUpdateError('');
-    setSuccessMessage('');
-
-    try {
-      const updatedData = {
-        name: editingUser.name,
-        email: editingUser.email,
-        phone_number: editingUser.phone_number,
-        is_verified_email: editingUser.is_verified_email,
-        is_verified_phone_number: editingUser.is_verified_phone_number
-      };
-
-      const result = await userService.adminUpdateUser(editingUser.id, updatedData, token);
-      
-      // Update local state directly so the table updates without page refresh
-      if (results) {
-        setResults(prev => prev.map(u => u.id === editingUser.id ? { ...u, ...result } : u));
-      }
-      
-      setSuccessMessage('User updated successfully!');
-      setTimeout(() => {
-        closeEditModal();
-      }, 1000);
-    } catch (err) {
-      console.error('Update user error:', err);
-      setUpdateError(err.message || 'Failed to update user. Make sure you have admin permissions.');
-    } finally {
-      setIsUpdating(false);
-    }
-  };
+  const handleEditClick = (user) => setEditUser(user);
 
   // Helper to match text and highlight
   const highlightMatch = (text, searchVal) => {
@@ -378,33 +212,14 @@ const ManageUsers = () => {
                 placeholder="Search by name, email or phone (partial match)..."
               />
             </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                className={`btn btn-secondary flex items-center gap-2 ${showAdvancedFilters ? 'bg-bg-secondary border-border-hover' : ''}`}
-              >
-                <Filter size={16} />
-                Filters
-              </button>
-              <button
-                type="button"
-                onClick={handleClear}
-                className="btn btn-secondary flex items-center gap-2"
-                disabled={isLoading}
-              >
-                <RotateCcw size={16} />
-                Reset
-              </button>
-              <button
-                type="submit"
-                className="btn btn-primary flex items-center gap-2 min-w-[120px]"
-                disabled={isLoading}
-              >
-                {isLoading ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
-                Search
-              </button>
-            </div>
+            <ManageUsersSearchActions
+              showAdvancedFilters={showAdvancedFilters}
+              onToggleFilters={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              onReset={handleClear}
+              onRefresh={fetchUsers}
+              isLoading={isLoading}
+              showReset={Object.values(filters).some((v) => v !== '')}
+            />
           </div>
 
           {/* Advanced Filters (Collapsible) */}
@@ -743,307 +558,18 @@ const ManageUsers = () => {
           <p className="text-sm text-text-tertiary">Use the input filters above to query admin records.</p>
         </div>
       )}
-      {/* Edit User Modal */}
-      {isEditModalOpen && editingUser && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-backdrop-smooth">
-          <div className="bg-bg-primary border border-border rounded-xl shadow-xl w-full max-w-[500px] overflow-hidden animate-modal-smooth">
-            <div className="px-6 py-4 border-b border-border flex justify-between items-center bg-bg-secondary/20">
-              <h3 className="font-bold text-text-primary text-base">Edit User Details (ID: #{editingUser.id})</h3>
-              <button
-                type="button"
-                onClick={closeEditModal}
-                className="text-text-secondary hover:text-text-primary transition-colors border-none bg-transparent"
-              >
-                <X size={18} />
-              </button>
-            </div>
 
-            <form onSubmit={handleUpdateSubmit} className="p-6 space-y-4">
-              {updateError && (
-                <div className="bg-red-50 text-danger p-3 rounded-md text-xs border border-red-100 flex items-start gap-2 animate-fade-in">
-                  <AlertCircle size={14} className="shrink-0 mt-0.5" />
-                  <span>{updateError}</span>
-                </div>
-              )}
-
-              {successMessage && (
-                <div className="bg-green-50 text-success p-3 rounded-md text-xs border border-green-100 flex items-start gap-2 animate-fade-in">
-                  <CheckCircle2 size={14} className="shrink-0 mt-0.5" />
-                  <span>{successMessage}</span>
-                </div>
-              )}
-
-              <div className="input-group">
-                <label className="input-label" htmlFor="edit-name">Full Name</label>
-                <input
-                  id="edit-name"
-                  type="text"
-                  name="name"
-                  value={editingUser.name}
-                  onChange={handleEditChange}
-                  className="input-field"
-                  required
-                />
-              </div>
-
-              <div className="input-group">
-                <label className="input-label" htmlFor="edit-email">Email Address</label>
-                <input
-                  id="edit-email"
-                  type="email"
-                  name="email"
-                  value={editingUser.email}
-                  onChange={handleEditChange}
-                  className="input-field"
-                  required
-                />
-                  {duplicateUsersByEmail.length > 0 && !ignoreEmailWarnings && (
-                  <div className="bg-amber-50/50 text-amber-900 p-3 rounded-lg border border-amber-200/60 text-[11px] space-y-2 mt-2 animate-fade-in shadow-inner">
-                    <div className="font-semibold flex items-center justify-between text-amber-950">
-                      <div className="flex items-center gap-1">
-                        <AlertCircle size={13} className="text-amber-700" /> Matches Found ({duplicateUsersByEmail.length})
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setIgnoreEmailWarnings(true)}
-                          className="text-[10px] text-amber-800 hover:text-danger hover:underline bg-transparent border-none cursor-pointer font-bold px-1"
-                          title="Dismiss all duplicate email warnings"
-                        >
-                          Ignore
-                        </button>
-                        <span className="text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded font-bold">Duplicate Email</span>
-                      </div>
-                    </div>
-                    <div className="space-y-1.5 max-h-[160px] overflow-y-auto pr-1">
-                      {duplicateUsersByEmail.slice(0, 10).map(u => (
-                        <div key={u.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-2.5 rounded-md border border-amber-200 bg-bg-primary gap-2 shadow-sm animate-fade-in">
-                          <div className="flex items-start gap-2 min-w-0 flex-1">
-                            <div className="w-7 h-7 rounded-full bg-accent/5 text-accent flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
-                              {getInitials(u.name)}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="font-semibold text-text-primary text-[11.5px] truncate">{u.name || 'No Name'}</div>
-                              <div className="text-[10px] text-text-secondary flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
-                                <span className="flex items-center gap-0.5 text-text-tertiary shrink-0">
-                                  ID: <strong className="text-text-primary font-semibold">#{u.id}</strong>
-                                  <button type="button" onClick={() => handleCopy(u.id, 'ID')} className="p-0.5 text-text-tertiary hover:text-text-primary bg-transparent border-none cursor-pointer flex" title="Copy ID">
-                                    <Copy size={10} />
-                                  </button>
-                                </span>
-                                <span className="text-text-tertiary shrink-0">|</span>
-                                <span className="flex items-center gap-0.5 shrink-0 bg-yellow-100/80 px-1 rounded text-yellow-900 border border-yellow-200/50">
-                                  Email: <strong className="font-semibold">{u.email || '-'}</strong>
-                                  {u.email && (
-                                    <button type="button" onClick={() => handleCopy(u.email, 'Email')} className="p-0.5 text-yellow-900/60 hover:text-yellow-900 bg-transparent border-none cursor-pointer flex" title="Copy Email">
-                                      <Copy size={10} />
-                                    </button>
-                                  )}
-                                </span>
-                                <span className="text-text-tertiary shrink-0">|</span>
-                                <span className="flex items-center gap-0.5 shrink-0 text-text-tertiary">
-                                  Phone: <strong className="text-text-primary font-semibold">+{u.country_code || '91'} {u.phone_number || '-'}</strong>
-                                  {u.phone_number && (
-                                    <button type="button" onClick={() => handleCopy(u.phone_number, 'Phone')} className="p-0.5 text-text-tertiary hover:text-text-primary bg-transparent border-none cursor-pointer flex" title="Copy Phone">
-                                      <Copy size={10} />
-                                    </button>
-                                  )}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-                            <div className="flex flex-col gap-0.5 items-end">
-                              {u.is_verified_email ? (
-                                <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded text-[8.5px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                  <ShieldCheck size={9} /> Email Verified
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded text-[8.5px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                                  <ShieldAlert size={9} /> Email Unverified
-                                </span>
-                              )}
-                              {u.is_verified_phone_number ? (
-                                <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded text-[8.5px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                  <ShieldCheck size={9} /> Phone Verified
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded text-[8.5px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                                  <ShieldAlert size={9} /> Phone Unverified
-                                </span>
-                              )}
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => handleNavigateToMatch(u)}
-                              className="btn btn-secondary py-1 px-2 text-[10px] text-accent hover:bg-accent/5 border-border shrink-0 font-semibold h-7"
-                              title="Switch to editing this user"
-                            >
-                              Edit
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="input-group">
-                <label className="input-label" htmlFor="edit-phone">Phone Number</label>
-                <input
-                  id="edit-phone"
-                  type="text"
-                  name="phone_number"
-                  value={editingUser.phone_number}
-                  onChange={handleEditChange}
-                  className="input-field"
-                  required
-                />
-                 {duplicateUsersByPhone.length > 0 && !ignorePhoneWarnings && (
-                  <div className="bg-amber-50/50 text-amber-900 p-3 rounded-lg border border-amber-200/60 text-[11px] space-y-2 mt-2 animate-fade-in shadow-inner">
-                    <div className="font-semibold flex items-center justify-between text-amber-950">
-                      <div className="flex items-center gap-1">
-                        <AlertCircle size={13} className="text-amber-700" /> Matches Found ({duplicateUsersByPhone.length})
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setIgnorePhoneWarnings(true)}
-                          className="text-[10px] text-amber-800 hover:text-danger hover:underline bg-transparent border-none cursor-pointer font-bold px-1"
-                          title="Dismiss all duplicate phone warnings"
-                        >
-                          Ignore
-                        </button>
-                        <span className="text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded font-bold">Duplicate Phone</span>
-                      </div>
-                    </div>
-                    <div className="space-y-1.5 max-h-[160px] overflow-y-auto pr-1">
-                      {duplicateUsersByPhone.slice(0, 10).map(u => (
-                        <div key={u.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-2.5 rounded-md border border-amber-200 bg-bg-primary gap-2 shadow-sm animate-fade-in">
-                          <div className="flex items-start gap-2 min-w-0 flex-1">
-                            <div className="w-7 h-7 rounded-full bg-accent/5 text-accent flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
-                              {getInitials(u.name)}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="font-semibold text-text-primary text-[11.5px] truncate">{u.name || 'No Name'}</div>
-                              <div className="text-[10px] text-text-secondary flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
-                                <span className="flex items-center gap-0.5 text-text-tertiary shrink-0">
-                                  ID: <strong className="text-text-primary font-semibold">#{u.id}</strong>
-                                  <button type="button" onClick={() => handleCopy(u.id, 'ID')} className="p-0.5 text-text-tertiary hover:text-text-primary bg-transparent border-none cursor-pointer flex" title="Copy ID">
-                                    <Copy size={10} />
-                                  </button>
-                                </span>
-                                <span className="text-text-tertiary shrink-0">|</span>
-                                <span className="flex items-center gap-0.5 shrink-0 text-text-tertiary">
-                                  Email: <strong className="text-text-primary font-semibold">{u.email || '-'}</strong>
-                                  {u.email && (
-                                    <button type="button" onClick={() => handleCopy(u.email, 'Email')} className="p-0.5 text-text-tertiary hover:text-text-primary bg-transparent border-none cursor-pointer flex" title="Copy Email">
-                                      <Copy size={10} />
-                                    </button>
-                                  )}
-                                </span>
-                                <span className="text-text-tertiary shrink-0">|</span>
-                                <span className="flex items-center gap-0.5 shrink-0 bg-yellow-100/80 px-1 rounded text-yellow-900 border border-yellow-200/50">
-                                  Phone: <strong className="font-semibold">+{u.country_code || '91'} {u.phone_number || '-'}</strong>
-                                  {u.phone_number && (
-                                    <button type="button" onClick={() => handleCopy(u.phone_number, 'Phone')} className="p-0.5 text-yellow-900/60 hover:text-yellow-900 bg-transparent border-none cursor-pointer flex" title="Copy Phone">
-                                      <Copy size={10} />
-                                    </button>
-                                  )}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-                            <div className="flex flex-col gap-0.5 items-end">
-                              {u.is_verified_email ? (
-                                <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded text-[8.5px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                  <ShieldCheck size={9} /> Email Verified
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded text-[8.5px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                                  <ShieldAlert size={9} /> Email Unverified
-                                </span>
-                              )}
-                              {u.is_verified_phone_number ? (
-                                <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded text-[8.5px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                  <ShieldCheck size={9} /> Phone Verified
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded text-[8.5px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                                  <ShieldAlert size={9} /> Phone Unverified
-                                </span>
-                              )}
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => handleNavigateToMatch(u)}
-                              className="btn btn-secondary py-1 px-2 text-[10px] text-accent hover:bg-accent/5 border-border shrink-0 font-semibold h-7"
-                              title="Switch to editing this user"
-                            >
-                              Edit
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 pt-2">
-                <label className="flex items-center gap-2.5 p-3 border border-border rounded-lg bg-bg-secondary/20 cursor-pointer hover:bg-bg-secondary/40 transition-colors">
-                  <input
-                    type="checkbox"
-                    name="is_verified_email"
-                    checked={editingUser.is_verified_email}
-                    onChange={handleEditChange}
-                    className="w-4 h-4 text-accent border-border rounded focus:ring-accent cursor-pointer"
-                  />
-                  <div className="flex flex-col">
-                    <span className="text-xs font-semibold text-text-primary">Email Verified</span>
-                    <span className="text-[10px] text-text-tertiary">Verify user email status</span>
-                  </div>
-                </label>
-
-                <label className="flex items-center gap-2.5 p-3 border border-border rounded-lg bg-bg-secondary/20 cursor-pointer hover:bg-bg-secondary/40 transition-colors">
-                  <input
-                    type="checkbox"
-                    name="is_verified_phone_number"
-                    checked={editingUser.is_verified_phone_number}
-                    onChange={handleEditChange}
-                    className="w-4 h-4 text-accent border-border rounded focus:ring-accent cursor-pointer"
-                  />
-                  <div className="flex flex-col">
-                    <span className="text-xs font-semibold text-text-primary">Phone Verified</span>
-                    <span className="text-[10px] text-text-tertiary">Verify user phone status</span>
-                  </div>
-                </label>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t border-border">
-                <button
-                  type="button"
-                  onClick={closeEditModal}
-                  className="btn btn-secondary text-xs"
-                  disabled={isUpdating}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="btn btn-primary text-xs flex items-center gap-1.5 min-w-[100px]"
-                  disabled={isUpdating}
-                >
-                  {isUpdating ? <Loader2 size={12} className="animate-spin" /> : null}
-                  Save Changes
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <EditUserModal
+        user={editUser}
+        isOpen={Boolean(editUser)}
+        token={token}
+        onClose={() => setEditUser(null)}
+        onSaved={(result) => {
+          setResults((prev) =>
+            prev ? prev.map((u) => (u.id === result.id ? { ...u, ...result } : u)) : prev
+          );
+        }}
+      />
     </div>
   );
 };

@@ -1,14 +1,26 @@
 import React, { useState } from 'react';
-import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { Settings, User, LogOut, UserCog, ChevronDown, Cpu } from 'lucide-react';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Settings, LogOut } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import ScHomeSidebarNav from './ScHomeSidebarNav';
+import ScUsersSectionTabs from './ScUsersSectionTabs';
 
 const HomeLayout = () => {
     const { user, logout, currentEnv, switchEnvironment, currentMode, switchMode } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const [isCeleryExpanded, setIsCeleryExpanded] = useState(location.pathname.includes('/celery-beat'));
-    const [isUsersExpanded, setIsUsersExpanded] = useState(location.pathname === '/' || location.pathname.includes('/users/'));
+    const [isUsersExpanded, setIsUsersExpanded] = useState(location.pathname.includes('/users/'));
+
+    const openUsers = () => {
+        setIsUsersExpanded(true);
+        navigate('/users/manage');
+    };
+
+    const openCelery = () => {
+        setIsCeleryExpanded(true);
+        navigate('/celery-beat');
+    };
 
     return (
         <div className="flex min-h-screen bg-bg-secondary">
@@ -49,90 +61,14 @@ const HomeLayout = () => {
                     </div>
                 </div>
 
-                {/* Sidebar Navigation */}
-                <nav className="flex-1 flex flex-col gap-1 py-4 px-3 overflow-y-auto">
-                    {/* Users Collapsible */}
-                    <div className="flex flex-col gap-1">
-                        <div
-                            onClick={() => setIsUsersExpanded(!isUsersExpanded)}
-                            className={`flex items-center gap-3 text-sm transition-all duration-200 whitespace-nowrap rounded-md py-2.5 px-3 cursor-pointer ${
-                                location.pathname === '/' || location.pathname.includes('/users/')
-                                    ? 'text-accent bg-accent/10 font-semibold'
-                                    : 'text-text-secondary font-medium hover:text-text-primary hover:bg-bg-secondary'
-                            }`}
-                        >
-                            <UserCog size={20} className="shrink-0" />
-                            <span className="flex-1">Users</span>
-                            <ChevronDown size={14} className={`transition-transform duration-200 ${isUsersExpanded ? 'rotate-180' : ''}`} />
-                        </div>
-
-                        {isUsersExpanded && (
-                            <div className="ml-9 flex flex-col gap-1 border-l border-border pl-2 my-1 animate-fade-in">
-                                <NavLink
-                                    to="/"
-                                    className={({ isActive }) =>
-                                        `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${
-                                            isActive && location.pathname === '/' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'
-                                        }`
-                                    }
-                                >
-                                    Users Search
-                                </NavLink>
-                                <NavLink
-                                    to="/users/manage"
-                                    className={({ isActive }) =>
-                                        `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${
-                                            isActive ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'
-                                        }`
-                                    }
-                                >
-                                    Manage user
-                                </NavLink>
-                                <NavLink
-                                    to="/users/sync-track"
-                                    className={({ isActive }) =>
-                                        `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${
-                                            isActive ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'
-                                        }`
-                                    }
-                                >
-                                    User Sync Track
-                                </NavLink>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Celery Manage Collapsible */}
-                    <div className="flex flex-col gap-1">
-                        <div
-                            onClick={() => setIsCeleryExpanded(!isCeleryExpanded)}
-                            className={`flex items-center gap-3 text-sm transition-all duration-200 whitespace-nowrap rounded-md py-2.5 px-3 cursor-pointer ${
-                                location.pathname.includes('/celery-beat')
-                                    ? 'text-accent bg-accent/10 font-semibold'
-                                    : 'text-text-secondary font-medium hover:text-text-primary hover:bg-bg-secondary'
-                            }`}
-                        >
-                            <Cpu size={20} className="shrink-0" />
-                            <span className="flex-1">Celery Manage</span>
-                            <ChevronDown size={14} className={`transition-transform duration-200 ${isCeleryExpanded ? 'rotate-180' : ''}`} />
-                        </div>
-
-                        {isCeleryExpanded && (
-                            <div className="ml-9 flex flex-col gap-1 border-l border-border pl-2 my-1 animate-fade-in">
-                                <NavLink
-                                    to="/celery-beat"
-                                    className={({ isActive }) =>
-                                        `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${
-                                            isActive ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'
-                                        }`
-                                    }
-                                >
-                                    Celery Beat
-                                </NavLink>
-                            </div>
-                        )}
-                    </div>
-                </nav>
+                {/* Sidebar Navigation — parent click opens first child */}
+                <ScHomeSidebarNav
+                    locationPath={location.pathname}
+                    isUsersExpanded={isUsersExpanded}
+                    isCeleryExpanded={isCeleryExpanded}
+                    onOpenUsers={openUsers}
+                    onOpenCelery={openCelery}
+                />
 
                 {/* Bottom Profile / Settings */}
                 <div className="border-t border-border py-4 px-3 flex flex-col gap-1">
@@ -196,6 +132,7 @@ const HomeLayout = () => {
 
                 {/* Main Content */}
                 <main className="flex-1 py-8 px-8 overflow-y-auto">
+                    {location.pathname.includes('/users/') && <ScUsersSectionTabs />}
                     <Outlet />
                 </main>
             </div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth';
 import { useAuth } from '../contexts/AuthContext';
 import { ArrowRight, Lock, Mail, KeyRound, Loader2, Globe } from 'lucide-react';
@@ -12,8 +12,13 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const { login, currentEnv, switchEnvironment, currentMode, switchMode } = useAuth();
+    const { login, currentEnv, switchEnvironment, currentMode, switchMode, isAuthenticated, isLoading } = useAuth();
     const navigate = useNavigate();
+
+    // Project sessions persist independently — if this project is already logged in, skip login UI.
+    if (!isLoading && isAuthenticated) {
+        return <Navigate to="/" replace />;
+    }
 
     const ENV_OPTIONS = [
         { value: 'STAGE', label: 'Staging' },
