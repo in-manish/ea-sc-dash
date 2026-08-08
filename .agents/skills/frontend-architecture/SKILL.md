@@ -54,7 +54,7 @@ UX must feel state-of-the-art and robust under all conditions:
 
 File size and complexity boundaries should heavily dictate code splitting:
 
-- **File Size Limit:** Strongly consider splitting files that exceed 250-300 lines of code.
+- **File Size Limit (hard):** Max **200 lines** per file. When a file grows past this, create a new file and put related files in a feature directory (`src/features/<Feature>/`). See the `split-large-files` skill.
 - **Component Complexity:** If a single component handles API fetching, complex local state, and massive JSX rendering, split it:
   - Extract the data lifecycle/logic into a custom hook (`useFeatureData.js`).
   - Extract complex sub-trees into distinct local sub-components.
@@ -81,6 +81,6 @@ Ensure the application performance stays excellent as it grows:
 Before completing tasks involving frontend changes, verify:
 - [ ] Are design system tokens used instead of arbitrary stylistic values?
 - [ ] Is feature-specific logic properly isolated in `src/features/` rather than mixed into generic folders?
-- [ ] Are files kept reasonably sized under the threshold (<300 lines)?
+- [ ] Are files kept under the hard limit (≤200 lines)?
 - [ ] Are dynamic states (loading, error, empty) intentionally handled and presented?
 - [ ] Has responsiveness been maintained across basic breakpoints?

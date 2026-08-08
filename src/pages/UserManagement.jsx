@@ -4,9 +4,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { userService } from '../services/userService';
 import {
     Loader2, Users, Plus, Trash2, Edit2, AlertCircle, X,
-    UserCog, Search, Filter, Shield, ShieldCheck, Mail, Phone,
-    Save, Key, UserCheck, ShieldAlert, ShieldAlert as OrganizerIcon,
-    Printer, QrCode, Monitor, Eye, FileEdit, Crown
+    UserCog, Filter, Shield, ShieldCheck, Mail, Phone,
+    Save, Key, Printer, QrCode, Monitor, Eye, FileEdit
 } from 'lucide-react';
 
 const UserManagement = () => {
@@ -46,7 +45,6 @@ const UserManagement = () => {
         { id: 'kiosk', label: 'Kiosk', icon: Monitor, description: 'Manage self-service kiosk staff' },
         { id: 'staff-readonly', label: 'Read Only', icon: Eye, description: 'Global read-only staff access' },
         { id: 'staff-writereadonly', label: 'Write Read-Only', icon: FileEdit, description: 'Event-scoped write & read-only staff' },
-        { id: 'organizer', label: 'Organizer', icon: Crown, description: 'Full administrative access' },
     ], []);
 
     const fetchStaffUsers = React.useCallback(async () => {
@@ -88,15 +86,7 @@ const UserManagement = () => {
         }
     }, [message]);
 
-    // Handle deep-linking scrolling
-    useEffect(() => {
-        if (activeOrgType && !isLoading) {
-            const element = document.getElementById(`section-${activeOrgType}`);
-            if (element) {
-                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        }
-    }, [activeOrgType, isLoading]);
+
 
     const handleOpenModal = (user = null, orgType = 'print') => {
         if (user) {
@@ -186,6 +176,37 @@ const UserManagement = () => {
                 </div>
             </div>
 
+
+            {/* Horizontal Tabs */}
+            <div className="flex border border-border p-1.5 rounded-[1.5rem] bg-bg-primary/80 backdrop-blur-md overflow-x-auto scrollbar-none shadow-sm gap-1.5">
+                {orgTypes.map((orgType) => {
+                    const count = staffUsers[orgType.id]?.length || 0;
+                    const isActive = activeOrgType === orgType.id;
+                    const Icon = orgType.icon;
+                    return (
+                        <button
+                            key={orgType.id}
+                            onClick={() => setActiveOrgType(orgType.id)}
+                            className={`flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all duration-300 whitespace-nowrap ${
+                                isActive
+                                    ? 'bg-accent text-accent-text shadow-md'
+                                    : 'text-text-secondary hover:text-text-primary hover:bg-bg-secondary'
+                            }`}
+                        >
+                            <Icon size={16} className={isActive ? 'text-accent-text' : 'text-text-tertiary'} />
+                            <span>{orgType.label}</span>
+                            {!isLoading && (
+                                <span className={`text-[10px] px-2 py-0.5 rounded-full font-extrabold transition-all duration-300 ${
+                                    isActive ? 'bg-white/20 text-white' : 'bg-bg-tertiary text-text-secondary'
+                                }`}>
+                                    {count}
+                                </span>
+                            )}
+                        </button>
+                    );
+                })}
+            </div>
+
             {/* Message Area */}
             <div className="fixed bottom-8 right-8 z-[100] flex flex-col gap-3 min-w-[320px] max-w-[420px]">
                 {message.text && (
@@ -206,93 +227,131 @@ const UserManagement = () => {
                 )}
             </div>
 
-            {/* Main Content Area - Stacked Sections */}
+            {/* Main Content Area - Selected Tab Section */}
             <div className="space-y-8">
                 {isLoading ? (
                     <div className="bg-bg-primary border border-border rounded-[2rem] shadow-premium p-12 flex flex-col items-center justify-center space-y-4">
                         <Loader2 className="animate-spin text-accent" size={40} />
                         <p className="text-text-tertiary font-black text-xs uppercase tracking-[0.2em]">Synchronizing Staff Data...</p>
                     </div>
-                ) : (
-                    orgTypes.map((orgType) => {
-                        const users = staffUsers[orgType.id] || [];
-                        return (
-                            <div key={orgType.id} id={`section-${orgType.id}`} className={`bg-bg-primary border border-border rounded-[2rem] shadow-premium overflow-hidden mesh-bg relative transition-all duration-500 ${activeOrgType === orgType.id ? 'ring-2 ring-accent ring-offset-4 ring-offset-bg-secondary' : ''}`}>
-                                <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] pointer-events-none" />
+                ) : (() => {
+                    const currentOrg = orgTypes.find(t => t.id === activeOrgType) || orgTypes[0];
+                    const users = staffUsers[currentOrg.id] || [];
+                    return (
+                        <div key={currentOrg.id} className="bg-bg-primary border border-border rounded-[2rem] shadow-premium overflow-hidden mesh-bg relative transition-all duration-500">
+                            <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] pointer-events-none" />
 
-                                <div className="relative z-10 p-6">
-                                    <div className="flex justify-between items-center mb-6">
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-3 bg-accent/5 rounded-2xl text-accent">
-                                                <orgType.icon size={24} />
-                                            </div>
-                                            <div>
-                                                <h3 className="text-xl font-black text-text-primary">{orgType.label}</h3>
-                                                <p className="text-xs font-bold text-text-tertiary uppercase tracking-wide">{orgType.description}</p>
-                                            </div>
+                            <div className="relative z-10 p-8">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-4 bg-accent/5 rounded-2xl text-accent">
+                                            <currentOrg.icon size={28} />
                                         </div>
-                                        <button
-                                            onClick={() => handleOpenModal(null, orgType.id)}
-                                            className="btn btn-secondary px-4 py-2 rounded-xl font-bold text-xs border-2 border-border/50 hover:border-accent transition-all flex items-center gap-2"
-                                        >
-                                            <Plus size={14} /> Add {orgType.label} User
-                                        </button>
+                                        <div>
+                                            <h3 className="text-2xl font-black text-text-primary tracking-tight">{currentOrg.label}</h3>
+                                            <p className="text-xs font-bold text-text-tertiary uppercase tracking-wider mt-0.5">{currentOrg.description}</p>
+                                        </div>
                                     </div>
-
-                                    {users.length === 0 ? (
-                                        <div className="py-8 text-center border-2 border-dashed border-border rounded-2xl bg-bg-secondary/30">
-                                            <p className="text-text-tertiary text-sm font-medium">No users found for {orgType.label}</p>
-                                        </div>
-                                    ) : (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 animate-fade-in">
-                                            {users.map((user) => (
-                                                <div key={user.id} className="glass-premium hover:bg-white transition-all duration-300 rounded-2xl border border-white/50 p-4 flex flex-col justify-between group shadow-sm hover:shadow-md">
-                                                    <div className="space-y-3">
-                                                        <div className="flex justify-between items-start">
-                                                            <div className="w-10 h-10 bg-accent/5 rounded-xl flex items-center justify-center text-accent group-hover:bg-accent group-hover:text-white transition-all duration-300">
-                                                                <UserCog size={20} />
-                                                            </div>
-                                                            <div className="flex gap-1">
-                                                                <button
-                                                                    onClick={() => handleOpenModal(user, orgType.id)}
-                                                                    className="p-1.5 text-text-tertiary hover:text-accent hover:bg-accent/5 rounded-lg transition-all"
-                                                                    title="Edit User"
-                                                                >
-                                                                    <Edit2 size={14} />
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => handleDeleteUser(user.id, orgType.id)}
-                                                                    className="p-1.5 text-text-tertiary hover:text-danger hover:bg-red-50 rounded-lg transition-all"
-                                                                    title="Delete User"
-                                                                >
-                                                                    <Trash2 size={14} />
-                                                                </button>
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="space-y-0.5">
-                                                            <h4 className="text-sm font-black text-text-primary tracking-tight">{user.name || user.username}</h4>
-                                                            <p className="text-[10px] font-bold text-text-tertiary uppercase tracking-wider">{user.username}</p>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="mt-4 pt-3 border-t border-border/50 flex items-center justify-between">
-                                                        <span className="text-[9px] font-black text-text-tertiary uppercase tracking-widest">
-                                                            ID: {user.id}
-                                                        </span>
-                                                        <span className="text-[9px] font-black text-success uppercase tracking-widest flex items-center gap-1">
-                                                            <Shield size={8} /> Active
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
+                                    <button
+                                        onClick={() => handleOpenModal(null, currentOrg.id)}
+                                        className="btn btn-secondary px-5 py-3 rounded-2xl font-bold text-xs uppercase tracking-wider border-2 border-border/50 hover:border-accent transition-all flex items-center gap-2 shadow-sm"
+                                    >
+                                        <Plus size={14} /> Add {currentOrg.label} User
+                                    </button>
                                 </div>
+
+                                {users.length === 0 ? (
+                                    <div className="py-16 text-center border-2 border-dashed border-border rounded-[2rem] bg-bg-secondary/30 flex flex-col items-center justify-center gap-3">
+                                        <div className="w-12 h-12 rounded-2xl bg-bg-secondary flex items-center justify-center text-text-tertiary">
+                                            <currentOrg.icon size={20} />
+                                        </div>
+                                        <div className="space-y-0.5">
+                                            <p className="text-text-primary text-sm font-black uppercase tracking-wider">No users found</p>
+                                            <p className="text-text-tertiary text-xs font-bold">Get started by creating a new {currentOrg.label} user.</p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="border border-border/80 rounded-2xl overflow-hidden bg-white/70 backdrop-blur-md shadow-sm">
+                                        <div className="overflow-x-auto scrollbar-none">
+                                            <table className="w-full text-left border-collapse">
+                                                <thead>
+                                                    <tr className="bg-bg-secondary/80 border-b border-border/80">
+                                                        <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-text-tertiary">User Info</th>
+                                                        <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-text-tertiary">Email Address</th>
+                                                        <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-text-tertiary">Phone Number</th>
+                                                        <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-text-tertiary">Status</th>
+                                                        <th className="py-4 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-text-tertiary text-right">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-border/40">
+                                                    {users.map((user) => (
+                                                        <tr key={user.id} className="hover:bg-white/50 transition-colors group">
+                                                            <td className="py-4 px-6 align-middle">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="w-10 h-10 bg-accent/5 rounded-xl flex items-center justify-center text-accent group-hover:bg-accent group-hover:text-white transition-all duration-300">
+                                                                        <UserCog size={18} />
+                                                                    </div>
+                                                                    <div>
+                                                                        <div className="font-black text-sm text-text-primary tracking-tight">{user.name || user.username}</div>
+                                                                        <div className="text-[10px] font-bold text-text-tertiary uppercase tracking-wider mt-0.5">{user.username}</div>
+                                                                        <div className="text-[9px] font-bold text-text-tertiary mt-0.5">ID: {user.id}</div>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            <td className="py-4 px-6 align-middle">
+                                                                {user.email ? (
+                                                                    <div className="flex items-center gap-2 text-xs font-semibold text-text-secondary">
+                                                                        <Mail size={14} className="text-text-tertiary" />
+                                                                        <span>{user.email}</span>
+                                                                    </div>
+                                                                ) : (
+                                                                    <span className="text-[10px] font-bold text-text-tertiary uppercase tracking-wider italic">N/A</span>
+                                                                )}
+                                                            </td>
+                                                            <td className="py-4 px-6 align-middle">
+                                                                {user.phone_number ? (
+                                                                    <div className="flex items-center gap-2 text-xs font-semibold text-text-secondary">
+                                                                        <Phone size={14} className="text-text-tertiary" />
+                                                                        <span>{user.country_code ? `${user.country_code} ` : ''}{user.phone_number}</span>
+                                                                    </div>
+                                                                ) : (
+                                                                    <span className="text-[10px] font-bold text-text-tertiary uppercase tracking-wider italic">N/A</span>
+                                                                )}
+                                                            </td>
+                                                            <td className="py-4 px-6 align-middle">
+                                                                <span className="text-[10px] font-black text-success uppercase tracking-widest flex items-center gap-1.5 bg-success/10 text-success px-2.5 py-1 rounded-full w-fit">
+                                                                    <Shield size={10} /> Active
+                                                                </span>
+                                                            </td>
+                                                            <td className="py-4 px-6 align-middle text-right">
+                                                                <div className="flex justify-end gap-1.5">
+                                                                    <button
+                                                                        onClick={() => handleOpenModal(user, currentOrg.id)}
+                                                                        className="p-2 text-text-tertiary hover:text-accent hover:bg-accent/5 rounded-xl transition-all"
+                                                                        title="Edit User"
+                                                                    >
+                                                                        <Edit2 size={16} />
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => handleDeleteUser(user.id, currentOrg.id)}
+                                                                        className="p-2 text-text-tertiary hover:text-danger hover:bg-red-50 rounded-xl transition-all"
+                                                                        title="Delete User"
+                                                                    >
+                                                                        <Trash2 size={16} />
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                        );
-                    })
-                )}
+                        </div>
+                    );
+                })()}
             </div>
 
             {/* Modal - Create/Edit Staff User */}

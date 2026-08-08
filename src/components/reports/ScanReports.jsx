@@ -4,6 +4,7 @@ import ReportService from '../../services/reportService';
 import { eventService } from '../../services/eventService';
 import { Loader2, Download, Search, Filter, AlertCircle, RefreshCw, MapPin, Hash, User, Mail, Building, Clock, Map, Phone, Briefcase, X, AlignLeft, Calendar } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
+import { formatApiDateTime } from '../../utils/formatApiDateTime';
 
 const ScanReports = () => {
     const { selectedEvent } = useAuth();
@@ -411,10 +412,7 @@ const ScanReports = () => {
                                         className="hover:bg-bg-tertiary transition-colors cursor-pointer group"
                                     >
                                         <td className="py-3 px-4 font-medium text-text-primary whitespace-nowrap align-top">
-                                            {new Date(item.scanned_at).toLocaleString([], {
-                                                year: 'numeric', month: 'short', day: 'numeric',
-                                                hour: '2-digit', minute: '2-digit'
-                                            })}
+                                            {formatApiDateTime(item.scanned_at)}
                                         </td>
                                         <td className="py-3 px-4 align-top">
                                             <div className="flex flex-col gap-0.5">
@@ -723,7 +721,7 @@ const ScanReports = () => {
                                     <div className="bg-accent/10 p-1.5 rounded-md"><Clock size={16} className="text-accent" /></div> Scan & Device Information
                                 </h4>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <DetailItem icon={<Clock />} label="Scanned At" value={new Date(selectedRecord.scanned_at).toLocaleString()} />
+                                    <DetailItem icon={<Clock />} label="Scanned At" value={formatApiDateTime(selectedRecord.scanned_at)} />
                                     <DetailItem icon={<MapPin />} label="Location / Gate" value={selectedRecord.location?.name} />
                                     <DetailItem icon={<Hash />} label="Device ID" value={selectedRecord.device_id || 'N/A'} />
                                     <div className="flex flex-col gap-1 p-3 bg-bg-primary rounded border border-border/50">
@@ -735,7 +733,7 @@ const ScanReports = () => {
                                         </div>
                                     </div>
                                     {selectedRecord.location?.created_at && (
-                                        <DetailItem icon={<Clock />} label="Gate Creation" value={new Date(selectedRecord.location.created_at).toLocaleString()} />
+                                        <DetailItem icon={<Clock />} label="Gate Creation" value={formatApiDateTime(selectedRecord.location.created_at)} />
                                     )}
                                 </div>
                             </div>

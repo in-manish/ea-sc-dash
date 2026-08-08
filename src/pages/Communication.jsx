@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import WhatsAppConfig from '../components/WhatsAppConfig';
+import WhatsAppConfig from '../features/WhatsApp';
 import EmailConfig from '../components/EmailConfig';
 import { MessageSquare, Mail } from 'lucide-react';
 

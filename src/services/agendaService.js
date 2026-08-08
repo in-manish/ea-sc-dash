@@ -1,4 +1,5 @@
 import { getApiUrl } from '../config';
+import { parseAgendaError } from '../features/Agenda/domain/parseAgendaError';
 
 const getHeaders = (token) => {
     const baseUrl = getApiUrl();
@@ -59,7 +60,7 @@ export const agendaService = {
 
             if (!response.ok) {
                 const result = await response.json().catch(() => ({}));
-                throw new Error(result.error || result.message || `HTTP error! status: ${response.status}`);
+                throw new Error(parseAgendaError(result, response.status));
             }
 
             return await response.json();
@@ -81,7 +82,7 @@ export const agendaService = {
 
             if (!response.ok) {
                 const result = await response.json().catch(() => ({}));
-                throw new Error(result.error || result.message || `HTTP error! status: ${response.status}`);
+                throw new Error(parseAgendaError(result, response.status));
             }
 
             return await response.json();
@@ -92,7 +93,6 @@ export const agendaService = {
     },
 
     async deleteAgenda(eventId, agendaId, token) {
-        // Based on typical pattern, if delete exists
         try {
             const response = await fetch(`${getApiUrl()}/events/${eventId}/agenda/${agendaId}/delete/`, {
                 method: 'DELETE',
@@ -100,10 +100,15 @@ export const agendaService = {
             });
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const result = await response.json().catch(() => ({}));
+                throw new Error(result.message || result.error || `HTTP error! status: ${response.status}`);
             }
 
-            return await response.json();
+            const data = await response.json();
+            if (data && data.success === false) {
+                throw new Error(data.message || 'Failed to delete agenda');
+            }
+            return data;
         } catch (error) {
             console.error('Delete Agenda Error:', error);
             throw error;

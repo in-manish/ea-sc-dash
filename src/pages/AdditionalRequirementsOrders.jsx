@@ -3,6 +3,11 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
 import { Loader2, Calendar, CheckCircle, XCircle, DollarSign, X, ChevronDown, Search, Copy, Check, Building2, User, Package, FileText, CreditCard, ShieldCheck, ShieldX, Download, ZoomIn } from 'lucide-react';
+import {
+    DEFAULT_AR_TAX,
+    normalizeAdditionalRequirement,
+    formatTaxLabel,
+} from './event-settings/exhibitorPortalDefaults';
 
 const STATUS_OPTIONS = [
     { value: 'cart', label: 'Cart' },
@@ -63,6 +68,7 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
     const [refreshKey, setRefreshKey] = useState(0);
     const [verifyingOrderId, setVerifyingOrderId] = useState(null);
     const [verificationError, setVerificationError] = useState(null);
+    const [arTax, setArTax] = useState(DEFAULT_AR_TAX);
 
     // Get filters from URL
     const page = parseInt(searchParams.get('page')) || 1;
@@ -182,6 +188,22 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
             fetchOrders();
         }
     }, [eventId, page, searchParams.toString(), token, refreshKey]); // Depend on searchParams string to catch all URL changes
+
+    useEffect(() => {
+        if (!eventId || !token) return;
+        let cancelled = false;
+        (async () => {
+            try {
+                const data = await eventService.getEventDetails(eventId, token, { exhibitorPortal: true });
+                if (!cancelled) {
+                    setArTax(normalizeAdditionalRequirement(data.exhibitor_portal_data?.additional_requirement).tax);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        })();
+        return () => { cancelled = true; };
+    }, [eventId, token]);
 
     const formatCurrency = (amount, currency) => {
         return new Intl.NumberFormat('en-IN', {
@@ -891,7 +913,7 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
                                                 <span className="text-xs font-bold text-text-secondary uppercase tracking-widest">Amount (INR)</span>
                                             </div>
                                             <DetailRow label="Subtotal" value={`\u20B9${o.total_amount.subtotal}`} mono />
-                                            <DetailRow label={`GST (${o.total_amount.gst_rate}%)`} value={`\u20B9${o.total_amount.gst_amount}`} mono />
+                                            <DetailRow label={formatTaxLabel(arTax, o.total_amount.gst_rate)} value={`\u20B9${o.total_amount.gst_amount}`} mono />
                                             <div className="flex justify-between items-center pt-2 mt-1 border-t border-border">
                                                 <span className="text-xs font-bold text-text-primary uppercase">Total</span>
                                                 <span className="text-base font-bold text-text-primary font-mono">{o.total_amount.formatted}</span>
@@ -904,7 +926,7 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
                                                     <span className="text-xs font-bold text-text-secondary uppercase tracking-widest">Amount (USD)</span>
                                                 </div>
                                                 <DetailRow label="Subtotal" value={`$${o.total_amount_usd.subtotal}`} mono />
-                                                <DetailRow label={`GST (${o.total_amount_usd.gst_rate}%)`} value={`$${o.total_amount_usd.gst_amount}`} mono />
+                                                <DetailRow label={formatTaxLabel(arTax, o.total_amount_usd.gst_rate)} value={`$${o.total_amount_usd.gst_amount}`} mono />
                                                 <div className="flex justify-between items-center pt-2 mt-1 border-t border-border">
                                                     <span className="text-xs font-bold text-text-primary uppercase">Total</span>
                                                     <span className="text-base font-bold text-text-primary font-mono">{o.total_amount_usd.formatted}</span>

@@ -14,7 +14,7 @@ export const whatsappService = {
                     category,
                     search,
                     page,
-                    page_size: 10
+                    page_size: 50
                 }
             });
             return response.data;
@@ -35,7 +35,13 @@ export const whatsappService = {
             return response.data;
         } catch (error) {
             console.error('Error creating WhatsApp template:', error);
-            throw error;
+            if (error.response && error.response.data) {
+                return error.response.data;
+            }
+            return {
+                success: false,
+                message: error.message || 'Network error occurred'
+            };
         }
     },
 

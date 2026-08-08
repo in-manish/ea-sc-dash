@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
-import { Loader2, Search, Filter, Globe, Building2, X, Printer, ShoppingCart, Settings, Star } from 'lucide-react';
+import { Loader2, Search, Filter, Building2, X, Printer, ShoppingCart, Settings, Star, Lock, IdCard, Upload, ExternalLink } from 'lucide-react';
 import AdditionalRequirementsOrders from './AdditionalRequirementsOrders';
 import ARManager from './ARManager';
 import CompanyProductSection from './event-settings/company-products/CompanyProductSection';
+import CompanyUploadModal from '../components/companies/CompanyUploadModal';
+import CompanyUploadStatus from '../components/companies/CompanyUploadStatus';
+import CompanyComprehensiveReportPanel from '../components/companies/CompanyComprehensiveReportPanel';
 
 const Companies = () => {
     const { selectedEvent, token } = useAuth();
@@ -15,6 +18,7 @@ const Companies = () => {
     // Helper to get active tab and view from URL
     const activeTab = searchParams.get('tab') || 'exhibitors';
     const arView = searchParams.get('ar_view') || 'orders';
+    const exhView = searchParams.get('exh_view') || 'list';
 
     const [companies, setCompanies] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -31,7 +35,7 @@ const Companies = () => {
         const filters = {};
         const filterKeys = [
             'country', 'location', 'category', 'parent_exhibitor_id',
-            'parent_exhibitor_only', 'is_badge_printed', 'registered_co_exhibitor_count', 'is_featured'
+            'parent_exhibitor_only', 'is_badge_printed', 'registered_co_exhibitor_count', 'is_featured', 'is_company_submit_locked', 'hand_over'
         ];
 
         filterKeys.forEach(key => {
@@ -43,6 +47,15 @@ const Companies = () => {
     };
 
     const [filters, setFilters] = useState(getInitialFilters());
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+    const [uploadRefreshKey, setUploadRefreshKey] = useState(0);
+
+    const handleExhViewChange = (viewName) => {
+        const newParams = new URLSearchParams(searchParams);
+        if (viewName === 'list') newParams.delete('exh_view');
+        else newParams.set('exh_view', viewName);
+        setSearchParams(newParams);
+    };
 
     const handleTabChange = (tabName) => {
         const newParams = new URLSearchParams(searchParams);
@@ -82,7 +95,7 @@ const Companies = () => {
 
         const filterKeys = [
             'country', 'location', 'category', 'parent_exhibitor_id',
-            'parent_exhibitor_only', 'is_badge_printed', 'registered_co_exhibitor_count', 'is_featured'
+            'parent_exhibitor_only', 'is_badge_printed', 'registered_co_exhibitor_count', 'is_featured', 'is_company_submit_locked', 'hand_over'
         ];
 
         filterKeys.forEach(key => {
@@ -112,6 +125,7 @@ const Companies = () => {
                     debouncedSearch,
                     filters
                 );
+                console.log("FIRST COMPANY:", data.results?.[0]);
                 setCompanies(data.results);
                 setTotal(data.exhibitor_count || 0); // Using exhibitor_count as total based on API response
             } catch (err) {
@@ -140,30 +154,38 @@ const Companies = () => {
                     {activeTab === 'exhibitors' && <p className="text-sm text-text-secondary mt-1">Total: {total} exhibitors</p>}
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2 min-w-0">
                     {activeTab === 'exhibitors' && (
-                        <div className="flex gap-4 items-center">
-                            <div className="relative">
-                                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
-                                <input
-                                    type="text"
-                                    placeholder="Search companies..."
-                                    className="w-60 py-2 pr-4 pl-9 border border-border rounded-md text-sm outline-none transition-colors duration-200 focus:border-accent focus:ring-2 focus:ring-accent/10 focus:bg-white"
-                                    value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
-                                />
-                            </div>
-                            <button
-                                className={`btn ${Object.keys(filters).length > 0 ? 'btn-primary' : 'btn-secondary'}`}
-                                onClick={() => setIsFilterDrawerOpen(true)}
-                            >
-                                <Filter size={16} style={{ marginRight: '0.5rem' }} />
-                                Filter {Object.keys(filters).length > 0 && `(${Object.keys(filters).length})`}
+                        <div className="flex gap-3 items-center flex-wrap justify-end">
+                            <button className="btn btn-primary" onClick={() => setIsUploadModalOpen(true)}>
+                                <Upload size={16} style={{ marginRight: '0.5rem' }} />
+                                Upload CSV
                             </button>
-                            {Object.keys(filters).length > 0 && (
-                                <button className="btn btn-ghost btn-sm" onClick={() => setFilters({})}>
-                                    Clear
-                                </button>
+                            {exhView === 'list' && (
+                                <>
+                                    <div className="relative">
+                                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
+                                        <input
+                                            type="text"
+                                            placeholder="Search companies..."
+                                            className="w-48 lg:w-60 py-2 pr-4 pl-9 border border-border rounded-md text-sm outline-none transition-colors duration-200 focus:border-accent focus:ring-2 focus:ring-accent/10 focus:bg-white"
+                                            value={search}
+                                            onChange={(e) => setSearch(e.target.value)}
+                                        />
+                                    </div>
+                                    <button
+                                        className={`btn ${Object.keys(filters).length > 0 ? 'btn-primary' : 'btn-secondary'}`}
+                                        onClick={() => setIsFilterDrawerOpen(true)}
+                                    >
+                                        <Filter size={16} style={{ marginRight: '0.5rem' }} />
+                                        Filter {Object.keys(filters).length > 0 && `(${Object.keys(filters).length})`}
+                                    </button>
+                                    {Object.keys(filters).length > 0 && (
+                                        <button className="btn btn-ghost btn-sm" onClick={() => setFilters({})}>
+                                            Clear
+                                        </button>
+                                    )}
+                                </>
                             )}
                         </div>
                     )}
@@ -201,6 +223,33 @@ const Companies = () => {
                 </button>
             </div>
 
+            {activeTab === 'exhibitors' && (
+                <div className="mb-6 flex items-center gap-1 p-1 bg-bg-secondary border border-border rounded-lg inline-flex">
+                    <button
+                        className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${exhView === 'list' ? 'bg-white text-accent shadow-sm' : 'text-text-secondary hover:text-text-primary'}`}
+                        onClick={() => handleExhViewChange('list')}
+                    >
+                        <Building2 size={16} />
+                        Exhibitors
+                    </button>
+                    <button
+                        className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${exhView === 'upload_status' ? 'bg-white text-accent shadow-sm' : 'text-text-secondary hover:text-text-primary'}`}
+                        onClick={() => handleExhViewChange('upload_status')}
+                    >
+                        <Upload size={16} />
+                        Upload Status
+                    </button>
+                </div>
+            )}
+
+            {activeTab === 'exhibitors' && exhView === 'list' && selectedEvent && (
+                <CompanyComprehensiveReportPanel
+                    eventId={selectedEvent.id}
+                    token={token}
+                    parentExhibitorId={filters.parent_exhibitor_id || ''}
+                />
+            )}
+
             {activeTab === 'additional_requirements' && (
                 <div className="mb-6 flex items-center gap-1 p-1 bg-bg-secondary border border-border rounded-lg inline-flex">
                     <button
@@ -220,7 +269,11 @@ const Companies = () => {
                 </div>
             )}
 
-            {activeTab === 'exhibitors' && (
+            {activeTab === 'exhibitors' && exhView === 'upload_status' && (
+                <CompanyUploadStatus eventId={selectedEvent.id} token={token} refreshKey={uploadRefreshKey} />
+            )}
+
+            {activeTab === 'exhibitors' && exhView === 'list' && (
                 <>
                     {error && <div className="bg-red-50 text-red-800 p-4 border border-red-200 rounded-md mb-6">{error}</div>}
 
@@ -247,10 +300,19 @@ const Companies = () => {
                                         <td colSpan="5" className="text-center p-12 text-text-secondary">No companies found.</td>
                                     </tr>
                                 ) : (
-                                    companies.map((company) => (
+                                    companies.map((company) => {
+                                        const parentExhibitor = company.parent_exhibitor;
+                                        const isCoExhibitor = Boolean(parentExhibitor?.id || parentExhibitor);
+                                        const parentId = parentExhibitor?.id;
+                                        const parentName = parentExhibitor?.company_name;
+                                        return (
                                         <tr
                                             key={company.id}
-                                            className="cursor-pointer transition-colors duration-200 hover:bg-bg-secondary [&>td]:border-b [&>td]:border-border group"
+                                            className={`cursor-pointer transition-colors duration-200 [&>td]:border-b [&>td]:border-border group ${
+                                                isCoExhibitor
+                                                    ? 'bg-indigo-50/70 hover:bg-indigo-100/80'
+                                                    : 'bg-emerald-50/40 hover:bg-emerald-50'
+                                            }`}
                                             onClick={() => handleCompanyClick(company.id)}
                                         >
                                             <td className="py-4 px-6 align-middle group-last:border-b-0">
@@ -263,9 +325,18 @@ const Companies = () => {
                                                         </div>
                                                     )}
                                                     <div>
-                                                        <div className="font-semibold text-text-primary text-sm flex items-center gap-2">
+                                                        <div className="font-semibold text-text-primary text-sm flex items-center gap-2 flex-wrap">
                                                             {company.company_name}
                                                             <span className="text-[10px] font-mono text-text-tertiary opacity-40">#{company.id}</span>
+                                                            <span
+                                                                className={`inline-flex py-0.5 px-1.5 rounded text-[10px] font-semibold tracking-wide ${
+                                                                    isCoExhibitor
+                                                                        ? 'bg-indigo-100 text-indigo-800'
+                                                                        : 'bg-emerald-100 text-emerald-800'
+                                                                }`}
+                                                            >
+                                                                {isCoExhibitor ? 'Co-exhibitor' : 'Exhibitor'}
+                                                            </span>
                                                             {company.is_badge_printed && (
                                                                 <Printer
                                                                     size={14}
@@ -281,7 +352,26 @@ const Companies = () => {
                                                                 />
                                                             )}
                                                         </div>
-                                                        <div className="text-xs text-text-tertiary mt-0.5">{company.company_slug}</div>
+                                                        <div className="text-xs text-text-tertiary mt-0.5 flex items-center gap-1">
+                                                            <span>{company.company_slug}</span>
+                                                            {company.is_company_submit_locked && (
+                                                                <Lock size={12} className="text-red-500 shrink-0" title="Company Submit Locked" />
+                                                            )}
+                                                        </div>
+                                                        {isCoExhibitor && parentId && (
+                                                            <button
+                                                                type="button"
+                                                                className="mt-1.5 inline-flex items-center gap-1 text-xs text-accent hover:underline bg-transparent border-none p-0 cursor-pointer font-medium"
+                                                                title={`Open parent exhibitor: ${parentName || `#${parentId}`}`}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    navigate(`/event/${selectedEvent.id}/companies/${parentId}`);
+                                                                }}
+                                                            >
+                                                                <ExternalLink size={11} />
+                                                                {parentName || `Exhibitor #${parentId}`}
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </td>
@@ -297,14 +387,23 @@ const Companies = () => {
                                             <td className="py-4 px-6 align-middle group-last:border-b-0">
                                                 <span className="inline-flex py-1 px-2.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 tracking-wide">{company.category}</span>
                                             </td>
-                                            <td className="py-4 px-6 align-middle group-last:border-b-0">
-                                                <div className="flex flex-col gap-1 text-xs text-text-secondary">
+                                            <td className="py-4 px-6 align-middle group-last:border-b-0" onClick={(e) => e.stopPropagation()}>
+                                                <button
+                                                    type="button"
+                                                    className="flex flex-col gap-1 text-xs text-text-secondary text-left rounded-md px-2 py-1 -mx-2 transition-colors hover:bg-accent/5 hover:text-accent cursor-pointer group/badges"
+                                                    onClick={() => navigate(`/event/${selectedEvent.id}/attendees?exhibitor_id=${company.id}`)}
+                                                    title="View attendees under this exhibitor"
+                                                >
                                                     <span>Limit: {company.badge_limit}</span>
-                                                    <span>Issued: {company.badge_issued}</span>
-                                                </div>
+                                                    <span className="inline-flex items-center gap-1">
+                                                        Issued: {company.badge_issued}
+                                                        <IdCard size={12} className="opacity-0 group-hover/badges:opacity-100 transition-opacity" />
+                                                    </span>
+                                                </button>
                                             </td>
                                         </tr>
-                                    ))
+                                        );
+                                    })
                                 )}
                             </tbody>
                         </table>
@@ -468,6 +567,57 @@ const Companies = () => {
                                 <option value="false">Not Featured</option>
                             </select>
                         </div>
+
+                        <div className="flex flex-col gap-2">
+                            <h4 className="text-xs font-bold text-text-tertiary uppercase tracking-wider m-0">Handover</h4>
+                            <div className="flex flex-wrap gap-2 mt-1">
+                                {[
+                                    { value: '', label: 'All' },
+                                    { value: 'true', label: 'Handed Over' },
+                                    { value: 'false', label: 'Not Handed Over' },
+                                ].map((opt) => {
+                                    const isActive = (filters.hand_over || '') === opt.value;
+                                    return (
+                                        <button
+                                            key={opt.label}
+                                            type="button"
+                                            className={`py-2 px-3.5 border rounded-full text-xs font-medium transition-all duration-200 ${
+                                                isActive
+                                                    ? 'bg-accent text-white border-accent'
+                                                    : 'bg-bg-primary border-border text-text-secondary hover:border-accent hover:text-text-primary hover:bg-bg-secondary'
+                                            }`}
+                                            onClick={() => {
+                                                const newFilters = { ...filters };
+                                                if (opt.value) newFilters.hand_over = opt.value;
+                                                else delete newFilters.hand_over;
+                                                setFilters(newFilters);
+                                                setPage(1);
+                                            }}
+                                        >
+                                            {opt.label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col gap-2">
+                            <h4 className="text-xs font-bold text-text-tertiary uppercase tracking-wider m-0">Submit Locked</h4>
+                            <select
+                                className="w-full py-2.5 px-3.5 border border-border rounded-md text-sm bg-bg-secondary outline-none transition-colors duration-200 focus:border-accent focus:bg-white focus:ring-2 focus:ring-accent/10"
+                                value={filters.is_company_submit_locked || ''}
+                                onChange={(e) => {
+                                    const newFilters = { ...filters };
+                                    if (e.target.value) newFilters.is_company_submit_locked = e.target.value;
+                                    else delete newFilters.is_company_submit_locked;
+                                    setFilters(newFilters);
+                                }}
+                            >
+                                <option value="">All</option>
+                                <option value="true">Locked</option>
+                                <option value="false">Unlocked</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div className="p-6 border-t border-border flex gap-4 bg-bg-secondary">
@@ -480,6 +630,19 @@ const Companies = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Bulk Company Upload Modal */}
+            {isUploadModalOpen && selectedEvent && (
+                <CompanyUploadModal
+                    eventId={selectedEvent.id}
+                    token={token}
+                    onClose={() => setIsUploadModalOpen(false)}
+                    onUploaded={() => {
+                        setUploadRefreshKey((k) => k + 1);
+                        handleExhViewChange('upload_status');
+                    }}
+                />
+            )}
         </div>
     );
 };

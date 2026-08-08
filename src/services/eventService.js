@@ -185,12 +185,79 @@ export const eventService = {
                 headers: getHeaders(token),
                 body: JSON.stringify(payload)
             });
+
+            const data = await response.json().catch(() => null);
+
+            if (!response.ok) {
+                const error = new Error(
+                    (data && (data.detail || data.message)) || `Failed to create attendee (status ${response.status})`
+                );
+                error.data = data;
+                error.status = response.status;
+                throw error;
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Create Attendee Error:', error);
+            throw error;
+        }
+    },
+
+    async uploadCompaniesCsv(eventId, token, file) {
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const headers = getHeaders(token);
+            delete headers['Content-Type']; // Browser sets multipart boundary
+
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/company/upload/`, {
+                method: 'POST',
+                headers,
+                body: formData
+            });
+
+            const data = await response.json().catch(() => null);
+
+            if (!response.ok) {
+                const error = new Error(
+                    (data && (data.detail || data.message || data.msg)) || `Failed to upload companies (status ${response.status})`
+                );
+                error.data = data;
+                error.status = response.status;
+                throw error;
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Upload Companies CSV Error:', error);
+            throw error;
+        }
+    },
+
+    async getCompanyUploads(eventId, token, { page = 1, page_size = 20, uploadId = null } = {}) {
+        try {
+            const queryParams = new URLSearchParams();
+            if (uploadId) {
+                queryParams.append('upload_id', uploadId);
+            } else {
+                queryParams.append('page', page);
+                queryParams.append('page_size', page_size);
+            }
+
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/company/upload/?${queryParams}`, {
+                method: 'GET',
+                headers: getHeaders(token)
+            });
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
+
             return await response.json();
         } catch (error) {
-            console.error('Create Attendee Error:', error);
+            console.error('Get Company Uploads Error:', error);
             throw error;
         }
     },
@@ -208,6 +275,36 @@ export const eventService = {
             return await response.json();
         } catch (error) {
             console.error('Update Attendee Error:', error);
+            throw error;
+        }
+    },
+
+    async syncAttendeeWithSC(eventId, token, uuid) {
+        try {
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/attendees/${uuid}/sync-sc/`, {
+                method: 'POST',
+                headers: getHeaders(token),
+            });
+
+            const data = await response.json().catch(() => ({}));
+
+            if (response.status === 404) {
+                const error = new Error(data.error || 'Badge not found for this event.');
+                error.status = 404;
+                throw error;
+            }
+
+            if (!response.ok || data.success === false) {
+                const error = new Error(
+                    data.error || (response.status === 400 ? 'Failed to sync badge with SC.' : `HTTP error! status: ${response.status}`)
+                );
+                error.status = response.status;
+                throw error;
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Sync Attendee with SC Error:', error);
             throw error;
         }
     },
@@ -374,9 +471,53 @@ export const eventService = {
         }
     },
 
-    async getEventDetails(eventId, token) {
+    async getCompanyComprehensiveReport(eventId, token, parentExhibitorId = null) {
+        const params = new URLSearchParams();
+        if (parentExhibitorId !== null && parentExhibitorId !== undefined && parentExhibitorId !== '') {
+            params.set('parent_exhibitor_id', parentExhibitorId);
+        }
+
+        const query = params.toString();
+        const url = `${getApiUrl()}/events/${eventId}/company/comprehensive-report/${query ? `?${query}` : ''}`;
+
         try {
-            const response = await fetch(`${getApiUrl()}/events/${eventId}/?add_details=true`, {
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: getHeaders(token)
+            });
+
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                if (response.status === 404) {
+                    throw new Error(data.detail || 'Event not found');
+                }
+                if (data.parent_exhibitor_id) {
+                    throw new Error(
+                        Array.isArray(data.parent_exhibitor_id)
+                            ? data.parent_exhibitor_id.join(' ')
+                            : String(data.parent_exhibitor_id)
+                    );
+                }
+                throw new Error(data.detail || data.message || `Failed to load company report (status ${response.status})`);
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Get Company Comprehensive Report Error:', error);
+            throw error;
+        }
+    },
+
+    async getEventDetails(eventId, token, options = {}) {
+        try {
+            const params = new URLSearchParams({ add_details: 'true' });
+            // Portal fields (exhibitor_portal_data) are omitted unless exhibitor_portal=true
+            if (options.exhibitorPortal) {
+                params.set('exhibitor_portal', 'true');
+            }
+
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/?${params.toString()}`, {
                 method: 'GET',
                 headers: getHeaders(token)
             });
@@ -398,6 +539,11 @@ export const eventService = {
             // The browser will set it to multipart/form-data with the correct boundary.
             const headers = getHeaders(token);
             delete headers['Content-Type']; // Ensure no content type is forcing JSON
+
+            if (formData instanceof FormData) {
+                formData.delete('exhibitor_blocking_fields');
+                formData.delete('exhibitor_setup_checklist');
+            }
 
             const response = await fetch(`${getApiUrl()}/events/${eventId}/`, {
                 method: 'PATCH',
@@ -923,6 +1069,62 @@ export const eventService = {
             return true;
         } catch (error) {
             console.error('Delete Attendee Type Error:', error);
+            throw error;
+        }
+    },
+
+    async createEBadge(eventId, token, payload) {
+        try {
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/ebadge/manage/`, {
+                method: 'POST',
+                headers: getHeaders(token),
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.message || `HTTP error! status: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Create E-Badge Error:', error);
+            throw error;
+        }
+    },
+
+    async getEBadgeProgress(eventId, progressUuid, token) {
+        try {
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/ebadge/progress/${progressUuid}/`, {
+                method: 'GET',
+                headers: getHeaders(token)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Get E-Badge Progress Error:', error);
+            throw error;
+        }
+    },
+
+    async getEBadgeJobs(eventId, token, { page = 1, size = 20 } = {}) {
+        try {
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/ebadge/jobs/?page=${page}&size=${size}`, {
+                method: 'GET',
+                headers: getHeaders(token)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Get E-Badge Jobs Error:', error);
             throw error;
         }
     },

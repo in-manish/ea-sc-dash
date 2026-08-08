@@ -29,8 +29,8 @@ Organize code so an agent can:
 
 Use this before editing:
 
-1. Is the target file over 500 lines?
-- Yes: split by responsibility before adding new logic.
+1. Is the target file over **200 lines**?
+- Yes: split by responsibility into a feature directory before adding new logic. Follow the `split-large-files` skill.
 - No: continue.
 
 2. Is new logic feature-specific?
@@ -62,6 +62,7 @@ src/
     <feature>/
       api/
       domain/
+      hooks/
       ui/
       tests/
       README.md
@@ -70,10 +71,10 @@ src/
 
 ### 3) Enforce file and function size limits
 
-- Target file size: 300 lines or less.
-- Warning threshold: over 500 lines, refactor required unless justified.
+- **Hard max file size: 200 lines.** Never grow past this; create a new file and feature directory instead.
+- Soft target: keep new files closer to 100–150 lines when practical.
 - Target function size: 60 lines or less.
-- Warning threshold: over 100 lines, split into helpers.
+- Warning threshold: over 100 lines in a function, split into helpers.
 
 ### 4) Maintain required navigation files
 
@@ -103,7 +104,7 @@ Maintain architecture history:
 
 ### 5) Reject anti-patterns
 
-- God files mixing unrelated concerns.
+- God files mixing unrelated concerns (e.g. 1800+ line page components).
 - Oversized `utils` files with business logic from many domains.
 - Cross-feature imports that bypass feature boundaries.
 - Hidden behavior in barrel `index` files.
@@ -111,7 +112,7 @@ Maintain architecture history:
 
 ### 6) Apply refactor and PR rules
 
-- If touching a file over 500 lines, include a split in the same change or provide a short justification.
+- If touching a file over 200 lines, split in the same change (or as the first commit in the work) — do not pile on more logic.
 - If adding a feature, update navigation files in the same change:
   - `AI_INDEX.md`
   - `AI_FILE_MAP.yaml`
@@ -133,6 +134,6 @@ Treat scripts as black boxes unless modification is required.
 Before finishing, verify:
 
 - New or changed code is in the correct feature/shared location.
-- No new large mixed-responsibility files were introduced.
+- **No source file exceeds 200 lines.**
 - Navigation docs match actual file locations.
 - Architecture constraints remain respected.

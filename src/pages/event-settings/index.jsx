@@ -15,6 +15,11 @@ import LocalizationSettings from './LocalizationSettings';
 import MeetingDiarySettings from './MeetingDiarySettings';
 import AgendaSettings from './AgendaSettings';
 import JsonTree from './components/JsonTree';
+import { DEFAULT_STALL_SCHEMA_TYPES } from './CompanySettings';
+import {
+    DEFAULT_ADDITIONAL_REQUIREMENT,
+    normalizeExhibitorPortalData,
+} from './exhibitorPortalDefaults';
 
 const EventSettings = () => {
     const { id } = useParams();
@@ -58,7 +63,18 @@ const EventSettings = () => {
     const fetchEventDetails = async () => {
         setIsLoading(true);
         try {
-            const data = await eventService.getEventDetails(id, token);
+            // exhibitor_portal=true required so exhibitor_portal_data (tax/footer) is included
+            const data = await eventService.getEventDetails(id, token, { exhibitorPortal: true });
+            if (!Array.isArray(data.stall_schem_types) || data.stall_schem_types.length === 0) {
+                data.stall_schem_types = [...DEFAULT_STALL_SCHEMA_TYPES];
+            }
+            // Single-select currency: keep at most one value for the UI
+            if (!Array.isArray(data.currencies)) {
+                data.currencies = [];
+            } else if (data.currencies.length > 1) {
+                data.currencies = [data.currencies[0]];
+            }
+            data.exhibitor_portal_data = normalizeExhibitorPortalData(data.exhibitor_portal_data);
             setEventData(data);
             setOriginalEventData(JSON.parse(JSON.stringify(data)));
         } catch (err) {
@@ -77,8 +93,18 @@ const EventSettings = () => {
         }));
     };
 
+    const handleShowHoursChange = (value) => {
+        setEventData(prev => ({
+            ...prev,
+            show_hours: value
+        }));
+    };
+
     const isFieldModified = (fieldName) => {
         if (!originalEventData) return false;
+        if (fieldName === 'show_hours') {
+            return JSON.stringify(eventData.show_hours || {}) !== JSON.stringify(originalEventData.show_hours || {});
+        }
         if (typeof eventData[fieldName] === 'boolean' || typeof originalEventData[fieldName] === 'boolean') {
             return !!eventData[fieldName] !== !!originalEventData[fieldName];
         }
@@ -126,6 +152,113 @@ const EventSettings = () => {
         });
     };
 
+    const buildComplimentaryInviteeLink = (eventId, formValue = '') =>
+        `https://tickets.fairfest.com/e/reconnect_${eventId}?r=${formValue || ''}`;
+
+    const normalizeInviteeLink = (item) => {
+        const next = {
+            form_value: item.form_value || '',
+            link: item.link || '',
+            title: item.title || '',
+            description: item.description || '',
+            is_complementary: !!item.is_complementary,
+        };
+        if (item.limit_mode === 'fixed') {
+            next.limit_mode = 'fixed';
+            if (item.invitee_limit !== '' && item.invitee_limit != null) {
+                next.invitee_limit = Number(item.invitee_limit);
+            }
+        } else if (item.limit_mode === 'formula') {
+            next.limit_mode = 'formula';
+            if (item.invitee_limit_formula !== '' && item.invitee_limit_formula != null) {
+                next.invitee_limit_formula = Number(item.invitee_limit_formula);
+            }
+        }
+        return next;
+    };
+
+    const addInviteeLink = () => {
+        setEventData(prev => {
+            const eventId = prev.id || id;
+            return {
+                ...prev,
+                complimentary_invitee_links: [
+                    ...(prev.complimentary_invitee_links || []),
+                    {
+                        form_value: '',
+                        link: buildComplimentaryInviteeLink(eventId, ''),
+                        title: '',
+                        description: '',
+                        is_complementary: true,
+                        limit_mode: 'fixed',
+                        invitee_limit: ''
+                    }
+                ]
+            };
+        });
+    };
+
+    const removeInviteeLink = (index) => {
+        setEventData(prev => ({
+            ...prev,
+            complimentary_invitee_links: (prev.complimentary_invitee_links || []).filter((_, i) => i !== index)
+        }));
+    };
+
+    const handleInviteeLinkChange = (index, field, value) => {
+        setEventData(prev => {
+            const updated = [...(prev.complimentary_invitee_links || [])];
+            const previous = updated[index] || {};
+            const current = { ...previous, [field]: value };
+            const eventId = prev.id || id;
+
+            if (field === 'form_value') {
+                const previousAutoLink = buildComplimentaryInviteeLink(eventId, previous.form_value || '');
+                const linkStillAuto =
+                    !previous.link ||
+                    previous.link === previousAutoLink;
+                if (linkStillAuto) {
+                    current.link = buildComplimentaryInviteeLink(eventId, value);
+                }
+            }
+
+            if (field === 'limit_mode') {
+                if (value === 'fixed') {
+                    delete current.invitee_limit_formula;
+                    if (current.invitee_limit == null) current.invitee_limit = '';
+                } else if (value === 'formula') {
+                    delete current.invitee_limit;
+                    if (current.invitee_limit_formula == null) current.invitee_limit_formula = '';
+                } else {
+                    delete current.limit_mode;
+                    delete current.invitee_limit;
+                    delete current.invitee_limit_formula;
+                }
+            }
+
+            updated[index] = current;
+            return { ...prev, complimentary_invitee_links: updated };
+        });
+    };
+
+    const moveInviteeLink = (index, direction) => {
+        setEventData(prev => {
+            const updated = [...(prev.complimentary_invitee_links || [])];
+            const targetIndex = index + direction;
+            if (targetIndex >= 0 && targetIndex < updated.length) {
+                [updated[index], updated[targetIndex]] = [updated[targetIndex], updated[index]];
+            }
+            return { ...prev, complimentary_invitee_links: updated };
+        });
+    };
+
+    const isInviteeLinkModified = (index, fieldName) => {
+        if (!originalEventData) return false;
+        const current = eventData.complimentary_invitee_links?.[index]?.[fieldName];
+        const original = originalEventData.complimentary_invitee_links?.[index]?.[fieldName];
+        return current !== original;
+    };
+
     const handleExhibitorStatsChange = (field, value) => {
         setEventData(prev => ({
             ...prev,
@@ -155,6 +288,8 @@ const EventSettings = () => {
             interested_in: {
                 ...(prev.interested_in || { 
                     is_active: true, 
+                    title: '',
+                    description: '',
                     exhibit_url: '', 
                     visit_url: ''
                 }),
@@ -167,6 +302,61 @@ const EventSettings = () => {
         if (!originalEventData) return false;
         const current = eventData.interested_in?.[field];
         const original = originalEventData.interested_in?.[field];
+        return current !== original;
+    };
+
+    const handleStallSchemaTypeToggle = (value) => {
+        setEventData(prev => {
+            const current = Array.isArray(prev.stall_schem_types) ? prev.stall_schem_types : [];
+            const next = current.includes(value)
+                ? current.filter(v => v !== value)
+                : [...current, value];
+            return { ...prev, stall_schem_types: next };
+        });
+    };
+
+    const isStallSchemaTypesModified = () => {
+        if (!originalEventData) return false;
+        return JSON.stringify(eventData.stall_schem_types || []) !== JSON.stringify(originalEventData.stall_schem_types || []);
+    };
+
+    const handleCurrencySelect = (value) => {
+        setEventData(prev => ({ ...prev, currencies: [value] }));
+    };
+
+    const isCurrenciesModified = () => {
+        if (!originalEventData) return false;
+        const current = eventData.currencies?.[0] || '';
+        const original = originalEventData.currencies?.[0] || '';
+        return current !== original;
+    };
+
+    const handleAdditionalRequirementChange = (section, field, value) => {
+        setEventData(prev => {
+            const current = prev.exhibitor_portal_data?.additional_requirement || {
+                tax: { ...DEFAULT_ADDITIONAL_REQUIREMENT.tax },
+                page: { ...DEFAULT_ADDITIONAL_REQUIREMENT.page },
+            };
+            return {
+                ...prev,
+                exhibitor_portal_data: {
+                    ...(prev.exhibitor_portal_data || {}),
+                    additional_requirement: {
+                        ...current,
+                        [section]: {
+                            ...(current[section] || {}),
+                            [field]: value,
+                        },
+                    },
+                },
+            };
+        });
+    };
+
+    const isAdditionalRequirementModified = (section, field) => {
+        if (!originalEventData) return false;
+        const current = eventData.exhibitor_portal_data?.additional_requirement?.[section]?.[field];
+        const original = originalEventData.exhibitor_portal_data?.additional_requirement?.[section]?.[field];
         return current !== original;
     };
 
@@ -269,6 +459,32 @@ const EventSettings = () => {
         setIsSaving(true);
         setMessage({ type: '', text: '' });
 
+        const inviteeLinks = eventData.complimentary_invitee_links || [];
+        const missingTitleIndex = inviteeLinks.findIndex(item => !(item.title || '').trim());
+        if (missingTitleIndex !== -1) {
+            setIsSaving(false);
+            setMessage({
+                type: 'error',
+                text: `Complimentary Invitee Link #${missingTitleIndex + 1}: Title is required.`
+            });
+            return;
+        }
+
+        const arTax = eventData.exhibitor_portal_data?.additional_requirement?.tax;
+        if (arTax) {
+            const rate = Number(arTax.rate);
+            if (Number.isNaN(rate) || rate < 0 || (arTax.type === 'percentage' && rate > 100)) {
+                setIsSaving(false);
+                setMessage({
+                    type: 'error',
+                    text: arTax.type === 'percentage'
+                        ? 'Tax rate must be a number between 0 and 100.'
+                        : 'Tax rate must be a non-negative number.',
+                });
+                return;
+            }
+        }
+
         try {
             const formData = new FormData();
             
@@ -276,14 +492,21 @@ const EventSettings = () => {
             const excludedFields = [
                 'social_links', 
                 'attendee_types', 
-                'company_complimentary_invitee_info', 
+                'company_complimentary_invitee_info',
+                'complimentary_invitee_links',
                 'location', 
                 'intl_meta', 
                 'intl_data',
                 'exhibitor_stats',
                 'interested_in',
                 'meeting_diary',
-                'agenda'
+                'agenda',
+                'exhibitor_blocking_fields',
+                'exhibitor_setup_checklist',
+                'show_hours',
+                'stall_schem_types',
+                'currencies',
+                'exhibitor_portal_data',
             ];
             
             const imageFields = ['logo', 'logo2', 'event_background_image', 'event_banner_logo', 'meetingdiary_portal_bg_image'];
@@ -311,6 +534,10 @@ const EventSettings = () => {
             // Re-append complex fields stringified
             formData.append('social_links', JSON.stringify(eventData.social_links || {}));
             formData.append('company_complimentary_invitee_info', JSON.stringify(eventData.company_complimentary_invitee_info || []));
+            formData.append(
+                'complimentary_invitee_links',
+                JSON.stringify((eventData.complimentary_invitee_links || []).map(normalizeInviteeLink))
+            );
             formData.append('exhibitor_stats', JSON.stringify(eventData.exhibitor_stats || { 
                 is_active: false, 
                 country_stat_text: '', 
@@ -320,6 +547,8 @@ const EventSettings = () => {
             }));
             formData.append('interested_in', JSON.stringify(eventData.interested_in || {
                 is_active: true,
+                title: '',
+                description: '',
                 exhibit_url: '',
                 visit_url: ''
             }));
@@ -349,6 +578,32 @@ const EventSettings = () => {
             
             if (eventData.intl_meta) formData.append('intl_meta', JSON.stringify(eventData.intl_meta));
             if (eventData.intl_data) formData.append('intl_data', JSON.stringify(eventData.intl_data));
+            formData.append('show_hours', JSON.stringify(eventData.show_hours || {}));
+
+            // Multi-value choice field: send as a single comma-separated value.
+            const stallSchemaTypes = Array.isArray(eventData.stall_schem_types) && eventData.stall_schem_types.length > 0
+                ? eventData.stall_schem_types
+                : DEFAULT_STALL_SCHEMA_TYPES;
+            formData.append('stall_schem_types', stallSchemaTypes.join(','));
+
+            // Currency: single choice — send one code (API still expects the currencies field)
+            const currency = Array.isArray(eventData.currencies) ? eventData.currencies[0] : null;
+            if (currency) formData.append('currencies', currency);
+
+            // Exhibitor portal AR tax + stall detail footer (partial merge on API)
+            const ar = eventData.exhibitor_portal_data?.additional_requirement || DEFAULT_ADDITIONAL_REQUIREMENT;
+            formData.append('exhibitor_portal_data', JSON.stringify({
+                additional_requirement: {
+                    tax: {
+                        name: (ar.tax?.name || 'GST').trim() || 'GST',
+                        type: ar.tax?.type === 'fixed' ? 'fixed' : 'percentage',
+                        rate: Number(ar.tax?.rate),
+                    },
+                    page: {
+                        footer: typeof ar.page?.footer === 'string' ? ar.page.footer : '',
+                    },
+                },
+            }));
 
             // --- MANUAL PAYLOAD MODIFICATION AREA ---
             // You can manually add or override any keys here before the update request.
@@ -395,7 +650,7 @@ const EventSettings = () => {
     ];
 
     return (
-        <div className="pb-8 animate-fade-in">
+        <div className="pb-8 animate-fade-in w-full max-w-full overflow-hidden">
             <div className="flex justify-between items-start mb-8 pb-4 border-b border-border">
                 <div>
                     <h1 className="text-2xl font-bold text-text-primary mb-1">Event Settings</h1>
@@ -413,16 +668,22 @@ const EventSettings = () => {
                 </div>
             )}
 
-            <div className="flex gap-2 mb-6 border-b border-border pb-[1px]">
-                {tabs.map(tab => (
-                    <button
-                        key={tab.id}
-                        className={`bg-transparent border-none py-3 px-6 text-sm font-medium cursor-pointer border-b-2 transition-all duration-200 ${activeTab === tab.id ? 'text-accent border-accent font-semibold' : 'text-text-secondary border-transparent hover:text-text-primary'}`}
-                        onClick={() => handleTabChange(tab.id)}
-                    >
-                        {tab.label}
-                    </button>
-                ))}
+            <div className="relative mb-6 border-b border-border w-full max-w-full overflow-hidden">
+                <div className="flex items-center gap-1 overflow-x-auto whitespace-nowrap scrollbar-none pb-[1.5px] -mb-[1px] w-full">
+                    {tabs.map(tab => (
+                        <button
+                            key={tab.id}
+                            className={`bg-transparent border-none py-3 px-5 text-[13px] font-medium cursor-pointer border-b-2 transition-all duration-200 shrink-0 ${
+                                activeTab === tab.id 
+                                    ? 'text-accent border-accent font-semibold' 
+                                    : 'text-text-secondary border-transparent hover:text-text-primary hover:border-border-hover'
+                            }`}
+                            onClick={() => handleTabChange(tab.id)}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
             </div>
 
             <div className="max-w-[800px]">
@@ -431,6 +692,8 @@ const EventSettings = () => {
                         eventData={eventData} 
                         handleInputChange={handleInputChange} 
                         isFieldModified={isFieldModified} 
+                        handleShowHoursChange={handleShowHoursChange}
+                        originalShowHours={originalEventData?.show_hours}
                     />
                 )}
                 {activeTab === 'companies' && (
@@ -444,10 +707,17 @@ const EventSettings = () => {
                         togglePreview={togglePreview}
                         moveInviteeInfo={moveInviteeInfo}
                         previewStates={previewStates}
+                        addInviteeLink={addInviteeLink}
+                        removeInviteeLink={removeInviteeLink}
+                        handleInviteeLinkChange={handleInviteeLinkChange}
+                        moveInviteeLink={moveInviteeLink}
+                        isInviteeLinkModified={isInviteeLinkModified}
                         handleExhibitorStatsChange={handleExhibitorStatsChange}
                         isExhibitorStatModified={isExhibitorStatModified}
                         handleInterestedInChange={handleInterestedInChange}
                         isInterestedInModified={isInterestedInModified}
+                        handleStallSchemaTypeToggle={handleStallSchemaTypeToggle}
+                        isStallSchemaTypesModified={isStallSchemaTypesModified}
                     />
                 )}
                 {activeTab === 'attendees' && (
@@ -475,8 +745,11 @@ const EventSettings = () => {
                     <PaymentSettings 
                         eventData={eventData} 
                         handleInputChange={handleInputChange} 
-                        isFieldModified={isFieldModified} 
-                        token={token}
+                        isFieldModified={isFieldModified}
+                        handleCurrencySelect={handleCurrencySelect}
+                        isCurrenciesModified={isCurrenciesModified}
+                        handleAdditionalRequirementChange={handleAdditionalRequirementChange}
+                        isAdditionalRequirementModified={isAdditionalRequirementModified}
                     />
                 )}
                 {activeTab === 'localization' && (

@@ -1,0 +1,52 @@
+---
+description: Hard limit — max 200 lines per source file; split into feature directories when growing
+alwaysApply: true
+---
+
+# File Size & Directory Structure
+
+## Hard limits
+
+- **Max 200 lines per source file** (`.js`, `.jsx`, `.ts`, `.tsx`, `.css`, etc.)
+- Do **not** add logic to a file that is already at or over 200 lines — split first
+- Target function/component body: **≤ 60 lines**; extract helpers when larger
+
+## When a file grows
+
+1. Stop adding to the oversized file
+2. Create a **feature directory** for related code
+3. Split by responsibility (list / form / hooks / api / constants / modals)
+4. Keep a thin page/entry file that only composes imports
+5. One primary export per file
+
+## Preferred layout
+
+```text
+src/features/<FeatureName>/
+  constants.js
+  api/
+  domain/
+  hooks/
+  ui/
+  index.js          # re-exports only
+  README.md         # what lives where
+```
+
+Thin route pages stay in `src/pages/` and import from the feature.
+
+## Naming
+
+- Use **meaningful** file and directory names that describe ownership (e.g. `AttendeeSearchToolbar.jsx`, `useEBadgeJobs.js`)
+- Prefer feature verbs/nouns over vague names (`utils`, `helpers`, `misc`, `common2`)
+- Directory names: PascalCase feature folders (`Attendees/`), lowercase role folders (`hooks/`, `domain/`, `ui/`)
+
+## Examples
+
+- ❌ `src/pages/Attendees.jsx` (~1900 lines) — god file
+- ✅ `src/features/Attendees/ui/AttendeesPage.jsx` + `AttendeeSearchToolbar.jsx` + `hooks/useAttendeeSearch.js` + …
+
+## Before finishing any coding task
+
+- [ ] No new/edited source file exceeds **200 lines**
+- [ ] Related files live in one feature directory with meaningful names
+- [ ] Oversized files were split before adding features

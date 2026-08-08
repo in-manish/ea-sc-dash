@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Filter, Star, Hash, Trash2, Layout, Layers, ChevronDown, ChevronUp, MoreHorizontal } from 'lucide-react';
+import { Hash, Trash2, Layout, Layers, ChevronDown, ChevronUp, MoreHorizontal, Building2, Loader2, GripVertical } from 'lucide-react';
 import OptionList from './OptionList';
+import { getQuestionTypeLabel } from '../constants/questionTypes';
 
-const QuestionCard = ({ question, attendeeTypes, onEdit, onRemove, defaultExpanded }) => {
+const QuestionCard = ({ question, attendeeTypes, onEdit, onRemove, onToggleExhibitorPortal, togglingPortal = false, defaultExpanded, readOnly = false, draggable = false }) => {
     const [isExpanded, setIsExpanded] = useState(defaultExpanded || false);
     const optionCount = question.options?.length || 0;
 
@@ -15,27 +16,49 @@ const QuestionCard = ({ question, attendeeTypes, onEdit, onRemove, defaultExpand
     };
 
     const attendeeNames = getAttendeeNames();
+    const questionTypeLabel = getQuestionTypeLabel(question.question_type);
 
     React.useEffect(() => {
         setIsExpanded(defaultExpanded);
     }, [defaultExpanded]);
 
     return (
-        <div className={`group relative bg-white rounded-2xl border transition-all duration-500 ease-out animate-fade-in flex flex-col overflow-hidden ${isExpanded ? 'shadow-lg border-accent/20 h-fit' : 'shadow-sm hover:shadow-md border-border/50 hover:border-accent/30 h-fit'}`}>
+        <div
+            data-question-id={question.id}
+            className={`group relative bg-white rounded-2xl border transition-all duration-500 ease-out animate-fade-in flex flex-col overflow-hidden ${isExpanded ? 'shadow-lg border-accent/20 h-fit' : 'shadow-sm hover:shadow-md border-border/50 hover:border-accent/30 h-fit'}`}
+        >
             <div className={`absolute top-0 right-0 w-48 h-48 bg-accent/5 blur-[100px] rounded-full -mr-24 -mt-24 transition-opacity duration-1000 ${isExpanded ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
             
-            {/* Header: Utility Row (ID, Step, Edit, Toggle) */}
+            {/* Header: Utility Row (Drag, ID, Row, Sort, Edit, Toggle) */}
             <div className="relative z-10 px-6 pt-5 pb-3 flex items-center justify-between border-b border-border/40 bg-bg-secondary/20">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 flex-wrap">
+                    {draggable && !readOnly && (
+                        <button
+                            type="button"
+                            className="drag-handle cursor-grab active:cursor-grabbing p-1.5 -ml-1 rounded-lg text-text-tertiary hover:text-accent hover:bg-accent/10 border border-transparent hover:border-accent/20 transition-all"
+                            title="Drag to reorder"
+                            aria-label="Drag to reorder"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <GripVertical size={14} />
+                        </button>
+                    )}
                     <span className="text-[8px] font-bold bg-white text-text-tertiary px-2 py-0.5 rounded-full uppercase tracking-tighter border border-border/40 shadow-sm">#{question.id}</span>
-                    <span className="text-[9px] font-bold text-text-tertiary flex items-center gap-1 uppercase tracking-tight opacity-70"><Hash size={10} className="text-accent" /> Step {question.sort_key || 0}</span>
+                    <span className="text-[9px] font-bold text-accent bg-accent/10 px-2.5 py-1 rounded-lg border border-accent/25 uppercase tracking-tight shadow-sm">
+                        Row {question.row_no ?? '—'}
+                    </span>
+                    <span className="text-[9px] font-bold text-accent bg-accent/10 px-2.5 py-1 rounded-lg border border-accent/25 uppercase tracking-tight shadow-sm flex items-center gap-1">
+                        <Hash size={10} /> Sort {question.sort_key ?? '—'}
+                    </span>
                 </div>
                 
                 <div className="flex items-center gap-2">
-                    <button onClick={(e) => { e.stopPropagation(); onEdit?.(question); }} className="flex items-center gap-1.5 px-3 py-1.5 text-[9px] font-bold text-accent bg-white hover:bg-accent hover:text-white rounded-lg transition-all duration-300 active:scale-95 border border-accent/20 shadow-sm group/edit" title="Edit Configuration">
-                        <MoreHorizontal size={14} className="group-hover/edit:rotate-90 transition-transform" />
-                        EDIT
-                    </button>
+                    {onEdit && (
+                        <button onClick={(e) => { e.stopPropagation(); onEdit(question); }} className="flex items-center gap-1.5 px-3 py-1.5 text-[9px] font-bold text-accent bg-white hover:bg-accent hover:text-white rounded-lg transition-all duration-300 active:scale-95 border border-accent/20 shadow-sm group/edit" title="Edit Configuration">
+                            <MoreHorizontal size={14} className="group-hover/edit:rotate-90 transition-transform" />
+                            EDIT
+                        </button>
+                    )}
                     <button onClick={() => setIsExpanded(!isExpanded)} className={`p-1.5 rounded-lg transition-all duration-300 ${isExpanded ? 'bg-accent text-white shadow-lg shadow-accent/20' : 'bg-white text-text-tertiary hover:bg-accent/10 hover:text-accent border border-border/40'}`}>
                         {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                     </button>
@@ -70,8 +93,10 @@ const QuestionCard = ({ question, attendeeTypes, onEdit, onRemove, defaultExpand
                                 ))}
                             </div>
                         )}
+                        {questionTypeLabel && <span className="text-[8px] font-bold text-text-secondary bg-bg-secondary px-2 py-0.5 rounded-lg border border-border/40 uppercase tracking-tighter">{questionTypeLabel}</span>}
                         {question.is_filter && <span className="text-[8px] font-bold text-status-success bg-status-success/5 px-2 py-0.5 rounded-lg border border-status-success/10 uppercase tracking-tighter">Filterable</span>}
                         {question.is_mandatory && <span className="text-[8px] font-bold text-status-danger bg-status-danger/5 px-2 py-0.5 rounded-lg border border-status-danger/10 uppercase tracking-tighter">Required</span>}
+                        {question.can_support_exhibitor_portal && <span className="text-[8px] font-bold text-accent bg-accent/5 px-2 py-0.5 rounded-lg border border-accent/10 uppercase tracking-tighter">Exhibitor Portal</span>}
                     </div>
                 </div>
 
@@ -97,16 +122,52 @@ const QuestionCard = ({ question, attendeeTypes, onEdit, onRemove, defaultExpand
                         </div>
                     </div>
 
-                    <div className="relative z-10 mt-4 pt-4 border-t border-border/40">
-                        <div className="flex items-center justify-between">
-                            <button onClick={(e) => { e.stopPropagation(); onEdit?.(question); }} className="flex-1 py-2.5 text-[10px] font-bold text-accent bg-accent/5 hover:bg-accent hover:text-white rounded-xl transition-all duration-300 active:scale-[0.97] border border-accent/10 hover:border-accent shadow-sm uppercase tracking-wider">
-                                Refine Configuration
+                    {!readOnly ? (
+                        <div className="relative z-10 mt-4 pt-4 border-t border-border/40 space-y-3">
+                            <button
+                                type="button"
+                                disabled={togglingPortal}
+                                onClick={(e) => { e.stopPropagation(); onToggleExhibitorPortal?.(question); }}
+                                className={`w-full flex items-center justify-between gap-3 p-3 rounded-xl border transition-all duration-300 ${
+                                    question.can_support_exhibitor_portal
+                                        ? 'bg-accent/5 border-accent/20 hover:bg-accent/10'
+                                        : 'bg-bg-secondary/30 border-border/40 hover:border-accent/30'
+                                }`}
+                            >
+                                <div className="flex items-center gap-3">
+                                    {togglingPortal ? (
+                                        <Loader2 size={14} className="text-accent animate-spin" />
+                                    ) : (
+                                        <Building2 size={14} className={question.can_support_exhibitor_portal ? 'text-accent' : 'text-text-tertiary'} />
+                                    )}
+                                    <div className="text-left">
+                                        <p className="text-[10px] font-bold text-text-primary uppercase tracking-wider">Exhibitor Portal</p>
+                                        <p className="text-[10px] text-text-tertiary mt-0.5">
+                                            {question.can_support_exhibitor_portal ? 'Visible on exhibitor portal' : 'Not shown on exhibitor portal'}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className={`w-9 h-5 rounded-full p-0.5 transition-colors shrink-0 ${question.can_support_exhibitor_portal ? 'bg-accent' : 'bg-bg-tertiary'}`}>
+                                    <div className={`w-4 h-4 bg-white rounded-full transition-transform shadow-md ${question.can_support_exhibitor_portal ? 'translate-x-4' : 'translate-x-0'}`} />
+                                </div>
                             </button>
-                            <button onClick={(e) => { e.stopPropagation(); onRemove?.(question.id); }} className="ml-3 p-2.5 text-text-tertiary/40 hover:text-status-danger hover:bg-status-danger/5 rounded-xl transition-all duration-300 border border-transparent hover:border-status-danger/10" title="Delete Question">
-                                <Trash2 size={16} />
+
+                            <div className="flex items-center justify-between">
+                                <button onClick={(e) => { e.stopPropagation(); onEdit?.(question); }} className="flex-1 py-2.5 text-[10px] font-bold text-accent bg-accent/5 hover:bg-accent hover:text-white rounded-xl transition-all duration-300 active:scale-[0.97] border border-accent/10 hover:border-accent shadow-sm uppercase tracking-wider">
+                                    Refine Configuration
+                                </button>
+                                <button onClick={(e) => { e.stopPropagation(); onRemove?.(question.id); }} className="ml-3 p-2.5 text-text-tertiary/40 hover:text-status-danger hover:bg-status-danger/5 rounded-xl transition-all duration-300 border border-transparent hover:border-status-danger/10" title="Delete Question">
+                                    <Trash2 size={16} />
+                                </button>
+                            </div>
+                        </div>
+                    ) : onEdit ? (
+                        <div className="relative z-10 mt-4 pt-4 border-t border-border/40">
+                            <button onClick={(e) => { e.stopPropagation(); onEdit(question); }} className="w-full py-2.5 text-[10px] font-bold text-accent bg-accent/5 hover:bg-accent hover:text-white rounded-xl transition-all duration-300 active:scale-[0.97] border border-accent/10 hover:border-accent shadow-sm uppercase tracking-wider">
+                                Edit in Matchmaking Questions
                             </button>
                         </div>
-                    </div>
+                    ) : null}
                 </div>
             </div>
         </div>

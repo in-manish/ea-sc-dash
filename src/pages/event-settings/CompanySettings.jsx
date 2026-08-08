@@ -1,6 +1,16 @@
 import React from 'react';
-import { Building2, MapPin, Users, Plus, Trash2, Eye, EyeOff, ArrowUp, ArrowDown, Save, MousePointerClick } from 'lucide-react';
-import { SectionHeader, FormField, ToggleSwitch, getInputClass } from './components/SharedComponents';
+import { Building2, MapPin, Users, Plus, Trash2, Eye, EyeOff, ArrowUp, ArrowDown, Save, MousePointerClick, LayoutGrid } from 'lucide-react';
+import { SectionHeader, FormField, ToggleSwitch, getInputClass, LimitStatField } from './components/SharedComponents';
+import ScriptEmbedEditor from '../../components/common/ScriptEmbedEditor';
+import ComplimentaryInviteeLinks from './ComplimentaryInviteeLinks';
+
+export const STALL_SCHEMA_TYPES = [
+    { value: 'BRSP', label: 'Bare space' },
+    { value: 'BTUP', label: 'Built Up' },
+    { value: 'TURNKEY', label: 'Turnkey' },
+];
+
+export const DEFAULT_STALL_SCHEMA_TYPES = ['BRSP', 'BTUP'];
 
 const CompanySettings = ({ 
     eventData, 
@@ -12,15 +22,27 @@ const CompanySettings = ({
     togglePreview,
     moveInviteeInfo,
     previewStates,
+    addInviteeLink,
+    removeInviteeLink,
+    handleInviteeLinkChange,
+    moveInviteeLink,
+    isInviteeLinkModified,
     handleExhibitorStatsChange,
     isExhibitorStatModified,
     handleInterestedInChange,
-    isInterestedInModified
+    isInterestedInModified,
+    handleStallSchemaTypeToggle,
+    isStallSchemaTypesModified
 }) => {
+    const selectedStallTypes = Array.isArray(eventData.stall_schem_types) ? eventData.stall_schem_types : [];
     const getInviteeInputClass = (index, fieldName) => {
         const isModified = !eventData.originalData?.company_complimentary_invitee_info?.[index] || 
                           eventData.company_complimentary_invitee_info[index][fieldName] !== eventData.originalData.company_complimentary_invitee_info[index][fieldName];
         return getInputClass(fieldName, isModified);
+    };
+
+    const handleScriptChange = (name, value) => {
+        handleInputChange({ target: { name, value, type: 'text' } });
     };
 
     return (
@@ -49,28 +71,65 @@ const CompanySettings = ({
             {/* Section 2: Allocation Limits */}
             <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
                 <SectionHeader icon={Users} title="Allocation & Limits" colorClass="text-blue-500" borderClass="bg-blue-500" />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField label="Default Badge Limit" description="Base maximum badge limit per exhibitor">
-                        <input
-                            type="number"
-                            name="badge_limit_default"
-                            value={eventData.badge_limit_default || ''}
-                            onChange={handleInputChange}
-                            className={getInputClass('badge_limit_default', isFieldModified('badge_limit_default'))}
-                            placeholder="5"
-                        />
-                    </FormField>
-                    <FormField label="Badge Formula Divisor" description="Derived from space // divisor">
-                        <input
-                            type="number"
-                            name="badge_limit_default_formula"
-                            value={eventData.badge_limit_default_formula || ''}
-                            onChange={handleInputChange}
-                            className={getInputClass('badge_limit_default_formula', isFieldModified('badge_limit_default_formula'))}
-                            placeholder="2"
-                        />
-                    </FormField>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <LimitStatField
+                        label="Default Badge Limit"
+                        description="Base maximum per exhibitor"
+                        name="badge_limit_default"
+                        value={eventData.badge_limit_default || ''}
+                        onChange={handleInputChange}
+                        isModified={isFieldModified('badge_limit_default')}
+                        placeholder="5"
+                    />
+                    <LimitStatField
+                        label="Formula Divisor"
+                        description="Derived from space ÷ divisor"
+                        name="badge_limit_default_formula"
+                        value={eventData.badge_limit_default_formula || ''}
+                        onChange={handleInputChange}
+                        isModified={isFieldModified('badge_limit_default_formula')}
+                        placeholder="2"
+                    />
+                    <LimitStatField
+                        label="Static Value"
+                        description="Fixed override limit"
+                        name="badge_limit_static_value"
+                        value={eventData.badge_limit_static_value ?? ''}
+                        onChange={handleInputChange}
+                        isModified={isFieldModified('badge_limit_static_value')}
+                        placeholder="0"
+                    />
                 </div>
+            </div>
+
+            {/* Section 2.5: Stall Schema Types */}
+            <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
+                <SectionHeader icon={LayoutGrid} title="Stall Schema Types" colorClass="text-teal-500" borderClass="bg-teal-500" />
+                <FormField label="Available Stall Types" description="Select which stall schema types exhibitors can be assigned for this event.">
+                    <div className={`grid grid-cols-1 sm:grid-cols-3 gap-3 ${isStallSchemaTypesModified() ? 'ring-1 ring-accent/40 rounded-lg p-1' : ''}`}>
+                        {STALL_SCHEMA_TYPES.map(({ value, label }) => {
+                            const checked = selectedStallTypes.includes(value);
+                            return (
+                                <label
+                                    key={value}
+                                    className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all text-sm ${
+                                        checked
+                                            ? 'bg-accent/5 border-accent text-text-primary'
+                                            : 'bg-bg-secondary border-border text-text-secondary hover:border-border-hover'
+                                    }`}
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={checked}
+                                        onChange={() => handleStallSchemaTypeToggle(value)}
+                                        className="w-4 h-4 accent-accent cursor-pointer"
+                                    />
+                                    <span className="font-medium">{label}</span>
+                                </label>
+                            );
+                        })}
+                    </div>
+                </FormField>
             </div>
 
             {/* Section 3: Resources */}
@@ -100,6 +159,13 @@ const CompanySettings = ({
                             placeholder="https://tickets.fairfest.in/e/..."
                         />
                     </FormField>
+                    <ScriptEmbedEditor
+                        label="FHT / Hotel Map Script"
+                        description="Raw Hotelmap embed script. Preview renders the map the same way accommodation pages do."
+                        value={eventData.fht_script || ''}
+                        onChange={(val) => handleScriptChange('fht_script', val)}
+                        placeholder='<script async type="text/javascript" id="hotelmap_script" src="https://hotelmap.com/api/html/v2/listing?m=..."></script>'
+                    />
                 </div>
             </div>
 
@@ -180,6 +246,29 @@ const CompanySettings = ({
                             isModified={isInterestedInModified('is_active')}
                             onChange={(e) => handleInterestedInChange('is_active', e.target.checked)}
                         />
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-6">
+                        <FormField label="Title" description="The heading/title for the Interested In section">
+                            <input
+                                type="text"
+                                name="title"
+                                value={eventData.interested_in?.title || ''}
+                                onChange={(e) => handleInterestedInChange('title', e.target.value)}
+                                className={getInputClass('title', isInterestedInModified('title'))}
+                                placeholder="Enter title (e.g., Interested in participating?)"
+                            />
+                        </FormField>
+                        <FormField label="Description" description="Short description text explaining the call to action">
+                            <textarea
+                                name="description"
+                                value={eventData.interested_in?.description || ''}
+                                onChange={(e) => handleInterestedInChange('description', e.target.value)}
+                                className={getInputClass('description', isInterestedInModified('description'))}
+                                rows={2}
+                                placeholder="Enter description..."
+                            />
+                        </FormField>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -312,6 +401,16 @@ const CompanySettings = ({
                     )}
                 </div>
             </div>
+
+            {/* Section 6: Complimentary Invitee Links */}
+            <ComplimentaryInviteeLinks
+                eventData={eventData}
+                addInviteeLink={addInviteeLink}
+                removeInviteeLink={removeInviteeLink}
+                handleInviteeLinkChange={handleInviteeLinkChange}
+                moveInviteeLink={moveInviteeLink}
+                isInviteeLinkModified={isInviteeLinkModified}
+            />
         </div>
     );
 };

@@ -24,6 +24,145 @@ export const matchmakingApi = {
     },
 
     /**
+     * Fetch exhibitor portal matchmaking questions for an event
+     * @param {string|number} eventId 
+     * @param {string} token 
+     * @returns {Promise<Object>}
+     */
+    getExhibitorMatchmakingQuestions: async (eventId, token) => {
+        const baseUrl = getApiUrl();
+        const response = await fetch(`${baseUrl}/events/${eventId}/exhibitor/matchmaking/questions/`, {
+            headers: {
+                'Accept': 'application/json, text/plain, */*',
+                'Authorization': `Token ${token}`,
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch exhibitor portal questions: ${response.statusText}`);
+        }
+
+        return response.json();
+    },
+
+    /**
+     * Fetch exhibitor portal matchmaking answers for a company
+     * @param {string|number} eventId
+     * @param {string|number} companyId
+     * @param {string} token
+     * @returns {Promise<Object>}
+     */
+    getExhibitorMatchmakingAnswers: async (eventId, companyId, token) => {
+        const baseUrl = getApiUrl();
+        const response = await fetch(`${baseUrl}/events/${eventId}/exhibitor/matchmaking/answers/?company_id=${companyId}`, {
+            headers: {
+                'Accept': 'application/json, text/plain, */*',
+                'Authorization': `Token ${token}`,
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch exhibitor matchmaking answers: ${response.statusText}`);
+        }
+
+        return response.json();
+    },
+
+    /**
+     * Submit exhibitor portal matchmaking answers for a company
+     * @param {string|number} eventId
+     * @param {Object} payload - { company_id, answers }
+     * @param {string} token
+     * @returns {Promise<Object>}
+     */
+    saveExhibitorMatchmakingAnswers: async (eventId, payload, token) => {
+        const baseUrl = getApiUrl();
+        const response = await fetch(`${baseUrl}/events/${eventId}/exhibitor/matchmaking/answers/`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json, text/plain, */*',
+                'Content-Type': 'application/json',
+                'Authorization': `Token ${token}`,
+            },
+            body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.detail || errorData.message || `Failed to save exhibitor matchmaking answers: ${response.statusText}`);
+        }
+
+        return response.json();
+    },
+
+    /**
+     * Upload exhibitor portal matchmaking answers from CSV
+     * @param {string|number} eventId
+     * @param {string|number} companyId
+     * @param {File} file
+     * @param {string} token
+     * @returns {Promise<{ success: true, data: Object } | { success: false, errorCsv: Blob }>}
+     */
+    uploadExhibitorMatchmakingAnswersCsv: async (eventId, companyId, file, token) => {
+        const baseUrl = getApiUrl();
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('company_id', companyId);
+
+        const response = await fetch(`${baseUrl}/events/${eventId}/exhibitor/matchmaking/answers/upload/`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json, text/plain, */*',
+                'Authorization': `Token ${token}`,
+            },
+            body: formData,
+        });
+
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('text/csv')) {
+            return { success: false, errorCsv: await response.blob() };
+        }
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            const detail = errorData.detail || errorData.message;
+            const message = typeof detail === 'object'
+                ? Object.entries(detail).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`).join('; ')
+                : detail;
+            throw new Error(message || `Failed to upload matchmaking answers CSV: ${response.statusText}`);
+        }
+
+        return { success: true, data: await response.json() };
+    },
+
+    /**
+     * Fetch an attendee's matchmaking questions & answers (admin view)
+     * @param {string|number} eventId
+     * @param {string} badgeUid - attendee badge UUID
+     * @param {string} token
+     * @param {string} [answerFor] - optional, e.g. 'offering' (defaults to seeking)
+     * @returns {Promise<Object>}
+     */
+    getAttendeeMatchmakingAnswers: async (eventId, badgeUid, token, answerFor) => {
+        const baseUrl = getApiUrl();
+        const params = new URLSearchParams({ badge_uid: badgeUid });
+        if (answerFor) params.set('answer_for', answerFor);
+
+        const response = await fetch(`${baseUrl}/evc/events/${eventId}/matchmaking/admin-match-qa/?${params.toString()}`, {
+            headers: {
+                'Accept': 'application/json, text/plain, */*',
+                'Authorization': `Token ${token}`,
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch attendee matchmaking answers: ${response.statusText}`);
+        }
+
+        return response.json();
+    },
+
+    /**
      * Create or update matchmaking form and questions
      * @param {string|number} eventId 
      * @param {Object} payload - { form_id, form_name, questions }

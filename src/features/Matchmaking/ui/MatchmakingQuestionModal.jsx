@@ -3,15 +3,37 @@ import { X, Plus, Trash2, Loader2, Info, ChevronLeft } from 'lucide-react';
 import { matchmakingApi } from '../api/matchmakingApi';
 import { eventService } from '../../../services/eventService';
 
+import FormSelect from '../../../components/common/FormSelect';
 import StandardOptionsSection from './StandardOptionsSection';
 import GroupedOptionsSection from './GroupedOptionsSection';
+import { ATTENDEE_QUESTION_TYPE_OPTIONS, EXHIBITOR_QUESTION_TYPE_OPTIONS, normalizeQuestionType, questionTypesMatch } from '../constants/questionTypes';
+
+const FIELD_TYPE_OPTIONS = [
+    { value: 'text', label: 'Text Input' },
+    { value: 'number', label: 'Number Input' },
+    { value: 'radio', label: 'Single Selection' },
+    { value: 'array', label: 'Multiple Selection' },
+    { value: 'grouped_array', label: 'Grouped List' },
+];
+
+const DESIGN_TYPE_OPTIONS = [
+    { value: 'vertical', label: 'Vertical List' },
+    { value: 'grid', label: 'Multi-Column Grid' },
+    { value: 'select', label: 'Native Dropdown' },
+];
+
+const QUESTION_TYPE_SELECT_OPTIONS = [
+    { value: '', label: 'None' },
+    ...ATTENDEE_QUESTION_TYPE_OPTIONS,
+    ...EXHIBITOR_QUESTION_TYPE_OPTIONS.map((opt, i) => ({ ...opt, dividerBefore: i === 0 })),
+];
 
 const MatchmakingQuestionModal = ({ isOpen, onClose, eventId, token, question, formId, formName, onSuccess }) => {
     const [loading, setLoading] = useState(false);
     const [attendeeTypes, setAttendeeTypes] = useState([]);
     const [formData, setFormData] = useState({
-        title: '', type: 'radio', is_mandatory: false, is_filter: false, design_type: 'vertical', 
-        row_no: 1, attendee_types: [], options: [{ name: '' }]
+        title: '', type: 'radio', question_type: '', is_mandatory: false, is_filter: false, can_support_exhibitor_portal: false,
+        design_type: 'vertical', row_no: 1, sort_key: 1, attendee_types: [], options: [{ name: '' }]
     });
 
     useEffect(() => {
@@ -19,8 +41,20 @@ const MatchmakingQuestionModal = ({ isOpen, onClose, eventId, token, question, f
             eventService.getAttendeeTypes(eventId, token).then(d => setAttendeeTypes(d.attendee_types || []));
             if (question) {
                 const initialOptions = question.options?.length > 0 ? question.options : (question.type === 'grouped_array' ? [{ name: '', values: [{ name: '' }] }] : [{ name: '' }]);
-                setFormData({ ...question, attendee_types: question.attendee_types || [], is_filter: question.is_filter || false, options: initialOptions });
-            } else setFormData({ title: '', type: 'radio', is_mandatory: false, is_filter: false, design_type: 'vertical', row_no: 1, attendee_types: [], options: [{ name: '' }] });
+                setFormData({
+                    ...question,
+                    question_type: normalizeQuestionType(question.question_type),
+                    attendee_types: question.attendee_types || [],
+                    is_filter: question.is_filter || false,
+                    can_support_exhibitor_portal: question.can_support_exhibitor_portal || false,
+                    options: initialOptions,
+                });
+            } else {
+                setFormData({
+                    title: '', type: 'radio', question_type: '', is_mandatory: false, is_filter: false, can_support_exhibitor_portal: false,
+                    design_type: 'vertical', row_no: 1, sort_key: 1, attendee_types: [], options: [{ name: '' }],
+                });
+            }
         }
     }, [isOpen, question]);
 
@@ -35,7 +69,13 @@ const MatchmakingQuestionModal = ({ isOpen, onClose, eventId, token, question, f
         e.preventDefault(); setLoading(true);
         try {
             const formattedOptions = formData.options.map(opt => ({ ...opt, values: opt.values?.filter(v => v.name) })).filter(opt => opt.name || opt.values?.length > 0);
-            await matchmakingApi.saveMatchmakingQuestions(eventId, { form_id: formId, form_name: formName, questions: [{ ...formData, id: question?.id, options: formattedOptions }] }, token);
+            const payload = {
+                ...formData,
+                id: question?.id,
+                options: formattedOptions,
+                question_type: formData.question_type || null,
+            };
+            await matchmakingApi.saveMatchmakingQuestions(eventId, { form_id: formId, form_name: formName, questions: [payload] }, token);
             onSuccess?.(); onClose();
         } catch (err) { alert(err.message); } finally { setLoading(false); }
     };
@@ -97,22 +137,64 @@ const MatchmakingQuestionModal = ({ isOpen, onClose, eventId, token, question, f
 
                                 <div className="flex flex-col gap-2">
                                     <label className="text-[10px] font-medium text-text-tertiary uppercase tracking-wider ml-1">Field Type</label>
-                                    <select className="input-field py-2.5 px-5 text-sm font-semibold cursor-pointer bg-white border border-border/60 rounded-xl shadow-sm appearance-none" value={formData.type} onChange={e => setFormData({ ...formData, type: e.target.value })}>
-                                        <option value="text">Text Input</option>
-                                        <option value="number">Number Input</option>
-                                        <option value="radio">Single Selection</option>
-                                        <option value="array">Multiple Selection</option>
-                                        <option value="grouped_array">Grouped List</option>
-                                    </select>
+                                    <FormSelect
+                                        value={formData.type}
+                                        onChange={val => setFormData({ ...formData, type: val })}
+                                        options={FIELD_TYPE_OPTIONS}
+                                    />
+                                </div>
+
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-[10px] font-medium text-text-tertiary uppercase tracking-wider ml-1">Question Type</label>
+                                    <FormSelect
+                                        value={formData.question_type}
+                                        onChange={val => setFormData({ ...formData, question_type: val })}
+                                        options={QUESTION_TYPE_SELECT_OPTIONS}
+                                        placeholder="None"
+                                        matchOption={questionTypesMatch}
+                                    />
+                                    <p className="text-[10px] text-text-tertiary ml-1">Maps this question to a standard attendee field, or leave blank</p>
                                 </div>
 
                                 <div className="flex flex-col gap-2">
                                     <label className="text-[10px] font-medium text-text-tertiary uppercase tracking-wider ml-1">Display Layout</label>
-                                    <select className="input-field py-2.5 px-5 text-sm font-semibold cursor-pointer bg-white border border-border/60 rounded-xl shadow-sm" value={formData.design_type} onChange={e => setFormData({ ...formData, design_type: e.target.value })}>
-                                        <option value="vertical">Vertical List</option>
-                                        <option value="grid">Multi-Column Grid</option>
-                                        <option value="select">Native Dropdown</option>
-                                    </select>
+                                    <FormSelect
+                                        value={formData.design_type}
+                                        onChange={val => setFormData({ ...formData, design_type: val })}
+                                        options={DESIGN_TYPE_OPTIONS}
+                                    />
+                                </div>
+
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-[10px] font-medium text-text-tertiary uppercase tracking-wider ml-1">Row Number</label>
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        className="input-field py-2.5 px-5 text-sm font-semibold bg-white border border-border/60 rounded-xl shadow-sm"
+                                        placeholder="e.g. 1"
+                                        value={formData.row_no ?? ''}
+                                        onChange={e => setFormData({
+                                            ...formData,
+                                            row_no: e.target.value === '' ? null : Number(e.target.value),
+                                        })}
+                                    />
+                                    <p className="text-[10px] text-text-tertiary ml-1">Short key used to place this question on a form row</p>
+                                </div>
+
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-[10px] font-medium text-text-tertiary uppercase tracking-wider ml-1">Sort Key</label>
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        className="input-field py-2.5 px-5 text-sm font-semibold bg-white border border-border/60 rounded-xl shadow-sm"
+                                        placeholder="e.g. 1"
+                                        value={formData.sort_key ?? ''}
+                                        onChange={e => setFormData({
+                                            ...formData,
+                                            sort_key: e.target.value === '' ? null : Number(e.target.value),
+                                        })}
+                                    />
+                                    <p className="text-[10px] text-text-tertiary ml-1">Controls display order within the form</p>
                                 </div>
                             </div>
                         </section>
@@ -150,6 +232,16 @@ const MatchmakingQuestionModal = ({ isOpen, onClose, eventId, token, question, f
                                     <div>
                                         <p className="text-sm font-bold text-text-primary tracking-tight">Use as Filter</p>
                                         <p className="text-xs text-text-tertiary mt-0.5">Allow attendees to filter by this question</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-4 p-5 bg-bg-secondary/30 rounded-2xl border border-border/40 group cursor-pointer hover:border-accent/30 transition-all" onClick={() => setFormData({ ...formData, can_support_exhibitor_portal: !formData.can_support_exhibitor_portal })}>
+                                    <div className={`w-10 h-6 rounded-full p-1 transition-colors relative ${formData.can_support_exhibitor_portal ? 'bg-accent' : 'bg-bg-tertiary'}`}>
+                                        <div className={`w-4 h-4 bg-white rounded-full transition-transform shadow-md ${formData.can_support_exhibitor_portal ? 'translate-x-4' : 'translate-x-0'}`} />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold text-text-primary tracking-tight">Exhibitor Portal</p>
+                                        <p className="text-xs text-text-tertiary mt-0.5">Show this question on the exhibitor portal matchmaking form</p>
                                     </div>
                                 </div>
                             </div>
