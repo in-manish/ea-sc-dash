@@ -73,9 +73,11 @@ const LoginLocal = () => {
             const mockUser = {
                 id: 'local-admin',
                 username: 'Local Admin',
+                name: 'Local Admin',
                 email: 'local@admin.com',
                 is_admin: true,
                 user_type: 'admin',
+                role: currentMode === 'SC' ? 'ADMIN' : undefined,
                 events: events
             };
 

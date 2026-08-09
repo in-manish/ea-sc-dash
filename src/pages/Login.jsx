@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth';
 import { useAuth } from '../contexts/AuthContext';
+import { parseScLoginResponse } from '../features/ScAuth/domain/scLoginUser';
 import { ArrowRight, Lock, Mail, KeyRound, Loader2, Globe } from 'lucide-react';
 
 const Login = () => {
@@ -58,13 +59,13 @@ const Login = () => {
             console.log('Login Response:', response);
 
             if (currentMode === 'SC') {
-                const tokenVal = response.auth_token?.Token || response.auth_token?.key || response.token;
-                if (tokenVal) {
-                    login(response, tokenVal);
-                    navigate('/');
-                } else {
-                    setError(response.message || response.detail || 'Login failed. Please check your credentials.');
+                const parsed = parseScLoginResponse(response);
+                if (!parsed.ok) {
+                    setError(parsed.error);
+                    return;
                 }
+                login(parsed.user, parsed.token);
+                navigate('/');
                 return;
             }
 

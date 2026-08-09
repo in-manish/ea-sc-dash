@@ -14,8 +14,11 @@ import HomeLayoutSC from './sc/layouts/HomeLayout';
 import EventLayoutSC from './sc/layouts/EventLayout';
 import UsersSearch from './sc/pages/UsersSearch';
 import ManageUsersSC from './sc/pages/ManageUsers';
+import UserDetailsSC from './sc/pages/UserDetails';
 import CeleryBeat from './sc/pages/CeleryBeat';
 import UserSyncTrack from './sc/pages/UserSyncTrack';
+import ProfileSC from './sc/pages/Profile';
+import ScAdminGate from './features/ScAuth/ui/ScAdminGate';
 
 import Attendees from './pages/Attendees';
 import Companies from './pages/Companies';
@@ -50,15 +53,31 @@ const AppRoutes = ({ currentMode }) => {
     ? <Navigate to="/users/manage" replace />
     : <DashboardEA />;
 
+  const homeShell = currentMode === 'SC'
+    ? (
+      <ProtectedRoute>
+        <ScAdminGate>
+          <HomeLayout />
+        </ScAdminGate>
+      </ProtectedRoute>
+    )
+    : (
+      <ProtectedRoute>
+        <HomeLayout />
+      </ProtectedRoute>
+    );
+
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/login-local" element={<LoginLocal />} />
       <Route path="/exhibitor-portal" element={<ExhibitorPortalLanding />} />
 
-      <Route path="/" element={<ProtectedRoute><HomeLayout /></ProtectedRoute>}>
+      <Route path="/" element={homeShell}>
         <Route index element={Dashboard} />
+        {currentMode === 'SC' ? <Route path="profile" element={<ProfileSC />} /> : null}
         <Route path="users/manage" element={<ManageUsersSC />} />
+        <Route path="users/manage/:userId" element={<UserDetailsSC />} />
         <Route path="users/sync-track" element={<UserSyncTrack />} />
         <Route path="celery-beat" element={<CeleryBeat />} />
       </Route>

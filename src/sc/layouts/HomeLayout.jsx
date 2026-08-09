@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { Settings, LogOut } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import ScHomeSidebarNav from './ScHomeSidebarNav';
 import ScUsersSectionTabs from './ScUsersSectionTabs';
+import ScSidebarProfile from './ScSidebarProfile';
 
 const HomeLayout = () => {
-    const { user, logout, currentEnv, switchEnvironment, currentMode, switchMode } = useAuth();
+    const { currentEnv, switchEnvironment, currentMode, switchMode } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const [isCeleryExpanded, setIsCeleryExpanded] = useState(location.pathname.includes('/celery-beat'));
@@ -70,38 +70,7 @@ const HomeLayout = () => {
                     onOpenCelery={openCelery}
                 />
 
-                {/* Bottom Profile / Settings */}
-                <div className="border-t border-border py-4 px-3 flex flex-col gap-1">
-                    <div className="flex items-center gap-3 py-2 px-3 mb-2 rounded-md bg-bg-secondary/40 border border-border/50">
-                        <div className="w-8 h-8 rounded-full bg-accent/10 text-accent flex items-center justify-center font-bold text-xs">
-                            {user?.username ? user.username.slice(0, 2).toUpperCase() : 'U'}
-                        </div>
-                        <div className="overflow-hidden">
-                            <div className="text-xs font-semibold text-text-primary truncate" title={user?.username}>
-                                {user?.username || 'Admin User'}
-                            </div>
-                            <span className="text-[9px] text-text-tertiary uppercase font-bold tracking-wide">Administrator</span>
-                        </div>
-                    </div>
-
-                    <button
-                        className="flex items-center gap-3 w-full border-none bg-transparent text-text-secondary rounded-md text-sm font-medium cursor-pointer transition-all duration-200 hover:bg-bg-secondary hover:text-text-primary py-2.5 px-3"
-                        onClick={() => navigate('/settings')}
-                    >
-                        <Settings size={20} className="shrink-0" />
-                        <span>Settings</span>
-                    </button>
-
-                    <div className="h-px bg-border my-1"></div>
-
-                    <button
-                        onClick={logout}
-                        className="flex items-center gap-3 w-full border-none bg-transparent text-text-secondary rounded-md text-sm font-medium cursor-pointer transition-all duration-200 hover:bg-red-50 hover:text-danger py-2.5 px-3"
-                    >
-                        <LogOut size={20} className="shrink-0" />
-                        <span>Logout</span>
-                    </button>
-                </div>
+                <ScSidebarProfile />
             </aside>
 
             {/* Main Content Area */}

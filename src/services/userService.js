@@ -214,7 +214,7 @@ export const userService = {
 
     /**
      * Admin Get Users list with advanced filtering and pagination.
-     * @param {Object} queryParams { search, email, name, phone_number, is_verified_email, is_verified_phone_number, limit, offset }
+     * @param {Object} queryParams { search, email, name, phone_number, role, is_verified_email, is_verified_phone_number, limit, offset }
      * @param {string} token
      */
     async adminGetUsers(queryParams, token) {
@@ -243,9 +243,9 @@ export const userService = {
 
     /**
      * Admin Update User details.
-     * @param {string|number} userId 
-     * @param {Object} userData { name, email, phone_number, is_verified_email, is_verified_phone_number }
-     * @param {string} token 
+     * @param {string|number} userId
+     * @param {Object} userData profile + contact fields (name, email, phone_number, company, …)
+     * @param {string} token
      */
     async adminUpdateUser(userId, userData, token) {
         try {

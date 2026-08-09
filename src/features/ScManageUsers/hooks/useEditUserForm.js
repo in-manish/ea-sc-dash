@@ -1,14 +1,43 @@
 import { useState, useEffect } from 'react';
 import { userService } from '../../../services/userService';
 
+const str = (v) => (v == null ? '' : String(v));
+
 export const toEditForm = (user) => ({
   id: user.id,
-  name: user.name || '',
-  email: user.email || '',
-  phone_number: user.phone_number || '',
+  name: str(user.name),
+  email: str(user.email),
+  phone_number: str(user.phone_number),
+  country_code: str(user.country_code),
   is_verified_email: user.is_verified_email === true,
   is_verified_phone_number: user.is_verified_phone_number === true,
+  designation: str(user.designation),
+  company: str(user.company),
+  company_address: str(user.company_address),
+  city: str(user.city),
+  state: str(user.state),
+  country: str(user.country),
+  country_name: str(user.country_name),
+  zipcode: str(user.zipcode),
+  role: str(user.role),
 });
+
+const EDITABLE_KEYS = [
+  'name',
+  'email',
+  'phone_number',
+  'country_code',
+  'is_verified_email',
+  'is_verified_phone_number',
+  'designation',
+  'company',
+  'company_address',
+  'city',
+  'state',
+  'country',
+  'country_name',
+  'zipcode',
+];
 
 /** Edit form state + duplicate contact lookups for SC admin users. */
 export default function useEditUserForm({ user, token, isOpen }) {
@@ -146,11 +175,7 @@ export default function useEditUserForm({ user, token, isOpen }) {
   const isDirty =
     Boolean(editingUser) &&
     Boolean(originalUserValues) &&
-    (editingUser.name !== originalUserValues.name ||
-      editingUser.email !== originalUserValues.email ||
-      editingUser.phone_number !== originalUserValues.phone_number ||
-      editingUser.is_verified_email !== originalUserValues.is_verified_email ||
-      editingUser.is_verified_phone_number !== originalUserValues.is_verified_phone_number);
+    EDITABLE_KEYS.some((key) => editingUser[key] !== originalUserValues[key]);
 
   return {
     editingUser,
