@@ -23,9 +23,31 @@ const getHeaders = (token) => {
 };
 
 export const eventService = {
-    async searchSnapcardUsers(token, query) {
+    async searchSnapcardUsers(token, queryParams = {}) {
         try {
-            const response = await fetch(`${getApiUrl()}/evc/scuser-projection/search/?search=${encodeURIComponent(query)}`, {
+            let urlString = `${getApiUrl()}/evc/scuser-projection/search/`;
+            const params = new URLSearchParams();
+
+            if (typeof queryParams === 'string') {
+                params.append('search', queryParams);
+            } else {
+                if (queryParams.email) {
+                    params.append('email', queryParams.email);
+                }
+                if (queryParams.phone_number) {
+                    params.append('phone_number', queryParams.phone_number);
+                }
+                if (queryParams.search) {
+                    params.append('search', queryParams.search);
+                }
+            }
+
+            const queryString = params.toString();
+            if (queryString) {
+                urlString += `?${queryString}`;
+            }
+
+            const response = await fetch(urlString, {
                 method: 'GET',
                 headers: getHeaders(token)
             });
@@ -37,6 +59,46 @@ export const eventService = {
             return await response.json();
         } catch (error) {
             console.error('Search Snapcard Users Error:', error);
+            throw error;
+        }
+    },
+
+    async resolveSnapcardUser(token, data) {
+        try {
+            const response = await fetch(`${getApiUrl()}/evc/scuser-projection/resolve/`, {
+                method: 'POST',
+                headers: {
+                    ...getHeaders(token),
+                    'Host': 'reconnect.internal'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Resolve Snapcard User Error:', error);
+            throw error;
+        }
+    },
+
+    async pollSnapcardUser(token, evcId) {
+        try {
+            const response = await fetch(`${getApiUrl()}/evc/scuser-projection/search/?evc_id=${evcId}`, {
+                method: 'GET',
+                headers: getHeaders(token)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Poll Snapcard User Error:', error);
             throw error;
         }
     },

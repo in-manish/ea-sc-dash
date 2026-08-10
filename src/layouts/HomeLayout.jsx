@@ -4,13 +4,37 @@ import { Settings, User } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const HomeLayout = () => {
-    const { user, logout, currentEnv, switchEnvironment } = useAuth();
+    const { user, logout, currentEnv, switchEnvironment, currentMode, switchMode } = useAuth();
 
     return (
         <div className="min-h-screen bg-bg-secondary flex flex-col relative">
             {/* Top Right Profile & Settings */}
             <div className="h-[var(--header-height)] px-8 flex justify-end items-center">
                 <div className="flex items-center gap-4">
+                    {/* Dashboard Mode Switcher */}
+                    <div className="flex items-center bg-bg-primary border border-border rounded-full p-0.5 shadow-sm mr-2">
+                        <button
+                            onClick={() => switchMode('EA')}
+                            className={`px-3 py-1 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer border-none ${
+                                currentMode === 'EA'
+                                    ? 'bg-accent text-white shadow-sm'
+                                    : 'bg-transparent text-text-secondary hover:text-text-primary'
+                            }`}
+                        >
+                            EventApp (EA)
+                        </button>
+                        <button
+                            onClick={() => switchMode('SC')}
+                            className={`px-3 py-1 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer border-none ${
+                                currentMode === 'SC'
+                                    ? 'bg-accent text-white shadow-sm'
+                                    : 'bg-transparent text-text-secondary hover:text-text-primary'
+                            }`}
+                        >
+                            Snapcard (SC)
+                        </button>
+                    </div>
+
                     <div className="relative mr-4">
                         <select
                             value={currentEnv}
@@ -47,3 +71,4 @@ const HomeLayout = () => {
 };
 
 export default HomeLayout;
+

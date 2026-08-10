@@ -18,12 +18,33 @@ tasks:
       - /event/:id/agenda
       - /event/:id/agenda/new
       - /event/:id/agenda/:agendaId/edit
+  sc_manage_users_detail:
+    files:
+      - src/features/ScManageUsers/ui/ManageUsersPage.jsx
+      - src/features/ScManageUsers/ui/UserDetailsPage.jsx
+      - src/features/ScManageUsers/ui/UserDetailsHeader.jsx
+      - src/features/ScManageUsers/ui/UserDetailsInfoGrid.jsx
+      - src/features/ScManageUsers/ui/UserDetailsCardsSection.jsx
+      - src/features/ScManageUsers/ui/UserProfileEditForm.jsx
+      - src/features/ScManageUsers/ui/UserCardsSection.jsx
+      - src/features/ScManageUsers/api/userCardsApi.js
+      - src/sc/pages/UserDetails.jsx
+    routes:
+      - /users/manage
+      - /users/manage/:userId
 
 features:
   Agenda:
     root: src/features/Agenda/
     entry: src/pages/event-agenda/index.jsx
     edit_entry: src/pages/event-agenda/AgendaEdit.jsx
+  ScManageUsers:
+    root: src/features/ScManageUsers/
+    entry: src/sc/pages/ManageUsers.jsx
+    detail_entry: src/sc/pages/UserDetails.jsx
+    routes:
+      - /users/manage
+      - /users/manage/:userId
 
 critical_paths:
   - src/services/agendaService.js

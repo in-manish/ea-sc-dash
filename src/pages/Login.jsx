@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth';
 import { useAuth } from '../contexts/AuthContext';
+import { parseScLoginResponse } from '../features/ScAuth/domain/scLoginUser';
 import { ArrowRight, Lock, Mail, KeyRound, Loader2, Globe } from 'lucide-react';
 
 const Login = () => {
@@ -12,8 +13,13 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const { login, currentEnv, switchEnvironment } = useAuth();
+    const { login, currentEnv, switchEnvironment, currentMode, switchMode, isAuthenticated, isLoading } = useAuth();
     const navigate = useNavigate();
+
+    // Project sessions persist independently — if this project is already logged in, skip login UI.
+    if (!isLoading && isAuthenticated) {
+        return <Navigate to="/" replace />;
+    }
 
     const ENV_OPTIONS = [
         { value: 'STAGE', label: 'Staging' },
@@ -26,6 +32,10 @@ const Login = () => {
         setError('');
 
         try {
+            if (currentMode === 'SC') {
+                setStep(2);
+                return;
+            }
             const response = await authService.checkUserType(email);
             if (response.status === 'success' && response.data.is_admin && response.data.user_type === 'admin') {
                 setStep(2);
@@ -47,6 +57,18 @@ const Login = () => {
         try {
             const response = await authService.login(email, password);
             console.log('Login Response:', response);
+
+            if (currentMode === 'SC') {
+                const parsed = parseScLoginResponse(response);
+                if (!parsed.ok) {
+                    setError(parsed.error);
+                    return;
+                }
+                login(parsed.user, parsed.token);
+                navigate('/');
+                return;
+            }
+
             if (response.otp_required) {
                 setStep(3);
             } else if (response.auth_token) {
@@ -88,8 +110,49 @@ const Login = () => {
             <div className="w-full max-w-[400px] p-8 bg-bg-primary border border-border rounded-lg shadow-md animate-fade-in">
                 <div className="mb-8 text-center">
                     <div className="w-8 h-8 bg-accent text-white rounded-md flex items-center justify-center text-lg mx-auto mb-4 font-bold">C</div>
+                    
+                    {/* Mode Switcher */}
+                    <div className="flex justify-center mb-6 bg-bg-tertiary p-1 rounded-lg w-fit mx-auto">
+                        <button
+                            type="button"
+                            onClick={() => switchMode('EA')}
+                            style={{
+                                padding: '0.4rem 1.2rem',
+                                borderRadius: '0.375rem',
+                                fontSize: '0.75rem',
+                                fontWeight: '600',
+                                border: 'none',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                backgroundColor: currentMode === 'EA' ? 'var(--color-bg-primary)' : 'transparent',
+                                color: currentMode === 'EA' ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
+                                boxShadow: currentMode === 'EA' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+                            }}
+                        >
+                            EA Login
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => switchMode('SC')}
+                            style={{
+                                padding: '0.4rem 1.2rem',
+                                borderRadius: '0.375rem',
+                                fontSize: '0.75rem',
+                                fontWeight: '600',
+                                border: 'none',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                backgroundColor: currentMode === 'SC' ? 'var(--color-bg-primary)' : 'transparent',
+                                color: currentMode === 'SC' ? 'var(--color-text-primary)' : 'var(--color-text-secondary)',
+                                boxShadow: currentMode === 'SC' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
+                            }}
+                        >
+                            SC Login
+                        </button>
+                    </div>
+
                     <h1 className="text-2xl font-bold text-text-primary mb-2">
-                        {step === 1 ? 'Welcome Back' : step === 2 ? 'Enter Password' : 'Security Check'}
+                        {step === 1 ? (currentMode === 'SC' ? 'SC Login' : 'Welcome Back') : step === 2 ? 'Enter Password' : 'Security Check'}
                     </h1>
                     <p className="text-sm text-text-secondary">
                         {step === 1 ? 'Sign in to your dashboard' : step === 2 ? `Hello, ${email}` : 'Enter the code sent to your email'}

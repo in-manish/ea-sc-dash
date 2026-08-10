@@ -152,5 +152,123 @@ export const userService = {
             console.error('Delete Staff User Error:', error);
             throw error;
         }
+    },
+
+    /**
+     * Search Snapcard users by phone, email, id, or a combination.
+     * @param {Object} queryParams { phone, email, id }
+     * @param {string} token 
+     */
+    async searchUsers(queryParams, token) {
+        try {
+            const urlParams = new URLSearchParams();
+            Object.entries(queryParams).forEach(([key, val]) => {
+                if (val !== undefined && val !== null && val !== '') {
+                    urlParams.append(key, val);
+                }
+            });
+            const response = await fetch(`${getApiUrl()}/users/search?${urlParams.toString()}`, {
+                method: 'GET',
+                headers: getHeaders(token)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Search Users Error:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Get Snapcard user sync tracks.
+     * @param {Object} params { status, page, page_size }
+     * @param {string} token 
+     */
+    async getUserSyncTrack(params, token) {
+        try {
+            const urlParams = new URLSearchParams();
+            Object.entries(params).forEach(([key, val]) => {
+                if (val !== undefined && val !== null && val !== '') {
+                    urlParams.append(key, val);
+                }
+            });
+            const response = await fetch(`${getApiUrl()}/user/projection/sync/track/?${urlParams.toString()}`, {
+                method: 'GET',
+                headers: getHeaders(token)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Get User Sync Track Error:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Admin Get Users list with advanced filtering and pagination.
+     * @param {Object} queryParams { search, email, name, phone_number, role, is_verified_email, is_verified_phone_number, limit, offset }
+     * @param {string} token
+     */
+    async adminGetUsers(queryParams, token) {
+        try {
+            const urlParams = new URLSearchParams();
+            Object.entries(queryParams).forEach(([key, val]) => {
+                if (val !== undefined && val !== null && val !== '') {
+                    urlParams.append(key, val);
+                }
+            });
+            const response = await fetch(`${getApiUrl()}/evc/admin/users/?${urlParams.toString()}`, {
+                method: 'GET',
+                headers: getHeaders(token)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Admin Get Users Error:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Admin Update User details.
+     * @param {string|number} userId
+     * @param {Object} userData profile + contact fields (name, email, phone_number, company, …)
+     * @param {string} token
+     */
+    async adminUpdateUser(userId, userData, token) {
+        try {
+            const response = await fetch(`${getApiUrl()}/evc/admin/users/${userId}/`, {
+                method: 'PATCH',
+                headers: {
+                    ...getHeaders(token),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(userData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Admin Update User Error:', error);
+            throw error;
+        }
     }
 };
+
+

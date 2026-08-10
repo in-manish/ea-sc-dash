@@ -1,7 +1,20 @@
 /* eslint-disable react-refresh/only-export-components */
 /* eslint-disable react-hooks/set-state-in-effect */
 import { createContext, useContext, useState, useEffect } from 'react';
-import { applyTheme } from '../config';
+import {
+    applyTheme,
+    getDashboardMode,
+    setDashboardMode,
+    getEnv,
+} from '../config';
+import {
+    getStorageKeys,
+    readSession,
+    readLastPath,
+    saveLastPath,
+    resolveResumeUrl,
+    buildProjectHomeUrl,
+} from './authSession';
 
 const AuthContext = createContext(null);
 
@@ -12,57 +25,41 @@ export const AuthProvider = ({ children }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [recentEvents, setRecentEvents] = useState([]);
+    const [currentMode, setCurrentMode] = useState(() => getDashboardMode());
+    const [currentEnv, setCurrentEnv] = useState(() => getEnv());
 
-    // Get current environment
-    const currentEnv = localStorage.getItem('app_env') || 'STAGE';
-
-    // Helper to get storage keys based on env
-    const getStorageKeys = (env = currentEnv) => ({
-        user: `user_${env}`,
-        token: `token_${env}`,
-        event: `selectedEvent_${env}`,
-        recentEvents: `recentEvents_${env}`
-    });
-
+    // Restore (or clear) auth for the active project — never wipe the other project's keys.
     useEffect(() => {
-        // Apply theme for current environment
         applyTheme();
-
-        const keys = getStorageKeys();
-        const storedUser = localStorage.getItem(keys.user);
-        const storedToken = localStorage.getItem(keys.token);
-        const storedEvent = localStorage.getItem(keys.event);
-        const storedRecentEvents = localStorage.getItem(keys.recentEvents);
-
-        if (storedUser && storedToken) {
-            setUser(JSON.parse(storedUser));
-            setToken(storedToken);
+        const session = readSession(currentMode, currentEnv);
+        if (session) {
+            setUser(session.user);
+            setToken(session.token);
             setIsAuthenticated(true);
+            setSelectedEvent(session.event);
+            setRecentEvents(Array.isArray(session.recentEvents) ? session.recentEvents : []);
+        } else {
+            setUser(null);
+            setToken(null);
+            setIsAuthenticated(false);
+            setSelectedEvent(null);
+            setRecentEvents([]);
         }
-
-        if (storedEvent) {
-            setSelectedEvent(JSON.parse(storedEvent));
-        }
-
-        if (storedRecentEvents) {
-            try {
-                setRecentEvents(JSON.parse(storedRecentEvents));
-            } catch (e) {
-                console.error("Failed to parse recent events", e);
-                setRecentEvents([]);
-            }
-        }
-
         setIsLoading(false);
-    }, []);
+    }, [currentMode, currentEnv]);
 
     const login = (userData, authToken) => {
-        const keys = getStorageKeys();
+        const mode = getDashboardMode();
+        const env = getEnv();
+        setCurrentMode(mode);
+        setCurrentEnv(env);
+
+        const keys = getStorageKeys(mode, env);
         setUser(userData);
         setToken(authToken);
         setIsAuthenticated(true);
-        localStorage.setItem(keys.user, JSON.stringify(userData));
-        localStorage.setItem(keys.token, authToken);
+        sessionStorage.setItem(keys.user, JSON.stringify(userData));
+        sessionStorage.setItem(keys.token, authToken);
     };
 
     const logout = () => {
@@ -72,48 +69,57 @@ export const AuthProvider = ({ children }) => {
         setSelectedEvent(null);
         setRecentEvents([]);
         setIsAuthenticated(false);
-        localStorage.removeItem(keys.user);
-        localStorage.removeItem(keys.token);
-        localStorage.removeItem(keys.event);
-        localStorage.removeItem(keys.recentEvents);
+        sessionStorage.removeItem(keys.user);
+        sessionStorage.removeItem(keys.token);
+        sessionStorage.removeItem(keys.event);
+        sessionStorage.removeItem(keys.recentEvents);
+        sessionStorage.removeItem(keys.lastPath);
     };
 
     const selectEvent = (event) => {
         const keys = getStorageKeys();
         setSelectedEvent(event);
-        localStorage.setItem(keys.event, JSON.stringify(event));
-
-        // Update recent events (max 5)
-        setRecentEvents(prevEvents => {
-            const filtered = prevEvents.filter(e => e.id !== event.id);
-            const updated = [event, ...filtered].slice(0, 5);
-            localStorage.setItem(keys.recentEvents, JSON.stringify(updated));
+        sessionStorage.setItem(keys.event, JSON.stringify(event));
+        setRecentEvents((prev) => {
+            const updated = [event, ...prev.filter((e) => e.id !== event.id)].slice(0, 5);
+            sessionStorage.setItem(keys.recentEvents, JSON.stringify(updated));
             return updated;
         });
     };
 
     const clearEvent = () => {
         const keys = getStorageKeys();
+        sessionStorage.removeItem(keys.event);
+        const last = readLastPath(currentMode, currentEnv);
+        if (last?.pathname?.startsWith('/event/')) {
+            sessionStorage.setItem(
+                keys.lastPath,
+                JSON.stringify({ pathname: '/', search: '' })
+            );
+        }
         setSelectedEvent(null);
-        localStorage.removeItem(keys.event);
     };
 
     const updateUserEvents = (events) => {
-        const keys = getStorageKeys();
-        if (user) {
-            const updatedUser = { ...user, events };
-            setUser(updatedUser);
-            localStorage.setItem(keys.user, JSON.stringify(updatedUser));
-        }
+        if (!user) return;
+        const updatedUser = { ...user, events };
+        setUser(updatedUser);
+        sessionStorage.setItem(getStorageKeys().user, JSON.stringify(updatedUser));
     };
 
     const switchEnvironment = (newEnv) => {
         if (newEnv === currentEnv) return;
+        saveLastPath(currentMode, currentEnv);
+        sessionStorage.setItem('app_env', newEnv);
+        setCurrentEnv(newEnv);
+        window.location.href = buildProjectHomeUrl(getDashboardMode());
+    };
 
-        localStorage.setItem('app_env', newEnv);
-        // Navigate to root to ensure we don't stay on a page with invalid ID (like an event detail page)
-        // and reload to apply the new config/theme
-        window.location.href = import.meta.env.BASE_URL;
+    const switchMode = (newMode) => {
+        if (newMode === currentMode) return;
+        saveLastPath(currentMode, currentEnv);
+        setDashboardMode(newMode);
+        window.location.href = resolveResumeUrl(newMode, currentEnv);
     };
 
     return (
@@ -130,7 +136,9 @@ export const AuthProvider = ({ children }) => {
             updateUserEvents,
             recentEvents,
             currentEnv,
-            switchEnvironment
+            switchEnvironment,
+            currentMode,
+            switchMode,
         }}>
             {children}
         </AuthContext.Provider>
