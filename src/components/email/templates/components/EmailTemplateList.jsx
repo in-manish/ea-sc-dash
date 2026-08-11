@@ -1,7 +1,18 @@
 import React from 'react';
 import { Loader2, Mail, ArrowLeft, Trash2, Edit3 } from 'lucide-react';
 
-const EmailTemplateList = ({ isLoading, templates, viewMode, handleViewTemplate, handleDelete, handleCreateNew, page, totalPages, setPage }) => {
+const EmailTemplateList = ({
+    isLoading,
+    templates,
+    viewMode,
+    handleViewTemplate,
+    handleDelete,
+    handleCreateNew,
+    page,
+    totalPages,
+    setPage,
+    hasActiveFilters = false,
+}) => {
     if (isLoading) {
         return (
             <div className="flex justify-center p-8 text-gray-400">
@@ -17,10 +28,16 @@ const EmailTemplateList = ({ isLoading, templates, viewMode, handleViewTemplate,
                     <Mail size={24} className="text-gray-400" />
                 </div>
                 <h4 className="text-base font-medium text-gray-900 mb-1">No templates found</h4>
-                <p className="text-sm text-gray-500 mb-4">Create your first reusable email template to get started.</p>
-                <button onClick={handleCreateNew} className="text-accent font-black text-xs uppercase tracking-widest hover:underline mt-2">
-                    + Start New Template
-                </button>
+                <p className="text-sm text-gray-500 mb-4">
+                    {hasActiveFilters
+                        ? 'Try adjusting or clearing your filters.'
+                        : 'Create your first reusable email template to get started.'}
+                </p>
+                {!hasActiveFilters && (
+                    <button onClick={handleCreateNew} className="text-accent font-black text-xs uppercase tracking-widest hover:underline mt-2">
+                        + Start New Template
+                    </button>
+                )}
             </div>
         );
     }
@@ -33,7 +50,7 @@ const EmailTemplateList = ({ isLoading, templates, viewMode, handleViewTemplate,
                         <div key={template.id} onClick={() => handleViewTemplate(template)} className="cursor-pointer group relative bg-bg-primary border border-border rounded-2xl hover:shadow-premium transition-all hover:border-accent/10 flex flex-col overflow-hidden text-left">
                             <div className="p-5 border-b border-border flex flex-col gap-3 bg-bg-secondary/40 text-left">
                                 <div className="flex justify-between items-start w-full text-left">
-                                    <h3 className="font-black text-text-primary group-hover:text-accent leading-tight text-base truncate pr-2 tracking-tight text-left" title={template.email_name}>
+                                    <h3 className="font-black text-text-primary group-hover:text-accent leading-tight text-base break-words pr-2 tracking-tight text-left">
                                         {template.email_name || 'Unnamed Template'}
                                     </h3>
                                     <button
@@ -44,7 +61,7 @@ const EmailTemplateList = ({ isLoading, templates, viewMode, handleViewTemplate,
                                     </button>
                                 </div>
                                 {template.subject && (
-                                    <div className="text-[10px] font-bold text-accent uppercase tracking-wider -mt-1 truncate" title={template.subject}>
+                                    <div className="text-[10px] font-bold text-accent uppercase tracking-wider -mt-1 line-clamp-2" title={template.subject}>
                                         {template.subject}
                                     </div>
                                 )}
@@ -72,12 +89,12 @@ const EmailTemplateList = ({ isLoading, templates, viewMode, handleViewTemplate,
                 <div className="flex flex-col gap-3">
                     {templates.map(template => (
                         <div key={template.id} onClick={() => handleViewTemplate(template)} className="bg-bg-primary border border-border rounded-2xl hover:shadow-premium transition-all hover:border-accent/10 flex flex-col sm:flex-row items-stretch overflow-hidden min-h-[5.5rem] cursor-pointer group relative text-left">
-                            <div className="w-full sm:w-1/4 p-5 border-b sm:border-b-0 sm:border-r border-border flex flex-col shrink-0 justify-center bg-bg-secondary/30 text-left">
-                                <h3 className="font-black text-text-primary group-hover:text-accent leading-tight text-base truncate pr-2 tracking-tight text-left" title={template.email_name}>
+                            <div className="w-full sm:w-[38%] sm:min-w-[240px] sm:max-w-md p-5 border-b sm:border-b-0 sm:border-r border-border flex flex-col shrink-0 justify-center bg-bg-secondary/30 text-left">
+                                <h3 className="font-black text-text-primary group-hover:text-accent leading-snug text-base break-words tracking-tight text-left">
                                     {template.email_name || 'Unnamed Template'}
                                 </h3>
                                 {template.subject && (
-                                    <div className="text-[10px] font-black text-accent uppercase tracking-[0.1em] mt-1 truncate" title={template.subject}>
+                                    <div className="text-[10px] font-black text-accent uppercase tracking-[0.1em] mt-1 line-clamp-2" title={template.subject}>
                                         {template.subject}
                                     </div>
                                 )}
@@ -88,14 +105,12 @@ const EmailTemplateList = ({ isLoading, templates, viewMode, handleViewTemplate,
 
                             <div className="flex-1 px-4 py-3 sm:py-0 flex flex-col justify-center min-w-0 text-left">
                                 <div className="text-sm text-gray-800 font-medium mb-1 text-left">Content Preview</div>
-                                <div className="text-xs text-gray-500 line-clamp-2 text-left" title={template.email_content ? template.email_content.replace(/<[^>]+>/g, '') : 'No content'}>
+                                <div className="text-xs text-gray-500 line-clamp-3 text-left" title={template.email_content ? template.email_content.replace(/<[^>]+>/g, '') : 'No content'}>
                                     {template.email_content ? template.email_content.replace(/<[^>]+>/g, '') : 'No content'}
                                 </div>
-                            </div>
-
-                            <div className="sm:w-32 px-4 py-2 sm:py-0 border-t sm:border-t-0 sm:border-l border-gray-50 shrink-0 flex items-center justify-between sm:justify-center text-xs font-medium text-gray-500 bg-gray-50/30 sm:bg-transparent">
-                                <span className="sm:hidden text-[10px] uppercase font-bold text-gray-400">Created</span>
-                                {new Date(template.created_at).toLocaleDateString()}
+                                <div className="text-[10px] text-text-tertiary font-medium mt-1.5">
+                                    {new Date(template.created_at).toLocaleDateString()}
+                                </div>
                             </div>
 
                             <div className="px-5 py-3 sm:py-0 shrink-0 flex items-center justify-end gap-3 border-t sm:border-t-0 sm:border-l border-border bg-bg-secondary/40 sm:bg-transparent">
