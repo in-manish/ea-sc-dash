@@ -1,45 +1,45 @@
-import { Building2, Globe, Phone, Ticket, LayoutDashboard, Users } from 'lucide-react';
+import { Building2, Globe, Phone, Ticket, LayoutDashboard, Users, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import CompanyHandoverDetails from './CompanyHandoverDetails';
+import { hasHandoverSignature } from '../domain/parseHandoverDetails';
 
 /** Existing 4 cards — company detail API only (not Overview API). */
 export default function CompanyDetailsInfoGrid({ company, eventId }) {
   const navigate = useNavigate();
+  const handoverDone = hasHandoverSignature(company.handover_details);
+  const handedOver = Boolean(company.all_badges_handed_over) || handoverDone;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
-        <h3 className="text-sm font-semibold uppercase text-text-tertiary mb-5 flex items-center gap-2 border-b border-border pb-3">
-          <Building2 size={18} /> Overview
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="bg-bg-primary border border-border rounded-lg p-4 shadow-sm">
+        <h3 className="text-xs font-semibold uppercase text-text-tertiary mb-3 flex items-center gap-2 border-b border-border pb-2">
+          <Building2 size={16} /> Overview
         </h3>
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2.5">
           <Field label="OBF Number" value={company.obf_number} />
-          <Field
-            label="Space Details"
-            value={`${company.space} sq.m (${company.stall_detail?.space_type})`}
-          />
           <Field label="Location" value={company.location || '-'} />
-          <div className="flex flex-col gap-1">
-            <label className="text-xs text-text-secondary font-medium">Website</label>
+          <div className="flex flex-col gap-0.5">
+            <label className="text-[11px] text-text-secondary font-medium">Website</label>
             {company.website ? (
               <a
                 href={company.website}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex w-fit items-center gap-2 text-[0.9375rem] text-text-primary break-words underline decoration-border underline-offset-[3px] hover:text-text-link hover:decoration-current transition-colors"
+                className="flex w-fit items-center gap-1.5 text-sm text-text-primary break-words underline decoration-border underline-offset-[3px] hover:text-text-link hover:decoration-current transition-colors"
               >
                 {company.website} <Globe size={12} />
               </a>
             ) : (
-              <span className="text-[0.9375rem] text-text-primary">-</span>
+              <span className="text-sm text-text-primary">-</span>
             )}
           </div>
         </div>
       </div>
 
-      <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-5 border-b border-border pb-3">
-          <h3 className="text-sm font-semibold uppercase text-text-tertiary flex items-center gap-2 m-0">
-            <Ticket size={18} /> Badge Statistics
+      <div className="bg-bg-primary border border-border rounded-lg p-4 shadow-sm">
+        <div className="flex items-center justify-between mb-3 border-b border-border pb-2">
+          <h3 className="text-xs font-semibold uppercase text-text-tertiary flex items-center gap-2 m-0">
+            <Ticket size={16} /> Badge Statistics
           </h3>
           <button
             type="button"
@@ -56,57 +56,54 @@ export default function CompanyDetailsInfoGrid({ company, eventId }) {
             View Attendees
           </button>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-2">
           <Stat label="Total Limit" value={company.badge_limit} />
           <Stat label="Issued" value={company.badge_issued} />
           <Stat label="Badge Count" value={company.badge_count ?? 0} />
           <Stat label="Remaining" value={company.remain_badge_limit_count} />
-          <div className="bg-bg-secondary p-4 rounded-md flex flex-col items-center justify-center text-center">
-            <span className="text-xs text-text-secondary mb-1">Handed Over?</span>
+          <div
+            className={`p-2.5 rounded-md flex flex-col items-center justify-center text-center col-span-2 sm:col-span-1 ${
+              handedOver ? 'bg-green-50 border border-green-200' : 'bg-bg-secondary'
+            }`}
+          >
+            <span className="text-[11px] text-text-secondary mb-0.5">Handed Over?</span>
             <span
-              className={`text-xl font-bold ${
-                company.all_badges_handed_over ? 'text-green-600' : 'text-yellow-600'
+              className={`text-lg font-bold ${
+                handedOver ? 'text-green-600' : 'text-yellow-600'
               }`}
             >
-              {company.all_badges_handed_over ? 'Yes' : 'No'}
+              {handedOver ? 'Yes' : 'No'}
             </span>
           </div>
         </div>
       </div>
 
-      <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
-        <h3 className="text-sm font-semibold uppercase text-text-tertiary mb-5 flex items-center gap-2 border-b border-border pb-3">
-          <Phone size={18} /> Contact & Handover
-        </h3>
-        <div className="flex flex-col gap-4">
-          <Field label="Sales Person" value={company.sales_person || '-'} />
-          {company.handover_details && (
-            <>
-              <Field
-                label="Handover Phone"
-                value={company.handover_details.phone_number || '-'}
-              />
-              {company.handover_details.remarks?.length > 0 && (
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs text-text-secondary font-medium">Latest Remark</label>
-                  <span className="text-[0.9375rem] text-text-primary break-words">
-                    {company.handover_details.remarks[0].remarks}
-                  </span>
-                  <small className="text-xs text-text-tertiary mt-1">
-                    {company.handover_details.remarks[0].date}
-                  </small>
-                </div>
-              )}
-            </>
+      <div
+        className={`bg-bg-primary border rounded-lg p-4 shadow-sm ${
+          handoverDone ? 'border-green-300 ring-1 ring-green-100' : 'border-border'
+        }`}
+      >
+        <h3 className="text-xs font-semibold uppercase text-text-tertiary mb-3 flex items-center gap-2 border-b border-border pb-2">
+          <Phone size={16} className={handoverDone ? 'text-green-600' : undefined} />
+          Contact & Handover
+          {handoverDone && (
+            <span className="ml-auto inline-flex items-center gap-1 normal-case tracking-normal font-semibold text-[11px] text-green-700 bg-green-100 px-2 py-0.5 rounded-full border border-green-200">
+              <CheckCircle2 size={12} />
+              Handover done
+            </span>
           )}
+        </h3>
+        <div className="flex flex-col gap-2.5">
+          <Field label="Sales Person" value={company.sales_person || '-'} />
+          <CompanyHandoverDetails handoverDetails={company.handover_details} />
         </div>
       </div>
 
-      <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
-        <h3 className="text-sm font-semibold uppercase text-text-tertiary mb-5 flex items-center gap-2 border-b border-border pb-3">
-          <LayoutDashboard size={18} /> System Info
+      <div className="bg-bg-primary border border-border rounded-lg p-4 shadow-sm">
+        <h3 className="text-xs font-semibold uppercase text-text-tertiary mb-3 flex items-center gap-2 border-b border-border pb-2">
+          <LayoutDashboard size={16} /> System Info
         </h3>
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2.5">
           <Field label="Exhibitor UID" value={company.uid} mono />
           <Field label="Payment Made" value={company.is_payment_made ? 'Yes' : 'No'} />
           <Field label="Locked" value={company.is_company_submit_locked ? 'Yes' : 'No'} />
@@ -118,11 +115,11 @@ export default function CompanyDetailsInfoGrid({ company, eventId }) {
 
 function Field({ label, value, mono }) {
   return (
-    <div className="flex flex-col gap-1">
-      <label className="text-xs text-text-secondary font-medium">{label}</label>
+    <div className="flex flex-col gap-0.5">
+      <label className="text-[11px] text-text-secondary font-medium">{label}</label>
       <span
-        className={`text-[0.9375rem] text-text-primary break-words ${
-          mono ? 'font-mono text-sm' : ''
+        className={`text-sm text-text-primary break-words ${
+          mono ? 'font-mono text-xs' : ''
         }`}
       >
         {value}
@@ -133,9 +130,9 @@ function Field({ label, value, mono }) {
 
 function Stat({ label, value }) {
   return (
-    <div className="bg-bg-secondary p-4 rounded-md flex flex-col items-center justify-center text-center">
-      <span className="text-xs text-text-secondary mb-1">{label}</span>
-      <span className="text-xl font-bold text-text-primary">{value}</span>
+    <div className="bg-bg-secondary p-2.5 rounded-md flex flex-col items-center justify-center text-center">
+      <span className="text-[11px] text-text-secondary mb-0.5">{label}</span>
+      <span className="text-lg font-bold text-text-primary">{value}</span>
     </div>
   );
 }

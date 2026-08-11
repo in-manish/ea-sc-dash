@@ -7,7 +7,7 @@ import { useExhibitorOverview } from '../hooks/useExhibitorOverview';
 import CompanyDetailsHeader from './CompanyDetailsHeader';
 import CompanyDetailsInfoGrid from './CompanyDetailsInfoGrid';
 import CompanyDetailsLowerSection from './CompanyDetailsLowerSection';
-import CompanyProductsDisplay from './CompanyProductsDisplay';
+import CompanyStallDetailsCard from './CompanyStallDetailsCard';
 import SetupProgressSection from './SetupProgressSection';
 
 /**
@@ -115,7 +115,7 @@ export default function CompanyDetailsPage() {
         onOpenSetup={openSetup}
       />
 
-      <div className="mb-6">
+      <div className="mb-4">
         <SetupProgressSection
           eventId={eventId}
           companyId={companyId}
@@ -131,7 +131,7 @@ export default function CompanyDetailsPage() {
 
       <CompanyDetailsInfoGrid company={company} eventId={eventId} />
 
-      <CompanyProductsDisplay category={company.category} products={company.product} />
+      <CompanyStallDetailsCard company={company} />
 
       <CompanyDetailsLowerSection
         company={company}

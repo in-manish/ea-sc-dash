@@ -1,5 +1,6 @@
 import { ArrowLeft, Building2, Star, Pencil, ClipboardList } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { hasHandoverSignature } from '../domain/parseHandoverDetails';
 
 export default function CompanyDetailsHeader({
   company,
@@ -20,64 +21,67 @@ export default function CompanyDetailsHeader({
     || company.parent_exhibitor_id
     || (typeof parentExhibitor === 'number' ? parentExhibitor : null);
   const parentExhibitorName = parentExhibitor?.company_name;
+  const handoverDone = hasHandoverSignature(company.handover_details);
 
   return (
-    <div className="mb-8">
+    <div className="mb-4">
       <button
         type="button"
-        className="flex items-center gap-2 text-sm text-text-tertiary hover:text-text-primary transition-colors bg-transparent border-none cursor-pointer p-0 mb-4"
+        className="flex items-center gap-2 text-sm text-text-tertiary hover:text-text-primary transition-colors bg-transparent border-none cursor-pointer p-0 mb-3"
         onClick={() => navigate(-1)}
       >
         <ArrowLeft size={16} /> Back to List
       </button>
 
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end border-b border-border pb-6 gap-4">
-        <div className="flex items-center gap-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end border-b border-border pb-4 gap-3">
+        <div className="flex items-center gap-4">
           {company.company_logo ? (
             <img
               src={company.company_logo}
               alt={company.company_name}
-              className="w-20 h-20 object-contain bg-white rounded-md shadow-sm border border-border shrink-0"
+              className="w-14 h-14 object-contain bg-white rounded-md shadow-sm border border-border shrink-0"
             />
           ) : (
-            <div className="w-20 h-20 bg-bg-tertiary rounded-md flex items-center justify-center text-text-secondary shrink-0">
-              <Building2 size={32} />
+            <div className="w-14 h-14 bg-bg-tertiary rounded-md flex items-center justify-center text-text-secondary shrink-0">
+              <Building2 size={24} />
             </div>
           )}
           <div>
-            <h1 className="text-3xl font-bold mb-2 text-text-primary flex items-center gap-3 flex-wrap">
+            <h1 className="text-2xl font-bold mb-1.5 text-text-primary flex items-center gap-2 flex-wrap">
               {company.company_name}
               {company.is_featured && (
-                <Star size={24} className="text-yellow-500 fill-yellow-500" title="Featured Company" />
+                <Star size={20} className="text-yellow-500 fill-yellow-500" title="Featured Company" />
               )}
-              <span
-                className={`inline-flex py-1 px-2.5 rounded-full text-xs font-medium tracking-wide ${
-                  company.apply_title_case
-                    ? 'bg-emerald-100 text-emerald-800'
-                    : 'bg-bg-tertiary text-text-secondary border border-border'
-                }`}
-                title={
-                  company.apply_title_case
-                    ? 'Company name is formatted as Title Case'
-                    : 'Company name is kept as entered (title case ignored)'
-                }
-              >
-                {company.apply_title_case
-                  ? 'Title Case formatting'
-                  : 'Ignore title case'}
-              </span>
+              {company.apply_title_case && (
+                <span
+                  className="inline-flex py-0.5 px-2 rounded-full text-[11px] font-medium tracking-wide bg-emerald-100 text-emerald-800"
+                  title="Company name is formatted as Title Case"
+                >
+                  Title Case formatting
+                </span>
+              )}
             </h1>
-            <div className="flex flex-wrap gap-3 items-center">
+            <div className="flex flex-wrap gap-2 items-center">
+              {handoverDone && (
+                <span
+                  className="inline-flex py-0.5 px-2 rounded-full text-[11px] font-semibold tracking-wide bg-green-100 text-green-800 border border-green-200"
+                  title="Handover signature on file"
+                >
+                  Handover done
+                </span>
+              )}
               {isCoExhibitor && (
-                <span className="inline-flex py-1 px-2.5 rounded-full text-xs font-medium tracking-wide bg-indigo-100 text-indigo-800">
+                <span className="inline-flex py-0.5 px-2 rounded-full text-[11px] font-medium tracking-wide bg-indigo-100 text-indigo-800">
                   Co-exhibitor
                 </span>
               )}
-              <span className="inline-flex py-1 px-2.5 rounded-full text-xs font-medium tracking-wide bg-purple-100 text-purple-800">
-                {company.category}
-              </span>
+              {company.category && (
+                <span className="inline-flex py-0.5 px-2 rounded-full text-[11px] font-medium tracking-wide bg-purple-100 text-purple-800">
+                  {company.category}
+                </span>
+              )}
               {company.stall_number && (
-                <span className="inline-flex py-1 px-2.5 rounded-full text-xs font-semibold tracking-wide bg-bg-tertiary text-text-primary font-mono border border-border">
+                <span className="inline-flex py-0.5 px-2 rounded-full text-[11px] font-semibold tracking-wide bg-bg-tertiary text-text-primary font-mono border border-border">
                   Stall: {company.stall_number}
                 </span>
               )}

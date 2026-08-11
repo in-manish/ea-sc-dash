@@ -14,7 +14,7 @@ export default function CompanyDetailsLowerSection({
 }) {
   if (isCoExhibitor) {
     return (
-      <div className="mt-8">
+      <div className="mt-4">
         <ExhibitorMatchmakingSection
           eventId={eventId}
           companyId={companyId}
@@ -25,8 +25,8 @@ export default function CompanyDetailsLowerSection({
   }
 
   return (
-    <div className="mt-8">
-      <div className="mb-6 flex items-center gap-1 p-1 bg-bg-secondary border border-border rounded-lg inline-flex">
+    <div className="mt-4">
+      <div className="mb-4 flex items-center gap-1 p-1 bg-bg-secondary border border-border rounded-lg inline-flex">
         <TabButton
           active={detailTab === 'co-exhibitors'}
           onClick={() => setDetailTab('co-exhibitors')}

@@ -20,6 +20,8 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `domain/parseCompanyError.js` | 400 ERROR / field errors |
 | `domain/formatCompanySearchLabel.js` | Parent search display |
 | `domain/extractMatchmakingProductOptions.js` | Product option names from matchmaking `question_type=product` |
+| `domain/formatStallDetail.js` | Format stall_detail / contractor / requirements |
+| `domain/parseHandoverDetails.js` | Normalize handover JSON (object or string) |
 | `domain/companyFormDefaults.js` | Empty form + validation |
 | `domain/setupChecklistHelpers.js` | Step sort, urgency chips, portal_route → organizer path |
 | `hooks/useCreateCompany.js` | Create form submit |
@@ -31,9 +33,11 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `hooks/useChecklistReminderSettings.js` | Load/save reminder settings |
 | `ui/CreateCompanyPage.jsx` | Full-page create |
 | `ui/EditCompanyPage.jsx` | Full-page edit |
-| `ui/CompanyDetailsPage.jsx` | Detail compose (header → compact Setup Progress → 4 cards → tabs) |
+| `ui/CompanyDetailsPage.jsx` | Detail compose (header → setup → cards → stall/catalog → tabs) |
 | `ui/CompanyDetailsHeader.jsx` | Back + identity + Edit / View Orders |
 | `ui/CompanyDetailsInfoGrid.jsx` | Overview / Badge / Contact / System (company detail API) |
+| `ui/CompanyHandoverDetails.jsx` | Handover contact + signature image (copy URL) |
+| `ui/CompanyStallDetailsCard.jsx` | Detail: stall + water coupon + category/products |
 | `ui/CompanyDetailsLowerSection.jsx` | Co-exhibitors + matchmaking tabs |
 | `ui/SetupProgressSection.jsx` | Setup Progress card (Overview API only) |
 | `ui/SetupProgressStep.jsx` | Checklist step row + Open / Remind |
@@ -48,7 +52,6 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `ui/CompanyLogoFields.jsx` | Logo upload / remove (top of edit form) |
 | `ui/CompanyCategoryProductsSection.jsx` | Edit: category then products |
 | `ui/CompanyProductSelectFields.jsx` | Edit: multi-select + setup Product question CTA |
-| `ui/CompanyProductsDisplay.jsx` | Detail: category + product chips |
 | `ui/EditCompanyLimitsFields.jsx` | Limits / status (edit only) |
 | `ui/ParentCompanySearch.jsx` | Parent exhibitor typeahead |
 
