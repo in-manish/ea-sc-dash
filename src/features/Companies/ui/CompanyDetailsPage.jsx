@@ -7,6 +7,7 @@ import { useExhibitorOverview } from '../hooks/useExhibitorOverview';
 import CompanyDetailsHeader from './CompanyDetailsHeader';
 import CompanyDetailsInfoGrid from './CompanyDetailsInfoGrid';
 import CompanyDetailsLowerSection from './CompanyDetailsLowerSection';
+import CompanyProductsDisplay from './CompanyProductsDisplay';
 import SetupProgressSection from './SetupProgressSection';
 
 /**
@@ -129,6 +130,8 @@ export default function CompanyDetailsPage() {
       </div>
 
       <CompanyDetailsInfoGrid company={company} eventId={eventId} />
+
+      <CompanyProductsDisplay category={company.category} products={company.product} />
 
       <CompanyDetailsLowerSection
         company={company}

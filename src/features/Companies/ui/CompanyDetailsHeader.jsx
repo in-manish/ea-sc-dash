@@ -45,11 +45,27 @@ export default function CompanyDetailsHeader({
             </div>
           )}
           <div>
-            <h1 className="text-3xl font-bold mb-2 text-text-primary flex items-center gap-3">
+            <h1 className="text-3xl font-bold mb-2 text-text-primary flex items-center gap-3 flex-wrap">
               {company.company_name}
               {company.is_featured && (
                 <Star size={24} className="text-yellow-500 fill-yellow-500" title="Featured Company" />
               )}
+              <span
+                className={`inline-flex py-1 px-2.5 rounded-full text-xs font-medium tracking-wide ${
+                  company.apply_title_case
+                    ? 'bg-emerald-100 text-emerald-800'
+                    : 'bg-bg-tertiary text-text-secondary border border-border'
+                }`}
+                title={
+                  company.apply_title_case
+                    ? 'Company name is formatted as Title Case'
+                    : 'Company name is kept as entered (title case ignored)'
+                }
+              >
+                {company.apply_title_case
+                  ? 'Title Case formatting'
+                  : 'Ignore title case'}
+              </span>
             </h1>
             <div className="flex flex-wrap gap-3 items-center">
               {isCoExhibitor && (

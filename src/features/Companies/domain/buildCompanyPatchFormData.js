@@ -22,17 +22,23 @@ export function buildCompanyPatchFormData(form, initial) {
   const data = new FormData();
   data.append('company_name', (form.company_name || '').trim());
 
-  // category + product are display-only on edit — never PATCH them
   const scalars = [
     'company_detail',
     'website',
     'address',
     'location',
+    'category',
     'stall_number',
     'obf_number',
     'sales_person',
   ];
   scalars.forEach((key) => appendIfChanged(data, key, form[key], initial[key]));
+
+  const curProducts = JSON.stringify([...(form.products || [])].sort());
+  const origProducts = JSON.stringify([...(initial.products || [])].sort());
+  if (curProducts !== origProducts) {
+    data.append('product', JSON.stringify(form.products || []));
+  }
 
   if (form.kind === COMPANY_KINDS.CO_EXHIBITOR) {
     appendIfChanged(data, 'parent_exhibitor', form.parent_exhibitor, initial.parent_exhibitor);
@@ -51,6 +57,9 @@ export function buildCompanyPatchFormData(form, initial) {
   }
   if (form.is_payment_made !== initial.is_payment_made) {
     data.append('is_payment_made', form.is_payment_made ? 'true' : 'false');
+  }
+  if (form.apply_title_case !== initial.apply_title_case) {
+    data.append('apply_title_case', form.apply_title_case ? 'true' : 'false');
   }
 
   const curLink = linkFromForm(form);

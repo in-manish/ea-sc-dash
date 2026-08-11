@@ -34,6 +34,8 @@ export function companyToForm(company) {
     sales_person: company?.sales_person || '',
     is_badge_printed: Boolean(company?.is_badge_printed),
     is_payment_made: Boolean(company?.is_payment_made),
+    apply_title_case: Boolean(company?.apply_title_case),
+    products,
     productsText: products.join(', '),
     facebook: link.facebook || '',
     instagram: link.instagram || '',

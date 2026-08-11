@@ -19,11 +19,13 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `domain/companyFromApi.js` | GET response → form state |
 | `domain/parseCompanyError.js` | 400 ERROR / field errors |
 | `domain/formatCompanySearchLabel.js` | Parent search display |
+| `domain/extractMatchmakingProductOptions.js` | Product option names from matchmaking `question_type=product` |
 | `domain/companyFormDefaults.js` | Empty form + validation |
 | `domain/setupChecklistHelpers.js` | Step sort, urgency chips, portal_route → organizer path |
 | `hooks/useCreateCompany.js` | Create form submit |
 | `hooks/useEditCompany.js` | Load + patch submit |
 | `hooks/useCompanyCountries.js` | Country keys from filter options |
+| `hooks/useMatchmakingProductOptions.js` | Matchmaking product question options for edit |
 | `hooks/useExhibitorOverview.js` | Soft-fail Overview API for Setup Progress |
 | `hooks/useChecklistReminderList.js` | Paginated reminder log |
 | `hooks/useChecklistReminderSettings.js` | Load/save reminder settings |
@@ -42,7 +44,11 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `ui/ChecklistReminderSettingsForm.jsx` | Enable / portal URL / offsets |
 | `ui/CreateCompanyButton.jsx` | Navigates to create page |
 | `ui/CreateCompanyBasicsFields.jsx` | Shared basics (create + edit) |
-| `ui/CreateCompanyProfileFields.jsx` | Shared profile + logo |
+| `ui/CreateCompanyProfileFields.jsx` | Shared profile (create includes category/logo) |
+| `ui/CompanyLogoFields.jsx` | Logo upload / remove (top of edit form) |
+| `ui/CompanyCategoryProductsSection.jsx` | Edit: category then products |
+| `ui/CompanyProductSelectFields.jsx` | Edit: multi-select + setup Product question CTA |
+| `ui/CompanyProductsDisplay.jsx` | Detail: category + product chips |
 | `ui/EditCompanyLimitsFields.jsx` | Limits / status (edit only) |
 | `ui/ParentCompanySearch.jsx` | Parent exhibitor typeahead |
 

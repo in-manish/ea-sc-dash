@@ -62,6 +62,26 @@ const CreateCompanyBasicsFields = ({
           onChange={(e) => setField('company_name', e.target.value)}
           required
         />
+        {isEdit && (
+          <label className="flex items-start gap-2 text-sm cursor-pointer pt-1">
+            <input
+              type="checkbox"
+              className="w-4 h-4 accent-accent mt-0.5 shrink-0"
+              checked={form.apply_title_case}
+              onChange={(e) => setField('apply_title_case', e.target.checked)}
+            />
+            <span>
+              <span className="font-medium text-text-primary">
+                Format name as Title Case
+              </span>
+              <span className="block text-xs text-text-tertiary mt-0.5">
+                {form.apply_title_case
+                  ? 'On — company name will be shown in Title Case (e.g. Acme Corp).'
+                  : 'Off — keep the company name as entered (ignore title case).'}
+              </span>
+            </span>
+          </label>
+        )}
       </div>
 
       {isCo ? (

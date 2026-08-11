@@ -18,6 +18,7 @@ export function emptyCompanyForm(overrides = {}) {
     address: '',
     space: '',
     badge_limit: '',
+    products: [],
     productsText: '',
     facebook: '',
     instagram: '',
@@ -30,6 +31,7 @@ export function emptyCompanyForm(overrides = {}) {
     sales_person: '',
     is_badge_printed: false,
     is_payment_made: false,
+    apply_title_case: false,
     parent_exhibitor_obf: '',
     ...overrides,
   };

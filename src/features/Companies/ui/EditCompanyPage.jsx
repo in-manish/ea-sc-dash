@@ -1,11 +1,14 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Loader2, Building2 } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useEditCompany } from '../hooks/useEditCompany';
 import { useCompanyCountries } from '../hooks/useCompanyCountries';
+import { useMatchmakingProductOptions } from '../hooks/useMatchmakingProductOptions';
 import CreateCompanyBasicsFields from './CreateCompanyBasicsFields';
 import CreateCompanyProfileFields from './CreateCompanyProfileFields';
+import CompanyLogoFields from './CompanyLogoFields';
+import CompanyCategoryProductsSection from './CompanyCategoryProductsSection';
 import EditCompanyLimitsFields from './EditCompanyLimitsFields';
 
 const EditCompanyPage = () => {
@@ -44,6 +47,13 @@ const EditCompanyPage = () => {
     Boolean(eventId && token)
   );
 
+  const {
+    options: productOptions,
+    hasProductQuestion,
+    loading: productOptionsLoading,
+    error: productOptionsError,
+  } = useMatchmakingProductOptions(eventId, token, Boolean(eventId && token));
+
   if (!selectedEvent) {
     return (
       <div className="text-center p-12 text-text-secondary">
@@ -77,6 +87,11 @@ const EditCompanyPage = () => {
     submit();
   };
 
+  const setupProductQuestion = () => {
+    if (!eventId) return;
+    navigate(`/event/${eventId}/matchmaking?create=product`);
+  };
+
   return (
     <div className="max-w-[1000px] mx-auto animate-fade-in">
       <div className="mb-8">
@@ -89,23 +104,9 @@ const EditCompanyPage = () => {
           <ArrowLeft size={16} />
           Back to company
         </button>
-
-        <div className="flex items-center gap-4 border-b border-border pb-6">
-          {form.existingLogoUrl && !form.removeLogo ? (
-            <img
-              src={form.existingLogoUrl}
-              alt={form.company_name}
-              className="w-16 h-16 object-contain bg-white rounded-md border border-border shrink-0"
-            />
-          ) : (
-            <div className="w-16 h-16 bg-bg-tertiary rounded-md flex items-center justify-center text-accent shrink-0">
-              <Building2 size={28} />
-            </div>
-          )}
-          <div>
-            <h1 className="text-3xl font-bold text-text-primary m-0">Edit company</h1>
-            <p className="text-sm text-text-secondary mt-1">{form.company_name}</p>
-          </div>
+        <div className="border-b border-border pb-6">
+          <h1 className="text-3xl font-bold text-text-primary m-0">Edit company</h1>
+          <p className="text-sm text-text-secondary mt-1">{form.company_name}</p>
         </div>
       </div>
 
@@ -119,6 +120,8 @@ const EditCompanyPage = () => {
           </div>
         )}
 
+        <CompanyLogoFields form={form} setField={setField} isEdit />
+
         <CreateCompanyBasicsFields
           form={form}
           setField={setField}
@@ -128,6 +131,16 @@ const EditCompanyPage = () => {
           isEdit
           countries={countries}
           countriesLoading={countriesLoading}
+        />
+
+        <CompanyCategoryProductsSection
+          form={form}
+          setField={setField}
+          productOptions={productOptions}
+          productOptionsLoading={productOptionsLoading}
+          productOptionsError={productOptionsError}
+          hasProductQuestion={hasProductQuestion}
+          onSetupProductQuestion={setupProductQuestion}
         />
 
         <CreateCompanyProfileFields form={form} setField={setField} isEdit />

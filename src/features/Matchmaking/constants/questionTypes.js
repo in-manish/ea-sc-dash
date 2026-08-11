@@ -11,7 +11,6 @@ export const ATTENDEE_QUESTION_TYPE_OPTIONS = [
 
 export const EXHIBITOR_QUESTION_TYPE_OPTIONS = [
     { value: 'product', label: 'Product' },
-    { value: 'category', label: 'Category' },
 ];
 
 export const QUESTION_TYPE_OPTIONS = [
