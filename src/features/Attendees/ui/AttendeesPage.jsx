@@ -1,5 +1,5 @@
-import React, { useState, useRef, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { useSearchParams, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
 import useAttendeeFilters from '../hooks/useAttendeeFilters';
@@ -20,6 +20,8 @@ import AttendeesModals from './AttendeesModals';
 const AttendeesPage = () => {
     const { selectedEvent, token } = useAuth();
     const [searchParams, setSearchParams] = useSearchParams();
+    const location = useLocation();
+    const navigate = useNavigate();
     const [page, setPage] = useState(parseInt(searchParams.get('page')) || 1);
     const [activeTab, setActiveTab] = useState('list');
     const clearSelectionRef = useRef(() => {});
@@ -44,6 +46,15 @@ const AttendeesPage = () => {
         filters: filtersApi.filters,
         setSearchParams,
     });
+
+    useEffect(() => {
+        if (!location.state?.openCreateAttendee) return;
+        list.setCreatePrefill(location.state.createPrefill || null);
+        list.setIsCreateModalOpen(true);
+        navigate(`${location.pathname}${location.search}`, { replace: true, state: {} });
+        // Only react to navigation state arrivals
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [location.key]);
 
     const hasActiveSearchOrFilters =
         Boolean(searchApi.debouncedSearch) || Object.keys(filtersApi.filters).length > 0;
@@ -113,7 +124,10 @@ const AttendeesPage = () => {
             <AttendeesPageHeader
                 total={list.total}
                 activeTab={activeTab}
-                onCreateClick={() => list.setIsCreateModalOpen(true)}
+                onCreateClick={() => {
+                    list.setCreatePrefill(null);
+                    list.setIsCreateModalOpen(true);
+                }}
             />
             <AttendeesTabs activeTab={activeTab} onTabChange={setActiveTab} />
 

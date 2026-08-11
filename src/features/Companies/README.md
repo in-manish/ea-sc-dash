@@ -20,6 +20,7 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `domain/parseCompanyError.js` | 400 ERROR / field errors |
 | `domain/formatCompanySearchLabel.js` | Parent search display |
 | `domain/extractMatchmakingProductOptions.js` | Product option names from matchmaking `question_type=product` |
+| `domain/buildAttendeePrefillFromCompany.js` | Prefill create-attendee from company detail |
 | `domain/formatStallDetail.js` | Format stall_detail / contractor / requirements |
 | `domain/parseHandoverDetails.js` | Normalize handover JSON (object or string) |
 | `domain/companyFormDefaults.js` | Empty form + validation |

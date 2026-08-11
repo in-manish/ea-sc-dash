@@ -1,13 +1,23 @@
-import { Building2, Globe, Phone, Ticket, LayoutDashboard, Users, CheckCircle2 } from 'lucide-react';
+import { Building2, Globe, Phone, Ticket, LayoutDashboard, Users, CheckCircle2, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import CompanyHandoverDetails from './CompanyHandoverDetails';
 import { hasHandoverSignature } from '../domain/parseHandoverDetails';
+import { buildAttendeePrefillFromCompany } from '../domain/buildAttendeePrefillFromCompany';
 
 /** Existing 4 cards — company detail API only (not Overview API). */
 export default function CompanyDetailsInfoGrid({ company, eventId }) {
   const navigate = useNavigate();
   const handoverDone = hasHandoverSignature(company.handover_details);
   const handedOver = Boolean(company.all_badges_handed_over) || handoverDone;
+
+  const openCreateAttendee = () => {
+    navigate(`/event/${eventId}/attendees`, {
+      state: {
+        openCreateAttendee: true,
+        createPrefill: buildAttendeePrefillFromCompany(company),
+      },
+    });
+  };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -41,20 +51,38 @@ export default function CompanyDetailsInfoGrid({ company, eventId }) {
           <h3 className="text-xs font-semibold uppercase text-text-tertiary flex items-center gap-2 m-0">
             <Ticket size={16} /> Badge Statistics
           </h3>
-          <button
-            type="button"
-            className="btn btn-secondary btn-sm inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={() => navigate(`/event/${eventId}/attendees?exhibitor_id=${company.id}`)}
-            disabled={!company.badge_count}
-            title={
-              company.badge_count
-                ? 'View attendees under this exhibitor'
-                : 'No badges registered for this exhibitor'
-            }
-          >
-            <Users size={14} />
-            View Attendees
-          </button>
+          <div className="flex items-center gap-2 flex-wrap justify-end">
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={() => navigate(`/event/${eventId}/attendees?exhibitor_id=${company.id}`)}
+              disabled={!company.badge_count}
+              title={
+                company.badge_count
+                  ? 'View attendees under this exhibitor'
+                  : 'No badges registered for this exhibitor'
+              }
+            >
+              <Users size={14} />
+              View Attendees
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm inline-flex items-center gap-1.5"
+              onClick={openCreateAttendee}
+              title="Add Attendee"
+            >
+              <span className="relative inline-flex items-center justify-center">
+                <Users size={14} />
+                <Plus
+                  size={10}
+                  strokeWidth={3}
+                  className="absolute -right-1.5 -top-1.5 bg-bg-primary rounded-full text-accent"
+                />
+              </span>
+              Add Attendee
+            </button>
+          </div>
         </div>
         <div className="grid grid-cols-2 gap-2">
           <Stat label="Total Limit" value={company.badge_limit} />

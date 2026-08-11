@@ -101,7 +101,11 @@ const AttendeesModals = ({
             <CreateAttendeeModal
                 eventId={selectedEvent.id}
                 token={token}
-                onClose={() => list.setIsCreateModalOpen(false)}
+                initialValues={list.createPrefill}
+                onClose={() => {
+                    list.setIsCreateModalOpen(false);
+                    list.setCreatePrefill(null);
+                }}
                 onCreated={() => {
                     list.handleCreated();
                     searchApi.setSearch('');

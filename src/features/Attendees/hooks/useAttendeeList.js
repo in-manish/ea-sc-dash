@@ -19,6 +19,7 @@ export default function useAttendeeList({
     const [selectedAttendee, setSelectedAttendee] = useState(null);
     const [matchmakingAttendee, setMatchmakingAttendee] = useState(null);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [createPrefill, setCreatePrefill] = useState(null);
     const [isModalMaximized, setIsModalMaximized] = useState(false);
 
     useEffect(() => {
@@ -97,6 +98,8 @@ export default function useAttendeeList({
         setMatchmakingAttendee,
         isCreateModalOpen,
         setIsCreateModalOpen,
+        createPrefill,
+        setCreatePrefill,
         isModalMaximized,
         setIsModalMaximized,
         openAttendeeDetail,

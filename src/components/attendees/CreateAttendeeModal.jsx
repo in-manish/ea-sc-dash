@@ -1,46 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { eventService } from '../../services/eventService';
 import { Loader2, X, Plus, Trash2, UserPlus, AlertCircle, CheckCircle2, Building2 } from 'lucide-react';
+import {
+    emptyAttendee,
+    nullIfEmpty,
+    mergeSharedPrefill,
+    resolveAttendeeTypeName,
+} from '../../features/Attendees/domain/createAttendeeFormDefaults';
 
-const generateUuid = () => {
-    if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-        const r = (Math.random() * 16) | 0;
-        const v = c === 'x' ? r : (r & 0x3) | 0x8;
-        return v.toString(16);
-    });
-};
-
-const emptyAttendee = () => ({
-    name: '',
-    email: '',
-    country_code: '',
-    phone_number: '',
-    designation: '',
-    uuid: generateUuid(),
-});
-
-const initialShared = {
-    attendee_type: '',
-    reg_type: 'ON_SPOT',
-    company: '',
-    company_address: '',
-    city: '',
-    state: '',
-    country: '',
-    website: '',
-    exhibitor_id: '',
-    created_location: '',
-    printNow: false,
-};
-
-const nullIfEmpty = (v) => {
-    const t = typeof v === 'string' ? v.trim() : v;
-    return t === '' || t === undefined ? null : t;
-};
-
-const CreateAttendeeModal = ({ eventId, token, onClose, onCreated }) => {
-    const [shared, setShared] = useState(initialShared);
+const CreateAttendeeModal = ({ eventId, token, onClose, onCreated, initialValues = null }) => {
+    const [shared, setShared] = useState(() => mergeSharedPrefill(initialValues));
     const [attendees, setAttendees] = useState([emptyAttendee()]);
     const [attendeeTypes, setAttendeeTypes] = useState([]);
     const [typesLoading, setTypesLoading] = useState(true);
@@ -58,7 +27,15 @@ const CreateAttendeeModal = ({ eventId, token, onClose, onCreated }) => {
             setTypesLoading(true);
             try {
                 const data = await eventService.getAttendeeTypes(eventId, token);
-                if (active) setAttendeeTypes(data.attendee_types || []);
+                if (!active) return;
+                const types = data.attendee_types || [];
+                setAttendeeTypes(types);
+                if (initialValues?.attendee_type) {
+                    const resolved = resolveAttendeeTypeName(initialValues.attendee_type, types);
+                    if (resolved) {
+                        setShared((prev) => ({ ...prev, attendee_type: resolved }));
+                    }
+                }
             } catch (err) {
                 if (active) setError('Failed to load attendee types.');
             } finally {
@@ -67,7 +44,7 @@ const CreateAttendeeModal = ({ eventId, token, onClose, onCreated }) => {
         };
         loadTypes();
         return () => { active = false; };
-    }, [eventId, token]);
+    }, [eventId, token, initialValues?.attendee_type]);
 
     const updateShared = (key, value) => setShared((prev) => ({ ...prev, [key]: value }));
 
@@ -107,6 +84,9 @@ const CreateAttendeeModal = ({ eventId, token, onClose, onCreated }) => {
             ...prev,
             company: company.company_name || '',
             exhibitor_id: company.id != null ? String(company.id) : prev.exhibitor_id,
+            company_address: company.address || prev.company_address,
+            website: company.website || prev.website,
+            country: (company.location || company.country || prev.country || '').trim(),
         }));
         setShowCompanySuggestions(false);
         setCompanySuggestions([]);
@@ -121,7 +101,7 @@ const CreateAttendeeModal = ({ eventId, token, onClose, onCreated }) => {
             attendee_type: shared.attendee_type,
             reg_type: shared.reg_type,
             created_at: now,
-            source_metadata: { source_type: 'dashboard' },
+            source_metadata: { source_type: 'DASHBOARD' },
             attendees: attendees.map((a) => ({
                 name: a.name.trim(),
                 uuid: a.uuid,
@@ -138,6 +118,7 @@ const CreateAttendeeModal = ({ eventId, token, onClose, onCreated }) => {
         if (nullIfEmpty(shared.created_location)) payload.created_location = shared.created_location.trim();
         if (nullIfEmpty(shared.exhibitor_id)) payload.exhibitor_id = Number(shared.exhibitor_id);
         if (shared.printNow) payload.printed_at = now;
+        payload.is_matchable = Boolean(shared.is_matchable);
 
         return payload;
     }, [shared, attendees]);
@@ -378,15 +359,26 @@ const CreateAttendeeModal = ({ eventId, token, onClose, onCreated }) => {
                                 {renderFieldError('created_location')}
                             </div>
                         </div>
-                        <label className="flex items-center gap-2 text-sm cursor-pointer w-fit">
-                            <input
-                                type="checkbox"
-                                className="w-4 h-4 accent-accent"
-                                checked={shared.printNow}
-                                onChange={(e) => updateShared('printNow', e.target.checked)}
-                            />
-                            <span className="text-text-secondary">Mark badge as printed now</span>
-                        </label>
+                        <div className="flex flex-wrap gap-6">
+                            <label className="flex items-center gap-2 text-sm cursor-pointer w-fit">
+                                <input
+                                    type="checkbox"
+                                    className="w-4 h-4 accent-accent"
+                                    checked={shared.printNow}
+                                    onChange={(e) => updateShared('printNow', e.target.checked)}
+                                />
+                                <span className="text-text-secondary">Mark badge as printed now</span>
+                            </label>
+                            <label className="flex items-center gap-2 text-sm cursor-pointer w-fit">
+                                <input
+                                    type="checkbox"
+                                    className="w-4 h-4 accent-accent"
+                                    checked={shared.is_matchable}
+                                    onChange={(e) => updateShared('is_matchable', e.target.checked)}
+                                />
+                                <span className="text-text-secondary">Is matchable</span>
+                            </label>
+                        </div>
                     </div>
 
                     {/* Per-attendee rows */}
