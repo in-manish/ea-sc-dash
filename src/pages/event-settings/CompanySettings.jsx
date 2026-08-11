@@ -1,8 +1,9 @@
 import React from 'react';
-import { Building2, MapPin, Users, Plus, Trash2, Eye, EyeOff, ArrowUp, ArrowDown, Save, MousePointerClick, LayoutGrid } from 'lucide-react';
+import { Building2, MapPin, Users, Save, LayoutGrid } from 'lucide-react';
 import { SectionHeader, FormField, ToggleSwitch, getInputClass, LimitStatField } from './components/SharedComponents';
 import ScriptEmbedEditor from '../../components/common/ScriptEmbedEditor';
-import ComplimentaryInviteeLinks from './ComplimentaryInviteeLinks';
+import ComplimentarySection from './ComplimentarySection';
+import ExhibitorPreviewModeSection from './ExhibitorPreviewModeSection';
 
 export const STALL_SCHEMA_TYPES = [
     { value: 'BRSP', label: 'Bare space' },
@@ -35,11 +36,6 @@ const CompanySettings = ({
     isStallSchemaTypesModified
 }) => {
     const selectedStallTypes = Array.isArray(eventData.stall_schem_types) ? eventData.stall_schem_types : [];
-    const getInviteeInputClass = (index, fieldName) => {
-        const isModified = !eventData.originalData?.company_complimentary_invitee_info?.[index] || 
-                          eventData.company_complimentary_invitee_info[index][fieldName] !== eventData.originalData.company_complimentary_invitee_info[index][fieldName];
-        return getInputClass(fieldName, isModified);
-    };
 
     const handleScriptChange = (name, value) => {
         handleInputChange({ target: { name, value, type: 'text' } });
@@ -70,7 +66,7 @@ const CompanySettings = ({
 
             {/* Section 2: Allocation Limits */}
             <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
-                <SectionHeader icon={Users} title="Allocation & Limits" colorClass="text-blue-500" borderClass="bg-blue-500" />
+                <SectionHeader icon={Users} title="Badge Allocation & Limits" colorClass="text-blue-500" borderClass="bg-blue-500" />
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <LimitStatField
                         label="Default Badge Limit"
@@ -149,16 +145,6 @@ const CompanySettings = ({
                             />
                         </div>
                     </FormField>
-                    <FormField label="Complimentary Invitee Base Link" description="Base URL used to generate complimentary invitee links">
-                        <input
-                            type="url"
-                            name="complimentary_invitee_base_link"
-                            value={eventData.complimentary_invitee_base_link || ''}
-                            onChange={handleInputChange}
-                            className={getInputClass('complimentary_invitee_base_link', isFieldModified('complimentary_invitee_base_link'))}
-                            placeholder="https://tickets.fairfest.in/e/..."
-                        />
-                    </FormField>
                     <ScriptEmbedEditor
                         label="FHT / Hotel Map Script"
                         description="Raw Hotelmap embed script. Preview renders the map the same way accommodation pages do."
@@ -169,242 +155,28 @@ const CompanySettings = ({
                 </div>
             </div>
 
-            {/* Section 4: Exhibitor Statistics */}
-            <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
-                <SectionHeader icon={Building2} title="Exhibitor Statistics" colorClass="text-indigo-500" borderClass="bg-indigo-500" />
-                <div className="space-y-6">
-                    <div className="flex justify-between items-center p-4 bg-bg-secondary rounded-lg border border-border text-sm">
-                        <div>
-                            <p className="font-semibold text-text-primary m-0">Show Statistics</p>
-                            <p className="text-xs text-text-tertiary mt-0.5">Toggle visibility of exhibitor and country stats on the portal.</p>
-                        </div>
-                        <ToggleSwitch
-                            name="is_active"
-                            checked={eventData.exhibitor_stats?.is_active || false}
-                            isModified={isExhibitorStatModified('is_active')}
-                            onChange={(e) => handleExhibitorStatsChange('is_active', e.target.checked)}
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormField label="Country Statistics Text" description="Display text for country counts">
-                            <input
-                                type="text"
-                                name="country_stat_text"
-                                value={eventData.exhibitor_stats?.country_stat_text || ''}
-                                onChange={(e) => handleExhibitorStatsChange('country_stat_text', e.target.value)}
-                                className={getInputClass('country_stat_text', isExhibitorStatModified('country_stat_text'))}
-                                placeholder="e.g. 20+ Countries"
-                            />
-                        </FormField>
-                        <FormField label="Exhibitor Statistics Text" description="Display text for exhibitor counts">
-                            <input
-                                type="text"
-                                name="exhibitor_stat_text"
-                                value={eventData.exhibitor_stats?.exhibitor_stat_text || ''}
-                                onChange={(e) => handleExhibitorStatsChange('exhibitor_stat_text', e.target.value)}
-                                className={getInputClass('exhibitor_stat_text', isExhibitorStatModified('exhibitor_stat_text'))}
-                                placeholder="e.g. 500+ Exhibitors"
-                            />
-                        </FormField>
-                        <FormField label="Country Statistics Description" description="Additional details for countries">
-                            <textarea
-                                name="country_stat_description"
-                                value={eventData.exhibitor_stats?.country_stat_description || ''}
-                                onChange={(e) => handleExhibitorStatsChange('country_stat_description', e.target.value)}
-                                className={getInputClass('country_stat_description', isExhibitorStatModified('country_stat_description'))}
-                                rows={2}
-                                placeholder="Describe country statistics..."
-                            />
-                        </FormField>
-                        <FormField label="Exhibitor Statistics Description" description="Additional details for exhibitors">
-                            <textarea
-                                name="exhibitor_stat_description"
-                                value={eventData.exhibitor_stats?.exhibitor_stat_description || ''}
-                                onChange={(e) => handleExhibitorStatsChange('exhibitor_stat_description', e.target.value)}
-                                className={getInputClass('exhibitor_stat_description', isExhibitorStatModified('exhibitor_stat_description'))}
-                                rows={2}
-                                placeholder="Describe exhibitor statistics..."
-                            />
-                        </FormField>
-                    </div>
-                </div>
-            </div>
-
-            {/* Section 4.5: Interested In CTA */}
-            <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
-                <SectionHeader icon={MousePointerClick} title="Interested In CTA" colorClass="text-pink-500" borderClass="bg-pink-500" />
-                <div className="space-y-6">
-                    <div className="flex justify-between items-center p-4 bg-bg-secondary rounded-lg border border-border text-sm">
-                        <div>
-                            <p className="font-semibold text-text-primary m-0">Show Interested In CTA</p>
-                            <p className="text-xs text-text-tertiary mt-0.5">Toggle visibility of the "Interested In" call to action.</p>
-                        </div>
-                        <ToggleSwitch
-                            name="is_active"
-                            checked={eventData.interested_in?.is_active ?? true}
-                            isModified={isInterestedInModified('is_active')}
-                            onChange={(e) => handleInterestedInChange('is_active', e.target.checked)}
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-6">
-                        <FormField label="Title" description="The heading/title for the Interested In section">
-                            <input
-                                type="text"
-                                name="title"
-                                value={eventData.interested_in?.title || ''}
-                                onChange={(e) => handleInterestedInChange('title', e.target.value)}
-                                className={getInputClass('title', isInterestedInModified('title'))}
-                                placeholder="Enter title (e.g., Interested in participating?)"
-                            />
-                        </FormField>
-                        <FormField label="Description" description="Short description text explaining the call to action">
-                            <textarea
-                                name="description"
-                                value={eventData.interested_in?.description || ''}
-                                onChange={(e) => handleInterestedInChange('description', e.target.value)}
-                                className={getInputClass('description', isInterestedInModified('description'))}
-                                rows={2}
-                                placeholder="Enter description..."
-                            />
-                        </FormField>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormField label="Exhibit URL" description="Link for exhibit inquiry">
-                            <input
-                                type="url"
-                                name="exhibit_url"
-                                value={eventData.interested_in?.exhibit_url || ''}
-                                onChange={(e) => handleInterestedInChange('exhibit_url', e.target.value)}
-                                className={getInputClass('exhibit_url', isInterestedInModified('exhibit_url'))}
-                                placeholder="https://example.com/exhibit"
-                            />
-                        </FormField>
-                        <FormField label="Visit URL" description="Link for visit inquiry">
-                            <input
-                                type="url"
-                                name="visit_url"
-                                value={eventData.interested_in?.visit_url || ''}
-                                onChange={(e) => handleInterestedInChange('visit_url', e.target.value)}
-                                className={getInputClass('visit_url', isInterestedInModified('visit_url'))}
-                                placeholder="https://example.com/visit"
-                            />
-                        </FormField>
-                    </div>
-                </div>
-            </div>
-
-            {/* Section 4.6: Exhibitor Preview Mode */}
-            <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
-                <SectionHeader icon={Eye} title="Exhibitor Preview Mode" colorClass="text-emerald-500" borderClass="bg-emerald-500" />
-                <div className="space-y-4">
-                    <div className="flex justify-between items-center p-4 bg-bg-secondary rounded-lg border border-border text-sm">
-                        <div>
-                            <p className="font-semibold text-text-primary m-0">Enable Preview Mode</p>
-                            <p className="text-xs text-text-tertiary mt-0.5">Toggle exhibitor preview mode across the platform.</p>
-                        </div>
-                        <ToggleSwitch
-                            name="is_exhibitor_preview_mode_on"
-                            checked={eventData.is_exhibitor_preview_mode_on || false}
-                            isModified={isFieldModified('is_exhibitor_preview_mode_on')}
-                            onChange={handleInputChange}
-                        />
-                    </div>
-                </div>
-            </div>
-
-            {/* Section 5: Complimentary Invitee Info */}
-            <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
-                <div className="flex justify-between items-center mb-6 pb-2 border-b border-border">
-                    <h3 className="text-base font-semibold text-text-primary m-0 flex items-center gap-2">
-                        <Users size={18} className="text-purple-500" />
-                        Complimentary Access Rules
-                    </h3>
-                    <button className="btn btn-sm btn-secondary flex items-center gap-1" onClick={addInviteeInfo} type="button">
-                        <Plus size={14} />
-                        Add Block
-                    </button>
-                </div>
-
-                <div className="space-y-4">
-                    {(eventData.company_complimentary_invitee_info || []).map((info, index) => (
-                        <div key={index} className="bg-bg-secondary border border-border rounded-lg p-5">
-                            <div className="flex justify-between items-center mb-5">
-                                <span className="px-2 py-0.5 bg-bg-tertiary rounded text-[10px] font-bold text-text-tertiary uppercase tracking-tighter">Rule Block #{index + 1}</span>
-                                <div className="flex gap-2">
-                                    <div className="flex rounded border border-border overflow-hidden">
-                                        <button
-                                            className="w-8 h-8 flex items-center justify-center bg-bg-primary text-text-secondary hover:bg-bg-tertiary disabled:opacity-30"
-                                            onClick={() => moveInviteeInfo(index, -1)}
-                                            disabled={index === 0}
-                                            type="button"
-                                        ><ArrowUp size={14} /></button>
-                                        <button
-                                            className="w-8 h-8 flex items-center justify-center bg-bg-primary text-text-secondary border-l border-border hover:bg-bg-tertiary disabled:opacity-30"
-                                            onClick={() => moveInviteeInfo(index, 1)}
-                                            disabled={index === (eventData.company_complimentary_invitee_info || []).length - 1}
-                                            type="button"
-                                        ><ArrowDown size={14} /></button>
-                                    </div>
-                                    <button
-                                        className={`w-8 h-8 flex items-center justify-center rounded border transition-all ${previewStates[index] ? 'bg-accent text-white border-accent' : 'border-border bg-bg-primary text-text-secondary hover:bg-bg-tertiary'}`}
-                                        onClick={() => togglePreview(index)}
-                                        type="button"
-                                    >
-                                        {previewStates[index] ? <EyeOff size={14} /> : <Eye size={14} />}
-                                    </button>
-                                    <button
-                                        className="w-8 h-8 flex items-center justify-center rounded border border-border bg-bg-primary text-danger hover:bg-red-50"
-                                        onClick={() => removeInviteeInfo(index)}
-                                        type="button"
-                                    ><Trash2 size={14} /></button>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-4">
-                                <FormField label="Title">
-                                    <input
-                                        type="text"
-                                        value={info.title || ''}
-                                        onChange={(e) => handleInviteeInfoChange(index, 'title', e.target.value)}
-                                        className={getInviteeInputClass(index, 'title')}
-                                        placeholder="Eligibility, Quota, etc."
-                                    />
-                                </FormField>
-                                <FormField label="Description (HTML Support)">
-                                    {previewStates[index] ? (
-                                        <div
-                                            className="bg-bg-primary border border-border rounded-md p-4 min-h-[140px] text-sm leading-relaxed prose prose-sm max-w-none shadow-inner"
-                                            dangerouslySetInnerHTML={{ __html: info.description }}
-                                        />
-                                    ) : (
-                                        <textarea
-                                            value={info.description || ''}
-                                            onChange={(e) => handleInviteeInfoChange(index, 'description', e.target.value)}
-                                            className={getInviteeInputClass(index, 'description')}
-                                            rows={5}
-                                            placeholder="<p>Enter rules here...</p>"
-                                        />
-                                    )}
-                                </FormField>
-                            </div>
-                        </div>
-                    ))}
-
-                    {(!eventData.company_complimentary_invitee_info || eventData.company_complimentary_invitee_info.length === 0) && (
-                        <div className="text-center p-12 bg-bg-secondary rounded-lg border border-dashed border-border text-text-tertiary">
-                            <p className="mb-4">No complimentary invitee information added yet.</p>
-                            <button className="btn btn-sm btn-secondary" onClick={addInviteeInfo} type="button">Add First Block</button>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* Section 6: Complimentary Invitee Links */}
-            <ComplimentaryInviteeLinks
+            {/* Section 4: Exhibitor Preview Mode */}
+            <ExhibitorPreviewModeSection
                 eventData={eventData}
+                handleInputChange={handleInputChange}
+                isFieldModified={isFieldModified}
+                handleExhibitorStatsChange={handleExhibitorStatsChange}
+                isExhibitorStatModified={isExhibitorStatModified}
+                handleInterestedInChange={handleInterestedInChange}
+                isInterestedInModified={isInterestedInModified}
+            />
+
+            {/* Section 5: Complimentary */}
+            <ComplimentarySection
+                eventData={eventData}
+                handleInputChange={handleInputChange}
+                isFieldModified={isFieldModified}
+                addInviteeInfo={addInviteeInfo}
+                removeInviteeInfo={removeInviteeInfo}
+                handleInviteeInfoChange={handleInviteeInfoChange}
+                togglePreview={togglePreview}
+                moveInviteeInfo={moveInviteeInfo}
+                previewStates={previewStates}
                 addInviteeLink={addInviteeLink}
                 removeInviteeLink={removeInviteeLink}
                 handleInviteeLinkChange={handleInviteeLinkChange}
