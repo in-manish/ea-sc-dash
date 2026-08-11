@@ -30,7 +30,11 @@ export const formatCardLocation = (card) =>
 
 export const formatCardDate = (value) => {
   if (!value) return '';
-  const d = new Date(value);
+  const normalized = String(value).replace(
+    /^(\d{4}-\d{2}-\d{2})\s(\d{2}:\d{2}:\d{2})([+-]\d{2})(\d{2})$/,
+    '$1T$2$3:$4'
+  );
+  const d = new Date(normalized);
   if (Number.isNaN(d.getTime())) return String(value);
   return d.toLocaleDateString(undefined, {
     year: 'numeric',
@@ -38,6 +42,20 @@ export const formatCardDate = (value) => {
     day: 'numeric',
   });
 };
+
+export const DELETE_REASON_LABELS = {
+  USER: 'User deleted',
+  SYNC: 'Sync',
+  BLOCK: 'Blocked',
+  ADMIN: 'Admin deleted',
+};
+
+export const formatDeleteReason = (reason) =>
+  DELETE_REASON_LABELS[reason] || reason || '—';
+
+/** Prefer card_id for restore / permanent delete (not contact user id). */
+export const getSavedCardId = (card) =>
+  card?.card_id != null ? card.card_id : null;
 
 export const cardListKey = (card, index) =>
   card?.card_id ?? card?.id ?? card?.non_sc_id ?? card?.uuid ?? `idx-${index}`;

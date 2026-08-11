@@ -7,7 +7,7 @@ import {
   isNonSnapCard,
 } from '../domain/savedCardHelpers';
 
-export default function SavedCardListItem({ card, selected, onSelect }) {
+export default function SavedCardListItem({ card, selected, onSelect, endPad = false }) {
   const nonSc = isNonSnapCard(card);
   const phone = formatCardPhone(card);
   const location = formatCardLocation(card);
@@ -19,6 +19,8 @@ export default function SavedCardListItem({ card, selected, onSelect }) {
       type="button"
       onClick={() => onSelect(card)}
       className={`w-full text-left px-4 py-3 border-b border-border transition-colors ${
+        endPad ? 'pr-16' : ''
+      } ${
         selected ? 'bg-accent/8 border-l-2 border-l-accent' : 'hover:bg-bg-secondary/40 border-l-2 border-l-transparent'
       }`}
     >

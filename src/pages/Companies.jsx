@@ -9,6 +9,8 @@ import CompanyProductSection from './event-settings/company-products/CompanyProd
 import CompanyUploadModal from '../components/companies/CompanyUploadModal';
 import CompanyUploadStatus from '../components/companies/CompanyUploadStatus';
 import CompanyComprehensiveReportPanel from '../components/companies/CompanyComprehensiveReportPanel';
+import { CreateCompanyButton } from '../features/Companies';
+import ChecklistReminderTab from '../features/Companies/ui/ChecklistReminderTab';
 
 const Companies = () => {
     const { selectedEvent, token } = useAuth();
@@ -19,6 +21,7 @@ const Companies = () => {
     const activeTab = searchParams.get('tab') || 'exhibitors';
     const arView = searchParams.get('ar_view') || 'orders';
     const exhView = searchParams.get('exh_view') || 'list';
+    const crView = searchParams.get('cr_view') || 'list';
 
     const [companies, setCompanies] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -63,12 +66,22 @@ const Companies = () => {
         if (tabName !== 'additional_requirements') {
             newParams.delete('ar_view');
         }
+        if (tabName !== 'checklist_reminder') {
+            newParams.delete('cr_view');
+        }
         setSearchParams(newParams);
     };
 
     const handleARViewChange = (viewName) => {
         const newParams = new URLSearchParams(searchParams);
         newParams.set('ar_view', viewName);
+        setSearchParams(newParams);
+    };
+
+    const handleCrViewChange = (viewName) => {
+        const newParams = new URLSearchParams(searchParams);
+        if (viewName === 'list') newParams.delete('cr_view');
+        else newParams.set('cr_view', viewName);
         setSearchParams(newParams);
     };
 
@@ -157,6 +170,9 @@ const Companies = () => {
                 <div className="flex gap-2 min-w-0">
                     {activeTab === 'exhibitors' && (
                         <div className="flex gap-3 items-center flex-wrap justify-end">
+                            {selectedEvent && (
+                                <CreateCompanyButton eventId={selectedEvent.id} />
+                            )}
                             <button className="btn btn-primary" onClick={() => setIsUploadModalOpen(true)}>
                                 <Upload size={16} style={{ marginRight: '0.5rem' }} />
                                 Upload CSV
@@ -220,6 +236,15 @@ const Companies = () => {
                     onClick={() => handleTabChange('additional_requirements')}
                 >
                     Additional Requirements
+                </button>
+                <button
+                    className={`pb-2 px-1 font-medium text-sm transition-colors relative ${activeTab === 'checklist_reminder'
+                        ? 'text-accent border-b-2 border-accent'
+                        : 'text-text-secondary hover:text-text-primary'
+                        }`}
+                    onClick={() => handleTabChange('checklist_reminder')}
+                >
+                    Checklist Reminder
                 </button>
             </div>
 
@@ -435,6 +460,15 @@ const Companies = () => {
 
             {activeTab === 'additional_requirements' && arView === 'setup' && (
                 <ARManager eventId={selectedEvent.id} />
+            )}
+
+            {activeTab === 'checklist_reminder' && selectedEvent && (
+                <ChecklistReminderTab
+                    eventId={selectedEvent.id}
+                    token={token}
+                    view={crView}
+                    onViewChange={handleCrViewChange}
+                />
             )}
 
             {activeTab === 'company_products' && (

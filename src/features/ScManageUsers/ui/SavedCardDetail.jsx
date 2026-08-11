@@ -4,9 +4,11 @@ import {
   formatCardDate,
   formatCardLocation,
   formatCardPhone,
+  formatDeleteReason,
   isNonSnapCard,
 } from '../domain/savedCardHelpers';
 import { cardStatusMeta } from '../domain/cardRequestHelpers';
+import SavedCardDetailActions from './SavedCardDetailActions';
 
 const Field = ({ label, children }) => {
   if (!children) return null;
@@ -18,7 +20,14 @@ const Field = ({ label, children }) => {
   );
 };
 
-export default function SavedCardDetail({ card, onBack }) {
+export default function SavedCardDetail({
+  card,
+  onBack,
+  archived = false,
+  isBusy = false,
+  onRestore,
+  onRequestDelete,
+}) {
   const phone = formatCardPhone(card);
   const location = formatCardLocation(card);
   const tags = Array.isArray(card.tags) ? card.tags : [];
@@ -27,6 +36,7 @@ export default function SavedCardDetail({ card, onBack }) {
   const extras = card.extra_fields && typeof card.extra_fields === 'object'
     ? Object.entries(card.extra_fields)
     : [];
+  const showActions = Boolean(onRestore || onRequestDelete);
 
   return (
     <div className="flex flex-col h-full min-h-0">
@@ -35,6 +45,11 @@ export default function SavedCardDetail({ card, onBack }) {
           <ArrowLeft size={16} />
         </button>
         <span className="text-sm font-semibold text-text-primary">Contact detail</span>
+        {archived && (
+          <span className="ml-auto text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
+            Archived
+          </span>
+        )}
       </div>
 
       <div className="overflow-y-auto flex-1 p-4 space-y-4">
@@ -93,14 +108,26 @@ export default function SavedCardDetail({ card, onBack }) {
         </dl>
 
         <div className="text-[11px] text-text-tertiary space-y-1 pt-2 border-t border-border">
-          {card.card_id != null && <p>Card request ID · {card.card_id}</p>}
+          {card.card_id != null && <p>Card ID · {card.card_id}</p>}
           {card.id != null && <p>Contact user ID · {card.id}</p>}
           {card.non_sc_id != null && <p>Non-SC ID · {card.non_sc_id}</p>}
           {card.uuid && <p>UUID · {card.uuid}</p>}
           <p>Saved · {formatCardDate(card.confirmed_at || card.created_at) || '—'}</p>
           {card.last_modified_at && <p>Updated · {formatCardDate(card.last_modified_at)}</p>}
+          {card.deleted_at && <p>Deleted · {formatCardDate(card.deleted_at)}</p>}
+          {card.delete_reason && <p>Delete reason · {formatDeleteReason(card.delete_reason)}</p>}
         </div>
       </div>
+
+      {showActions && (
+        <SavedCardDetailActions
+          card={card}
+          archived={archived}
+          isBusy={isBusy}
+          onRestore={onRestore}
+          onRequestDelete={onRequestDelete}
+        />
+      )}
     </div>
   );
 }

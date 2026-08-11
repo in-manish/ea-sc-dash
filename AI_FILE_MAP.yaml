@@ -1,4 +1,68 @@
 tasks:
+  company_create:
+    files:
+      - src/features/Companies/api/companyApi.js
+      - src/features/Companies/domain/buildCompanyFormData.js
+      - src/features/Companies/domain/parseCompanyError.js
+      - src/features/Companies/domain/companyFormDefaults.js
+      - src/features/Companies/hooks/useCreateCompany.js
+      - src/features/Companies/ui/CreateCompanyPage.jsx
+      - src/features/Companies/ui/CreateCompanyButton.jsx
+      - src/pages/CreateCompany.jsx
+      - src/pages/Companies.jsx
+      - src/pages/CompanyDetails.jsx
+      - src/components/companies/CoExhibitorsList.jsx
+      - src/components/companies/CoExhibitorsTable.jsx
+    routes:
+      - /event/:id/companies
+      - /event/:id/companies/new
+      - /event/:id/companies/:companyId
+  company_edit:
+    files:
+      - src/features/Companies/api/companyApi.js
+      - src/features/Companies/domain/buildCompanyPatchFormData.js
+      - src/features/Companies/domain/companyFromApi.js
+      - src/features/Companies/hooks/useEditCompany.js
+      - src/features/Companies/ui/EditCompanyPage.jsx
+      - src/features/Companies/ui/EditCompanyLimitsFields.jsx
+      - src/pages/EditCompany.jsx
+      - src/pages/CompanyDetails.jsx
+    routes:
+      - /event/:id/companies/:companyId/edit
+  company_detail_setup_progress:
+    files:
+      - src/features/Companies/ui/CompanyDetailsPage.jsx
+      - src/features/Companies/ui/CompanyDetailsHeader.jsx
+      - src/features/Companies/ui/CompanyDetailsInfoGrid.jsx
+      - src/features/Companies/ui/CompanyDetailsLowerSection.jsx
+      - src/features/Companies/ui/SetupProgressSection.jsx
+      - src/features/Companies/ui/SetupProgressStep.jsx
+      - src/features/Companies/ui/SetupProgressSkeleton.jsx
+      - src/features/Companies/hooks/useExhibitorOverview.js
+      - src/features/Companies/domain/setupChecklistHelpers.js
+      - src/features/Companies/api/companyApi.js
+      - src/pages/CompanyDetails.jsx
+    routes:
+      - /event/:id/companies/:companyId
+    notes: >
+      Setup Progress from GET /exhibitor/events/:id/overview/?company_id= only.
+      Existing 4 cards stay on company detail API. Soft-fail overview; hide when visible=false.
+  checklist_reminder:
+    files:
+      - src/features/Companies/ui/ChecklistReminderTab.jsx
+      - src/features/Companies/ui/ChecklistReminderFilters.jsx
+      - src/features/Companies/ui/ChecklistReminderTable.jsx
+      - src/features/Companies/ui/ChecklistReminderSettingsForm.jsx
+      - src/features/Companies/hooks/useChecklistReminderList.js
+      - src/features/Companies/hooks/useChecklistReminderSettings.js
+      - src/features/Companies/api/checklistReminderApi.js
+      - src/features/Companies/domain/checklistReminderHelpers.js
+      - src/pages/Companies.jsx
+    routes:
+      - /event/:id/companies?tab=checklist_reminder
+    notes: >
+      Reminder log GET .../exhibitor/setup-checklist/reminders/;
+      settings GET|PATCH .../exhibitor-setup-checklist/ (no steps).
   agenda_list:
     files:
       - src/features/Agenda/ui/AgendaListPage.jsx
@@ -27,13 +91,35 @@ tasks:
       - src/features/ScManageUsers/ui/UserDetailsCardsSection.jsx
       - src/features/ScManageUsers/ui/UserProfileEditForm.jsx
       - src/features/ScManageUsers/ui/UserCardsSection.jsx
+      - src/features/ScManageUsers/ui/SavedCardsTab.jsx
+      - src/features/ScManageUsers/ui/PermanentDeleteCardModal.jsx
+      - src/features/ScManageUsers/hooks/useUserSavedCards.js
+      - src/features/ScManageUsers/hooks/useSavedCardMutations.js
       - src/features/ScManageUsers/api/userCardsApi.js
       - src/sc/pages/UserDetails.jsx
     routes:
       - /users/manage
       - /users/manage/:userId
+  sc_admin_saved_cards:
+    files:
+      - src/features/ScManageUsers/api/userCardsApi.js
+      - src/features/ScManageUsers/hooks/useUserSavedCards.js
+      - src/features/ScManageUsers/hooks/useSavedCardMutations.js
+      - src/features/ScManageUsers/ui/SavedCardsTab.jsx
+      - src/features/ScManageUsers/ui/SavedCardsScopeToggle.jsx
+      - src/features/ScManageUsers/ui/SavedCardDetailActions.jsx
+      - src/features/ScManageUsers/ui/PermanentDeleteCardModal.jsx
+      - src/features/ScManageUsers/domain/savedCardHelpers.js
+    notes: Active GET cards/; archived GET ?archived=1; restore POST; permanent DELETE { card_id }
 
 features:
+  Companies:
+    root: src/features/Companies/
+    entry: src/pages/Companies.jsx
+    detail_entry: src/pages/CompanyDetails.jsx
+    api: POST /events/:eventId/companies/ (multipart, Token auth)
+    overview_api: GET /exhibitor/events/:eventId/overview/?company_id=
+    checklist_reminder_api: GET|PATCH /events/:eventId/exhibitor-setup-checklist/; GET .../exhibitor/setup-checklist/reminders/
   Agenda:
     root: src/features/Agenda/
     entry: src/pages/event-agenda/index.jsx
@@ -45,12 +131,19 @@ features:
     routes:
       - /users/manage
       - /users/manage/:userId
+    cards_api: /evc/admin/users/{userId}/cards/
 
 critical_paths:
   - src/services/agendaService.js
+  - src/features/Companies/api/companyApi.js
   - src/App.jsx
 
 glossary:
   speaker_default_alpha_sort: When true, speakers sorted A-Z by name; when false, by speaker_sort_order
   speaker_image_N: Multipart file field index aligned with speaker array
   moderator_image_N: Multipart file field index aligned with moderator array
+  company_create_multipart: Must use FormData; nested product/link/media as JSON strings; always send company_name, company_detail, website
+  company_edit_patch: PATCH multipart; always send company_name; only changed fields; booleans as true/false strings; logo empty string removes
+  company_setup_progress: Overview API only; organizer must pass company_id; hide when setup_checklist.visible=false; soft-fail
+  sc_card_id: Use CONTACT_SAVED card_id for admin restore/delete — not the contact user id
+  sc_card_archived: GET cards/?archived=1 returns deleted_at + delete_reason (USER|SYNC|BLOCK|ADMIN)
