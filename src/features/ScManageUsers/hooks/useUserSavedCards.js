@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { fetchUserSavedCards } from '../api/userCardsApi';
 
-/** Loads admin saved-cards list when panel opens for a user. */
-export default function useUserSavedCards({ userId, token, enabled }) {
+/** Loads admin saved-cards list (active or archived) when panel opens. */
+export default function useUserSavedCards({ userId, token, enabled, archived = false }) {
   const [cards, setCards] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -21,7 +21,7 @@ export default function useUserSavedCards({ userId, token, enabled }) {
       setIsLoading(true);
       setError('');
       try {
-        const list = await fetchUserSavedCards(token, userId);
+        const list = await fetchUserSavedCards(token, userId, { archived });
         if (!cancelled) setCards(list);
       } catch (err) {
         if (!cancelled) {
@@ -36,12 +36,17 @@ export default function useUserSavedCards({ userId, token, enabled }) {
     return () => {
       cancelled = true;
     };
-  }, [enabled, userId, token, reloadKey]);
+  }, [enabled, userId, token, archived, reloadKey]);
+
+  const removeLocal = (cardId) => {
+    setCards((prev) => prev.filter((c) => c.card_id !== cardId));
+  };
 
   return {
     cards,
     isLoading,
     error,
     reload: () => setReloadKey((k) => k + 1),
+    removeLocal,
   };
 }

@@ -1,179 +1,104 @@
-import React from 'react';
-import { Calendar, Settings, MousePointerClick, BarChart3 } from 'lucide-react';
-import { SectionHeader, FormField, ToggleSwitch, getInputClass } from './components/SharedComponents';
+import React, { useState } from 'react';
+import { Calendar } from 'lucide-react';
+import { ToggleSwitch } from './components/SharedComponents';
+import AgendaPreviewDetailsTab from './AgendaPreviewDetailsTab';
+import AgendaPreviewCtaTab from './AgendaPreviewCtaTab';
+import AgendaPreviewStatsTab from './AgendaPreviewStatsTab';
+
+const TABS = [
+    { id: 'details', label: 'Preview Details' },
+    { id: 'cta', label: 'Preview CTA' },
+    { id: 'stats', label: 'Preview Stats' },
+];
 
 const AgendaSettings = ({
     eventData,
     handleAgendaChange,
     handleAgendaNestedChange,
-    isAgendaModified
+    isAgendaModified,
 }) => {
+    const [activeTab, setActiveTab] = useState('details');
     const agenda = eventData.agenda || {};
     const previewCta = agenda.preview_cta || {};
     const previewStats = agenda.preview_stats || {};
+    const previewOn = !!agenda.preview_active;
 
     return (
-        <div className="animate-fade-in space-y-6">
-            {/* Section 1: Preview Settings */}
+        <div className="animate-fade-in">
             <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
-                <SectionHeader icon={Settings} title="Agenda Preview" colorClass="text-purple-500" borderClass="bg-purple-500" />
-                <div className="space-y-6">
-                    <div className="p-4 bg-bg-secondary rounded-lg border border-border mb-4">
-                        <div className="flex justify-between items-center text-sm">
-                            <div>
-                                <p className="font-semibold text-text-primary m-0">Enable Preview</p>
-                                <p className="text-xs text-text-tertiary mt-0.5">Toggle the agenda preview section.</p>
+                <div className="relative mb-6 pb-2 border-b border-border">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-purple-500 opacity-20" />
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-2 min-w-0">
+                            <Calendar size={18} className="text-purple-500 shrink-0" />
+                            <div className="min-w-0">
+                                <h3 className="text-base font-semibold text-text-primary m-0">Agenda Preview</h3>
+                                <p className="text-xs text-text-tertiary mt-0.5 m-0">
+                                    Toggle preview and configure agenda display settings.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0">
+                            <div className="text-right">
+                                <p className="font-semibold text-text-primary text-sm m-0">
+                                    {previewOn ? 'Preview On' : 'Preview Off'}
+                                </p>
+                                <p className="text-[11px] text-text-tertiary mt-0.5 m-0">
+                                    Show agenda preview on portal
+                                </p>
                             </div>
                             <ToggleSwitch
                                 name="preview_active"
-                                checked={!!agenda.preview_active}
+                                checked={previewOn}
                                 isModified={isAgendaModified('preview_active')}
                                 onChange={(e) => handleAgendaChange('preview_active', e.target.checked)}
                             />
                         </div>
                     </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormField label="Preview Title" description="Main title for the agenda preview">
-                            <input
-                                type="text"
-                                value={agenda.preview_title || ''}
-                                onChange={(e) => handleAgendaChange('preview_title', e.target.value)}
-                                className={getInputClass('preview_title', isAgendaModified('preview_title'))}
-                                placeholder="Enter preview title"
-                            />
-                        </FormField>
-                        <FormField label="Preview Description" description="Description text for the agenda preview">
-                            <input
-                                type="text"
-                                value={agenda.preview_description || ''}
-                                onChange={(e) => handleAgendaChange('preview_description', e.target.value)}
-                                className={getInputClass('preview_description', isAgendaModified('preview_description'))}
-                                placeholder="Enter preview description"
-                            />
-                        </FormField>
+                </div>
+
+                <div className="relative mb-6 border-b border-border">
+                    <div className="flex items-center gap-1">
+                        {TABS.map((tab) => (
+                            <button
+                                key={tab.id}
+                                type="button"
+                                className={`bg-transparent border-none py-2.5 px-4 text-[13px] font-medium cursor-pointer border-b-2 transition-all duration-200 ${
+                                    activeTab === tab.id
+                                        ? 'text-accent border-accent font-semibold'
+                                        : 'text-text-secondary border-transparent hover:text-text-primary hover:border-border-hover'
+                                }`}
+                                onClick={() => setActiveTab(tab.id)}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
                     </div>
                 </div>
-            </div>
 
-            {/* Section 2: Preview CTA */}
-            <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
-                <SectionHeader icon={MousePointerClick} title="Preview CTA" colorClass="text-emerald-500" borderClass="bg-emerald-500" />
-                <div className="space-y-6">
-                    <div className="p-4 bg-bg-secondary rounded-lg border border-border mb-4">
-                        <div className="flex justify-between items-center text-sm">
-                            <div>
-                                <p className="font-semibold text-text-primary m-0">Enable CTA Section</p>
-                                <p className="text-xs text-text-tertiary mt-0.5">Toggle the calls to action in the preview.</p>
-                            </div>
-                            <ToggleSwitch
-                                name="preview_cta_active"
-                                checked={previewCta.is_active !== false}
-                                isModified={isAgendaModified('is_active', 'preview_cta')}
-                                onChange={(e) => handleAgendaNestedChange('preview_cta', 'is_active', e.target.checked)}
-                            />
-                        </div>
-                    </div>
+                {activeTab === 'details' && (
+                    <AgendaPreviewDetailsTab
+                        agenda={agenda}
+                        handleAgendaChange={handleAgendaChange}
+                        isAgendaModified={isAgendaModified}
+                    />
+                )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormField label="CTA Title" description="Title for the call to action section">
-                            <input
-                                type="text"
-                                value={previewCta.title || ''}
-                                onChange={(e) => handleAgendaNestedChange('preview_cta', 'title', e.target.value)}
-                                className={getInputClass('cta_title', isAgendaModified('title', 'preview_cta'))}
-                                placeholder="Enter CTA title"
-                            />
-                        </FormField>
-                        <FormField label="CTA Description" description="Description text for the CTA">
-                            <input
-                                type="text"
-                                value={previewCta.description || ''}
-                                onChange={(e) => handleAgendaNestedChange('preview_cta', 'description', e.target.value)}
-                                className={getInputClass('cta_description', isAgendaModified('description', 'preview_cta'))}
-                                placeholder="Enter CTA description"
-                            />
-                        </FormField>
-                        <FormField label="Exhibit URL" description="URL for exhibiting CTA button">
-                            <input
-                                type="text"
-                                value={previewCta.exhibit_url || ''}
-                                onChange={(e) => handleAgendaNestedChange('preview_cta', 'exhibit_url', e.target.value)}
-                                className={getInputClass('exhibit_url', isAgendaModified('exhibit_url', 'preview_cta'))}
-                                placeholder="https://..."
-                            />
-                        </FormField>
-                        <FormField label="Visit URL" description="URL for visiting CTA button">
-                            <input
-                                type="text"
-                                value={previewCta.visit_url || ''}
-                                onChange={(e) => handleAgendaNestedChange('preview_cta', 'visit_url', e.target.value)}
-                                className={getInputClass('visit_url', isAgendaModified('visit_url', 'preview_cta'))}
-                                placeholder="https://..."
-                            />
-                        </FormField>
-                    </div>
-                </div>
-            </div>
+                {activeTab === 'cta' && (
+                    <AgendaPreviewCtaTab
+                        previewCta={previewCta}
+                        handleAgendaNestedChange={handleAgendaNestedChange}
+                        isAgendaModified={isAgendaModified}
+                    />
+                )}
 
-            {/* Section 3: Preview Stats */}
-            <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
-                <SectionHeader icon={BarChart3} title="Preview Stats" colorClass="text-blue-500" borderClass="bg-blue-500" />
-                <div className="space-y-6">
-                    <div className="p-4 bg-bg-secondary rounded-lg border border-border mb-4">
-                        <div className="flex justify-between items-center text-sm">
-                            <div>
-                                <p className="font-semibold text-text-primary m-0">Enable Stats Section</p>
-                                <p className="text-xs text-text-tertiary mt-0.5">Toggle the statistics in the preview.</p>
-                            </div>
-                            <ToggleSwitch
-                                name="preview_stats_active"
-                                checked={previewStats.is_active !== false}
-                                isModified={isAgendaModified('is_active', 'preview_stats')}
-                                onChange={(e) => handleAgendaNestedChange('preview_stats', 'is_active', e.target.checked)}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormField label="Speaker Text" description="Headline statistic for speakers">
-                            <input
-                                type="text"
-                                value={previewStats.speaker_text || ''}
-                                onChange={(e) => handleAgendaNestedChange('preview_stats', 'speaker_text', e.target.value)}
-                                className={getInputClass('speaker_text', isAgendaModified('speaker_text', 'preview_stats'))}
-                                placeholder="e.g. 50+"
-                            />
-                        </FormField>
-                        <FormField label="Speaker Description" description="Subtext for speakers statistic">
-                            <input
-                                type="text"
-                                value={previewStats.speaker_description || ''}
-                                onChange={(e) => handleAgendaNestedChange('preview_stats', 'speaker_description', e.target.value)}
-                                className={getInputClass('speaker_description', isAgendaModified('speaker_description', 'preview_stats'))}
-                                placeholder="Speakers"
-                            />
-                        </FormField>
-                        <FormField label="Session Text" description="Headline statistic for sessions">
-                            <input
-                                type="text"
-                                value={previewStats.session_text || ''}
-                                onChange={(e) => handleAgendaNestedChange('preview_stats', 'session_text', e.target.value)}
-                                className={getInputClass('session_text', isAgendaModified('session_text', 'preview_stats'))}
-                                placeholder="e.g. 20+"
-                            />
-                        </FormField>
-                        <FormField label="Session Description" description="Subtext for sessions statistic">
-                            <input
-                                type="text"
-                                value={previewStats.session_description || ''}
-                                onChange={(e) => handleAgendaNestedChange('preview_stats', 'session_description', e.target.value)}
-                                className={getInputClass('session_description', isAgendaModified('session_description', 'preview_stats'))}
-                                placeholder="Sessions"
-                            />
-                        </FormField>
-                    </div>
-                </div>
+                {activeTab === 'stats' && (
+                    <AgendaPreviewStatsTab
+                        previewStats={previewStats}
+                        handleAgendaNestedChange={handleAgendaNestedChange}
+                        isAgendaModified={isAgendaModified}
+                    />
+                )}
             </div>
         </div>
     );

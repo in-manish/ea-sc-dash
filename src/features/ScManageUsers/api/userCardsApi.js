@@ -14,12 +14,19 @@ const parseError = async (response, fallback) => {
   return err;
 };
 
-/** Admin: list saved cards for a user. GET /evc/admin/users/{userId}/cards/ */
-export async function fetchUserSavedCards(token, userId) {
-  const response = await fetch(
-    `${getApiUrl()}/evc/admin/users/${userId}/cards/`,
-    { method: 'GET', headers: authHeaders(token) }
-  );
+/**
+ * Admin: list saved cards for a user.
+ * GET /evc/admin/users/{userId}/cards/  (active)
+ * GET /evc/admin/users/{userId}/cards/?archived=1  (archived)
+ * @param {{ archived?: boolean }} [options]
+ */
+export async function fetchUserSavedCards(token, userId, options = {}) {
+  const params = new URLSearchParams();
+  if (options.archived) params.set('archived', '1');
+  const qs = params.toString();
+  const url = `${getApiUrl()}/evc/admin/users/${userId}/cards/${qs ? `?${qs}` : ''}`;
+
+  const response = await fetch(url, { method: 'GET', headers: authHeaders(token) });
 
   if (!response.ok) {
     const fallback =
@@ -33,6 +40,53 @@ export async function fetchUserSavedCards(token, userId) {
 
   const data = await response.json();
   return Array.isArray(data?.cards) ? data.cards : [];
+}
+
+/** POST /evc/admin/users/{userId}/cards/restore/ — body { card_id } */
+export async function restoreUserSavedCard(token, userId, cardId) {
+  if (cardId == null) throw new Error('card_id is required');
+  const response = await fetch(
+    `${getApiUrl()}/evc/admin/users/${userId}/cards/restore/`,
+    {
+      method: 'POST',
+      headers: { ...authHeaders(token), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ card_id: cardId }),
+    }
+  );
+  if (!response.ok) {
+    const fallback =
+      response.status === 404
+        ? 'Card not found or not archived'
+        : response.status === 400
+          ? 'card_id is required'
+          : `Failed to restore card (${response.status})`;
+    throw await parseError(response, fallback);
+  }
+  const data = await response.json();
+  return data?.card ?? data;
+}
+
+/** DELETE /evc/admin/users/{userId}/cards/ — body { card_id } (irreversible) */
+export async function permanentlyDeleteUserSavedCard(token, userId, cardId) {
+  if (cardId == null) throw new Error('card_id is required');
+  const response = await fetch(
+    `${getApiUrl()}/evc/admin/users/${userId}/cards/`,
+    {
+      method: 'DELETE',
+      headers: { ...authHeaders(token), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ card_id: cardId }),
+    }
+  );
+  if (!response.ok) {
+    const fallback =
+      response.status === 404
+        ? 'Card not found'
+        : response.status === 400
+          ? 'card_id is required'
+          : `Failed to delete card (${response.status})`;
+    throw await parseError(response, fallback);
+  }
+  return response.json();
 }
 
 /**

@@ -1,18 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import MatchmakingQuestions from './MatchmakingQuestions';
 import ExhibitorPortalQuestions from './ExhibitorPortalQuestions';
 import SurveyMapping from './SurveyMapping/index';
 import { Layout, GitMerge, Building2 } from 'lucide-react';
+import { PRODUCT_QUESTION_CREATE_DEFAULTS } from '../constants/productQuestionDefaults';
 
 const Matchmaking = () => {
     const [activeTab, setActiveTab] = useState('questions');
     const [pendingEdit, setPendingEdit] = useState(null);
+    const [pendingCreate, setPendingCreate] = useState(null);
+    const [searchParams, setSearchParams] = useSearchParams();
 
     const tabs = [
         { id: 'questions', label: 'Matchmaking Questions', icon: Layout },
         { id: 'exhibitor', label: 'Exhibitor Portal Questions', icon: Building2 },
         { id: 'mapping', label: 'SurveyJs Mapping', icon: GitMerge },
     ];
+
+    useEffect(() => {
+        if (searchParams.get('create') !== 'product') return;
+        setPendingCreate(PRODUCT_QUESTION_CREATE_DEFAULTS);
+        setActiveTab('questions');
+        const next = new URLSearchParams(searchParams);
+        next.delete('create');
+        setSearchParams(next, { replace: true });
+    }, [searchParams, setSearchParams]);
 
     const handleEditFromExhibitor = (question, eventId) => {
         setPendingEdit({ questionId: question.id, eventId });
@@ -43,6 +56,8 @@ const Matchmaking = () => {
                     <MatchmakingQuestions
                         pendingEdit={pendingEdit}
                         onPendingEditConsumed={() => setPendingEdit(null)}
+                        pendingCreate={pendingCreate}
+                        onPendingCreateConsumed={() => setPendingCreate(null)}
                     />
                 )}
                 {activeTab === 'exhibitor' && (

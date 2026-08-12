@@ -59,9 +59,11 @@ const TemplateEditorSidebar = ({ isEditing, editFormData, handleEditChange, prev
                 )}
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-                <div className="col-span-1">
-                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Type</label>
+            <div className="flex flex-col gap-4">
+                <div className="min-w-0">
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">
+                        Type
+                    </label>
                     {isEditing ? (
                         <input
                             type="text"
@@ -72,28 +74,45 @@ const TemplateEditorSidebar = ({ isEditing, editFormData, handleEditChange, prev
                             placeholder="e.g. custom"
                         />
                     ) : (
-                        <div className="text-xs font-medium text-gray-800 bg-white p-2.5 rounded-lg border border-gray-100">
+                        <div className="text-xs font-medium text-gray-800 bg-white p-2.5 rounded-lg border border-gray-100 break-all">
                             {previewTemplate?.template_type || '-'}
                         </div>
                     )}
                 </div>
-                <div className="col-span-1">
-                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Status</label>
-                    <div className="flex items-center h-[38px]">
+                <div>
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">
+                        Status
+                    </label>
+                    <div className="flex items-center min-h-[38px]">
                         {isEditing ? (
-                            <label className="relative inline-flex items-center cursor-pointer">
+                            <label className="relative inline-flex items-center cursor-pointer gap-3">
                                 <input
                                     type="checkbox"
                                     name="is_active"
                                     checked={editFormData.is_active || false}
-                                    onChange={(e) => handleEditChange({ target: { name: 'is_active', value: e.target.checked } })}
+                                    onChange={(e) =>
+                                        handleEditChange({
+                                            target: {
+                                                name: 'is_active',
+                                                value: e.target.checked,
+                                            },
+                                        })
+                                    }
                                     className="sr-only peer"
                                 />
-                                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent"></div>
-                                <span className="ms-3 text-xs font-medium text-gray-700">{editFormData.is_active ? 'Active' : 'Inactive'}</span>
+                                <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent" />
+                                <span className="text-xs font-medium text-gray-700 shrink-0">
+                                    {editFormData.is_active ? 'Active' : 'Inactive'}
+                                </span>
                             </label>
                         ) : (
-                            <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${previewTemplate?.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                            <span
+                                className={`inline-flex px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider shrink-0 ${
+                                    previewTemplate?.is_active
+                                        ? 'bg-green-100 text-green-700'
+                                        : 'bg-gray-100 text-gray-600'
+                                }`}
+                            >
                                 {previewTemplate?.is_active ? 'Active' : 'Inactive'}
                             </span>
                         )}

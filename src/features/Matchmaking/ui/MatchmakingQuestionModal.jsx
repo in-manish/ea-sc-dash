@@ -28,13 +28,18 @@ const QUESTION_TYPE_SELECT_OPTIONS = [
     ...EXHIBITOR_QUESTION_TYPE_OPTIONS.map((opt, i) => ({ ...opt, dividerBefore: i === 0 })),
 ];
 
-const MatchmakingQuestionModal = ({ isOpen, onClose, eventId, token, question, formId, formName, onSuccess }) => {
+const EMPTY_QUESTION_FORM = {
+    title: '', type: 'radio', question_type: '', is_mandatory: false, is_filter: false,
+    can_support_exhibitor_portal: false, design_type: 'vertical', row_no: 1, sort_key: 1,
+    attendee_types: [], options: [{ name: '' }],
+};
+
+const MatchmakingQuestionModal = ({
+    isOpen, onClose, eventId, token, question, formId, formName, onSuccess, createDefaults = null,
+}) => {
     const [loading, setLoading] = useState(false);
     const [attendeeTypes, setAttendeeTypes] = useState([]);
-    const [formData, setFormData] = useState({
-        title: '', type: 'radio', question_type: '', is_mandatory: false, is_filter: false, can_support_exhibitor_portal: false,
-        design_type: 'vertical', row_no: 1, sort_key: 1, attendee_types: [], options: [{ name: '' }]
-    });
+    const [formData, setFormData] = useState(EMPTY_QUESTION_FORM);
 
     useEffect(() => {
         if (isOpen) {
@@ -51,12 +56,13 @@ const MatchmakingQuestionModal = ({ isOpen, onClose, eventId, token, question, f
                 });
             } else {
                 setFormData({
-                    title: '', type: 'radio', question_type: '', is_mandatory: false, is_filter: false, can_support_exhibitor_portal: false,
-                    design_type: 'vertical', row_no: 1, sort_key: 1, attendee_types: [], options: [{ name: '' }],
+                    ...EMPTY_QUESTION_FORM,
+                    ...(createDefaults || {}),
+                    options: createDefaults?.options || [{ name: '' }],
                 });
             }
         }
-    }, [isOpen, question]);
+    }, [isOpen, question, createDefaults]);
 
     useEffect(() => {
         if (formData.type === 'grouped_array' && (!formData.options[0]?.values)) setFormData(prev => ({ ...prev, options: [{ name: '', values: [{ name: '' }] }] }));

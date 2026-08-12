@@ -17,7 +17,12 @@ const sortQuestions = (questions = []) =>
         return (a.id ?? 0) - (b.id ?? 0);
     });
 
-const MatchmakingQuestions = ({ pendingEdit = null, onPendingEditConsumed }) => {
+const MatchmakingQuestions = ({
+    pendingEdit = null,
+    onPendingEditConsumed,
+    pendingCreate = null,
+    onPendingCreateConsumed,
+}) => {
     const { selectedEvent, token } = useAuth();
     const [currentId, setCurrentId] = useState(pendingEdit?.eventId || selectedEvent?.id);
     const [tempId, setTempId] = useState(pendingEdit?.eventId || selectedEvent?.id || '');
@@ -25,7 +30,9 @@ const MatchmakingQuestions = ({ pendingEdit = null, onPendingEditConsumed }) => 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [attendeeTypes, setAttendeeTypes] = useState([]);
-    const [modals, setModals] = useState({ copy: false, del: false, delLoading: false, ques: false, selectedQues: null });
+    const [modals, setModals] = useState({
+        copy: false, del: false, delLoading: false, ques: false, selectedQues: null, createDefaults: null,
+    });
     const [reordering, setReordering] = useState(false);
     const [questionTypeFilter, setQuestionTypeFilter] = useState('');
     const listRef = useRef(null);
@@ -93,10 +100,21 @@ const MatchmakingQuestions = ({ pendingEdit = null, onPendingEditConsumed }) => 
 
         const question = data.questions.find(q => q.id === pendingEdit.questionId);
         if (question) {
-            setModals(m => ({ ...m, ques: true, selectedQues: question }));
+            setModals(m => ({ ...m, ques: true, selectedQues: question, createDefaults: null }));
         }
         onPendingEditConsumed?.();
     }, [pendingEdit, currentId, loading, data, onPendingEditConsumed]);
+
+    useEffect(() => {
+        if (!pendingCreate || loading) return;
+        setModals(m => ({
+            ...m,
+            ques: true,
+            selectedQues: null,
+            createDefaults: pendingCreate,
+        }));
+        onPendingCreateConsumed?.();
+    }, [pendingCreate, loading, onPendingCreateConsumed]);
 
     const handleReorder = useCallback(async (oldIndex, newIndex) => {
         if (oldIndex === newIndex) return;
@@ -293,7 +311,7 @@ const MatchmakingQuestions = ({ pendingEdit = null, onPendingEditConsumed }) => 
                                             {allExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                                         </button>
                                         <button onClick={() => setModals(m => ({ ...m, del: true }))} className="p-2.5 text-text-tertiary hover:text-status-danger rounded-xl transition-all border border-border/60 hover:bg-status-danger/5" title="Delete Form"><Trash2 size={18} /></button>
-                                        <button onClick={() => setModals(m => ({ ...m, ques: true, selectedQues: null }))} className="p-2.5 text-accent hover:bg-accent/5 rounded-xl transition-all border border-accent/20" title="Add Question"><Plus size={18} /></button>
+                                        <button onClick={() => setModals(m => ({ ...m, ques: true, selectedQues: null, createDefaults: null }))} className="p-2.5 text-accent hover:bg-accent/5 rounded-xl transition-all border border-accent/20" title="Add Question"><Plus size={18} /></button>
                                     </>
                                 )}
                                 <button onClick={() => setModals(m => ({ ...m, copy: true }))} className="btn btn-primary h-10 px-4 rounded-xl gap-2 text-[11px] font-bold tracking-tight border-none shadow-lg shadow-accent/10 group"><Copy size={16} className="group-hover:rotate-12 transition-transform" /> COPY FLOW</button>
@@ -401,7 +419,7 @@ const MatchmakingQuestions = ({ pendingEdit = null, onPendingEditConsumed }) => 
                                     key={q.id}
                                     question={q}
                                     attendeeTypes={attendeeTypes}
-                                    onEdit={q => setModals(m => ({ ...m, ques: true, selectedQues: q }))}
+                                    onEdit={q => setModals(m => ({ ...m, ques: true, selectedQues: q, createDefaults: null }))}
                                     onRemove={handleRemoveQuestion}
                                     onToggleExhibitorPortal={handleToggleExhibitorPortal}
                                     togglingPortal={togglingPortalId === q.id}
@@ -436,7 +454,7 @@ const MatchmakingQuestions = ({ pendingEdit = null, onPendingEditConsumed }) => 
                                 <h3 className="text-2xl font-bold text-text-primary mb-3 tracking-tight">Empty Canvas</h3>
                                 <p className="text-xs text-text-secondary max-w-xs mx-auto mb-8 leading-relaxed font-medium"> The matchmaking module <b>{data?.form_name}</b> is initialized but contains no logical branches.</p>
                                 <div className="flex flex-col sm:flex-row gap-3 items-center">
-                                    <button onClick={() => setModals(m => ({ ...m, ques: true, selectedQues: null }))} className="btn btn-primary py-3 px-8 rounded-xl gap-2 shadow-lg shadow-accent/10 font-bold text-[11px] border-none"><Plus size={18} /> DEFINE FIRST QUESTION</button>
+                                    <button onClick={() => setModals(m => ({ ...m, ques: true, selectedQues: null, createDefaults: null }))} className="btn btn-primary py-3 px-8 rounded-xl gap-2 shadow-lg shadow-accent/10 font-bold text-[11px] border-none"><Plus size={18} /> DEFINE FIRST QUESTION</button>
                                     {data?.modified_at && <div className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary bg-white px-4 py-2 rounded-xl border border-border/80">Active Since {new Date(data.modified_at).getFullYear()}</div>}
                                 </div>
                             </div>
@@ -446,7 +464,17 @@ const MatchmakingQuestions = ({ pendingEdit = null, onPendingEditConsumed }) => 
             )}
             <CopyMatchmakingModal isOpen={modals.copy} onClose={() => setModals(m => ({ ...m, copy: false }))} toEventId={selectedEvent?.id} onSuccess={fetchData} />
             <DeleteConfirmationModal isOpen={modals.del} onClose={() => setModals(m => ({ ...m, del: false }))} onConfirm={handleDelete} formName={data?.form_name} loading={modals.delLoading} />
-            <MatchmakingQuestionModal isOpen={modals.ques} onClose={() => setModals(m => ({ ...m, ques: false }))} eventId={currentId} token={token} question={modals.selectedQues} formId={data?.id} formName={data?.form_name} onSuccess={fetchData} />
+            <MatchmakingQuestionModal
+                isOpen={modals.ques}
+                onClose={() => setModals(m => ({ ...m, ques: false, createDefaults: null }))}
+                eventId={currentId}
+                token={token}
+                question={modals.selectedQues}
+                createDefaults={modals.createDefaults}
+                formId={data?.id}
+                formName={data?.form_name}
+                onSuccess={fetchData}
+            />
         </div>
     );
 };

@@ -23,6 +23,8 @@ import ScAdminGate from './features/ScAuth/ui/ScAdminGate';
 import Attendees from './pages/Attendees';
 import Companies from './pages/Companies';
 import CompanyDetails from './pages/CompanyDetails';
+import CreateCompany from './pages/CreateCompany';
+import EditCompany from './pages/EditCompany';
 import Agenda from './pages/event-agenda';
 import AgendaEdit from './pages/event-agenda/AgendaEdit';
 import Settings from './pages/Settings';
@@ -86,6 +88,8 @@ const AppRoutes = ({ currentMode }) => {
         <Route path="attendees" element={<Attendees />} />
         <Route path="users" element={<UsersSearch />} />
         <Route path="companies" element={<Companies />} />
+        <Route path="companies/new" element={<CreateCompany />} />
+        <Route path="companies/:companyId/edit" element={<EditCompany />} />
         <Route path="companies/:companyId" element={<CompanyDetails />} />
         <Route path="agenda" element={<Agenda />} />
         <Route path="agenda/new" element={<AgendaEdit />} />
