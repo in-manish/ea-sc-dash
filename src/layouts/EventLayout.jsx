@@ -253,11 +253,10 @@ const EventLayout = () => {
                                     Exhibitors
                                 </NavLink>
                                 <NavLink
-                                    to={`/event/${selectedEvent.id}/companies?tab=company_products`}
-                                    className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 flex items-center justify-between ${location.pathname.includes('/companies') && new URLSearchParams(location.search).get('tab') === 'company_products' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
+                                    to={`/event/${selectedEvent.id}/companies?tab=product_matchmaking`}
+                                    className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/companies') && ['product_matchmaking', 'company_products'].includes(new URLSearchParams(location.search).get('tab')) ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
                                 >
-                                    <span>Company Products</span>
-                                    <span className="bg-success text-white text-[8px] px-1 py-0.5 rounded-sm font-bold uppercase tracking-tighter leading-none animate-pulse">New</span>
+                                    Product Matchmaking
                                 </NavLink>
                                 <NavLink
                                     to={`/event/${selectedEvent.id}/companies?tab=additional_requirements`}

@@ -20,6 +20,7 @@ export default function useAttendeeList({
     const [matchmakingAttendee, setMatchmakingAttendee] = useState(null);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [createPrefill, setCreatePrefill] = useState(null);
+    const [editingUuid, setEditingUuid] = useState(null);
     const [isModalMaximized, setIsModalMaximized] = useState(false);
 
     useEffect(() => {
@@ -85,6 +86,25 @@ export default function useAttendeeList({
         setPage(1);
     };
 
+    const openEditAttendee = (attendee) => {
+        if (!attendee?.uuid) return;
+        setEditingUuid(attendee.uuid);
+    };
+
+    const closeEditAttendee = () => {
+        setEditingUuid(null);
+    };
+
+    const handleAttendeeUpdated = (updated) => {
+        if (!updated?.uuid) return;
+        setAttendees((prev) =>
+            prev.map((row) => (row.uuid === updated.uuid ? { ...row, ...updated } : row)),
+        );
+        setSelectedAttendee((prev) =>
+            prev?.uuid === updated.uuid ? { ...prev, ...updated } : prev,
+        );
+    };
+
     return {
         attendees,
         setAttendees,
@@ -100,6 +120,11 @@ export default function useAttendeeList({
         setIsCreateModalOpen,
         createPrefill,
         setCreatePrefill,
+        editingUuid,
+        setEditingUuid,
+        openEditAttendee,
+        closeEditAttendee,
+        handleAttendeeUpdated,
         isModalMaximized,
         setIsModalMaximized,
         openAttendeeDetail,

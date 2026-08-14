@@ -1,32 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Loader2, Info, ChevronLeft } from 'lucide-react';
-import { matchmakingApi } from '../api/matchmakingApi';
+import { Plus, Loader2, ChevronLeft } from 'lucide-react';
+import { matchmakingFormApi } from '../api/matchmakingFormApi';
+import { buildSaveMatchmakingPayload } from '../domain/buildSaveMatchmakingPayload';
 import { eventService } from '../../../services/eventService';
-
-import FormSelect from '../../../components/common/FormSelect';
-import StandardOptionsSection from './StandardOptionsSection';
-import GroupedOptionsSection from './GroupedOptionsSection';
-import { ATTENDEE_QUESTION_TYPE_OPTIONS, EXHIBITOR_QUESTION_TYPE_OPTIONS, normalizeQuestionType, questionTypesMatch } from '../constants/questionTypes';
-
-const FIELD_TYPE_OPTIONS = [
-    { value: 'text', label: 'Text Input' },
-    { value: 'number', label: 'Number Input' },
-    { value: 'radio', label: 'Single Selection' },
-    { value: 'array', label: 'Multiple Selection' },
-    { value: 'grouped_array', label: 'Grouped List' },
-];
-
-const DESIGN_TYPE_OPTIONS = [
-    { value: 'vertical', label: 'Vertical List' },
-    { value: 'grid', label: 'Multi-Column Grid' },
-    { value: 'select', label: 'Native Dropdown' },
-];
-
-const QUESTION_TYPE_SELECT_OPTIONS = [
-    { value: '', label: 'None' },
-    ...ATTENDEE_QUESTION_TYPE_OPTIONS,
-    ...EXHIBITOR_QUESTION_TYPE_OPTIONS.map((opt, i) => ({ ...opt, dividerBefore: i === 0 })),
-];
+import { normalizeQuestionType } from '../constants/questionTypes';
+import MatchmakingQuestionFormFields from './MatchmakingQuestionFormFields';
 
 const EMPTY_QUESTION_FORM = {
     title: '', type: 'radio', question_type: '', is_mandatory: false, is_filter: false,
@@ -42,235 +20,115 @@ const MatchmakingQuestionModal = ({
     const [formData, setFormData] = useState(EMPTY_QUESTION_FORM);
 
     useEffect(() => {
-        if (isOpen) {
-            eventService.getAttendeeTypes(eventId, token).then(d => setAttendeeTypes(d.attendee_types || []));
-            if (question) {
-                const initialOptions = question.options?.length > 0 ? question.options : (question.type === 'grouped_array' ? [{ name: '', values: [{ name: '' }] }] : [{ name: '' }]);
-                setFormData({
-                    ...question,
-                    question_type: normalizeQuestionType(question.question_type),
-                    attendee_types: question.attendee_types || [],
-                    is_filter: question.is_filter || false,
-                    can_support_exhibitor_portal: question.can_support_exhibitor_portal || false,
-                    options: initialOptions,
-                });
-            } else {
-                setFormData({
-                    ...EMPTY_QUESTION_FORM,
-                    ...(createDefaults || {}),
-                    options: createDefaults?.options || [{ name: '' }],
-                });
-            }
+        if (!isOpen) return;
+        eventService.getAttendeeTypes(eventId, token).then((d) => setAttendeeTypes(d.attendee_types || []));
+        if (question) {
+            const initialOptions = question.options?.length > 0
+                ? question.options
+                : (question.type === 'grouped_array' ? [{ name: '', values: [{ name: '' }] }] : [{ name: '' }]);
+            setFormData({
+                ...question,
+                question_type: normalizeQuestionType(question.question_type),
+                attendee_types: question.attendee_types || [],
+                is_filter: question.is_filter || false,
+                can_support_exhibitor_portal: question.can_support_exhibitor_portal || false,
+                options: initialOptions,
+            });
+        } else {
+            setFormData({
+                ...EMPTY_QUESTION_FORM,
+                ...(createDefaults || {}),
+                options: createDefaults?.options || [{ name: '' }],
+            });
         }
-    }, [isOpen, question, createDefaults]);
+    }, [isOpen, question, createDefaults, eventId, token]);
 
     useEffect(() => {
-        if (formData.type === 'grouped_array' && (!formData.options[0]?.values)) setFormData(prev => ({ ...prev, options: [{ name: '', values: [{ name: '' }] }] }));
-        else if (['radio', 'array'].includes(formData.type) && (formData.options[0]?.values)) setFormData(prev => ({ ...prev, options: [{ name: '' }] }));
+        if (formData.type === 'grouped_array' && (!formData.options[0]?.values)) {
+            setFormData((prev) => ({ ...prev, options: [{ name: '', values: [{ name: '' }] }] }));
+        } else if (['radio', 'array'].includes(formData.type) && formData.options[0]?.values) {
+            setFormData((prev) => ({ ...prev, options: [{ name: '' }] }));
+        }
     }, [formData.type]);
 
     if (!isOpen) return null;
 
     const handleSubmit = async (e) => {
-        e.preventDefault(); setLoading(true);
+        e.preventDefault();
+        setLoading(true);
         try {
-            const formattedOptions = formData.options.map(opt => ({ ...opt, values: opt.values?.filter(v => v.name) })).filter(opt => opt.name || opt.values?.length > 0);
+            const formattedOptions = formData.options
+                .map((opt) => ({ ...opt, values: opt.values?.filter((v) => v.name) }))
+                .filter((opt) => opt.name || opt.values?.length > 0);
             const payload = {
                 ...formData,
                 id: question?.id,
                 options: formattedOptions,
                 question_type: formData.question_type || null,
             };
-            await matchmakingApi.saveMatchmakingQuestions(eventId, { form_id: formId, form_name: formName, questions: [payload] }, token);
-            onSuccess?.(); onClose();
-        } catch (err) { alert(err.message); } finally { setLoading(false); }
+            if (!question?.id) delete payload.id;
+            await matchmakingFormApi.saveMatchmakingQuestions(
+                eventId,
+                buildSaveMatchmakingPayload({ formId, formName, questions: [payload] }),
+                token,
+            );
+            onSuccess?.();
+            onClose();
+        } catch (err) {
+            alert(err.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const editOpt = (idx, val) => { const n = [...formData.options]; n[idx].name = val; setFormData({ ...formData, options: n }); };
-    const editGValue = (gi, vi, val) => { const n = [...formData.options]; n[gi].values[vi].name = val; setFormData({ ...formData, options: n }); };
+    const editOpt = (idx, val) => {
+        const next = [...formData.options];
+        next[idx].name = val;
+        setFormData({ ...formData, options: next });
+    };
+    const editGValue = (gi, vi, val) => {
+        const next = [...formData.options];
+        next[gi].values[vi].name = val;
+        setFormData({ ...formData, options: next });
+    };
 
     return (
-        <div className={`fixed inset-0 left-[var(--sidebar-width)] z-[40] bg-white transition-[left,transform,opacity] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${isOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0 pointer-events-none'}`}>
+        <div className={`fixed inset-0 left-[var(--sidebar-width)] z-[40] bg-white ${isOpen ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0 pointer-events-none'}`}>
             <div className="h-full flex flex-col">
-                {/* Full-Page Header */}
                 <div className="px-8 py-4 border-b border-border/60 bg-white/80 backdrop-blur-xl flex justify-between items-center sticky top-0 z-20">
                     <div className="flex items-center gap-6">
-                        <button onClick={onClose} className="group flex items-center gap-2 text-text-tertiary hover:text-accent transition-all">
-                            <div className="p-2 rounded-xl bg-bg-secondary group-hover:bg-accent group-hover:text-white transition-all">
+                        <button type="button" onClick={onClose} className="group flex items-center gap-2 text-text-tertiary hover:text-accent">
+                            <div className="p-2 rounded-xl bg-bg-secondary group-hover:bg-accent group-hover:text-white">
                                 <ChevronLeft size={18} />
                             </div>
                             <span className="text-[10px] font-bold uppercase tracking-wider">Back to Questions</span>
                         </button>
-                        <div className="w-px h-8 bg-border/60 mx-2" />
                         <div>
-                            <h2 className="text-xl font-bold text-text-primary tracking-tight flex items-center gap-3">
+                            <h2 className="text-xl font-bold text-text-primary flex items-center gap-3">
                                 {question ? 'Refine Configuration' : 'Create New Parameter'}
-                                {question?.id && (
-                                    <span className="text-[10px] font-mono bg-bg-secondary text-text-tertiary px-2 py-0.5 rounded-full border border-border/60">
-                                        #{question.id}
-                                    </span>
-                                )}
+                                {question?.id && <span className="text-[10px] font-mono bg-bg-secondary text-text-tertiary px-2 py-0.5 rounded-full">#{question.id}</span>}
                             </h2>
                             <p className="text-[11px] text-text-tertiary mt-1 uppercase tracking-wider font-bold">
-                                {formName} <span className="text-accent/40 mx-1">/</span> Event #{eventId}
+                                {formName || 'Matchmaking'} / Event #{eventId}
                             </p>
                         </div>
                     </div>
-                    
                     <div className="flex items-center gap-3">
-                        <button type="button" onClick={onClose} className="px-5 py-2.5 text-[11px] font-bold text-text-tertiary hover:text-text-primary transition-colors">
-                            DISCARD
-                        </button>
-                        <button type="submit" disabled={loading} onClick={handleSubmit} className="btn btn-primary px-6 py-2.5 rounded-xl gap-2 shadow-xl shadow-accent/10 border-none font-bold text-[11px] tracking-tight group">
-                            {loading ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} className="group-hover:rotate-90 transition-transform" />}
+                        <button type="button" onClick={onClose} className="px-5 py-2.5 text-[11px] font-bold text-text-tertiary">DISCARD</button>
+                        <button type="submit" disabled={loading} onClick={handleSubmit} className="btn btn-primary px-6 py-2.5 rounded-xl gap-2 border-none font-bold text-[11px]">
+                            {loading ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
                             {question ? 'SYNC CHANGES' : 'PUBLISH PARAMETER'}
                         </button>
                     </div>
                 </div>
-
-                {/* Full-Page Content */}
-                <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto scrollbar-thin bg-bg-tertiary">
-                    <div className="max-w-4xl mx-auto py-12 px-8 space-y-12">
-                        {/* Section: Core Identity */}
-                        <section className="space-y-12">
-                            <h3 className="text-xs uppercase tracking-wider text-text-tertiary font-bold border-b border-border/60 pb-2">1. Core Identity</h3>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                                <div className="md:col-span-2 flex flex-col gap-2">
-                                    <label className="text-[10px] font-medium text-text-tertiary uppercase tracking-wider ml-1">Question Title</label>
-                                    <input required type="text" className="input-field py-3 px-5 text-lg font-semibold bg-white border border-border/60 focus:ring-4 focus:ring-accent/5 transition-all shadow-sm rounded-xl" placeholder="e.g. Which regions do you serve?" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} />
-                                </div>
-
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-[10px] font-medium text-text-tertiary uppercase tracking-wider ml-1">Field Type</label>
-                                    <FormSelect
-                                        value={formData.type}
-                                        onChange={val => setFormData({ ...formData, type: val })}
-                                        options={FIELD_TYPE_OPTIONS}
-                                    />
-                                </div>
-
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-[10px] font-medium text-text-tertiary uppercase tracking-wider ml-1">Question Type</label>
-                                    <FormSelect
-                                        value={formData.question_type}
-                                        onChange={val => setFormData({ ...formData, question_type: val })}
-                                        options={QUESTION_TYPE_SELECT_OPTIONS}
-                                        placeholder="None"
-                                        matchOption={questionTypesMatch}
-                                    />
-                                    <p className="text-[10px] text-text-tertiary ml-1">Maps this question to a standard attendee field, or leave blank</p>
-                                </div>
-
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-[10px] font-medium text-text-tertiary uppercase tracking-wider ml-1">Display Layout</label>
-                                    <FormSelect
-                                        value={formData.design_type}
-                                        onChange={val => setFormData({ ...formData, design_type: val })}
-                                        options={DESIGN_TYPE_OPTIONS}
-                                    />
-                                </div>
-
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-[10px] font-medium text-text-tertiary uppercase tracking-wider ml-1">Row Number</label>
-                                    <input
-                                        type="number"
-                                        min={1}
-                                        className="input-field py-2.5 px-5 text-sm font-semibold bg-white border border-border/60 rounded-xl shadow-sm"
-                                        placeholder="e.g. 1"
-                                        value={formData.row_no ?? ''}
-                                        onChange={e => setFormData({
-                                            ...formData,
-                                            row_no: e.target.value === '' ? null : Number(e.target.value),
-                                        })}
-                                    />
-                                    <p className="text-[10px] text-text-tertiary ml-1">Short key used to place this question on a form row</p>
-                                </div>
-
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-[10px] font-medium text-text-tertiary uppercase tracking-wider ml-1">Sort Key</label>
-                                    <input
-                                        type="number"
-                                        min={1}
-                                        className="input-field py-2.5 px-5 text-sm font-semibold bg-white border border-border/60 rounded-xl shadow-sm"
-                                        placeholder="e.g. 1"
-                                        value={formData.sort_key ?? ''}
-                                        onChange={e => setFormData({
-                                            ...formData,
-                                            sort_key: e.target.value === '' ? null : Number(e.target.value),
-                                        })}
-                                    />
-                                    <p className="text-[10px] text-text-tertiary ml-1">Controls display order within the form</p>
-                                </div>
-                            </div>
-                        </section>
-
-                        {/* Section: Visibility & Logic */}
-                        <section className="space-y-8">
-                            <h3 className="text-xs uppercase tracking-wider text-text-tertiary font-bold border-b border-border/60 pb-2">2. Visibility & Logic</h3>
-                            
-                            <div className="bg-white p-8 rounded-xl border border-border/50 shadow-sm space-y-8">
-                                <div className="space-y-4">
-                                    <label className="block text-[10px] font-medium text-text-tertiary uppercase tracking-wider ml-1">Visible to Attendee Types</label>
-                                    <div className="flex flex-wrap gap-2">
-                                        {attendeeTypes.map(t => (
-                                            <button key={t.id} type="button" onClick={() => setFormData(p => ({ ...p, attendee_types: p.attendee_types.includes(t.id) ? p.attendee_types.filter(x => x !== t.id) : [...p.attendee_types, t.id] }))} className={`px-4 py-2 rounded-full text-[11px] font-bold border transition-all ${formData.attendee_types.includes(t.id) ? 'bg-accent text-white border-accent shadow-lg shadow-accent/10' : 'bg-bg-secondary text-text-secondary border-border hover:border-accent/30'}`}>
-                                                {t.name}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-4 p-5 bg-bg-secondary/30 rounded-2xl border border-border/40 group cursor-pointer hover:border-accent/30 transition-all" onClick={() => setFormData({ ...formData, is_mandatory: !formData.is_mandatory })}>
-                                    <div className={`w-10 h-6 rounded-full p-1 transition-colors relative ${formData.is_mandatory ? 'bg-accent' : 'bg-bg-tertiary'}`}>
-                                        <div className={`w-4 h-4 bg-white rounded-full transition-transform shadow-md ${formData.is_mandatory ? 'translate-x-4' : 'translate-x-0'}`} />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-bold text-text-primary tracking-tight">Mandatory Question</p>
-                                        <p className="text-xs text-text-tertiary mt-0.5">Required for registration</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-4 p-5 bg-bg-secondary/30 rounded-2xl border border-border/40 group cursor-pointer hover:border-accent/30 transition-all" onClick={() => setFormData({ ...formData, is_filter: !formData.is_filter })}>
-                                    <div className={`w-10 h-6 rounded-full p-1 transition-colors relative ${formData.is_filter ? 'bg-accent' : 'bg-bg-tertiary'}`}>
-                                        <div className={`w-4 h-4 bg-white rounded-full transition-transform shadow-md ${formData.is_filter ? 'translate-x-4' : 'translate-x-0'}`} />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-bold text-text-primary tracking-tight">Use as Filter</p>
-                                        <p className="text-xs text-text-tertiary mt-0.5">Allow attendees to filter by this question</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-4 p-5 bg-bg-secondary/30 rounded-2xl border border-border/40 group cursor-pointer hover:border-accent/30 transition-all" onClick={() => setFormData({ ...formData, can_support_exhibitor_portal: !formData.can_support_exhibitor_portal })}>
-                                    <div className={`w-10 h-6 rounded-full p-1 transition-colors relative ${formData.can_support_exhibitor_portal ? 'bg-accent' : 'bg-bg-tertiary'}`}>
-                                        <div className={`w-4 h-4 bg-white rounded-full transition-transform shadow-md ${formData.can_support_exhibitor_portal ? 'translate-x-4' : 'translate-x-0'}`} />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-bold text-text-primary tracking-tight">Exhibitor Portal</p>
-                                        <p className="text-xs text-text-tertiary mt-0.5">Show this question on the exhibitor portal matchmaking form</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-
-                        {/* Section: Options Configuration */}
-                        {['radio', 'array', 'grouped_array'].includes(formData.type) && (
-                            <section className="space-y-8">
-                                <h3 className="text-xs uppercase tracking-wider text-text-tertiary font-bold border-b border-border/60 pb-2">3. Available Options</h3>
-                                
-                                <div className="bg-white p-8 rounded-xl border border-border/50 shadow-sm relative overflow-hidden">
-                                     <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 blur-3xl rounded-full -mr-16 -mt-16" />
-                                     
-                                     {['radio', 'array'].includes(formData.type) && (
-                                         <StandardOptionsSection options={formData.options} onAdd={() => setFormData(p => ({ ...p, options: [...p.options, { name: '' }] }))} onRemove={i => setFormData(p => ({ ...p, options: p.options.filter((_, idx) => idx !== i) }))} onUpdate={editOpt} />
-                                     )}
-                                     {formData.type === 'grouped_array' && (
-                                         <GroupedOptionsSection options={formData.options} onAddGroup={() => setFormData(p => ({ ...p, options: [...p.options, { name: '', values: [{ name: '' }] }] }))} onRemoveGroup={i => setFormData(p => ({ ...p, options: p.options.filter((_, idx) => idx !== i) }))} onUpdateGroup={editOpt} onAddValue={gi => { const n = [...formData.options]; n[gi].values.push({ name: '' }); setFormData({ ...formData, options: n }); }} onRemoveValue={(gi, vi) => { const n = [...formData.options]; n[gi].values.splice(vi, 1); setFormData({ ...formData, options: n }); }} onUpdateValue={editGValue} />
-                                     )}
-                                </div>
-                            </section>
-                        )}
-                    </div>
+                <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto bg-bg-tertiary">
+                    <MatchmakingQuestionFormFields
+                        formData={formData}
+                        setFormData={setFormData}
+                        attendeeTypes={attendeeTypes}
+                        editOpt={editOpt}
+                        editGValue={editGValue}
+                    />
                 </form>
             </div>
         </div>

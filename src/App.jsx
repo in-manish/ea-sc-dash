@@ -17,6 +17,7 @@ import ManageUsersSC from './sc/pages/ManageUsers';
 import UserDetailsSC from './sc/pages/UserDetails';
 import CeleryBeat from './sc/pages/CeleryBeat';
 import UserSyncTrack from './sc/pages/UserSyncTrack';
+import EmailTemplatesSC from './sc/pages/EmailTemplates';
 import ProfileSC from './sc/pages/Profile';
 import ScAdminGate from './features/ScAuth/ui/ScAdminGate';
 
@@ -81,6 +82,7 @@ const AppRoutes = ({ currentMode }) => {
         <Route path="users/manage" element={<ManageUsersSC />} />
         <Route path="users/manage/:userId" element={<UserDetailsSC />} />
         <Route path="users/sync-track" element={<UserSyncTrack />} />
+        <Route path="email-templates" element={<EmailTemplatesSC />} />
         <Route path="celery-beat" element={<CeleryBeat />} />
       </Route>
 

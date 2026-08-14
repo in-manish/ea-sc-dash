@@ -6,17 +6,19 @@ import ChecklistReminderTable from './ChecklistReminderTable';
 import ChecklistReminderSettingsForm from './ChecklistReminderSettingsForm';
 
 const EMPTY_FILTERS = {
-  company_ids: '',
   step_id: '',
   trigger: '',
+  sent_status: '',
+  reminder_date: '',
   sent_at: '',
   sent_at_from: '',
   sent_at_to: '',
 };
 
 /**
- * Companies tab: reminder log (default) + reminder settings.
- * tab=checklist_reminder&cr_view=list|settings
+ * Exhibitors sub-view: reminder log (default) + reminder settings.
+ * Bulk remind lives on the Exhibitors list (no step_id there).
+ * exh_view=checklist_reminder&cr_view=list|settings
  */
 export default function ChecklistReminderTab({ eventId, token, view, onViewChange }) {
   const [draft, setDraft] = useState(EMPTY_FILTERS);
@@ -105,7 +107,12 @@ export default function ChecklistReminderTab({ eventId, token, view, onViewChang
             onApply={applyFilters}
             onClear={clearFilters}
           />
-          <ChecklistReminderTable results={results} loading={loading} error={error} />
+          <ChecklistReminderTable
+            eventId={eventId}
+            results={results}
+            loading={loading}
+            error={error}
+          />
           {count > pageSize && (
             <div className="flex items-center justify-between mt-4">
               <button

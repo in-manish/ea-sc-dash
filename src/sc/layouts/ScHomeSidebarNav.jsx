@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { UserCog, ChevronDown, Cpu } from 'lucide-react';
+import { UserCog, ChevronDown, Cpu, Mail } from 'lucide-react';
 
 const subLinkClass = ({ isActive }) =>
   `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${
@@ -48,6 +48,14 @@ export default function ScHomeSidebarNav({
           </div>
         )}
       </div>
+
+      <NavLink
+        to="/email-templates"
+        className={({ isActive }) => `${parentClass(isActive)} no-underline`}
+      >
+        <Mail size={20} className="shrink-0" />
+        <span className="flex-1">Email template manage</span>
+      </NavLink>
 
       <div className="flex flex-col gap-1">
         <button type="button" onClick={onOpenCelery} className={parentClass(celeryActive)}>

@@ -11,9 +11,9 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 
 | Path | Owns |
 |------|------|
-| `api/companyApi.js` | GET/POST/PATCH company, filter options, exhibitor overview, checklist remind |
-| `api/checklistReminderApi.js` | Reminder settings GET/PATCH + reminder log list |
-| `domain/checklistReminderHelpers.js` | Defaults, offset parse, sent_at / step labels |
+| `api/companyApi.js` | GET/POST/PATCH company, filter options, exhibitor overview, checklist remind POST |
+| `api/checklistReminderApi.js` | Reminder settings GET/PATCH + reminder log list + progress poll |
+| `domain/checklistReminderHelpers.js` | Defaults, offsets, sent_status labels, progress %, `steps[]` / `step_ids` |
 | `domain/buildCompanyFormData.js` | Create → multipart |
 | `domain/buildCompanyPatchFormData.js` | Edit → changed fields only (+ `company_name`) |
 | `domain/companyFromApi.js` | GET response → form state |
@@ -30,6 +30,7 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `hooks/useCompanyCountries.js` | Country keys from filter options |
 | `hooks/useMatchmakingProductOptions.js` | Matchmaking product question options for edit |
 | `hooks/useExhibitorOverview.js` | Soft-fail Overview API for Setup Progress |
+| `hooks/useSetupChecklistRemind.js` | POST remind + poll progress until completed/failed |
 | `hooks/useChecklistReminderList.js` | Paginated reminder log |
 | `hooks/useChecklistReminderSettings.js` | Load/save reminder settings |
 | `ui/CreateCompanyPage.jsx` | Full-page create |
@@ -43,9 +44,17 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `ui/SetupProgressSection.jsx` | Setup Progress card (Overview API only) |
 | `ui/SetupProgressStep.jsx` | Checklist step row + Open / Remind |
 | `ui/SetupProgressSkeleton.jsx` | Setup Progress loading skeleton |
-| `ui/ChecklistReminderTab.jsx` | Companies tab: reminder log + setup reminder |
-| `ui/ChecklistReminderFilters.jsx` | Reminder log filters |
-| `ui/ChecklistReminderTable.jsx` | Reminder log table |
+| `ui/ChecklistReminderTab.jsx` | Reminder log + settings (no bulk send) |
+| `ui/ExhibitorsListPanel.jsx` | List + multi-select + remind all/selected |
+| `ui/ExhibitorRemindBar.jsx` | Remind all incomplete / remind selected (no step_id) |
+| `ui/RemindSendProgress.jsx` | Poll progress bar (percentage / counts) |
+| `ui/ConfirmRemindSendModal.jsx` | Type `send` to confirm bulk remind (all or multi) |
+| `ui/ExhibitorListTable.jsx` | Exhibitor table with selection column |
+| `ui/ExhibitorListRow.jsx` | Single exhibitor row |
+| `hooks/useExhibitorListSelection.js` | Page multi-select for remind |
+| `ui/ChecklistReminderFilters.jsx` | Reminder log filters (status, trigger, dates) |
+| `ui/ChecklistReminderTable.jsx` | Batch reminder log table (expand for companies) |
+| `ui/ChecklistReminderCompanies.jsx` | Per-company addl_data (`steps[]`) dump |
 | `ui/ChecklistReminderSettingsForm.jsx` | Enable / portal URL / offsets |
 | `ui/CreateCompanyButton.jsx` | Navigates to create page |
 | `ui/CreateCompanyBasicsFields.jsx` | Shared basics (create + edit) |
@@ -53,6 +62,7 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `ui/CompanyLogoFields.jsx` | Logo upload / remove (top of edit form) |
 | `ui/CompanyCategoryProductsSection.jsx` | Edit: category then products |
 | `ui/CompanyProductSelectFields.jsx` | Edit: multi-select + setup Product question CTA |
+| `ui/ProductMatchmakingPanel.jsx` | Exhibitors → Product Matchmaking (grouped listing / create) |
 | `ui/EditCompanyLimitsFields.jsx` | Limits / status (edit only) |
 | `ui/ParentCompanySearch.jsx` | Parent exhibitor typeahead |
 
@@ -68,10 +78,11 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 - Organizer always passes `company_id`
 - Checklist is **collapsed by default** (progress strip + next hint); expand for steps or use header **Exhibitor portal checklist** (next to View Orders)
 
-## Checklist Reminder (Companies tab)
+## Checklist Reminder (Exhibitors sub-view)
 
-- Route: `/event/:id/companies?tab=checklist_reminder` (`cr_view=list|settings`)
-- Log: `GET /events/:id/exhibitor/setup-checklist/reminders/`
+- Route: `/event/:id/companies?exh_view=checklist_reminder` (`cr_view=list|settings`)
+- Send: `POST .../setup-checklist/remind/` → if `async` + `log_id`, poll `GET .../reminders/{log_id}/` every ~2.5s until `completed`/`failed`
+- Log: `GET /events/:id/exhibitor/setup-checklist/reminders/` (batch rows + `addl_data`)
 - Settings: `GET|PATCH /events/:id/exhibitor-setup-checklist/` (no steps)
 
 ## Edit rules
@@ -83,6 +94,6 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 
 ## Wired from
 
-- `src/pages/Companies.jsx` — Add company + Checklist Reminder tab
+- `src/pages/Companies.jsx` — Exhibitors list + Upload Status + Checklist Reminder
 - `src/pages/CompanyDetails.jsx` — thin re-export of `CompanyDetailsPage`
 - `src/pages/CreateCompany.jsx` / `EditCompany.jsx` — thin re-exports

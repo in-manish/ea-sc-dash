@@ -27,6 +27,16 @@ const Matchmaking = () => {
         setSearchParams(next, { replace: true });
     }, [searchParams, setSearchParams]);
 
+    useEffect(() => {
+        const questionId = Number(searchParams.get('question'));
+        if (!questionId) return;
+        setPendingEdit({ questionId });
+        setActiveTab('questions');
+        const next = new URLSearchParams(searchParams);
+        next.delete('question');
+        setSearchParams(next, { replace: true });
+    }, [searchParams, setSearchParams]);
+
     const handleEditFromExhibitor = (question, eventId) => {
         setPendingEdit({ questionId: question.id, eventId });
         setActiveTab('questions');

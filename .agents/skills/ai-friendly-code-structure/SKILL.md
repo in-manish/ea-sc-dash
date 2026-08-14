@@ -1,6 +1,6 @@
 ---
 name: ai-friendly-code-structure
-description: Defines AI-friendly code organization, refactoring boundaries, and navigation metadata conventions for Antigravity projects. Use when creating or refactoring code, especially when files are large, features are growing, or agents need faster task-to-file discovery without scanning unrelated files.
+description: Defines AI-friendly code organization, refactoring boundaries, and navigation metadata. Use when creating or refactoring code, when files are large, or when agents need the project map (AI_INDEX.md / AI_FILE_MAP.yaml) for task-to-file discovery. Always consult the map first; update it after file or module changes.
 ---
 
 # AI-Friendly Code Structure
@@ -27,20 +27,17 @@ Organize code so an agent can:
 - avoid scanning unrelated large files,
 - preserve architecture decisions.
 
+**Consult the project map first** (`AI_INDEX.md` + `AI_FILE_MAP.yaml`). Follow the `project-map` skill. Do not glob/search the repo until the map has been read.
+
 Use this before editing:
 
-1. Is the target file over **200 lines**?
+1. Read `AI_INDEX.md`, then the matching `tasks` / `features` entry in `AI_FILE_MAP.yaml` (and the feature README). Navigate to those files only.
+2. Is the target file over **200 lines**?
 - Yes: split by responsibility into a feature directory before adding new logic. Follow the `split-large-files` skill.
 - No: continue.
-
-2. Is new logic feature-specific?
+3. Is new logic feature-specific?
 - Yes: place under that feature folder.
 - No: place in shared only if reused by at least 2 features.
-
-3. Is the task discoverable from navigation docs?
-- No: update `AI_INDEX.md` and `AI_FILE_MAP.yaml` in the same change.
-- Yes: continue.
-
 4. Does the change touch sensitive paths?
 - Yes: verify `critical_paths` in `AI_FILE_MAP.yaml` and keep edits minimal.
 - No: continue.
@@ -78,7 +75,7 @@ src/
 
 ### 4) Maintain required navigation files
 
-Maintain these at repository root:
+These two files are the **canonical project map**. Do not create a competing format. Consult them at task start; update them at task end. Details: `project-map` skill.
 
 1. `AI_INDEX.md`
 - Human/agent navigation map.
@@ -102,6 +99,8 @@ Maintain architecture history:
 4. `DECISIONS.md` (or ADRs)
 - Record non-obvious architecture constraints.
 
+If the map has no match, search once, then add the missing task/feature entry in the same change.
+
 ### 5) Reject anti-patterns
 
 - God files mixing unrelated concerns (e.g. 1800+ line page components).
@@ -113,7 +112,7 @@ Maintain architecture history:
 ### 6) Apply refactor and PR rules
 
 - If touching a file over 200 lines, split in the same change (or as the first commit in the work) — do not pile on more logic.
-- If adding a feature, update navigation files in the same change:
+- After **every** task that adds, moves, or renames files/modules, update the project map in the same change:
   - `AI_INDEX.md`
   - `AI_FILE_MAP.yaml`
   - `src/features/<feature>/README.md`
@@ -133,6 +132,7 @@ Treat scripts as black boxes unless modification is required.
 
 Before finishing, verify:
 
+- Project map was consulted **before** exploring, and updated **after** if files/modules changed.
 - New or changed code is in the correct feature/shared location.
 - **No source file exceeds 200 lines.**
 - Navigation docs match actual file locations.

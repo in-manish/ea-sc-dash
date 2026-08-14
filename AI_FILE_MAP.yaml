@@ -1,4 +1,26 @@
+# Canonical machine-readable project map (pair with AI_INDEX.md).
+# Consult the matching task/feature before exploring the repo; update after every change.
+# Skill: .agents/skills/project-map/SKILL.md — do not add a third map format.
+
 tasks:
+  attendee_edit:
+    files:
+      - src/features/Attendees/api/attendeeApi.js
+      - src/features/Attendees/domain/editAttendeeForm.js
+      - src/features/Attendees/domain/parseAttendeeError.js
+      - src/features/Attendees/hooks/useEditAttendee.js
+      - src/features/Attendees/hooks/useAttendeeList.js
+      - src/features/Attendees/ui/EditAttendeeModal.jsx
+      - src/features/Attendees/ui/EditAttendeeFormFields.jsx
+      - src/features/Attendees/ui/EditAttendeeRegFields.jsx
+      - src/features/Attendees/ui/AttendeeDetailModal.jsx
+      - src/features/Attendees/ui/AttendeesModals.jsx
+    routes:
+      - /event/:id/attendees
+    notes: >
+      GET then full-body PATCH /events/:eventId/attendees/:uuid/.
+      Request attendee_type is name string; response is {name,id}.
+      Exhibitor type requires exhibitor_id.
   company_create:
     files:
       - src/features/Companies/api/companyApi.js
@@ -52,16 +74,23 @@ tasks:
       - src/features/Companies/ui/ChecklistReminderTab.jsx
       - src/features/Companies/ui/ChecklistReminderFilters.jsx
       - src/features/Companies/ui/ChecklistReminderTable.jsx
+      - src/features/Companies/ui/ChecklistReminderCompanies.jsx
       - src/features/Companies/ui/ChecklistReminderSettingsForm.jsx
+      - src/features/Companies/ui/RemindSendProgress.jsx
+      - src/features/Companies/ui/ExhibitorRemindBar.jsx
+      - src/features/Companies/hooks/useSetupChecklistRemind.js
       - src/features/Companies/hooks/useChecklistReminderList.js
       - src/features/Companies/hooks/useChecklistReminderSettings.js
       - src/features/Companies/api/checklistReminderApi.js
+      - src/features/Companies/api/companyApi.js
       - src/features/Companies/domain/checklistReminderHelpers.js
       - src/pages/Companies.jsx
     routes:
-      - /event/:id/companies?tab=checklist_reminder
+      - /event/:id/companies?exh_view=checklist_reminder
     notes: >
-      Reminder log GET .../exhibitor/setup-checklist/reminders/;
+      POST .../setup-checklist/remind/ (sync 200 or async 202);
+      poll GET .../reminders/{log_id}/ while pending|in_progress;
+      history GET .../reminders/ (batch + addl_data);
       settings GET|PATCH .../exhibitor-setup-checklist/ (no steps).
   agenda_list:
     files:
@@ -111,15 +140,87 @@ tasks:
       - src/features/ScManageUsers/ui/PermanentDeleteCardModal.jsx
       - src/features/ScManageUsers/domain/savedCardHelpers.js
     notes: Active GET cards/; archived GET ?archived=1; restore POST; permanent DELETE { card_id }
+  sc_email_templates:
+    files:
+      - src/features/ScEmailTemplates/api/emailTemplateApi.js
+      - src/features/ScEmailTemplates/hooks/useEmailTemplateList.js
+      - src/features/ScEmailTemplates/hooks/useCreateEmailTemplate.js
+      - src/features/ScEmailTemplates/hooks/useEmailTemplateDetail.js
+      - src/features/ScEmailTemplates/ui/EmailTemplatesPage.jsx
+      - src/features/ScEmailTemplates/ui/EmailTemplateEditModal.jsx
+      - src/features/ScEmailTemplates/ui/CreateEmailTemplateModal.jsx
+      - src/features/ScEmailTemplates/ui/EmailTemplateFormModalShell.jsx
+      - src/features/ScEmailTemplates/ui/EmailTemplateEditorLayout.jsx
+      - src/features/ScEmailTemplates/ui/EmailTemplateEditorSidebar.jsx
+      - src/features/ScEmailTemplates/ui/EmailTemplatePreviewCanvas.jsx
+      - src/features/ScEmailTemplates/ui/EmailTemplateFileImport.jsx
+      - src/features/ScEmailTemplates/ui/EmailTemplateVariableChips.jsx
+      - src/features/ScEmailTemplates/domain/buildCreateEmailTemplatePayload.js
+      - src/features/ScEmailTemplates/domain/contentVariables.js
+      - src/features/ScEmailTemplates/domain/readHtmlFile.js
+      - src/features/ScEmailTemplates/ui/EmailTemplateFilters.jsx
+      - src/features/ScEmailTemplates/ui/EmailTemplateTable.jsx
+      - src/sc/pages/EmailTemplates.jsx
+      - src/sc/layouts/ScHomeSidebarNav.jsx
+      - src/App.jsx
+    routes:
+      - /email-templates
+    notes: >
+      GET list|GET :id/|POST|PUT|PATCH /evc/admin/email-templates/. No DELETE;
+      archive with PATCH {is_active:false}. PUT full object (title, template_type,
+      subject, content required). Optional from_sender_name (omit = settings
+      default; GET returns effective name). List query from_sender_name alias
+      from_name; filters include titles + from_sender_name (unscoped). One active
+      row per (template_type, event_id, audience). 404 not found; 405 on DELETE.
+  event_settings_ar_tax:
+    files:
+      - src/pages/event-settings/exhibitorPortalDefaults.js
+      - src/pages/event-settings/ArTaxList.jsx
+      - src/pages/event-settings/useAdditionalRequirement.js
+      - src/pages/event-settings/PaymentSettings.jsx
+      - src/pages/event-settings/index.jsx
+      - src/pages/AdditionalRequirementsOrders.jsx
+    routes:
+      - /event/:id/settings?tab=payments
+    notes: >
+      additional_requirement.tax is [{name, rate}, ...]; PATCH replaces the whole
+      list; [] = no tax; omitted/never-set defaults to GST 18; old object payload
+      is wrapped as one item; type is ignored; rate is percentage 0-100.
+  matchmaking_form:
+    files:
+      - src/features/Matchmaking/api/matchmakingFormApi.js
+      - src/features/Matchmaking/hooks/useMatchmakingForm.js
+      - src/features/Matchmaking/hooks/useCopyMatchmaking.js
+      - src/features/Matchmaking/ui/MatchmakingQuestions.jsx
+      - src/features/Matchmaking/ui/MatchmakingEmptySetup.jsx
+      - src/features/Matchmaking/ui/CopyMatchmakingModal.jsx
+      - src/features/Matchmaking/domain/buildCopyMatchmakingPayload.js
+      - src/features/Matchmaking/domain/buildSaveMatchmakingPayload.js
+    notes: >
+      GET /events/:id/questions/matchmaking/ — 404 empty (create or copy),
+      200 editor only. Copy POST /evc/matchmaking/make_copy/ only on 404.
+      Create omits form_id. Never copy into an event that already has a form.
 
 features:
+  Attendees:
+    root: src/features/Attendees/
+    entry: src/pages/Attendees.jsx
+    edit_api: GET|PATCH /events/:eventId/attendees/:uuid/ (full body PATCH)
   Companies:
     root: src/features/Companies/
     entry: src/pages/Companies.jsx
     detail_entry: src/pages/CompanyDetails.jsx
     api: POST /events/:eventId/companies/ (multipart, Token auth)
     overview_api: GET /exhibitor/events/:eventId/overview/?company_id=
-    checklist_reminder_api: GET|PATCH /events/:eventId/exhibitor-setup-checklist/; GET .../exhibitor/setup-checklist/reminders/
+    checklist_reminder_api: >
+      POST /events/:eventId/exhibitor/setup-checklist/remind/;
+      GET .../reminders/ + GET .../reminders/:logId/;
+      GET|PATCH /events/:eventId/exhibitor-setup-checklist/
+  Matchmaking:
+    root: src/features/Matchmaking/
+    entry: src/features/Matchmaking/ui/Matchmaking.jsx
+    form_api: GET|POST /events/:eventId/questions/matchmaking/
+    copy_api: POST /evc/matchmaking/make_copy/
   Agenda:
     root: src/features/Agenda/
     entry: src/pages/event-agenda/index.jsx
@@ -132,6 +233,15 @@ features:
       - /users/manage
       - /users/manage/:userId
     cards_api: /evc/admin/users/{userId}/cards/
+  ScEmailTemplates:
+    root: src/features/ScEmailTemplates/
+    entry: src/sc/pages/EmailTemplates.jsx
+    routes:
+      - /email-templates
+    list_api: GET /evc/admin/email-templates/
+    detail_api: GET /evc/admin/email-templates/:id/
+    create_api: POST /evc/admin/email-templates/
+    update_api: PUT|PATCH /evc/admin/email-templates/:id/
 
 critical_paths:
   - src/services/agendaService.js
@@ -139,6 +249,7 @@ critical_paths:
   - src/App.jsx
 
 glossary:
+  attendee_edit_full_patch: PATCH must mirror GET then change fields; not sparse. Send attendee_type as name string.
   speaker_default_alpha_sort: When true, speakers sorted A-Z by name; when false, by speaker_sort_order
   speaker_image_N: Multipart file field index aligned with speaker array
   moderator_image_N: Multipart file field index aligned with moderator array
@@ -147,3 +258,7 @@ glossary:
   company_setup_progress: Overview API only; organizer must pass company_id; hide when setup_checklist.visible=false; soft-fail
   sc_card_id: Use CONTACT_SAVED card_id for admin restore/delete — not the contact user id
   sc_card_archived: GET cards/?archived=1 returns deleted_at + delete_reason (USER|SYNC|BLOCK|ADMIN)
+  sc_email_template_filters: List response filters are unscoped dropdown suggestions; query params filter results only
+  sc_email_from_sender_name: Optional Mandrill from-name / {{ event_name }}; empty uses settings default; GET is always effective name
+  sc_email_template_archive: No DELETE; PATCH {is_active:false} archives; uniqueness applies only to active rows
+  ar_tax_list: exhibitor_portal_data.additional_requirement.tax is [{name, rate}, ...]; PATCH replaces the whole list; [] means no tax

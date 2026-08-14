@@ -51,7 +51,7 @@ const CompanyProductSelectFields = ({
               onClick={onSetupProductQuestion}
             >
               <Plus size={14} />
-              Set up Product question
+              Set up Product matchmaking
             </button>
           )}
           {orphans.length > 0 && (
