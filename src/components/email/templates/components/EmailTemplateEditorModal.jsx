@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Edit3, Eye, Loader2, Save, X } from 'lucide-react';
 import TemplateEditorSidebar from './TemplateEditorSidebar';
 import DeviceToggle from '../../shared/DeviceToggle';
 import TemplatePreviewCanvas from './TemplatePreviewCanvas';
 import usePlaceholderHighlight from '../hooks/usePlaceholderHighlight';
+import { appendPlaceholder } from '../domain/contentVariables';
 
 const EmailTemplateEditorModal = ({
     previewTemplate,
@@ -17,10 +18,28 @@ const EmailTemplateEditorModal = ({
     isSaving,
     previewDevice,
     setPreviewDevice,
-    deviceDimensions
+    deviceDimensions,
+    supportingVariables = [],
 }) => {
     const highlight = usePlaceholderHighlight();
+    const insertAtCursorRef = useRef(null);
     if (!previewTemplate) return null;
+
+    const insertPlaceholder = (name) => {
+        if (!isEditing) {
+            highlight.onToggle(name);
+            return;
+        }
+        const token = `{{${name}}}`;
+        const inserted = insertAtCursorRef.current?.(token);
+        if (!inserted) {
+            setEditFormData((prev) => ({
+                ...prev,
+                email_content: appendPlaceholder(prev.email_content, name),
+            }));
+        }
+        highlight.onPin(name);
+    };
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4 sm:p-6 animate-fade-in">
@@ -88,6 +107,8 @@ const EmailTemplateEditorModal = ({
                         onHover={highlight.onHover}
                         onLeave={highlight.onLeave}
                         onToggle={highlight.onToggle}
+                        onInsertPlaceholder={insertPlaceholder}
+                        supportingVariables={supportingVariables}
                     />
 
                     <div className="flex-1 flex flex-col bg-[#f0f2f5] min-w-0">
@@ -108,6 +129,7 @@ const EmailTemplateEditorModal = ({
                             onHover={highlight.onHover}
                             onLeave={highlight.onLeave}
                             onToggle={highlight.onToggle}
+                            insertRef={insertAtCursorRef}
                         />
                     </div>
                 </div>

@@ -6,6 +6,7 @@ import {
     hasActiveTemplateFilters,
     parseTemplateFilterOptions,
 } from '../domain/parseTemplateFilters';
+import { pickSupportingVariables } from '../domain/contentVariables';
 
 function defaultFilters(eventId) {
     return {
@@ -22,6 +23,7 @@ export default function useEmailTemplatesList({ eventId, token }) {
     const [isLoading, setIsLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [supportingVariables, setSupportingVariables] = useState([]);
 
     const fetchTemplates = useCallback(async () => {
         if (!eventId || !token) return;
@@ -34,10 +36,20 @@ export default function useEmailTemplatesList({ eventId, token }) {
             if (Array.isArray(data)) {
                 setTemplates(data);
                 setTotalPages(1);
+                const next = pickSupportingVariables(
+                    data[0]?.supporting_variables,
+                );
+                if (next.length) setSupportingVariables(next);
             } else {
                 setTemplates(data.results || []);
                 setTotalPages(Math.max(1, Math.ceil((data.count || 0) / 20)));
                 setFilterOptions((prev) => parseTemplateFilterOptions(data.filters, prev));
+                const next = pickSupportingVariables(
+                    data.supporting_variables,
+                    data.filters?.supporting_variables,
+                    data.results?.[0]?.supporting_variables,
+                );
+                if (next.length) setSupportingVariables(next);
             }
         } catch (error) {
             console.error('Error fetching email templates:', error);
@@ -84,6 +96,7 @@ export default function useEmailTemplatesList({ eventId, token }) {
         page,
         setPage,
         totalPages,
+        supportingVariables,
         refetch: fetchTemplates,
     };
 }

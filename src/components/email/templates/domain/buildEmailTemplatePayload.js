@@ -1,7 +1,8 @@
+import { stripPlaceholderMarks } from '../../shared/placeholderHighlight';
 import { buildContentVariablesMap } from './contentVariables';
 
 export function buildEmailTemplatePayload(form, eventId) {
-  const emailContent = String(form.email_content || '');
+  const emailContent = stripPlaceholderMarks(form.email_content || '');
   const subject = String(form.subject || '').trim();
   return {
     event: eventId,

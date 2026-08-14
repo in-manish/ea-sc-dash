@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Code, Layout } from 'lucide-react';
 import EmailFileImport from './EmailFileImport';
 import EmailVisualEditor from './EmailVisualEditor';
 import EmailCodeEditor from './EmailCodeEditor';
+import { stripPlaceholderMarks } from './placeholderHighlight';
 
 export default function EmailBodyEditor({
   value,
@@ -11,11 +12,27 @@ export default function EmailBodyEditor({
   onHover,
   onLeave,
   onToggle,
+  contentRevision = 0,
+  insertRef,
 }) {
   const [editorMode, setEditorMode] = useState('visual');
   const [editorKey, setEditorKey] = useState(0);
+  const visualInsertRef = useRef(null);
+  const codeInsertRef = useRef(null);
   const html = value || '';
   const highlight = { highlightName, onHover, onLeave, onToggle };
+  const visualKey = `${editorKey}-${contentRevision}`;
+
+  useEffect(() => {
+    if (!insertRef) return undefined;
+    insertRef.current = (token) => {
+      if (editorMode === 'code') return codeInsertRef.current?.(token) ?? false;
+      return visualInsertRef.current?.(token) ?? false;
+    };
+    return () => {
+      insertRef.current = null;
+    };
+  }, [editorMode, insertRef]);
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-white min-h-[500px]">
@@ -25,7 +42,13 @@ export default function EmailBodyEditor({
             <Layout size={14} />
             Visual
           </ModeBtn>
-          <ModeBtn active={editorMode === 'code'} onClick={() => setEditorMode('code')}>
+          <ModeBtn
+            active={editorMode === 'code'}
+            onClick={() => {
+              if (editorMode === 'visual') onChange(stripPlaceholderMarks(html));
+              setEditorMode('code');
+            }}
+          >
             <Code size={14} />
             Code
           </ModeBtn>
@@ -40,14 +63,20 @@ export default function EmailBodyEditor({
       </div>
       {editorMode === 'visual' ? (
         <EmailVisualEditor
-          key={editorKey}
-          editorKey={editorKey}
+          key={visualKey}
+          editorKey={visualKey}
           value={html}
           onChange={onChange}
+          insertRef={insertRef ? visualInsertRef : undefined}
           {...highlight}
         />
       ) : (
-        <EmailCodeEditor value={html} onChange={onChange} {...highlight} />
+        <EmailCodeEditor
+          value={html}
+          onChange={onChange}
+          insertRef={codeInsertRef}
+          {...highlight}
+        />
       )}
     </div>
   );

@@ -1,5 +1,7 @@
 import React from 'react';
 import TemplateVariablePlaceholders from './TemplateVariablePlaceholders';
+import TemplateSupportingVariables from './TemplateSupportingVariables';
+import { extractPlaceholderNames, pickSupportingVariables } from '../domain/contentVariables';
 
 const TemplateEditorSidebar = ({
     isEditing,
@@ -11,7 +13,17 @@ const TemplateEditorSidebar = ({
     onHover,
     onLeave,
     onToggle,
+    onInsertPlaceholder,
+    supportingVariables,
 }) => {
+    const html = isEditing ? editFormData.email_content : previewTemplate?.email_content;
+    const subject = isEditing ? editFormData.subject : previewTemplate?.subject;
+    const usedNames = extractPlaceholderNames(html, subject);
+    const catalog = pickSupportingVariables(
+        previewTemplate?.supporting_variables,
+        editFormData?.supporting_variables,
+        supportingVariables,
+    );
     return (
         <div className="w-[300px] border-r border-gray-100 bg-gray-50/50 p-6 flex flex-col gap-5 overflow-y-auto hidden lg:flex">
             <div>
@@ -132,9 +144,19 @@ const TemplateEditorSidebar = ({
             </div>
 
             <div className="mt-auto">
+                <TemplateSupportingVariables
+                    variables={catalog}
+                    usedNames={usedNames}
+                    isEditing={isEditing}
+                    highlightName={highlightName}
+                    onHover={onHover}
+                    onLeave={onLeave}
+                    onToggle={onToggle}
+                    onInsert={onInsertPlaceholder}
+                />
                 <TemplateVariablePlaceholders
-                    html={isEditing ? editFormData.email_content : previewTemplate?.email_content}
-                    subject={isEditing ? editFormData.subject : previewTemplate?.subject}
+                    html={html}
+                    subject={subject}
                     highlightName={highlightName}
                     pinnedName={pinnedName}
                     onHover={onHover}
