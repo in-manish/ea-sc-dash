@@ -11,6 +11,11 @@ export default function usePlaceholderHighlight() {
     setPinned((prev) => (prev === name ? null : name));
     setHovered(name);
   }, []);
+  const onPin = useCallback((name) => {
+    if (!name) return;
+    setPinned(name);
+    setHovered(name);
+  }, []);
 
   return {
     highlightName: hovered || pinned,
@@ -18,5 +23,6 @@ export default function usePlaceholderHighlight() {
     onHover,
     onLeave,
     onToggle,
+    onPin,
   };
 }

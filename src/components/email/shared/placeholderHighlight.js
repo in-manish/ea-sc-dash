@@ -15,10 +15,10 @@ export const PLACEHOLDER_HIGHLIGHT_CSS = `
 `;
 
 export function stripPlaceholderMarks(html) {
-  return String(html || '').replace(
-    /<span[^>]*data-ea-ph="[^"]*"[^>]*>([\s\S]*?)<\/span>/gi,
-    '$1'
-  );
+  return String(html || '')
+    .replace(/<span[^>]*data-ea-ph="[^"]*"[^>]*>([\s\S]*?)<\/span>/gi, '$1')
+    .replace(/<span[^>]*data-ea-caret[^>]*>[\s\S]*?<\/span>/gi, '')
+    .replace(/<span[^>]*data-jodit-selection_marker[^>]*>[\s\S]*?<\/span>/gi, '');
 }
 
 export function placeholderAtIndex(text, index) {
@@ -77,7 +77,9 @@ export function decoratePlaceholderRoot(root, highlightName) {
   const walker = doc.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
     acceptNode(node) {
       const parent = node.parentElement;
-      if (!parent || parent.closest('[data-ea-ph]')) return NodeFilter.FILTER_REJECT;
+      if (!parent || parent.closest('[data-ea-ph], [data-jodit-selection_marker]')) {
+        return NodeFilter.FILTER_REJECT;
+      }
       if (parent.tagName === 'SCRIPT' || parent.tagName === 'STYLE') return NodeFilter.FILTER_REJECT;
       if (!node.nodeValue || !node.nodeValue.includes('{{')) return NodeFilter.FILTER_REJECT;
       return NodeFilter.FILTER_ACCEPT;
@@ -86,6 +88,11 @@ export function decoratePlaceholderRoot(root, highlightName) {
   const nodes = [];
   while (walker.nextNode()) nodes.push(walker.currentNode);
   nodes.forEach(wrapTextNode);
+  applyPlaceholderHighlight(root, highlightName);
+}
+
+export function applyPlaceholderHighlight(root, highlightName) {
+  if (!root) return;
   root.querySelectorAll('[data-ea-ph]').forEach((el) => {
     const on = Boolean(highlightName) && el.getAttribute('data-ea-ph') === highlightName;
     el.classList.toggle('is-on', on);

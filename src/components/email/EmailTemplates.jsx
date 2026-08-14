@@ -35,6 +35,7 @@ const EmailTemplates = ({ viewMode = 'list', onAddSignal = 0 }) => {
         page,
         setPage,
         totalPages,
+        supportingVariables,
         refetch,
     } = useEmailTemplatesList({ eventId, token });
 
@@ -48,10 +49,19 @@ const EmailTemplates = ({ viewMode = 'list', onAddSignal = 0 }) => {
         if (onAddSignal > 0) handleCreateNew();
     }, [onAddSignal]);
 
-    const handleViewTemplate = (template) => {
+    const handleViewTemplate = async (template) => {
         setPreviewTemplate(template);
         setEditFormData({ ...template, email_content: template.email_content || '' });
         setIsEditing(false);
+        if (!eventId || !template?.id) return;
+        try {
+            const detail = await emailService.getEmailTemplate(eventId, template.id, token);
+            const merged = { ...template, ...detail };
+            setPreviewTemplate(merged);
+            setEditFormData({ ...merged, email_content: merged.email_content || '' });
+        } catch {
+            /* list row is enough */
+        }
     };
 
     const handleCreateNew = () => {
@@ -149,6 +159,7 @@ const EmailTemplates = ({ viewMode = 'list', onAddSignal = 0 }) => {
                 previewDevice={previewDevice}
                 setPreviewDevice={setPreviewDevice}
                 deviceDimensions={deviceDimensions}
+                supportingVariables={supportingVariables}
             />
         </div>
     );

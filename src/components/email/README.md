@@ -13,9 +13,10 @@ Event organizer email templates under Communication → Email. Category Emails a
 | `templates/domain/parseTemplateFilters.js` | Parse list `filters.events`, `template_types`, `names` |
 | `templates/domain/contentVariables.js` | Extract `{{name}}` tokens → `content_variables` map |
 | `templates/domain/buildEmailTemplatePayload.js` | Create/update body including `content_variables` |
-| `templates/components/TemplateVariablePlaceholders.jsx` | Sidebar chips for body placeholders |
+| `templates/components/TemplateSupportingVariables.jsx` | Catalog of `supporting_variables` with descriptions |
 | `templates/hooks/usePlaceholderHighlight.js` | Hover / pin highlight between chips and body |
 | `shared/placeholderHighlight.js` | Wrap/strip `{{token}}` marks and highlight CSS |
+| `shared/insertAtCaret.js` | Jodit save/restore + overlay caret for visual insert |
 | `shared/EmailPreviewFrame.jsx` | Preview iframe with placeholder highlight |
 | `shared/EmailBodyEditor.jsx` | Visual / Code body editor |
 | `shared/EmailFileImport.jsx` | Browse HTML/txt and insert into body |
@@ -38,3 +39,5 @@ Dropdowns for Event, Name, and Template Type. Query: `event`, `name` (also `emai
 `{{name}}` tokens in the body (and subject) show as sidebar placeholders.
 Create/update sends `content_variables: { name: "", event_name: "", ... }`.
 Hover or click a chip to highlight every match in the body, and vice versa.
+`supporting_variables` (name + description) lists tokens you can insert at the cursor while editing.
+Click in the body, then pick a catalog token to insert at that spot (visual uses Jodit selection markers; a caret overlay shows the insert point).

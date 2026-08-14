@@ -14,6 +14,7 @@ const TemplatePreviewCanvas = ({
     onHover,
     onLeave,
     onToggle,
+    insertRef,
 }) => {
     const highlight = { highlightName, onHover, onLeave, onToggle };
 
@@ -45,6 +46,7 @@ const TemplatePreviewCanvas = ({
                             <EmailBodyEditor
                                 value={editFormData.email_content || ''}
                                 onChange={(email_content) => setEditFormData((prev) => ({ ...prev, email_content }))}
+                                insertRef={insertRef}
                                 {...highlight}
                             />
                         ) : (
