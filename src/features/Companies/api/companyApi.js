@@ -114,4 +114,21 @@ export const companyApi = {
       log_id: data.log_id ?? null,
     };
   },
+
+  /**
+   * POST /events/:eventId/exhibitor/password/reset/
+   * Single POC only. Body: badge_id and/or company_id (no email / bulk_email).
+   */
+  async resetExhibitorPassword(eventId, token, payload) {
+    const response = await fetch(
+      `${getApiUrl()}/events/${eventId}/exhibitor/password/reset/`,
+      {
+        method: 'POST',
+        headers: { ...authHeaders(token), 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      },
+    );
+    if (!response.ok) await throwParsed(response);
+    return response.json().catch(() => ({}));
+  },
 };

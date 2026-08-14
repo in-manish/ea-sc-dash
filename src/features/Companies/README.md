@@ -11,7 +11,7 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 
 | Path | Owns |
 |------|------|
-| `api/companyApi.js` | GET/POST/PATCH company, filter options, exhibitor overview, checklist remind POST |
+| `api/companyApi.js` | GET/POST/PATCH company, filter options, exhibitor overview, checklist remind POST, POC password reset |
 | `api/checklistReminderApi.js` | Reminder settings GET/PATCH + reminder log list + progress poll |
 | `domain/checklistReminderHelpers.js` | Defaults, offsets, sent_status labels, progress %, `steps[]` / `step_ids` |
 | `domain/buildCompanyFormData.js` | Create → multipart |
@@ -46,7 +46,11 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `ui/SetupProgressSkeleton.jsx` | Setup Progress loading skeleton |
 | `ui/ChecklistReminderTab.jsx` | Reminder log + settings (no bulk send) |
 | `ui/ExhibitorsListPanel.jsx` | List + multi-select + remind all/selected |
-| `ui/ExhibitorRemindBar.jsx` | Remind all incomplete / remind selected (no step_id) |
+| `domain/exhibitorPasswordResetPayload.js` | Single POC reset body (`badge_id` / `company_id` only) |
+| `hooks/useExhibitorPasswordReset.js` | POST exhibitor POC password reset |
+| `ui/ExhibitorPasswordResetControl.jsx` | Confirm + reset button (list + attendee detail) |
+| `ui/ConfirmExhibitorPasswordResetModal.jsx` | Confirm POC password reset |
+| `ui/ExhibitorRemindBar.jsx` | Remind all incomplete / remind selected (no step_id) + single-select POC reset |
 | `ui/RemindSendProgress.jsx` | Poll progress bar (percentage / counts) |
 | `ui/ConfirmRemindSendModal.jsx` | Type `send` to confirm bulk remind (all or multi) |
 | `ui/ExhibitorListTable.jsx` | Exhibitor table with selection column |
@@ -84,6 +88,12 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 - Send: `POST .../setup-checklist/remind/` → if `async` + `log_id`, poll `GET .../reminders/{log_id}/` every ~2.5s until `completed`/`failed`
 - Log: `GET /events/:id/exhibitor/setup-checklist/reminders/` (batch rows + `addl_data`)
 - Settings: `GET|PATCH /events/:id/exhibitor-setup-checklist/` (no steps)
+
+## Exhibitor POC password reset
+
+- `POST /events/:id/exhibitor/password/reset/` with `badge_id` and/or `company_id` (no `email` / `bulk_email` yet)
+- Exhibitors list: **Reset exhibitor POC password** enabled when exactly one company is selected
+- Attendee detail: **Reset exhibitor portal password** shown for exhibitors, enabled when `is_poc`
 
 ## Edit rules
 

@@ -7,6 +7,7 @@ import EmailTemplateList from './templates/components/EmailTemplateList';
 import EmailTemplateFilters from './templates/components/EmailTemplateFilters';
 import EmailTemplateEditorModal from './templates/components/EmailTemplateEditorModal';
 import useEmailTemplatesList from './templates/hooks/useEmailTemplatesList';
+import { buildEmailTemplatePayload } from './templates/domain/buildEmailTemplatePayload';
 
 const deviceDimensions = {
     mobile: { width: '375px', icon: Smartphone, label: 'Mobile' },
@@ -81,10 +82,11 @@ const EmailTemplates = ({ viewMode = 'list', onAddSignal = 0 }) => {
         }
         setIsSaving(true);
         try {
+            const payload = buildEmailTemplatePayload(editFormData, eventId);
             if (previewTemplate.isNew) {
-                await emailService.createEmailTemplate(eventId, token, editFormData);
+                await emailService.createEmailTemplate(eventId, token, payload);
             } else {
-                await emailService.updateEmailTemplate(eventId, previewTemplate.id, token, editFormData);
+                await emailService.updateEmailTemplate(eventId, previewTemplate.id, token, payload);
             }
             await refetch();
             setPreviewTemplate(null);

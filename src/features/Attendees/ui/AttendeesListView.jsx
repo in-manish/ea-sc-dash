@@ -62,6 +62,7 @@ const AttendeesListView = ({
         <AttendeeSelectionBar
             selectionMode={selection.selectionMode}
             selectedAttendeeUuids={selection.selectedAttendeeUuids}
+            selectedAttendees={selection.selectedAttendees}
             total={list.total}
             allVisibleSelected={selection.allVisibleSelected}
             hasActiveSearchOrFilters={hasActiveSearchOrFilters}
@@ -69,6 +70,8 @@ const AttendeesListView = ({
             onSelectAllMatching={selection.selectAllMatchingAttendees}
             onOpenWhatsApp={whatsApp.handleOpenWhatsAppModal}
             onCreateEBadge={eBadge.handleCreateEBadge}
+            eventId={selectedEvent?.id}
+            token={token}
         />
 
         <AttendeeTable

@@ -186,6 +186,23 @@ tasks:
       additional_requirement.tax is [{name, rate}, ...]; PATCH replaces the whole
       list; [] = no tax; omitted/never-set defaults to GST 18; old object payload
       is wrapped as one item; type is ignored; rate is percentage 0-100.
+  exhibitor_poc_password_reset:
+    files:
+      - src/features/Companies/api/companyApi.js
+      - src/features/Companies/domain/exhibitorPasswordResetPayload.js
+      - src/features/Companies/hooks/useExhibitorPasswordReset.js
+      - src/features/Companies/ui/ExhibitorPasswordResetControl.jsx
+      - src/features/Companies/ui/ConfirmExhibitorPasswordResetModal.jsx
+      - src/features/Companies/ui/ExhibitorRemindBar.jsx
+      - src/features/Attendees/ui/AttendeeDetailModal.jsx
+      - src/features/Attendees/ui/AttendeeSelectionBar.jsx
+      - src/features/Attendees/domain/exhibitorPoc.js
+    notes: >
+      POST /events/:eventId/exhibitor/password/reset/ with badge_id and/or
+      company_id. Exhibitor list: enabled for exactly one selected company.
+      Attendee selection bar: last action, only when exactly one selected
+      attendee is_poc. Attendee detail: shown for exhibitors, enabled when
+      is_poc. Email and bulk_email not sent from the dashboard yet.
   matchmaking_form:
     files:
       - src/features/Matchmaking/api/matchmakingFormApi.js
@@ -213,6 +230,13 @@ tasks:
       - src/components/email/shared/readHtmlFile.js
       - src/components/email/templates/components/EmailTemplateFilters.jsx
       - src/components/email/templates/domain/parseTemplateFilters.js
+      - src/components/email/templates/domain/contentVariables.js
+      - src/components/email/templates/domain/buildEmailTemplatePayload.js
+      - src/components/email/templates/components/TemplateEditorSidebar.jsx
+      - src/components/email/templates/components/TemplateVariablePlaceholders.jsx
+      - src/components/email/templates/hooks/usePlaceholderHighlight.js
+      - src/components/email/shared/placeholderHighlight.js
+      - src/components/email/shared/EmailPreviewFrame.jsx
       - src/components/email/templates/hooks/useEmailTemplatesList.js
       - src/services/emailTemplateApi.js
     routes:
@@ -222,6 +246,8 @@ tasks:
       (1 MB); extract body + style from full documents; append or replace into
       email / email_content. Template list filters from response
       { events: [id], template_types: [unique], names: [] }.
+      Create/update content_variables is { token: "" } from {{name}} in body.
+      Hover/click a placeholder chip highlights all matches in the body, and vice versa.
 
 features:
   Attendees:
@@ -234,6 +260,7 @@ features:
     detail_entry: src/pages/CompanyDetails.jsx
     api: POST /events/:eventId/companies/ (multipart, Token auth)
     overview_api: GET /exhibitor/events/:eventId/overview/?company_id=
+    password_reset_api: POST /events/:eventId/exhibitor/password/reset/
     checklist_reminder_api: >
       POST /events/:eventId/exhibitor/setup-checklist/remind/;
       GET .../reminders/ + GET .../reminders/:logId/;
@@ -290,4 +317,6 @@ glossary:
   sc_email_template_archive: No DELETE; PATCH {is_active:false} archives; uniqueness applies only to active rows
   ea_email_file_import: Browse .html/.htm/.txt (1 MB); extract body + style; append or replace into category/template body
   ea_email_template_filters: List filters { events: [id], template_types: [unique], names: [] }; query event, name, template_type
+  ea_email_content_variables: Create/update content_variables is { token: "" } from {{name}} in body/subject; hover/click highlights chips and body
   ar_tax_list: exhibitor_portal_data.additional_requirement.tax is [{name, rate}, ...]; PATCH replaces the whole list; [] means no tax
+  exhibitor_poc_password_reset: POST /events/:id/exhibitor/password/reset/; identify POC with badge_id then company_id; skip email/bulk_email for now

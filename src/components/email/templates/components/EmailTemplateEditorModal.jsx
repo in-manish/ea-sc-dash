@@ -3,6 +3,7 @@ import { Edit3, Eye, Loader2, Save, X } from 'lucide-react';
 import TemplateEditorSidebar from './TemplateEditorSidebar';
 import DeviceToggle from '../../shared/DeviceToggle';
 import TemplatePreviewCanvas from './TemplatePreviewCanvas';
+import usePlaceholderHighlight from '../hooks/usePlaceholderHighlight';
 
 const EmailTemplateEditorModal = ({
     previewTemplate,
@@ -18,6 +19,7 @@ const EmailTemplateEditorModal = ({
     setPreviewDevice,
     deviceDimensions
 }) => {
+    const highlight = usePlaceholderHighlight();
     if (!previewTemplate) return null;
 
     return (
@@ -81,6 +83,11 @@ const EmailTemplateEditorModal = ({
                         editFormData={editFormData}
                         handleEditChange={handleEditChange}
                         previewTemplate={previewTemplate}
+                        highlightName={highlight.highlightName}
+                        pinnedName={highlight.pinnedName}
+                        onHover={highlight.onHover}
+                        onLeave={highlight.onLeave}
+                        onToggle={highlight.onToggle}
                     />
 
                     <div className="flex-1 flex flex-col bg-[#f0f2f5] min-w-0">
@@ -97,6 +104,10 @@ const EmailTemplateEditorModal = ({
                             deviceDimensions={deviceDimensions}
                             editFormData={editFormData}
                             setEditFormData={setEditFormData}
+                            highlightName={highlight.highlightName}
+                            onHover={highlight.onHover}
+                            onLeave={highlight.onLeave}
+                            onToggle={highlight.onToggle}
                         />
                     </div>
                 </div>

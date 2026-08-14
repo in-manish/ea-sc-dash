@@ -1,5 +1,11 @@
 import { X, HeartHandshake, IdCard, Loader2, RefreshCw, Pencil } from 'lucide-react';
 import { getGroupedFields, needsScSync } from '../domain/attendeeFieldGroups';
+import {
+  canResetExhibitorPortalPassword,
+  isExhibitorAttendee,
+} from '../domain/exhibitorPoc';
+import { exhibitorPasswordResetPayload } from '../../Companies/domain/exhibitorPasswordResetPayload';
+import ExhibitorPasswordResetControl from '../../Companies/ui/ExhibitorPasswordResetControl';
 
 const AttendeeDetailModal = ({
     attendee,
@@ -13,6 +19,8 @@ const AttendeeDetailModal = ({
     onMatchmaking,
     onCreateEBadge,
     onEdit,
+    eventId,
+    token,
 }) => {
     if (!attendee) return null;
 
@@ -107,6 +115,22 @@ const AttendeeDetailModal = ({
                         <HeartHandshake size={16} />
                         View Matchmaking
                     </button>
+                    {isExhibitorAttendee(attendee) && eventId && token && (
+                        <ExhibitorPasswordResetControl
+                            eventId={eventId}
+                            token={token}
+                            payload={exhibitorPasswordResetPayload({
+                                badgeId: attendee.id,
+                                companyId: attendee.exhibitor_id,
+                            })}
+                            enabled={canResetExhibitorPortalPassword(attendee)}
+                            label="Reset exhibitor portal password"
+                            title="Reset exhibitor portal password"
+                            description="Resets the exhibitor portal password for this POC."
+                            buttonClassName="btn btn-secondary flex items-center gap-2 disabled:opacity-50"
+                            disabledTitle="Only an exhibitor or co-exhibitor POC can reset the portal password"
+                        />
+                    )}
                     {needsScSync(attendee) && (
                         <button
                             className="btn btn-secondary flex items-center gap-2"

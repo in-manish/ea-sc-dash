@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Bell, Loader2 } from 'lucide-react';
 import { useSetupChecklistRemind } from '../hooks/useSetupChecklistRemind';
+import { exhibitorPasswordResetPayload } from '../domain/exhibitorPasswordResetPayload';
 import ConfirmRemindSendModal from './ConfirmRemindSendModal';
+import ExhibitorPasswordResetControl from './ExhibitorPasswordResetControl';
 import RemindSendProgress from './RemindSendProgress';
 
 /**
@@ -93,6 +95,18 @@ export default function ExhibitorRemindBar({
           )}
           Checklist Remind selected ({selected.length})
         </button>
+        <ExhibitorPasswordResetControl
+          eventId={eventId}
+          token={token}
+          payload={
+            selected.length === 1
+              ? exhibitorPasswordResetPayload({ companyId: selected[0] })
+              : null
+          }
+          enabled={selected.length === 1}
+          disabled={isReminding}
+          disabledTitle="Select a single exhibitor to reset its POC password"
+        />
         {selected.length > 0 && (
           <button
             type="button"

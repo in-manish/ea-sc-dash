@@ -37,6 +37,8 @@ const AttendeesModals = ({
             onMatchmaking={list.setMatchmakingAttendee}
             onCreateEBadge={eBadge.handleCreateEBadge}
             onEdit={(attendee) => list.openEditAttendee(attendee)}
+            eventId={selectedEvent?.id}
+            token={token}
         />
 
         <AttendeeFilterDrawer
