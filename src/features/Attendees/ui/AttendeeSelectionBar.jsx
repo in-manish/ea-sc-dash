@@ -1,8 +1,12 @@
 import { MessageCircle, IdCard } from 'lucide-react';
+import { singleSelectedPocAttendee } from '../domain/exhibitorPoc';
+import { exhibitorPasswordResetPayload } from '../../Companies/domain/exhibitorPasswordResetPayload';
+import ExhibitorPasswordResetControl from '../../Companies/ui/ExhibitorPasswordResetControl';
 
 const AttendeeSelectionBar = ({
     selectionMode,
     selectedAttendeeUuids,
+    selectedAttendees = [],
     total,
     allVisibleSelected,
     hasActiveSearchOrFilters,
@@ -10,8 +14,15 @@ const AttendeeSelectionBar = ({
     onSelectAllMatching,
     onOpenWhatsApp,
     onCreateEBadge,
+    eventId,
+    token,
 }) => {
     if (selectionMode === 'none') return null;
+
+    const pocAttendee = singleSelectedPocAttendee(
+        selectedAttendees,
+        selectionMode,
+    );
 
     return (
         <div className="mb-6 bg-bg-primary border border-border rounded-lg px-5 py-6 shadow-sm animate-fade-in">
@@ -40,7 +51,7 @@ const AttendeeSelectionBar = ({
                     )}
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center justify-end gap-3">
                     <button className="btn btn-secondary" onClick={onClearSelection}>
                         Clear Selection
                     </button>
@@ -55,6 +66,20 @@ const AttendeeSelectionBar = ({
                         <IdCard size={16} style={{ marginRight: '0.5rem' }} />
                         Create E-badge
                     </button>
+                    {pocAttendee && eventId && token && (
+                        <ExhibitorPasswordResetControl
+                            eventId={eventId}
+                            token={token}
+                            payload={exhibitorPasswordResetPayload({
+                                badgeId: pocAttendee.id,
+                                companyId: pocAttendee.exhibitor_id,
+                            })}
+                            label="Reset exhibitor portal password"
+                            title="Reset exhibitor portal password"
+                            description="Resets the exhibitor portal password for this POC."
+                            buttonClassName="btn btn-secondary flex items-center gap-2"
+                        />
+                    )}
                 </div>
             </div>
         </div>

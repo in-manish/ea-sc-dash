@@ -11,7 +11,7 @@ Event attendee list, filters, WhatsApp send, e-badge jobs, SC badge sync, attend
 |------|------|
 | `constants.js` | Pill colors, action button style, filter URL keys |
 | `api/` | Report + single-attendee GET/PATCH (`attendeeApi.js`) |
-| `domain/` | Pure helpers — WhatsApp preview, job timing, field groups, edit payload |
+| `domain/` | Pure helpers — WhatsApp preview, job timing, field groups, edit payload, exhibitor POC |
 | `hooks/` | List / search / filters / types / selection + WhatsApp / e-badge / SC / jobs / report / edit |
 | `ui/` | Page composition, table, toolbar, modals, report panel, edit form |
 
@@ -23,6 +23,7 @@ Event attendee list, filters, WhatsApp send, e-badge jobs, SC badge sync, attend
 - `AttendeesReportCharts.jsx` — event total + vertical bar + pie charts
 - `AttendeesModals.jsx` — detail / filter / WhatsApp / SC / e-badge / create / edit
 - `EditAttendeeModal.jsx` — GET then full-body PATCH edit form
+- `AttendeeDetailModal.jsx` — exhibitor portal password reset enabled when `is_poc`
 - `WhatsAppTemplatePreviewPane.jsx` — raw/preview pane (split from picker)
 
 ## Common edits
@@ -30,6 +31,7 @@ Event attendee list, filters, WhatsApp send, e-badge jobs, SC badge sync, attend
 - Filters UI → `ui/AttendeeFilterDrawer.jsx` + `hooks/useAttendeeFilters.js` + `hooks/useAttendeeTypes.js`
 - Attendees report → `ui/AttendeesReportPanel.jsx` + `ui/AttendeesReportCharts.jsx` + `hooks/useAttendeesReport.js` + `api/attendeesReportApi.js`
 - Edit attendee / badge → `ui/EditAttendeeModal.jsx` + `hooks/useEditAttendee.js` + `api/attendeeApi.js` + `domain/editAttendeeForm.js`
+- Exhibitor portal password reset (POC) → `ui/AttendeeSelectionBar.jsx` (single selected POC) + `ui/AttendeeDetailModal.jsx` + `domain/exhibitorPoc.js`
 - Table row actions → `ui/AttendeeTableRow.jsx`
 - WhatsApp send → `hooks/useWhatsAppSend.js` + `ui/WhatsAppSendModal.jsx`
 - E-badge create/poll → `hooks/useEBadgeActions.js` + `hooks/useEBadgeJobs.js`

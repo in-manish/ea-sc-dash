@@ -1,6 +1,17 @@
 import React from 'react';
+import TemplateVariablePlaceholders from './TemplateVariablePlaceholders';
 
-const TemplateEditorSidebar = ({ isEditing, editFormData, handleEditChange, previewTemplate }) => {
+const TemplateEditorSidebar = ({
+    isEditing,
+    editFormData,
+    handleEditChange,
+    previewTemplate,
+    highlightName,
+    pinnedName,
+    onHover,
+    onLeave,
+    onToggle,
+}) => {
     return (
         <div className="w-[300px] border-r border-gray-100 bg-gray-50/50 p-6 flex flex-col gap-5 overflow-y-auto hidden lg:flex">
             <div>
@@ -120,11 +131,16 @@ const TemplateEditorSidebar = ({ isEditing, editFormData, handleEditChange, prev
                 </div>
             </div>
 
-            <div className="mt-auto pt-6 border-t border-gray-200 text-left">
-                <div className="text-xs text-gray-500 leading-relaxed font-medium text-left">
-                    <span className="block text-gray-700 font-bold mb-1 text-left">Tip: Standalone Templates</span>
-                    Use <code>{`{{name}}`}</code> syntax for personalization. Standard variables like <code>{`{{first_name}}`}</code> and <code>{`{{event_name}}`}</code> are supported.
-                </div>
+            <div className="mt-auto">
+                <TemplateVariablePlaceholders
+                    html={isEditing ? editFormData.email_content : previewTemplate?.email_content}
+                    subject={isEditing ? editFormData.subject : previewTemplate?.subject}
+                    highlightName={highlightName}
+                    pinnedName={pinnedName}
+                    onHover={onHover}
+                    onLeave={onLeave}
+                    onToggle={onToggle}
+                />
             </div>
         </div>
     );

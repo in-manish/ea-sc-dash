@@ -37,6 +37,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Exhibitor overview / checklist | `api/companyApi.js` (`getExhibitorOverview`) + `hooks/useExhibitorOverview.js` |
 | Checklist Reminder tab | `src/features/Companies/ui/ChecklistReminderTab.jsx` + `api/checklistReminderApi.js` |
 | Checklist remind + progress poll | `hooks/useSetupChecklistRemind.js` + `ui/RemindSendProgress.jsx` |
+| Reset exhibitor POC password | `src/features/Companies/ui/ExhibitorPasswordResetControl.jsx` + attendee bar: `ui/AttendeeSelectionBar.jsx` (single POC) |
 | Company FormData / errors | `src/features/Companies/domain/buildCompanyFormData.js`, `parseCompanyError.js` |
 | Agenda list / edit session | `src/features/Agenda/ui/AgendaListPage.jsx`, `AgendaEditPage.jsx` |
 | Agenda API create/update | `src/services/agendaService.js` + `domain/buildAgendaFormData.js` |
@@ -51,6 +52,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | SC email template create/edit content | `ui/EmailTemplateEditorLayout.jsx` + `EmailTemplatePreviewCanvas.jsx` + `EmailTemplateFormModalShell.jsx` |
 | EA category / template body import | `src/components/email/shared/EmailBodyEditor.jsx` + `EmailFileImport.jsx` + `readHtmlFile.js` |
 | EA template list filters | `src/components/email/templates/domain/parseTemplateFilters.js` + `EmailTemplateFilters.jsx` |
+| EA template content_variables | `src/components/email/templates/domain/contentVariables.js` + `buildEmailTemplatePayload.js` + `usePlaceholderHighlight.js` |
 | Event settings AR tax list | `src/pages/event-settings/exhibitorPortalDefaults.js` + `ArTaxList.jsx` + `useAdditionalRequirement.js` |
 | Matchmaking questions / copy | `src/features/Matchmaking/ui/MatchmakingQuestions.jsx` + `api/matchmakingFormApi.js` |
 

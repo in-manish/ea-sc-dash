@@ -1,6 +1,7 @@
 import React from 'react';
 import { Mail } from 'lucide-react';
 import EmailBodyEditor from '../../shared/EmailBodyEditor';
+import EmailPreviewFrame from '../../shared/EmailPreviewFrame';
 
 const TemplatePreviewCanvas = ({
     previewTemplate,
@@ -8,8 +9,14 @@ const TemplatePreviewCanvas = ({
     previewDevice,
     deviceDimensions,
     editFormData,
-    setEditFormData
+    setEditFormData,
+    highlightName,
+    onHover,
+    onLeave,
+    onToggle,
 }) => {
+    const highlight = { highlightName, onHover, onLeave, onToggle };
+
     return (
         <div className="flex-1 overflow-auto bg-[#fafafa] p-4 sm:p-8 flex justify-center items-start border-l border-gray-200 shadow-inner">
             {previewTemplate?.email_content || isEditing ? (
@@ -38,9 +45,13 @@ const TemplatePreviewCanvas = ({
                             <EmailBodyEditor
                                 value={editFormData.email_content || ''}
                                 onChange={(email_content) => setEditFormData((prev) => ({ ...prev, email_content }))}
+                                {...highlight}
                             />
                         ) : (
-                            <PreviewFrame html={previewTemplate.email_content || ''} />
+                            <EmailPreviewFrame
+                                html={previewTemplate.email_content || ''}
+                                {...highlight}
+                            />
                         )}
                     </div>
                 </div>
@@ -53,45 +64,5 @@ const TemplatePreviewCanvas = ({
         </div>
     );
 };
-
-function PreviewFrame({ html }) {
-    return (
-        <iframe
-            title="Email Preview"
-            srcDoc={`
-                <!DOCTYPE html>
-                <html>
-                  <head>
-                    <style>
-                      body {
-                        font-family: 'Inter', system-ui, -apple-system, sans-serif;
-                        line-height: 1.6;
-                        color: #1a1a1a;
-                        margin: 24px;
-                        white-space: pre-wrap;
-                        word-wrap: break-word;
-                      }
-                      p, div, h1, h2, h3, h4, h5, h6, ul, ol, li, table {
-                        white-space: normal;
-                      }
-                    </style>
-                  </head>
-                  <body>${html}</body>
-                </html>
-            `}
-            className="w-full border-none transition-all duration-300"
-            sandbox="allow-same-origin allow-popups"
-            style={{ minHeight: '500px' }}
-            onLoad={(e) => {
-                try {
-                    const height = e.target.contentWindow.document.documentElement.scrollHeight;
-                    e.target.style.height = `${Math.max(500, height)}px`;
-                } catch (err) {
-                    console.warn('Could not auto-resize iframe:', err);
-                }
-            }}
-        />
-    );
-}
 
 export default TemplatePreviewCanvas;

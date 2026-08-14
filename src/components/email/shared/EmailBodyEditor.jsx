@@ -1,18 +1,21 @@
 import { useState } from 'react';
-import JoditEditor from 'jodit-react';
 import { Code, Layout } from 'lucide-react';
 import EmailFileImport from './EmailFileImport';
-import { JODIT_EMAIL_CONFIG } from './joditEmailConfig';
+import EmailVisualEditor from './EmailVisualEditor';
+import EmailCodeEditor from './EmailCodeEditor';
 
-export default function EmailBodyEditor({ value, onChange }) {
+export default function EmailBodyEditor({
+  value,
+  onChange,
+  highlightName,
+  onHover,
+  onLeave,
+  onToggle,
+}) {
   const [editorMode, setEditorMode] = useState('visual');
   const [editorKey, setEditorKey] = useState(0);
   const html = value || '';
-
-  const applyImported = (next) => {
-    onChange(next);
-    setEditorKey((key) => key + 1);
-  };
+  const highlight = { highlightName, onHover, onLeave, onToggle };
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-white min-h-[500px]">
@@ -27,26 +30,24 @@ export default function EmailBodyEditor({ value, onChange }) {
             Code
           </ModeBtn>
         </div>
-        <EmailFileImport content={html} onChange={applyImported} />
+        <EmailFileImport
+          content={html}
+          onChange={(next) => {
+            onChange(next);
+            setEditorKey((key) => key + 1);
+          }}
+        />
       </div>
       {editorMode === 'visual' ? (
-        <JoditEditor
+        <EmailVisualEditor
           key={editorKey}
+          editorKey={editorKey}
           value={html}
-          config={JODIT_EMAIL_CONFIG}
-          onBlur={(next) => onChange(next)}
-          onChange={() => {}}
+          onChange={onChange}
+          {...highlight}
         />
       ) : (
-        <div className="flex-1 p-4 bg-gray-50">
-          <textarea
-            value={html}
-            onChange={(e) => onChange(e.target.value)}
-            className="w-full h-full p-6 text-sm font-mono text-gray-800 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all resize-none shadow-premium-sm"
-            placeholder="Write your email content or HTML, or browse a file..."
-            style={{ minHeight: '500px' }}
-          />
-        </div>
+        <EmailCodeEditor value={html} onChange={onChange} {...highlight} />
       )}
     </div>
   );
