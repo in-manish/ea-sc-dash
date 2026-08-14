@@ -9,6 +9,13 @@ const EmailTemplateFilters = ({
     onClear,
     hasActiveFilters,
 }) => {
+    const eventOptions = uniqueIds([
+        ...(filterOptions.events || []),
+        filters.event,
+    ]).map((id) => ({
+        value: String(id),
+        label: `#${id}`,
+    }));
     return (
         <div className="bg-bg-primary border border-border rounded-xl p-4 mb-4 shadow-sm space-y-3">
             <label className="flex flex-col gap-1">
@@ -30,39 +37,28 @@ const EmailTemplateFilters = ({
                 </div>
             </label>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                <label className="flex flex-col gap-1">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-text-tertiary">
-                        Email Name
-                    </span>
-                    <select
-                        value={filters.email_name}
-                        onChange={(e) => onFilterChange('email_name', e.target.value)}
-                        className="input-field w-full text-sm py-2"
-                    >
-                        <option value="">All names</option>
-                        {(filterOptions.email_names || []).map((name) => (
-                            <option key={name} value={name}>{name}</option>
-                        ))}
-                    </select>
-                </label>
-
-                <label className="flex flex-col gap-1">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-text-tertiary">
-                        Template Type
-                    </span>
-                    <select
-                        value={filters.template_type}
-                        onChange={(e) => onFilterChange('template_type', e.target.value)}
-                        className="input-field w-full text-sm py-2"
-                    >
-                        <option value="">All types</option>
-                        {(filterOptions.template_types || []).map((type) => (
-                            <option key={type} value={type}>{type}</option>
-                        ))}
-                    </select>
-                </label>
-
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <FilterSelect
+                    label="Event"
+                    value={filters.event}
+                    onChange={(value) => onFilterChange('event', value)}
+                    empty="All events"
+                    options={eventOptions}
+                />
+                <FilterSelect
+                    label="Name"
+                    value={filters.name}
+                    onChange={(value) => onFilterChange('name', value)}
+                    empty="All names"
+                    options={filterOptions.names || []}
+                />
+                <FilterSelect
+                    label="Template Type"
+                    value={filters.template_type}
+                    onChange={(value) => onFilterChange('template_type', value)}
+                    empty="All types"
+                    options={filterOptions.template_types || []}
+                />
                 <label className="flex flex-col gap-1">
                     <span className="text-[10px] font-black uppercase tracking-widest text-text-tertiary">
                         Status
@@ -94,4 +90,31 @@ const EmailTemplateFilters = ({
     );
 };
 
+function FilterSelect({ label, value, onChange, empty, options }) {
+    const items = options.map((opt) => (
+        typeof opt === 'object' ? opt : { value: opt, label: opt }
+    ));
+    return (
+        <label className="flex flex-col gap-1">
+            <span className="text-[10px] font-black uppercase tracking-widest text-text-tertiary">
+                {label}
+            </span>
+            <select
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                className="input-field w-full text-sm py-2"
+            >
+                <option value="">{empty}</option>
+                {items.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+            </select>
+        </label>
+    );
+}
+
 export default EmailTemplateFilters;
+
+function uniqueIds(values) {
+    return [...new Set(values.map((id) => String(id || '')).filter(Boolean))];
+}

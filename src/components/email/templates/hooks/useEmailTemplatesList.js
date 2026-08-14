@@ -1,19 +1,23 @@
 import { useState, useEffect, useCallback } from 'react';
 import { emailService } from '../../../../services/emailService';
+import {
+    EMPTY_FILTER_OPTIONS,
+    EMPTY_TEMPLATE_FILTERS,
+    hasActiveTemplateFilters,
+    parseTemplateFilterOptions,
+} from '../domain/parseTemplateFilters';
 
-const EMPTY_FILTERS = {
-    search: '',
-    email_name: '',
-    template_type: '',
-    is_active: '',
-};
-
-const EMPTY_OPTIONS = { email_names: [], template_types: [] };
+function defaultFilters(eventId) {
+    return {
+        ...EMPTY_TEMPLATE_FILTERS,
+        event: eventId ? String(eventId) : '',
+    };
+}
 
 export default function useEmailTemplatesList({ eventId, token }) {
     const [templates, setTemplates] = useState([]);
-    const [filterOptions, setFilterOptions] = useState(EMPTY_OPTIONS);
-    const [filters, setFilters] = useState(EMPTY_FILTERS);
+    const [filterOptions, setFilterOptions] = useState(EMPTY_FILTER_OPTIONS);
+    const [filters, setFilters] = useState(() => defaultFilters(eventId));
     const [searchInput, setSearchInput] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [page, setPage] = useState(1);
@@ -33,16 +37,7 @@ export default function useEmailTemplatesList({ eventId, token }) {
             } else {
                 setTemplates(data.results || []);
                 setTotalPages(Math.max(1, Math.ceil((data.count || 0) / 20)));
-                if (data.filters) {
-                    setFilterOptions((prev) => ({
-                        email_names: data.filters.email_names?.length
-                            ? data.filters.email_names
-                            : prev.email_names,
-                        template_types: data.filters.template_types?.length
-                            ? data.filters.template_types
-                            : prev.template_types,
-                    }));
-                }
+                setFilterOptions((prev) => parseTemplateFilterOptions(data.filters, prev));
             }
         } catch (error) {
             console.error('Error fetching email templates:', error);
@@ -72,11 +67,9 @@ export default function useEmailTemplatesList({ eventId, token }) {
 
     const clearFilters = () => {
         setSearchInput('');
-        setFilters(EMPTY_FILTERS);
+        setFilters(defaultFilters(eventId));
         setPage(1);
     };
-
-    const hasActiveFilters = Object.values(filters).some((v) => v !== '');
 
     return {
         templates,
@@ -86,7 +79,7 @@ export default function useEmailTemplatesList({ eventId, token }) {
         setSearchInput,
         setFilter,
         clearFilters,
-        hasActiveFilters,
+        hasActiveFilters: hasActiveTemplateFilters(filters, eventId),
         isLoading,
         page,
         setPage,
