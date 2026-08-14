@@ -8,6 +8,7 @@ const DeviceToggle = ({ previewDevice, setPreviewDevice, deviceDimensions }) => 
                     const Icon = config.icon;
                     return (
                         <button
+                            type="button"
                             key={key}
                             onClick={() => setPreviewDevice(key)}
                             title={config.label}

@@ -5,6 +5,7 @@ import ScSyncErrorModal from './ScSyncErrorModal';
 import EBadgeResultModal from './EBadgeResultModal';
 import AttendeeMatchmakingAnswers from '../../Matchmaking/ui/AttendeeMatchmakingAnswers';
 import CreateAttendeeModal from '../../../components/attendees/CreateAttendeeModal';
+import EditAttendeeModal from './EditAttendeeModal';
 
 const AttendeesModals = ({
     list,
@@ -35,6 +36,7 @@ const AttendeesModals = ({
             onSyncSc={scSync.handleSyncWithSC}
             onMatchmaking={list.setMatchmakingAttendee}
             onCreateEBadge={eBadge.handleCreateEBadge}
+            onEdit={(attendee) => list.openEditAttendee(attendee)}
         />
 
         <AttendeeFilterDrawer
@@ -111,6 +113,18 @@ const AttendeesModals = ({
                     searchApi.setSearch('');
                     filtersApi.clearFilters();
                 }}
+            />
+        )}
+
+        {list.editingUuid && selectedEvent && (
+            <EditAttendeeModal
+                eventId={selectedEvent.id}
+                uuid={list.editingUuid}
+                token={token}
+                attendeeTypes={attendeeTypes}
+                attendeeTypesLoading={attendeeTypesLoading}
+                onClose={list.closeEditAttendee}
+                onSaved={list.handleAttendeeUpdated}
             />
         )}
     </>

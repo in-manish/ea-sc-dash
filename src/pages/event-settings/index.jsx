@@ -17,9 +17,11 @@ import AgendaSettings from './AgendaSettings';
 import JsonTree from './components/JsonTree';
 import { DEFAULT_STALL_SCHEMA_TYPES } from './CompanySettings';
 import {
-    DEFAULT_ADDITIONAL_REQUIREMENT,
+    buildAdditionalRequirementPayload,
     normalizeExhibitorPortalData,
+    validateTaxList,
 } from './exhibitorPortalDefaults';
+import { useAdditionalRequirement } from './useAdditionalRequirement';
 
 const EventSettings = () => {
     const { id } = useParams();
@@ -331,34 +333,14 @@ const EventSettings = () => {
         return current !== original;
     };
 
-    const handleAdditionalRequirementChange = (section, field, value) => {
-        setEventData(prev => {
-            const current = prev.exhibitor_portal_data?.additional_requirement || {
-                tax: { ...DEFAULT_ADDITIONAL_REQUIREMENT.tax },
-                page: { ...DEFAULT_ADDITIONAL_REQUIREMENT.page },
-            };
-            return {
-                ...prev,
-                exhibitor_portal_data: {
-                    ...(prev.exhibitor_portal_data || {}),
-                    additional_requirement: {
-                        ...current,
-                        [section]: {
-                            ...(current[section] || {}),
-                            [field]: value,
-                        },
-                    },
-                },
-            };
-        });
-    };
-
-    const isAdditionalRequirementModified = (section, field) => {
-        if (!originalEventData) return false;
-        const current = eventData.exhibitor_portal_data?.additional_requirement?.[section]?.[field];
-        const original = originalEventData.exhibitor_portal_data?.additional_requirement?.[section]?.[field];
-        return current !== original;
-    };
+    const {
+        handleAdditionalRequirementChange,
+        handleTaxChange,
+        addTax,
+        removeTax,
+        isAdditionalRequirementModified,
+        isTaxModified,
+    } = useAdditionalRequirement(eventData, originalEventData, setEventData);
 
     const handleMeetingDiaryChange = (field, value) => {
         setEventData(prev => ({
@@ -470,19 +452,11 @@ const EventSettings = () => {
             return;
         }
 
-        const arTax = eventData.exhibitor_portal_data?.additional_requirement?.tax;
-        if (arTax) {
-            const rate = Number(arTax.rate);
-            if (Number.isNaN(rate) || rate < 0 || (arTax.type === 'percentage' && rate > 100)) {
-                setIsSaving(false);
-                setMessage({
-                    type: 'error',
-                    text: arTax.type === 'percentage'
-                        ? 'Tax rate must be a number between 0 and 100.'
-                        : 'Tax rate must be a non-negative number.',
-                });
-                return;
-            }
+        const taxError = validateTaxList(eventData.exhibitor_portal_data?.additional_requirement?.tax);
+        if (taxError) {
+            setIsSaving(false);
+            setMessage({ type: 'error', text: taxError });
+            return;
         }
 
         try {
@@ -590,19 +564,11 @@ const EventSettings = () => {
             const currency = Array.isArray(eventData.currencies) ? eventData.currencies[0] : null;
             if (currency) formData.append('currencies', currency);
 
-            // Exhibitor portal AR tax + stall detail footer (partial merge on API)
-            const ar = eventData.exhibitor_portal_data?.additional_requirement || DEFAULT_ADDITIONAL_REQUIREMENT;
+            // Exhibitor portal AR tax (full list replace) + stall detail footer
             formData.append('exhibitor_portal_data', JSON.stringify({
-                additional_requirement: {
-                    tax: {
-                        name: (ar.tax?.name || 'GST').trim() || 'GST',
-                        type: ar.tax?.type === 'fixed' ? 'fixed' : 'percentage',
-                        rate: Number(ar.tax?.rate),
-                    },
-                    page: {
-                        footer: typeof ar.page?.footer === 'string' ? ar.page.footer : '',
-                    },
-                },
+                additional_requirement: buildAdditionalRequirementPayload(
+                    eventData.exhibitor_portal_data?.additional_requirement
+                ),
             }));
 
             // --- MANUAL PAYLOAD MODIFICATION AREA ---
@@ -750,6 +716,10 @@ const EventSettings = () => {
                         isCurrenciesModified={isCurrenciesModified}
                         handleAdditionalRequirementChange={handleAdditionalRequirementChange}
                         isAdditionalRequirementModified={isAdditionalRequirementModified}
+                        handleTaxChange={handleTaxChange}
+                        addTax={addTax}
+                        removeTax={removeTax}
+                        isTaxModified={isTaxModified}
                     />
                 )}
                 {activeTab === 'localization' && (

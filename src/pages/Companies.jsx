@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
-import { Loader2, Search, Filter, Building2, X, Printer, ShoppingCart, Settings, Star, Lock, IdCard, Upload, ExternalLink } from 'lucide-react';
+import { Search, Filter, X, ShoppingCart, Settings, Upload, Building2, Bell } from 'lucide-react';
 import AdditionalRequirementsOrders from './AdditionalRequirementsOrders';
 import ARManager from './ARManager';
-import CompanyProductSection from './event-settings/company-products/CompanyProductSection';
+import ProductMatchmakingPanel from '../features/Companies/ui/ProductMatchmakingPanel';
 import CompanyUploadModal from '../components/companies/CompanyUploadModal';
 import CompanyUploadStatus from '../components/companies/CompanyUploadStatus';
 import CompanyComprehensiveReportPanel from '../components/companies/CompanyComprehensiveReportPanel';
 import { CreateCompanyButton } from '../features/Companies';
 import ChecklistReminderTab from '../features/Companies/ui/ChecklistReminderTab';
+import ExhibitorsListPanel from '../features/Companies/ui/ExhibitorsListPanel';
 
 const Companies = () => {
     const { selectedEvent, token } = useAuth();
-    const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
 
     // Helper to get active tab and view from URL
@@ -57,6 +57,7 @@ const Companies = () => {
         const newParams = new URLSearchParams(searchParams);
         if (viewName === 'list') newParams.delete('exh_view');
         else newParams.set('exh_view', viewName);
+        if (viewName !== 'checklist_reminder') newParams.delete('cr_view');
         setSearchParams(newParams);
     };
 
@@ -66,7 +67,8 @@ const Companies = () => {
         if (tabName !== 'additional_requirements') {
             newParams.delete('ar_view');
         }
-        if (tabName !== 'checklist_reminder') {
+        if (tabName !== 'exhibitors') {
+            newParams.delete('exh_view');
             newParams.delete('cr_view');
         }
         setSearchParams(newParams);
@@ -84,6 +86,24 @@ const Companies = () => {
         else newParams.set('cr_view', viewName);
         setSearchParams(newParams);
     };
+
+    // Legacy: tab=company_products → product matchmaking
+    useEffect(() => {
+        if (searchParams.get('tab') !== 'company_products') return;
+        const next = new URLSearchParams(searchParams);
+        next.set('tab', 'product_matchmaking');
+        next.delete('prod_view');
+        setSearchParams(next, { replace: true });
+    }, [searchParams, setSearchParams]);
+
+    // Legacy: tab=checklist_reminder → Exhibitors sub-view
+    useEffect(() => {
+        if (searchParams.get('tab') !== 'checklist_reminder') return;
+        const next = new URLSearchParams(searchParams);
+        next.set('tab', 'exhibitors');
+        next.set('exh_view', 'checklist_reminder');
+        setSearchParams(next, { replace: true });
+    }, [searchParams, setSearchParams]);
 
     // Debounce search
     useEffect(() => {
@@ -154,17 +174,15 @@ const Companies = () => {
         }
     }, [selectedEvent, page, debouncedSearch, activeTab, filters, token]);
 
-    const handleCompanyClick = (companyId) => {
-        navigate(`/event/${selectedEvent.id}/companies/${companyId}`);
-    };
-
     return (
         <div className="w-full animate-fade-in">
             {/* Header */}
             <div className="flex justify-between items-end mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-text-primary m-0">Companies</h1>
-                    {activeTab === 'exhibitors' && <p className="text-sm text-text-secondary mt-1">Total: {total} exhibitors</p>}
+                    {activeTab === 'exhibitors' && exhView === 'list' && (
+                        <p className="text-sm text-text-secondary mt-1">Total: {total} exhibitors</p>
+                    )}
                 </div>
 
                 <div className="flex gap-2 min-w-0">
@@ -220,13 +238,13 @@ const Companies = () => {
                     Exhibitors
                 </button>
                 <button
-                    className={`pb-2 px-1 font-medium text-sm transition-colors relative ${activeTab === 'company_products'
+                    className={`pb-2 px-1 font-medium text-sm transition-colors relative ${activeTab === 'product_matchmaking'
                         ? 'text-accent border-b-2 border-accent'
                         : 'text-text-secondary hover:text-text-primary'
                         }`}
-                    onClick={() => handleTabChange('company_products')}
+                    onClick={() => handleTabChange('product_matchmaking')}
                 >
-                    Company Products
+                    Product Matchmaking
                 </button>
                 <button
                     className={`pb-2 px-1 font-medium text-sm transition-colors relative ${activeTab === 'additional_requirements'
@@ -236,15 +254,6 @@ const Companies = () => {
                     onClick={() => handleTabChange('additional_requirements')}
                 >
                     Additional Requirements
-                </button>
-                <button
-                    className={`pb-2 px-1 font-medium text-sm transition-colors relative ${activeTab === 'checklist_reminder'
-                        ? 'text-accent border-b-2 border-accent'
-                        : 'text-text-secondary hover:text-text-primary'
-                        }`}
-                    onClick={() => handleTabChange('checklist_reminder')}
-                >
-                    Checklist Reminder
                 </button>
             </div>
 
@@ -263,6 +272,13 @@ const Companies = () => {
                     >
                         <Upload size={16} />
                         Upload Status
+                    </button>
+                    <button
+                        className={`px-4 py-1.5 text-sm font-medium rounded-md transition-all flex items-center gap-2 ${exhView === 'checklist_reminder' ? 'bg-white text-accent shadow-sm' : 'text-text-secondary hover:text-text-primary'}`}
+                        onClick={() => handleExhViewChange('checklist_reminder')}
+                    >
+                        <Bell size={16} />
+                        Checklist Reminder
                     </button>
                 </div>
             )}
@@ -298,160 +314,25 @@ const Companies = () => {
                 <CompanyUploadStatus eventId={selectedEvent.id} token={token} refreshKey={uploadRefreshKey} />
             )}
 
-            {activeTab === 'exhibitors' && exhView === 'list' && (
-                <>
-                    {error && <div className="bg-red-50 text-red-800 p-4 border border-red-200 rounded-md mb-6">{error}</div>}
+            {activeTab === 'exhibitors' && exhView === 'list' && selectedEvent && (
+                <ExhibitorsListPanel
+                    eventId={selectedEvent.id}
+                    token={token}
+                    companies={companies}
+                    loading={loading}
+                    error={error}
+                    page={page}
+                    onPageChange={setPage}
+                />
+            )}
 
-                    <div className="bg-bg-primary border border-border rounded-lg overflow-x-auto shadow-sm">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr>
-                                    <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Company</th>
-                                    <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Details</th>
-                                    <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Stall</th>
-                                    <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Category</th>
-                                    <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">Badges</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {loading ? (
-                                    <tr>
-                                        <td colSpan="5" className="text-center p-12 text-text-secondary">
-                                            <Loader2 className="animate-spin text-accent mx-auto" size={24} />
-                                        </td>
-                                    </tr>
-                                ) : companies.length === 0 ? (
-                                    <tr>
-                                        <td colSpan="5" className="text-center p-12 text-text-secondary">No companies found.</td>
-                                    </tr>
-                                ) : (
-                                    companies.map((company) => {
-                                        const parentExhibitor = company.parent_exhibitor;
-                                        const isCoExhibitor = Boolean(parentExhibitor?.id || parentExhibitor);
-                                        const parentId = parentExhibitor?.id;
-                                        const parentName = parentExhibitor?.company_name;
-                                        return (
-                                        <tr
-                                            key={company.id}
-                                            className={`cursor-pointer transition-colors duration-200 [&>td]:border-b [&>td]:border-border group ${
-                                                isCoExhibitor
-                                                    ? 'bg-indigo-50/70 hover:bg-indigo-100/80'
-                                                    : 'bg-emerald-50/40 hover:bg-emerald-50'
-                                            }`}
-                                            onClick={() => handleCompanyClick(company.id)}
-                                        >
-                                            <td className="py-4 px-6 align-middle group-last:border-b-0">
-                                                <div className="flex items-center gap-4">
-                                                    {company.company_logo ? (
-                                                        <img src={company.company_logo} alt={company.company_name} className="w-10 h-10 object-contain bg-white rounded-sm border border-border" />
-                                                    ) : (
-                                                        <div className="w-10 h-10 bg-bg-tertiary rounded-sm flex items-center justify-center text-text-secondary">
-                                                            <Building2 size={16} />
-                                                        </div>
-                                                    )}
-                                                    <div>
-                                                        <div className="font-semibold text-text-primary text-sm flex items-center gap-2 flex-wrap">
-                                                            {company.company_name}
-                                                            <span className="text-[10px] font-mono text-text-tertiary opacity-40">#{company.id}</span>
-                                                            <span
-                                                                className={`inline-flex py-0.5 px-1.5 rounded text-[10px] font-semibold tracking-wide ${
-                                                                    isCoExhibitor
-                                                                        ? 'bg-indigo-100 text-indigo-800'
-                                                                        : 'bg-emerald-100 text-emerald-800'
-                                                                }`}
-                                                            >
-                                                                {isCoExhibitor ? 'Co-exhibitor' : 'Exhibitor'}
-                                                            </span>
-                                                            {company.is_badge_printed && (
-                                                                <Printer
-                                                                    size={14}
-                                                                    className="text-green-600"
-                                                                    title="Badge Printed"
-                                                                />
-                                                            )}
-                                                            {company.is_featured && (
-                                                                <Star
-                                                                    size={14}
-                                                                    className="text-yellow-500 fill-yellow-500"
-                                                                    title="Featured Company"
-                                                                />
-                                                            )}
-                                                        </div>
-                                                        <div className="text-xs text-text-tertiary mt-0.5 flex items-center gap-1">
-                                                            <span>{company.company_slug}</span>
-                                                            {company.is_company_submit_locked && (
-                                                                <Lock size={12} className="text-red-500 shrink-0" title="Company Submit Locked" />
-                                                            )}
-                                                        </div>
-                                                        {isCoExhibitor && parentId && (
-                                                            <button
-                                                                type="button"
-                                                                className="mt-1.5 inline-flex items-center gap-1 text-xs text-accent hover:underline bg-transparent border-none p-0 cursor-pointer font-medium"
-                                                                title={`Open parent exhibitor: ${parentName || `#${parentId}`}`}
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    navigate(`/event/${selectedEvent.id}/companies/${parentId}`);
-                                                                }}
-                                                            >
-                                                                <ExternalLink size={11} />
-                                                                {parentName || `Exhibitor #${parentId}`}
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="py-4 px-6 align-middle group-last:border-b-0">
-                                                <div className="flex flex-col gap-1 text-[0.8125rem] text-text-secondary">
-                                                    <div>OBF: {company.obf_number}</div>
-                                                    {company.sales_person && <div>Sales: {company.sales_person}</div>}
-                                                </div>
-                                            </td>
-                                            <td className="py-4 px-6 align-middle group-last:border-b-0">
-                                                <div className="font-mono font-semibold bg-bg-tertiary py-1 px-2 rounded-sm inline-block text-[0.8125rem] text-text-primary">{company.stall_number || '-'}</div>
-                                            </td>
-                                            <td className="py-4 px-6 align-middle group-last:border-b-0">
-                                                <span className="inline-flex py-1 px-2.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 tracking-wide">{company.category}</span>
-                                            </td>
-                                            <td className="py-4 px-6 align-middle group-last:border-b-0" onClick={(e) => e.stopPropagation()}>
-                                                <button
-                                                    type="button"
-                                                    className="flex flex-col gap-1 text-xs text-text-secondary text-left rounded-md px-2 py-1 -mx-2 transition-colors hover:bg-accent/5 hover:text-accent cursor-pointer group/badges"
-                                                    onClick={() => navigate(`/event/${selectedEvent.id}/attendees?exhibitor_id=${company.id}`)}
-                                                    title="View attendees under this exhibitor"
-                                                >
-                                                    <span>Limit: {company.badge_limit}</span>
-                                                    <span className="inline-flex items-center gap-1">
-                                                        Issued: {company.badge_issued}
-                                                        <IdCard size={12} className="opacity-0 group-hover/badges:opacity-100 transition-opacity" />
-                                                    </span>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        );
-                                    })
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div className="flex justify-end items-center gap-4 mt-6">
-                        <button
-                            className="btn btn-secondary btn-sm"
-                            disabled={page === 1 || loading}
-                            onClick={() => setPage(page - 1)}
-                        >
-                            Previous
-                        </button>
-                        <span className="text-sm text-text-secondary">Page {page}</span>
-                        <button
-                            className="btn btn-secondary btn-sm"
-                            disabled={companies.length < 20 || loading}
-                            onClick={() => setPage(page + 1)}
-                        >
-                            Next
-                        </button>
-                    </div>
-                </>
+            {activeTab === 'exhibitors' && exhView === 'checklist_reminder' && selectedEvent && (
+                <ChecklistReminderTab
+                    eventId={selectedEvent.id}
+                    token={token}
+                    view={crView}
+                    onViewChange={handleCrViewChange}
+                />
             )}
 
             {activeTab === 'additional_requirements' && arView === 'orders' && (
@@ -462,17 +343,10 @@ const Companies = () => {
                 <ARManager eventId={selectedEvent.id} />
             )}
 
-            {activeTab === 'checklist_reminder' && selectedEvent && (
-                <ChecklistReminderTab
-                    eventId={selectedEvent.id}
-                    token={token}
-                    view={crView}
-                    onViewChange={handleCrViewChange}
-                />
-            )}
-
-            {activeTab === 'company_products' && (
-                <CompanyProductSection eventId={selectedEvent.id} token={token} />
+            {activeTab === 'product_matchmaking' && selectedEvent && (
+                <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm animate-fade-in">
+                    <ProductMatchmakingPanel eventId={selectedEvent.id} token={token} />
+                </div>
             )}
 
             {/* Filter Drawer */}

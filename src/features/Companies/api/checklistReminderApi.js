@@ -17,9 +17,12 @@ async function throwParsed(response) {
 function buildReminderQuery(filters = {}) {
   const params = new URLSearchParams();
   const {
-    company_ids,
     step_id,
+    step,
     trigger,
+    sent_status,
+    status,
+    reminder_date,
     sent_at,
     sent_at_from,
     sent_at_to,
@@ -27,9 +30,12 @@ function buildReminderQuery(filters = {}) {
     page_size = 20,
   } = filters;
 
-  if (company_ids) params.set('company_ids', String(company_ids));
-  if (step_id) params.set('step_id', String(step_id));
+  const stepVal = step_id || step;
+  const statusVal = sent_status || status;
+  if (stepVal) params.set('step_id', String(stepVal));
   if (trigger) params.set('trigger', String(trigger));
+  if (statusVal) params.set('sent_status', String(statusVal));
+  if (reminder_date) params.set('reminder_date', String(reminder_date));
   if (sent_at) params.set('sent_at', String(sent_at));
   if (sent_at_from) params.set('sent_at_from', String(sent_at_from));
   if (sent_at_to) params.set('sent_at_to', String(sent_at_to));
@@ -68,6 +74,20 @@ export const checklistReminderApi = {
     const qs = buildReminderQuery(filters);
     const response = await fetch(
       `${getApiUrl()}/events/${eventId}/exhibitor/setup-checklist/reminders/?${qs}`,
+      { method: 'GET', headers: authHeaders(token) }
+    );
+    if (!response.ok) await throwParsed(response);
+    return response.json();
+  },
+
+  /**
+   * GET /events/:eventId/exhibitor/setup-checklist/reminders/:logId/
+   * Poll while sent_status is pending | in_progress. ?detail=true for addl_data.
+   */
+  async getReminderProgress(eventId, logId, token, { detail = false } = {}) {
+    const qs = detail ? '?detail=true' : '';
+    const response = await fetch(
+      `${getApiUrl()}/events/${eventId}/exhibitor/setup-checklist/reminders/${logId}/${qs}`,
       { method: 'GET', headers: authHeaders(token) }
     );
     if (!response.ok) await throwParsed(response);

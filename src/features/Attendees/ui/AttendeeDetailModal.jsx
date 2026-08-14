@@ -1,4 +1,4 @@
-import { X, HeartHandshake, IdCard, Loader2, RefreshCw } from 'lucide-react';
+import { X, HeartHandshake, IdCard, Loader2, RefreshCw, Pencil } from 'lucide-react';
 import { getGroupedFields, needsScSync } from '../domain/attendeeFieldGroups';
 
 const AttendeeDetailModal = ({
@@ -12,6 +12,7 @@ const AttendeeDetailModal = ({
     onSyncSc,
     onMatchmaking,
     onCreateEBadge,
+    onEdit,
 }) => {
     if (!attendee) return null;
 
@@ -90,6 +91,15 @@ const AttendeeDetailModal = ({
                     <button className="btn btn-secondary" onClick={onClose}>
                         Close
                     </button>
+                    {onEdit && (
+                        <button
+                            className="btn btn-secondary flex items-center gap-2"
+                            onClick={() => onEdit(attendee)}
+                        >
+                            <Pencil size={16} />
+                            Edit
+                        </button>
+                    )}
                     <button
                         className="btn btn-secondary flex items-center gap-2"
                         onClick={() => onMatchmaking(attendee)}

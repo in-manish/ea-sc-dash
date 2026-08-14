@@ -2,6 +2,10 @@
 
 React organizer dashboard for event operations (attendees, companies, agenda, etc.).
 
+**Canonical project map** (with `AI_FILE_MAP.yaml`). Do not add a third map file.
+
+**How to use (mandatory):** Consult this index and `AI_FILE_MAP.yaml` *before* exploring the repo. Open the listed feature/task files. After you add, move, or rename modules/files, update this index, the YAML map, and `src/features/<Feature>/README.md` in the same change. Skill: `.agents/skills/project-map/SKILL.md`.
+
 ## Entry points
 
 - `src/App.jsx` — routes
@@ -13,22 +17,25 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Feature | Path | Notes |
 |---------|------|-------|
 | Agenda | `src/features/Agenda/` | List + flat edit for speakers/moderators |
-| Attendees | `src/features/Attendees/` | Attendee management |
+| Attendees | `src/features/Attendees/` | List, create, edit badge, WhatsApp, e-badge, report |
 | Companies | `src/features/Companies/` | EA create/edit/detail + portal checklist + reminder tab |
 | ManageUsers | `src/features/ManageUsers/` | Staff users / permissions |
 | ScManageUsers | `src/features/ScManageUsers/` | SC admin users + saved cards |
 | ScAuth / Profile | `src/features/ScAuth/`, `src/features/ScProfile/` | SC ADMIN login gate + profile |
-| Matchmaking | `src/features/Matchmaking/` | Matchmaking UI |
+| ScEmailTemplates | `src/features/ScEmailTemplates/` | SC admin list; EA-like manage/edit modal |
+| Matchmaking | `src/features/Matchmaking/` | GET 404 = create/copy; 200 = editor only |
 
 ## Common tasks → files
 
 | Task | Start here |
 |------|------------|
+| Edit attendee / badge | `src/features/Attendees/ui/EditAttendeeModal.jsx` + `api/attendeeApi.js` + `domain/editAttendeeForm.js` |
 | Create EA company / co-exhibitor | `src/features/Companies/ui/CreateCompanyPage.jsx` + `api/companyApi.js` |
 | Edit EA company | `src/features/Companies/ui/EditCompanyPage.jsx` + `domain/buildCompanyPatchFormData.js` |
 | Company Detail + Setup Progress | `src/features/Companies/ui/CompanyDetailsPage.jsx` + `SetupProgressSection.jsx` |
 | Exhibitor overview / checklist | `api/companyApi.js` (`getExhibitorOverview`) + `hooks/useExhibitorOverview.js` |
 | Checklist Reminder tab | `src/features/Companies/ui/ChecklistReminderTab.jsx` + `api/checklistReminderApi.js` |
+| Checklist remind + progress poll | `hooks/useSetupChecklistRemind.js` + `ui/RemindSendProgress.jsx` |
 | Company FormData / errors | `src/features/Companies/domain/buildCompanyFormData.js`, `parseCompanyError.js` |
 | Agenda list / edit session | `src/features/Agenda/ui/AgendaListPage.jsx`, `AgendaEditPage.jsx` |
 | Agenda API create/update | `src/services/agendaService.js` + `domain/buildAgendaFormData.js` |
@@ -39,6 +46,10 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | SC user card activity | `src/features/ScManageUsers/ui/CardRequestActivityTab.jsx`, `hooks/useUserCardRequests.js` |
 | SC saved cards Active/Archived | `src/features/ScManageUsers/ui/SavedCardsTab.jsx`, `hooks/useUserSavedCards.js` |
 | SC restore / permanent delete card | `src/features/ScManageUsers/hooks/useSavedCardMutations.js`, `api/userCardsApi.js` |
+| SC email templates | `src/features/ScEmailTemplates/ui/EmailTemplatesPage.jsx` + `api/emailTemplateApi.js` |
+| SC email template create/edit content | `ui/EmailTemplateEditorLayout.jsx` + `EmailTemplatePreviewCanvas.jsx` + `EmailTemplateFormModalShell.jsx` |
+| Event settings AR tax list | `src/pages/event-settings/exhibitorPortalDefaults.js` + `ArTaxList.jsx` + `useAdditionalRequirement.js` |
+| Matchmaking questions / copy | `src/features/Matchmaking/ui/MatchmakingQuestions.jsx` + `api/matchmakingFormApi.js` |
 
 ## Constraints
 

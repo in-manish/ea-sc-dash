@@ -86,20 +86,32 @@ export const companyApi = {
     return response.json();
   },
 
-  /** POST /events/:eventId/exhibitor/setup-checklist/remind/ */
-  async sendSetupChecklistReminder(eventId, token, { stepId, companyIds }) {
+  /**
+   * POST /events/:eventId/exhibitor/setup-checklist/remind/
+   * 200 sync (0–1 company) or nothing to send; 202 async multi-company (poll log_id).
+   * Body: omit step_id = any incomplete; omit company_ids = all matching for event.
+   */
+  async sendSetupChecklistReminder(eventId, token, { stepId, companyIds } = {}) {
+    const body = {};
+    if (stepId) body.step_id = stepId;
+    if (Array.isArray(companyIds) && companyIds.length > 0) {
+      body.company_ids = companyIds.map((id) => Number(id) || id);
+    }
+
     const response = await fetch(
       `${getApiUrl()}/events/${eventId}/exhibitor/setup-checklist/remind/`,
       {
         method: 'POST',
         headers: { ...authHeaders(token), 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          step_id: stepId,
-          company_ids: companyIds,
-        }),
+        body: JSON.stringify(body),
       }
     );
     if (!response.ok) await throwParsed(response);
-    return response.json().catch(() => ({}));
+    const data = await response.json().catch(() => ({}));
+    return {
+      ...data,
+      async: Boolean(data.async) || response.status === 202,
+      log_id: data.log_id ?? null,
+    };
   },
 };

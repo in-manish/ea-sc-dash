@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ShieldCheck, Coins, Receipt, FileText, Eye, EyeOff } from 'lucide-react';
 import { SectionHeader, FormField, getInputClass } from './components/SharedComponents';
 import { getAdditionalRequirement } from './exhibitorPortalDefaults';
+import ArTaxList from './ArTaxList';
 
 export const EVENT_CURRENCIES = [
     { value: 'INR', label: 'INR — Indian Rupee' },
@@ -16,6 +17,10 @@ const PaymentSettings = ({
     isCurrenciesModified,
     handleAdditionalRequirementChange,
     isAdditionalRequirementModified,
+    handleTaxChange,
+    addTax,
+    removeTax,
+    isTaxModified,
 }) => {
     const selectedCurrency = Array.isArray(eventData.currencies) && eventData.currencies.length > 0
         ? eventData.currencies[0]
@@ -83,55 +88,17 @@ const PaymentSettings = ({
             <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
                 <SectionHeader icon={Receipt} title="Additional Requirements Tax" colorClass="text-orange-500" borderClass="bg-orange-500" />
                 <p className="text-xs text-text-tertiary -mt-4 mb-6">
-                    Tax applied to exhibitor portal additional-requirement orders. Order totals still return <code className="text-[10px]">gst_rate</code> / <code className="text-[10px]">gst_amount</code>; labels use this name and rate.
+                    Tax applied to exhibitor portal additional-requirement orders. Each rate is a percentage (0–100).
+                    Saving replaces the whole list; an empty list means no tax. If tax was never set, the backend defaults to GST 18%.
+                    Order totals still return <code className="text-[10px]">gst_rate</code> / <code className="text-[10px]">gst_amount</code>.
                 </p>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl">
-                    <FormField label="Tax Name" description="Shown on AR order totals">
-                        <input
-                            type="text"
-                            value={tax.name}
-                            onChange={(e) => handleAdditionalRequirementChange?.('tax', 'name', e.target.value)}
-                            className={getInputClass('tax.name', isAdditionalRequirementModified?.('tax', 'name'))}
-                            placeholder="GST"
-                        />
-                    </FormField>
-                    <FormField label="Type">
-                        <select
-                            value={tax.type}
-                            onChange={(e) => handleAdditionalRequirementChange?.('tax', 'type', e.target.value)}
-                            className={getInputClass('tax.type', isAdditionalRequirementModified?.('tax', 'type'))}
-                        >
-                            <option value="percentage">Percentage</option>
-                            <option value="fixed">Fixed</option>
-                        </select>
-                    </FormField>
-                    <FormField
-                        label="Rate"
-                        description={tax.type === 'percentage' ? '0–100' : 'Fixed amount'}
-                    >
-                        <input
-                            type="number"
-                            min={0}
-                            max={tax.type === 'percentage' ? 100 : undefined}
-                            step="any"
-                            value={tax.rate}
-                            onChange={(e) => {
-                                const raw = e.target.value;
-                                if (raw === '') {
-                                    handleAdditionalRequirementChange?.('tax', 'rate', '');
-                                    return;
-                                }
-                                let next = Number(raw);
-                                if (tax.type === 'percentage') {
-                                    next = Math.min(100, Math.max(0, next));
-                                }
-                                handleAdditionalRequirementChange?.('tax', 'rate', next);
-                            }}
-                            className={getInputClass('tax.rate', isAdditionalRequirementModified?.('tax', 'rate'))}
-                            placeholder="18"
-                        />
-                    </FormField>
-                </div>
+                <ArTaxList
+                    taxes={tax}
+                    onChange={handleTaxChange}
+                    onAdd={addTax}
+                    onRemove={removeTax}
+                    isModified={isTaxModified}
+                />
             </div>
 
             <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">

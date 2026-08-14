@@ -1,0 +1,29 @@
+---
+description: Mandatory project map — consult AI_INDEX.md and AI_FILE_MAP.yaml first; update them after every task
+alwaysApply: true
+---
+
+# Project Map (mandatory)
+
+Canonical map (do **not** invent a third format):
+
+- `AI_INDEX.md` — human/agent index (entry points, feature table, task → files)
+- `AI_FILE_MAP.yaml` — machine map (`tasks`, `features`, `critical_paths`, `glossary`)
+- `src/features/<Feature>/README.md` — feature-local ownership
+
+Follow `.agents/skills/project-map/SKILL.md` (and `ai-friendly-code-structure`).
+
+## Before any task
+
+1. Read `AI_INDEX.md`, then the matching `tasks` / `features` entry in `AI_FILE_MAP.yaml`.
+2. Open **only** those files (and the feature README). Do not glob/search the repo first.
+3. If the map has no match: search once, then add the missing entry in the **same** change.
+
+```text
+❌ BAD: grep/glob the whole src/ before reading the map
+✅ GOOD: map → feature README → listed files → then a narrow search if needed
+```
+
+## After every task
+
+Update the map for new/moved files, new modules, routes, APIs, and ownership. Never leave navigation stale.

@@ -1,13 +1,14 @@
 import { useState } from 'react';
-import { ChevronDown, ClipboardList } from 'lucide-react';
-import { companyApi } from '../api/companyApi';
+import { ChevronDown, ClipboardList, Bell, Loader2 } from 'lucide-react';
 import { sortSetupSteps } from '../domain/setupChecklistHelpers';
+import { useSetupChecklistRemind } from '../hooks/useSetupChecklistRemind';
 import SetupProgressSkeleton from './SetupProgressSkeleton';
 import SetupProgressStep from './SetupProgressStep';
+import RemindSendProgress from './RemindSendProgress';
 
 /**
- * Compact by default so Company Detail cards stay in view.
- * Expand for full checklist. Overview API only.
+ * Compact by default. Expand for checklist + step/full remind.
+ * Overview API only.
  */
 export default function SetupProgressSection({
   eventId,
@@ -21,10 +22,6 @@ export default function SetupProgressSection({
   onExpandedChange,
 }) {
   const [internalOpen, setInternalOpen] = useState(false);
-  const [remindingId, setRemindingId] = useState(null);
-  const [remindSuccess, setRemindSuccess] = useState('');
-  const [remindError, setRemindError] = useState('');
-
   const isControlled = typeof expanded === 'boolean';
   const open = isControlled ? expanded : internalOpen;
   const setOpen = (next) => {
@@ -32,30 +29,14 @@ export default function SetupProgressSection({
     onExpandedChange?.(next);
   };
 
-  const checklist = overview?.setup_checklist;
-  const progress =
-    checklist?.overall_progress ?? overview?.event_summary?.setup_progress ?? 0;
-
-  const handleRemind = async (step) => {
-    setRemindSuccess('');
-    setRemindError('');
-    setRemindingId(step.id);
-    try {
-      await companyApi.sendSetupChecklistReminder(eventId, token, {
-        stepId: step.id,
-        companyIds: [Number(companyId) || companyId],
-      });
-      setRemindSuccess('Reminder sent.');
-      onReload?.();
-    } catch (err) {
-      setRemindError(
-        err.message || 'Failed to send reminder. Please try again.'
-      );
-      if (!open) setOpen(true);
-    } finally {
-      setRemindingId(null);
-    }
-  };
+  const {
+    remindingKey,
+    remindSuccess,
+    remindError,
+    progress: remindProgress,
+    sendRemind,
+    isReminding,
+  } = useSetupChecklistRemind({ eventId, token, onSuccess: onReload });
 
   if (loading) return <SetupProgressSkeleton />;
 
@@ -67,6 +48,7 @@ export default function SetupProgressSection({
     );
   }
 
+  const checklist = overview?.setup_checklist;
   if (!checklist || checklist.visible === false) return null;
 
   const steps = sortSetupSteps(checklist.steps);
@@ -74,7 +56,29 @@ export default function SetupProgressSection({
   const total = checklist.total_count ?? steps.length;
   const recommendedId = checklist.recommended_step_id;
   const nextStep = steps.find((s) => s.id === recommendedId);
+  const progress =
+    checklist?.overall_progress ?? overview?.event_summary?.setup_progress ?? 0;
   const pct = Math.min(100, Math.max(0, Number(progress) || 0));
+  const companyIds = [Number(companyId) || companyId];
+
+  const handleStepRemind = async (step) => {
+    const ok = await sendRemind({
+      stepId: step.id,
+      companyIds,
+      key: step.id,
+      successMessage: `Reminder sent for “${step.title}”.`,
+    });
+    if (!ok && !open) setOpen(true);
+  };
+
+  const handleFullRemind = async () => {
+    const ok = await sendRemind({
+      companyIds,
+      key: 'full',
+      successMessage: 'Full setup reminder sent for this company.',
+    });
+    if (!ok && !open) setOpen(true);
+  };
 
   return (
     <section
@@ -119,22 +123,44 @@ export default function SetupProgressSection({
 
       {open && (
         <div className="px-4 pb-4 border-t border-border pt-3">
-          {remindSuccess && (
-            <p className="text-sm text-green-700 bg-green-50 border border-green-100 rounded-md px-3 py-2 mb-3 m-0">
-              {remindSuccess}
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <p className="text-xs text-text-tertiary m-0">
+              Remind one step, or send a full incomplete-setup reminder.
             </p>
-          )}
-          {remindError && (
-            <div className="text-sm text-red-700 bg-red-50 border border-red-100 rounded-md px-3 py-2 mb-3">
-              <p className="m-0 font-medium">{remindError}</p>
-              {/portal_base_url/i.test(remindError) && (
-                <p className="m-0 mt-1 text-xs text-red-600">
-                  Set the portal base URL under Companies → Checklist Reminder →
-                  Setup reminder, then try again.
-                </p>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm inline-flex items-center gap-1.5 disabled:opacity-50"
+              disabled={isReminding}
+              onClick={handleFullRemind}
+              title="Remind this company for incomplete steps"
+            >
+              {remindingKey === 'full' ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <Bell size={14} />
               )}
-            </div>
-          )}
+              Remind company
+            </button>
+          </div>
+          <div className="mb-3 space-y-2">
+            <RemindSendProgress progress={remindProgress} />
+            {remindSuccess && (
+              <p className="text-sm text-green-700 bg-green-50 border border-green-100 rounded-md px-3 py-2 m-0">
+                {remindSuccess}
+              </p>
+            )}
+            {remindError && (
+              <div className="text-sm text-red-700 bg-red-50 border border-red-100 rounded-md px-3 py-2">
+                <p className="m-0 font-medium">{remindError}</p>
+                {/portal_base_url/i.test(remindError) && (
+                  <p className="m-0 mt-1 text-xs text-red-600">
+                    Set the portal base URL under Exhibitors → Checklist Reminder →
+                    Setup reminder, then try again.
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
           <div className="flex flex-col gap-3">
             {steps.map((step) => (
               <SetupProgressStep
@@ -143,8 +169,8 @@ export default function SetupProgressSection({
                 isRecommended={step.id === recommendedId}
                 eventId={eventId}
                 companyId={companyId}
-                onRemind={handleRemind}
-                reminding={remindingId === step.id}
+                onRemind={handleStepRemind}
+                reminding={remindingKey === step.id}
               />
             ))}
           </div>

@@ -4,15 +4,6 @@ export default function ChecklistReminderFilters({ draft, onChange, onApply, onC
   return (
     <div className="bg-bg-primary border border-border rounded-lg p-4 shadow-sm mb-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        <Field label="Company IDs">
-          <input
-            type="text"
-            className="input w-full"
-            placeholder="e.g. 12,45"
-            value={draft.company_ids}
-            onChange={(e) => set('company_ids', e.target.value)}
-          />
-        </Field>
         <Field label="Step ID">
           <input
             type="text"
@@ -32,6 +23,27 @@ export default function ChecklistReminderFilters({ draft, onChange, onApply, onC
             <option value="auto">Auto</option>
             <option value="manual">Manual</option>
           </select>
+        </Field>
+        <Field label="Status">
+          <select
+            className="input w-full"
+            value={draft.sent_status}
+            onChange={(e) => set('sent_status', e.target.value)}
+          >
+            <option value="">All</option>
+            <option value="pending">Queued</option>
+            <option value="in_progress">Running</option>
+            <option value="completed">Done</option>
+            <option value="failed">Failed</option>
+          </select>
+        </Field>
+        <Field label="Reminder date (auto)">
+          <input
+            type="date"
+            className="input w-full"
+            value={draft.reminder_date}
+            onChange={(e) => set('reminder_date', e.target.value)}
+          />
         </Field>
         <Field label="Sent from">
           <input
