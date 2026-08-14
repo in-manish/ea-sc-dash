@@ -14,20 +14,27 @@ function buildListParams(eventId, options = {}) {
         sortBy = 'email_name',
         sortOrder = 'asc',
         search = '',
+        name = '',
         email_name = '',
         template_type = '',
+        event,
         is_active = '',
     } = typeof options === 'number' ? { page: options } : options;
 
+    const selectedName = name || email_name;
     const params = {
-        event: eventId,
         page,
         size,
         sort_by: sortBy,
         sort_order: sortOrder,
     };
+    if (event) params.event = event;
+    else if (event == null) params.event = eventId;
     if (search) params.search = search;
-    if (email_name) params.email_name = email_name;
+    if (selectedName) {
+        params.name = selectedName;
+        params.email_name = selectedName;
+    }
     if (template_type) params.template_type = template_type;
     if (is_active !== '' && is_active != null) params.is_active = is_active;
     return params;

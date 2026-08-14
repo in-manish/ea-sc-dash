@@ -200,6 +200,28 @@ tasks:
       GET /events/:id/questions/matchmaking/ — 404 empty (create or copy),
       200 editor only. Copy POST /evc/matchmaking/make_copy/ only on 404.
       Create omits form_id. Never copy into an event that already has a form.
+  ea_email_templates:
+    files:
+      - src/pages/Communication.jsx
+      - src/components/EmailConfig.jsx
+      - src/components/email/EmailCategoryTypes.jsx
+      - src/components/email/EmailTemplates.jsx
+      - src/components/email/category/components/PreviewCanvas.jsx
+      - src/components/email/templates/components/TemplatePreviewCanvas.jsx
+      - src/components/email/shared/EmailBodyEditor.jsx
+      - src/components/email/shared/EmailFileImport.jsx
+      - src/components/email/shared/readHtmlFile.js
+      - src/components/email/templates/components/EmailTemplateFilters.jsx
+      - src/components/email/templates/domain/parseTemplateFilters.js
+      - src/components/email/templates/hooks/useEmailTemplatesList.js
+      - src/services/emailTemplateApi.js
+    routes:
+      - /event/:id/communication?tab=email
+    notes: >
+      Category Emails and Templates share EmailBodyEditor. Browse .html/.htm/.txt
+      (1 MB); extract body + style from full documents; append or replace into
+      email / email_content. Template list filters from response
+      { events: [id], template_types: [unique], names: [] }.
 
 features:
   Attendees:
@@ -233,6 +255,11 @@ features:
       - /users/manage
       - /users/manage/:userId
     cards_api: /evc/admin/users/{userId}/cards/
+  EaEmail:
+    root: src/components/email/
+    entry: src/pages/Communication.jsx
+    routes:
+      - /event/:id/communication?tab=email
   ScEmailTemplates:
     root: src/features/ScEmailTemplates/
     entry: src/sc/pages/EmailTemplates.jsx
@@ -261,4 +288,6 @@ glossary:
   sc_email_template_filters: List response filters are unscoped dropdown suggestions; query params filter results only
   sc_email_from_sender_name: Optional Mandrill from-name / {{ event_name }}; empty uses settings default; GET is always effective name
   sc_email_template_archive: No DELETE; PATCH {is_active:false} archives; uniqueness applies only to active rows
+  ea_email_file_import: Browse .html/.htm/.txt (1 MB); extract body + style; append or replace into category/template body
+  ea_email_template_filters: List filters { events: [id], template_types: [unique], names: [] }; query event, name, template_type
   ar_tax_list: exhibitor_portal_data.additional_requirement.tax is [{name, rate}, ...]; PATCH replaces the whole list; [] means no tax

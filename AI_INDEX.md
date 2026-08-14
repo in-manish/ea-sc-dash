@@ -23,6 +23,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | ScManageUsers | `src/features/ScManageUsers/` | SC admin users + saved cards |
 | ScAuth / Profile | `src/features/ScAuth/`, `src/features/ScProfile/` | SC ADMIN login gate + profile |
 | ScEmailTemplates | `src/features/ScEmailTemplates/` | SC admin list; EA-like manage/edit modal |
+| EaEmail | `src/components/email/` | Communication Email: category + templates; browse HTML into body |
 | Matchmaking | `src/features/Matchmaking/` | GET 404 = create/copy; 200 = editor only |
 
 ## Common tasks → files
@@ -48,6 +49,8 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | SC restore / permanent delete card | `src/features/ScManageUsers/hooks/useSavedCardMutations.js`, `api/userCardsApi.js` |
 | SC email templates | `src/features/ScEmailTemplates/ui/EmailTemplatesPage.jsx` + `api/emailTemplateApi.js` |
 | SC email template create/edit content | `ui/EmailTemplateEditorLayout.jsx` + `EmailTemplatePreviewCanvas.jsx` + `EmailTemplateFormModalShell.jsx` |
+| EA category / template body import | `src/components/email/shared/EmailBodyEditor.jsx` + `EmailFileImport.jsx` + `readHtmlFile.js` |
+| EA template list filters | `src/components/email/templates/domain/parseTemplateFilters.js` + `EmailTemplateFilters.jsx` |
 | Event settings AR tax list | `src/pages/event-settings/exhibitorPortalDefaults.js` + `ArTaxList.jsx` + `useAdditionalRequirement.js` |
 | Matchmaking questions / copy | `src/features/Matchmaking/ui/MatchmakingQuestions.jsx` + `api/matchmakingFormApi.js` |
 
