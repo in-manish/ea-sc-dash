@@ -3,6 +3,13 @@
 # Skill: .agents/skills/project-map/SKILL.md — do not add a third map format.
 
 tasks:
+  event_settings_support_email:
+    files:
+      - src/pages/event-settings/CommunicationSettings.jsx
+      - src/pages/event-settings/index.jsx
+      - src/services/eventService.js
+    routes:
+      - /event/:id/settings?tab=communication
   auth_landing:
     files:
       - src/contexts/authSession.js

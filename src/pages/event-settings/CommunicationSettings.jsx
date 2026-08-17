@@ -6,6 +6,30 @@ const CommunicationSettings = ({ eventData, handleInputChange, isFieldModified }
     return (
         <div className="animate-fade-in space-y-6">
             <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
+                <SectionHeader icon={Mail} title="Support contact" colorClass="text-accent" borderClass="bg-accent" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="md:col-span-2">
+                        <FormField
+                            label="Support Email"
+                            description="Shown to attendees and exhibitors as the event support address."
+                        >
+                            <div className="relative flex items-center">
+                                <Mail size={16} className="absolute left-2.5 text-text-tertiary pointer-events-none" />
+                                <input
+                                    type="email"
+                                    name="support_email"
+                                    value={eventData.support_email || ''}
+                                    onChange={handleInputChange}
+                                    className={getInputClass('support_email', isFieldModified('support_email'), true)}
+                                    placeholder="support@example.com"
+                                />
+                            </div>
+                        </FormField>
+                    </div>
+                </div>
+            </div>
+
+            <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
                 <SectionHeader icon={Mail} title="Meeting Communications" colorClass="text-blue-600" borderClass="bg-blue-600" />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="md:col-span-2">
