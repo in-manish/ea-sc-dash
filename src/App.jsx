@@ -42,12 +42,9 @@ import BrandManage from './pages/brand-manage/BrandManage';
 import ManageUsers from './pages/ManageUsers';
 import ExhibitorPortalLanding from './pages/exhibitor-portal/ExhibitorPortalLanding';
 
-import { getDashboardMode } from './config';
-import {
-  getProjectFromPathname,
-  getRouterBasename,
-  buildProjectRedirectUrl,
-} from './projectPath';
+import { getProjectFromPathname, getRouterBasename } from './projectPath';
+import { resolveLandingUrl } from './contexts/authSession';
+import LastPathTracker from './components/LastPathTracker';
 
 const AppRoutes = ({ currentMode }) => {
   const HomeLayout = currentMode === 'SC' ? HomeLayoutSC : HomeLayoutEA;
@@ -123,7 +120,7 @@ const App = () => {
 
   useLayoutEffect(() => {
     if (!pathProject) {
-      window.location.replace(buildProjectRedirectUrl(getDashboardMode()));
+      window.location.replace(resolveLandingUrl());
     }
   }, [pathProject]);
 
@@ -135,6 +132,7 @@ const App = () => {
     <AuthProvider>
       <AlertProvider>
         <Router basename={basename} key={basename}>
+          <LastPathTracker />
           <AppRoutes currentMode={pathProject} />
         </Router>
       </AlertProvider>

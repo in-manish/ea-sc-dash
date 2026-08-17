@@ -3,6 +3,26 @@
 # Skill: .agents/skills/project-map/SKILL.md — do not add a third map format.
 
 tasks:
+  auth_landing:
+    files:
+      - src/contexts/authSession.js
+      - src/contexts/AuthContext.jsx
+      - src/storage/webStorage.js
+      - src/App.jsx
+      - src/components/ProtectedRoute.jsx
+      - src/components/LastPathTracker.jsx
+      - src/config.js
+    routes:
+      - /
+      - /ea
+      - /sc
+      - /login
+    notes: >
+      Tokens live per project+env in sessionStorage with localStorage backup
+      so a new tab or bare host still finds the same login. Opening the domain
+      without /ea|/sc uses findStoredSession + resolveLandingUrl (resume last
+      path or selected event). Do not default to EA/STAGE login when another
+      combo still has a token.
   attendee_edit:
     files:
       - src/features/Attendees/api/attendeeApi.js
@@ -305,8 +325,12 @@ critical_paths:
   - src/services/agendaService.js
   - src/features/Companies/api/companyApi.js
   - src/App.jsx
+  - src/contexts/authSession.js
+  - src/contexts/AuthContext.jsx
 
 glossary:
+  auth_landing_resume: Bare host URL must restore an existing EA/SC token instead of forcing /login
+
   attendee_edit_full_patch: PATCH must mirror GET then change fields; not sparse. Send attendee_type as name string.
   speaker_default_alpha_sort: When true, speakers sorted A-Z by name; when false, by speaker_sort_order
   speaker_image_N: Multipart file field index aligned with speaker array
