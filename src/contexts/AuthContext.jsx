@@ -8,13 +8,15 @@ import {
     getEnv,
 } from '../config';
 import {
-    getStorageKeys,
     readSession,
     readLastPath,
     saveLastPath,
     resolveResumeUrl,
+    persistSessionFields,
+    clearStoredSession,
     buildProjectHomeUrl,
 } from './authSession';
+import { storageSet } from '../storage/webStorage';
 
 const AuthContext = createContext(null);
 
@@ -33,6 +35,7 @@ export const AuthProvider = ({ children }) => {
         applyTheme();
         const session = readSession(currentMode, currentEnv);
         if (session) {
+            persistSessionFields(currentMode, currentEnv, session);
             setUser(session.user);
             setToken(session.token);
             setIsAuthenticated(true);
@@ -54,48 +57,40 @@ export const AuthProvider = ({ children }) => {
         setCurrentMode(mode);
         setCurrentEnv(env);
 
-        const keys = getStorageKeys(mode, env);
+        persistSessionFields(mode, env, { user: userData, token: authToken });
         setUser(userData);
         setToken(authToken);
         setIsAuthenticated(true);
-        sessionStorage.setItem(keys.user, JSON.stringify(userData));
-        sessionStorage.setItem(keys.token, authToken);
     };
 
     const logout = () => {
-        const keys = getStorageKeys();
+        clearStoredSession();
         setUser(null);
         setToken(null);
         setSelectedEvent(null);
         setRecentEvents([]);
         setIsAuthenticated(false);
-        sessionStorage.removeItem(keys.user);
-        sessionStorage.removeItem(keys.token);
-        sessionStorage.removeItem(keys.event);
-        sessionStorage.removeItem(keys.recentEvents);
-        sessionStorage.removeItem(keys.lastPath);
     };
 
     const selectEvent = (event) => {
-        const keys = getStorageKeys();
         setSelectedEvent(event);
-        sessionStorage.setItem(keys.event, JSON.stringify(event));
         setRecentEvents((prev) => {
             const updated = [event, ...prev.filter((e) => e.id !== event.id)].slice(0, 5);
-            sessionStorage.setItem(keys.recentEvents, JSON.stringify(updated));
+            persistSessionFields(currentMode, currentEnv, {
+                event,
+                recentEvents: updated,
+            });
             return updated;
         });
     };
 
     const clearEvent = () => {
-        const keys = getStorageKeys();
-        sessionStorage.removeItem(keys.event);
+        persistSessionFields(currentMode, currentEnv, { event: null });
         const last = readLastPath(currentMode, currentEnv);
         if (last?.pathname?.startsWith('/event/')) {
-            sessionStorage.setItem(
-                keys.lastPath,
-                JSON.stringify({ pathname: '/', search: '' })
-            );
+            persistSessionFields(currentMode, currentEnv, {
+                lastPath: { pathname: '/', search: '' },
+            });
         }
         setSelectedEvent(null);
     };
@@ -104,13 +99,13 @@ export const AuthProvider = ({ children }) => {
         if (!user) return;
         const updatedUser = { ...user, events };
         setUser(updatedUser);
-        sessionStorage.setItem(getStorageKeys().user, JSON.stringify(updatedUser));
+        persistSessionFields(currentMode, currentEnv, { user: updatedUser });
     };
 
     const switchEnvironment = (newEnv) => {
         if (newEnv === currentEnv) return;
         saveLastPath(currentMode, currentEnv);
-        sessionStorage.setItem('app_env', newEnv);
+        storageSet('app_env', newEnv);
         setCurrentEnv(newEnv);
         window.location.href = buildProjectHomeUrl(getDashboardMode());
     };

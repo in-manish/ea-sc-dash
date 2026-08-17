@@ -8,9 +8,10 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 
 ## Entry points
 
-- `src/App.jsx` — routes
+- `src/App.jsx` — routes; bare host (no `/ea`|`/sc`) resumes an existing token
 - `src/layouts/EventLayout.jsx` — event shell / nav
 - `src/services/` — HTTP clients
+- `src/contexts/authSession.js` — token restore, last path, landing URL
 
 ## Feature map
 
@@ -44,6 +45,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Speaker/moderator payload shape | `src/features/Agenda/domain/normalizePeople.js` |
 | SC manage users / detail page | `src/features/ScManageUsers/ui/UserDetailsPage.jsx`, `ManageUsersPage.jsx` |
 | SC ADMIN login / profile | `src/features/ScAuth/domain/scLoginUser.js`, `src/features/ScProfile/ui/ScProfilePage.jsx` |
+| Auth restore / host URL | `src/contexts/authSession.js`, `src/storage/webStorage.js`, `src/App.jsx`, `src/components/ProtectedRoute.jsx` |
 | SC user pending requests | `src/features/ScManageUsers/ui/PendingCardsTab.jsx`, `hooks/useUserPendingCards.js` |
 | SC user card activity | `src/features/ScManageUsers/ui/CardRequestActivityTab.jsx`, `hooks/useUserCardRequests.js` |
 | SC saved cards Active/Archived | `src/features/ScManageUsers/ui/SavedCardsTab.jsx`, `hooks/useUserSavedCards.js` |

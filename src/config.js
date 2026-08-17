@@ -1,4 +1,5 @@
 import { getProjectFromPathname } from './projectPath';
+import { storageGet, storageSet } from './storage/webStorage';
 
 /** App environments (deploy targets). */
 export const APP_ENVS = { LOCAL: 'LOCAL', STAGE: 'STAGE', PROD: 'PROD' };
@@ -87,26 +88,26 @@ export const ENV_CONFIG = {
 const isProject = (v) => Boolean(PROJECTS[v]);
 const isEnv = (v) => Boolean(APP_ENVS[v]);
 
-/** Active project (EA | SC). Path /ea|/sc wins, then ?mode=, then sessionStorage. */
+/** Active project (EA | SC). Path /ea|/sc wins, then ?mode=, then stored project. */
 export const getProject = () => {
   if (typeof window !== 'undefined' && window.location) {
     const fromPath = getProjectFromPathname();
     if (fromPath) {
-      sessionStorage.setItem(STORAGE.project, fromPath);
+      storageSet(STORAGE.project, fromPath);
       return fromPath;
     }
     const mode = new URLSearchParams(window.location.search).get('mode');
     if (isProject(mode)) {
-      sessionStorage.setItem(STORAGE.project, mode);
+      storageSet(STORAGE.project, mode);
       return mode;
     }
   }
-  return sessionStorage.getItem(STORAGE.project) || DEFAULT_PROJECT;
+  return storageGet(STORAGE.project) || DEFAULT_PROJECT;
 };
 
 export const setProject = (project) => {
   if (!isProject(project)) return false;
-  sessionStorage.setItem(STORAGE.project, project);
+  storageSet(STORAGE.project, project);
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('modechange', { detail: { project } }));
   }
@@ -116,11 +117,11 @@ export const setProject = (project) => {
 export const getDashboardMode = getProject;
 export const setDashboardMode = setProject;
 
-export const getEnv = () => sessionStorage.getItem(STORAGE.env) || DEFAULT_ENV;
+export const getEnv = () => storageGet(STORAGE.env) || DEFAULT_ENV;
 
 export const setEnv = (env) => {
   if (!isEnv(env) || !ENV_CONFIG[env]) return false;
-  sessionStorage.setItem(STORAGE.env, env);
+  storageSet(STORAGE.env, env);
   return true;
 };
 
@@ -138,20 +139,20 @@ export const getApiUrl = () => {
   const env = getEnv();
   const project = getProject();
   if (env === APP_ENVS.LOCAL) {
-    const override = sessionStorage.getItem(STORAGE.localUrl(project));
+    const override = storageGet(STORAGE.localUrl(project));
     if (override) return override.replace(/\/$/, '');
   }
   return (getActiveConfig(env, project).BASE_URL || '').replace(/\/$/, '');
 };
 
 export const setLocalBaseUrl = (url) => {
-  sessionStorage.setItem(STORAGE.localUrl(getProject()), url.replace(/\/$/, ''));
+  storageSet(STORAGE.localUrl(getProject()), url.replace(/\/$/, ''));
 };
 
 /** LOCAL base URL for the active project (ignores current env — used by LoginLocal). */
 export const getLocalBaseUrl = () => {
   const project = getProject();
-  const override = sessionStorage.getItem(STORAGE.localUrl(project));
+  const override = storageGet(STORAGE.localUrl(project));
   if (override) return override.replace(/\/$/, '');
   return (getActiveConfig(APP_ENVS.LOCAL, project).BASE_URL || '').replace(/\/$/, '');
 };
