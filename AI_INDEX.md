@@ -19,7 +19,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 |---------|------|-------|
 | Agenda | `src/features/Agenda/` | List + flat edit for speakers/moderators |
 | Attendees | `src/features/Attendees/` | List, create, edit badge, WhatsApp, e-badge, report |
-| Companies | `src/features/Companies/` | EA create/edit/detail + portal checklist + reminder tab |
+| Companies | `src/features/Companies/` | EA list (sort) + create/edit/detail + portal checklist + reminder tab |
 | ManageUsers | `src/features/ManageUsers/` | Staff users / permissions |
 | ScManageUsers | `src/features/ScManageUsers/` | SC admin users + saved cards |
 | ScAuth / Profile | `src/features/ScAuth/`, `src/features/ScProfile/` | SC ADMIN login gate + profile |
@@ -42,6 +42,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Checklist remind + progress poll | `hooks/useSetupChecklistRemind.js` + `ui/RemindSendProgress.jsx` |
 | Reset exhibitor POC password | `src/features/Companies/ui/ExhibitorPasswordResetControl.jsx` + attendee bar: `ui/AttendeeSelectionBar.jsx` (single POC) |
 | Bulk lock / feature companies | `src/features/Companies/ui/ExhibitorLockMenu.jsx` + `ExhibitorBulkActionBar.jsx` + `api/companyApi.js` (`bulkAction`) |
+| Exhibitor list sort | `domain/companyListSort.js` + `hooks/useExhibitorList.js` + `ui/ExhibitorListSortControls.jsx` |
 | Company FormData / errors | `src/features/Companies/domain/buildCompanyFormData.js`, `parseCompanyError.js` |
 | Agenda list / edit session | `src/features/Agenda/ui/AgendaListPage.jsx`, `AgendaEditPage.jsx` |
 | Agenda API create/update | `src/services/agendaService.js` + `domain/buildAgendaFormData.js` |

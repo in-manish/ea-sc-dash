@@ -108,7 +108,8 @@ export default function ExhibitorListRow({
       </td>
       <td className="py-4 px-6 align-middle group-last:border-b-0">
         <div className="flex flex-col gap-1 text-[0.8125rem] text-text-secondary">
-          <div>OBF: {company.obf_number}</div>
+          <div>OBF: {company.obf_number || '-'}</div>
+          <div>Space: {company.space != null && company.space !== '' ? company.space : '-'}</div>
           {company.sales_person && <div>Sales: {company.sales_person}</div>}
         </div>
       </td>

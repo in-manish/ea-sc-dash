@@ -68,6 +68,7 @@ tasks:
       - src/features/Companies/ui/CreateCompanyPage.jsx
       - src/features/Companies/ui/CreateCompanyButton.jsx
       - src/pages/CreateCompany.jsx
+      - src/features/Companies/ui/CompaniesPage.jsx
       - src/pages/Companies.jsx
       - src/pages/CompanyDetails.jsx
       - src/components/companies/CoExhibitorsList.jsx
@@ -121,6 +122,7 @@ tasks:
       - src/features/Companies/api/checklistReminderApi.js
       - src/features/Companies/api/companyApi.js
       - src/features/Companies/domain/checklistReminderHelpers.js
+      - src/features/Companies/ui/CompaniesPage.jsx
       - src/pages/Companies.jsx
     routes:
       - /event/:id/companies?exh_view=checklist_reminder
@@ -252,6 +254,7 @@ tasks:
       - src/features/Companies/ui/CompanyLockFeatureControls.jsx
       - src/features/Companies/ui/ExhibitorsListPanel.jsx
       - src/features/Companies/ui/CompanyDetailsPage.jsx
+      - src/features/Companies/ui/CompaniesPage.jsx
       - src/pages/Companies.jsx
     routes:
       - /event/:id/companies
@@ -265,6 +268,28 @@ tasks:
       Selected lock/unlock and feature/rank are disabled if any co-exhibitor is selected.
       Multiple or all lock/unlock requires typing lock/unlock (AWS confirm);
       single parent is a click confirm.
+  company_list_sort:
+    files:
+      - src/features/Companies/api/companyApi.js
+      - src/features/Companies/domain/companyListSort.js
+      - src/features/Companies/domain/exhibitorListFilters.js
+      - src/features/Companies/hooks/useExhibitorList.js
+      - src/features/Companies/ui/ExhibitorListSortControls.jsx
+      - src/features/Companies/ui/ExhibitorListTable.jsx
+      - src/features/Companies/ui/ExhibitorListRow.jsx
+      - src/features/Companies/ui/ExhibitorsListPanel.jsx
+      - src/features/Companies/ui/CompaniesPage.jsx
+      - src/pages/Companies.jsx
+    routes:
+      - /event/:id/companies
+    notes: >
+      GET /evc/events/:eventId/company_list/?sort_by=&sort_order=.
+      sort_by: company_slug | obf_number | space | space_num |
+      obf_number_numeric | obf_number_alphabet | featured_rank.
+      sort_order: asc | desc. Defaults space/desc. space sorts as space_num;
+      obf_number_alphabet sorts as company_slug. Invalid sort_by → 404.
+      sort params ignored when q is set (_score desc) or is_featured=true
+      with no q (featured_rank then company_slug). Empty q is omitted.
   matchmaking_form:
     files:
       - src/features/Matchmaking/api/matchmakingFormApi.js
@@ -323,11 +348,13 @@ features:
   Companies:
     root: src/features/Companies/
     entry: src/pages/Companies.jsx
+    page: src/features/Companies/ui/CompaniesPage.jsx
     detail_entry: src/pages/CompanyDetails.jsx
     api: POST /events/:eventId/companies/ (multipart, Token auth)
     overview_api: GET /exhibitor/events/:eventId/overview/?company_id=
     password_reset_api: POST /events/:eventId/exhibitor/password/reset/
     bulk_action_api: PATCH /events/:eventId/companies/bulk-action/
+    list_api: GET /evc/events/:eventId/company_list/?sort_by=&sort_order=
     checklist_reminder_api: >
       POST /events/:eventId/exhibitor/setup-checklist/remind/;
       GET .../reminders/ + GET .../reminders/:logId/;
@@ -380,6 +407,7 @@ glossary:
   moderator_image_N: Multipart file field index aligned with moderator array
   company_create_multipart: Must use FormData; nested product/link/media as JSON strings; always send company_name, company_detail, website
   company_edit_patch: PATCH multipart; always send company_name; only changed fields; booleans as true/false strings; logo empty string removes
+  company_list_sort: company_list sort_by/sort_order; defaults space/desc; ignored when q is set or is_featured=true with no q
   company_setup_progress: Overview API only; organizer must pass company_id; hide when setup_checklist.visible=false; soft-fail
   sc_card_id: Use CONTACT_SAVED card_id for admin restore/delete — not the contact user id
   sc_card_archived: GET cards/?archived=1 returns deleted_at + delete_reason (USER|SYNC|BLOCK|ADMIN)

@@ -11,7 +11,7 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 
 | Path | Owns |
 |------|------|
-| `api/companyApi.js` | GET/POST/PATCH company, filter options, exhibitor overview, checklist remind POST, POC password reset, bulk lock/feature |
+| `api/companyApi.js` | GET company list (`sort_by`/`sort_order`), GET/POST/PATCH company, filter options, exhibitor overview, checklist remind POST, POC password reset, bulk lock/feature |
 | `api/checklistReminderApi.js` | Reminder settings GET/PATCH + reminder log list + progress poll |
 | `domain/checklistReminderHelpers.js` | Defaults, offsets, sent_status labels, progress %, `steps[]` / `step_ids` |
 | `domain/buildCompanyFormData.js` | Create → multipart |
@@ -19,7 +19,10 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `domain/companyFromApi.js` | GET response → form state |
 | `domain/parseCompanyError.js` | 400 ERROR / field errors |
 | `domain/companyBulkActionPayload.js` | Lock/feature bulk PATCH body (`single`/`multiple`/`all`) |
+| `domain/companyListSort.js` | List `sort_by` fields, defaults (`space`/`desc`), header mapping |
+| `domain/exhibitorListFilters.js` | List filter keys + URL parse/apply |
 | `hooks/useCompanyBulkAction.js` | PATCH bulk-action + success/error |
+| `hooks/useExhibitorList.js` | Paginated list fetch + search/filters/sort URL state |
 | `domain/formatCompanySearchLabel.js` | Parent search display |
 | `domain/extractMatchmakingProductOptions.js` | Product option names from matchmaking `question_type=product` |
 | `domain/buildAttendeePrefillFromCompany.js` | Prefill create-attendee from company detail |
@@ -35,6 +38,12 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `hooks/useSetupChecklistRemind.js` | POST remind + poll progress until completed/failed |
 | `hooks/useChecklistReminderList.js` | Paginated reminder log |
 | `hooks/useChecklistReminderSettings.js` | Load/save reminder settings |
+| `ui/CompaniesPage.jsx` | Exhibitors / product matchmaking / AR tabs (list + sort) |
+| `ui/CompaniesPageHeader.jsx` | Title, create/upload, search, sort, filter |
+| `ui/CompaniesPageTabs.jsx` | Main tabs + exhibitor / AR sub-views |
+| `ui/ExhibitorListSortControls.jsx` | `sort_by` select + asc/desc |
+| `ui/ExhibitorFilterDrawer.jsx` | List filter drawer shell |
+| `ui/ExhibitorFilterFields.jsx` | List filter fields |
 | `ui/CreateCompanyPage.jsx` | Full-page create |
 | `ui/EditCompanyPage.jsx` | Full-page edit |
 | `ui/CompanyDetailsPage.jsx` | Detail compose (header → setup → cards → stall/catalog → tabs) |
@@ -60,8 +69,8 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `ui/CompanyLockFeatureControls.jsx` | Detail: lock/unlock this parent + feature/rank |
 | `ui/RemindSendProgress.jsx` | Poll progress bar (percentage / counts) |
 | `ui/ConfirmRemindSendModal.jsx` | Type `send` to confirm bulk remind (all or multi) |
-| `ui/ExhibitorListTable.jsx` | Exhibitor table with selection column |
-| `ui/ExhibitorListRow.jsx` | Single exhibitor row |
+| `ui/ExhibitorListTable.jsx` | Exhibitor table with selection + sortable Company / Details / Stall |
+| `ui/ExhibitorListRow.jsx` | Single exhibitor row (Details: OBF + space number) |
 | `hooks/useExhibitorListSelection.js` | Page multi-select for remind |
 | `ui/ChecklistReminderFilters.jsx` | Reminder log filters (status, trigger, dates) |
 | `ui/ChecklistReminderTable.jsx` | Batch reminder log table (expand for companies) |
@@ -120,8 +129,17 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 - Booleans as `"true"` / `"false"`.
 - Logo: new file → upload; remove checkbox → empty `company_logo`; unchanged → omit field.
 
+## Exhibitor list sort
+
+- `GET /evc/events/:id/company_list/?sort_by=&sort_order=`
+- Fields: `company_slug`, `obf_number`, `space` (as `space_num`), `space_num`, `obf_number_numeric`, `obf_number_alphabet` (as `company_slug`), `featured_rank`
+- Defaults: `space` / `desc`. Invalid `sort_by` → 404
+- Ignored when `q` is set (relevance) or `is_featured=true` with no `q` (rank then name)
+- Toolbar select + Company / Details / Stall column headers; `sort_by`/`sort_order` persist in the URL
+- Details column shows OBF, space (number), and sales person
+
 ## Wired from
 
-- `src/pages/Companies.jsx` — Exhibitors list + Upload Status + Checklist Reminder
+- `src/pages/Companies.jsx` — re-export of `ui/CompaniesPage.jsx`
 - `src/pages/CompanyDetails.jsx` — thin re-export of `CompanyDetailsPage`
 - `src/pages/CreateCompany.jsx` / `EditCompany.jsx` — thin re-exports

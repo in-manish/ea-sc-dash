@@ -1,7 +1,28 @@
 import { Loader2 } from 'lucide-react';
 import ExhibitorListRow from './ExhibitorListRow';
+import { isHeaderSortActive } from '../domain/companyListSort';
 
 const COL_SPAN = 6;
+const thClass =
+  'bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border';
+
+function SortHeader({ column, label, sortBy, sortOrder, onSortChange }) {
+  const active = isHeaderSortActive(column, sortBy);
+  return (
+    <th className={thClass}>
+      <button
+        type="button"
+        className={`inline-flex items-center gap-1 bg-transparent border-none p-0 cursor-pointer uppercase tracking-wider font-semibold ${
+          active ? 'text-accent' : 'text-text-secondary hover:text-text-primary'
+        }`}
+        onClick={() => onSortChange(column)}
+      >
+        {label}
+        {active && <span aria-hidden="true">{sortOrder === 'asc' ? '↑' : '↓'}</span>}
+      </button>
+    </th>
+  );
+}
 
 export default function ExhibitorListTable({
   companies,
@@ -14,6 +35,9 @@ export default function ExhibitorListTable({
   onTogglePage,
   onCompanyClick,
   onNavigate,
+  sortBy,
+  sortOrder,
+  onHeaderSort,
 }) {
   return (
     <div className="bg-bg-primary border border-border rounded-lg overflow-x-auto shadow-sm">
@@ -34,21 +58,29 @@ export default function ExhibitorListTable({
                 title="Select all on this page"
               />
             </th>
-            <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">
-              Company
-            </th>
-            <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">
-              Details
-            </th>
-            <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">
-              Stall
-            </th>
-            <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">
-              Category
-            </th>
-            <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">
-              Badges
-            </th>
+            <SortHeader
+              column="company"
+              label="Company"
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+              onSortChange={onHeaderSort}
+            />
+            <SortHeader
+              column="obf"
+              label="Details"
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+              onSortChange={onHeaderSort}
+            />
+            <SortHeader
+              column="stall"
+              label="Stall"
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+              onSortChange={onHeaderSort}
+            />
+            <th className={thClass}>Category</th>
+            <th className={thClass}>Badges</th>
           </tr>
         </thead>
         <tbody>

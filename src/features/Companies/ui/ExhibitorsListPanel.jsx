@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useExhibitorListSelection } from '../hooks/useExhibitorListSelection';
+import { nextHeaderSort } from '../domain/companyListSort';
 import ExhibitorRemindBar from './ExhibitorRemindBar';
 import ExhibitorBulkActionBar from './ExhibitorBulkActionBar';
 import ExhibitorListTable from './ExhibitorListTable';
@@ -17,6 +18,10 @@ export default function ExhibitorsListPanel({
   page,
   onPageChange,
   onUpdated,
+  sortBy,
+  sortOrder,
+  onSortChange,
+  overrideMessage,
 }) {
   const navigate = useNavigate();
   const {
@@ -34,6 +39,10 @@ export default function ExhibitorsListPanel({
         <div className="bg-red-50 text-red-800 p-4 border border-red-200 rounded-md mb-6">
           {error}
         </div>
+      )}
+
+      {overrideMessage && (
+        <p className="text-xs text-text-tertiary mb-3">{overrideMessage}</p>
       )}
 
       <ExhibitorRemindBar
@@ -63,6 +72,12 @@ export default function ExhibitorsListPanel({
         onTogglePage={togglePage}
         onCompanyClick={(id) => navigate(`/event/${eventId}/companies/${id}`)}
         onNavigate={navigate}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onHeaderSort={(column) => {
+          const next = nextHeaderSort(column, sortBy, sortOrder);
+          onSortChange(next.sortBy, next.sortOrder);
+        }}
       />
 
       <div className="flex justify-end items-center gap-4 mt-6">

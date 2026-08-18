@@ -56,6 +56,44 @@ export const companyApi = {
     return response.json();
   },
 
+  /**
+   * GET /evc/events/:eventId/company_list/
+   * sort_by: company_slug | obf_number | space | space_num |
+   *   obf_number_numeric | obf_number_alphabet | featured_rank
+   * sort_order: asc | desc. Defaults: space, desc.
+   * Omit empty q so search relevance does not override sort.
+   */
+  async getCompanyList(
+    eventId,
+    token,
+    {
+      page = 1,
+      size = 20,
+      sortBy = 'space',
+      sortOrder = 'desc',
+      search = '',
+      filters = {},
+    } = {},
+  ) {
+    const params = new URLSearchParams({
+      from: String((page - 1) * size),
+      size: String(size),
+      sort_by: sortBy,
+      sort_order: sortOrder,
+    });
+    if (search) params.set('q', search);
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value === '' || value == null) return;
+      params.set(key, Array.isArray(value) ? value.join(',') : String(value));
+    });
+    const response = await fetch(
+      `${getApiUrl()}/evc/events/${eventId}/company_list/?${params}`,
+      { method: 'GET', headers: authHeaders(token) },
+    );
+    if (!response.ok) await throwParsed(response);
+    return response.json();
+  },
+
   /** GET /evc/events/:eventId/company/filter/options/ — country keys */
   async getFilterOptions(eventId, token) {
     const response = await fetch(

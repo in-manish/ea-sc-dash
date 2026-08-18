@@ -1,3 +1,4 @@
+export { default as CompaniesPage } from './ui/CompaniesPage';
 export { default as CreateCompanyButton } from './ui/CreateCompanyButton';
 export { default as CreateCompanyPage } from './ui/CreateCompanyPage';
 export { default as EditCompanyPage } from './ui/EditCompanyPage';
