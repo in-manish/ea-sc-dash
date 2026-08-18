@@ -1,6 +1,7 @@
 import React from 'react';
 import { Calendar, Users, Settings, ExternalLink } from 'lucide-react';
 import { SectionHeader, FormField, ToggleSwitch, getInputClass, LimitStatField } from './components/SharedComponents';
+import SenderDefaultProfilePicField from './SenderDefaultProfilePicField';
 
 const MeetingDiarySettings = ({ 
     eventData, 
@@ -57,6 +58,15 @@ const MeetingDiarySettings = ({
                         )}
                     </div>
                 </div>
+            </div>
+
+            <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
+                <SectionHeader icon={Users} title="Meeting sender photo" colorClass="text-accent" borderClass="bg-accent" />
+                <SenderDefaultProfilePicField
+                    eventData={eventData}
+                    handleInputChange={handleInputChange}
+                    isFieldModified={isFieldModified}
+                />
             </div>
 
             {/* Section 2: Config */}

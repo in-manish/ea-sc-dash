@@ -3,6 +3,16 @@
 # Skill: .agents/skills/project-map/SKILL.md — do not add a third map format.
 
 tasks:
+  event_settings_sender_profile_pic:
+    files:
+      - src/pages/event-settings/SenderDefaultProfilePicField.jsx
+      - src/pages/event-settings/MeetingDiarySettings.jsx
+      - src/pages/event-settings/CommunicationSettings.jsx
+    routes:
+      - /event/:id/settings?tab=meeting_diary
+    notes: >
+      sender_default_profile_pic is a public image URL. Preview is a round
+      avatar (no alt-text overflow). Copyable + editable; PATCH with event save.
   event_settings_support_email:
     files:
       - src/pages/event-settings/CommunicationSettings.jsx

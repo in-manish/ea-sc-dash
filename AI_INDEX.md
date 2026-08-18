@@ -32,6 +32,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Task | Start here |
 |------|------------|
 | Event settings / support email | `src/pages/event-settings/CommunicationSettings.jsx` (`support_email`) |
+| Event settings / sender profile pic | `src/pages/event-settings/SenderDefaultProfilePicField.jsx` (`sender_default_profile_pic`) |
 | Edit attendee / badge | `src/features/Attendees/ui/EditAttendeeModal.jsx` + `api/attendeeApi.js` + `domain/editAttendeeForm.js` |
 | Create EA company / co-exhibitor | `src/features/Companies/ui/CreateCompanyPage.jsx` + `api/companyApi.js` |
 | Edit EA company | `src/features/Companies/ui/EditCompanyPage.jsx` + `domain/buildCompanyPatchFormData.js` |

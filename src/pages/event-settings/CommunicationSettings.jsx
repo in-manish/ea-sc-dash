@@ -1,6 +1,7 @@
 import React from 'react';
-import { Mail, MessageSquare, User, Image as ImageIcon } from 'lucide-react';
+import { Mail, MessageSquare, Image as ImageIcon } from 'lucide-react';
 import { SectionHeader, FormField, getInputClass } from './components/SharedComponents';
+import SenderDefaultProfilePicField from './SenderDefaultProfilePicField';
 
 const CommunicationSettings = ({ eventData, handleInputChange, isFieldModified }) => {
     return (
@@ -75,19 +76,11 @@ const CommunicationSettings = ({ eventData, handleInputChange, isFieldModified }
                         </FormField>
                     </div>
                     <div className="md:col-span-2">
-                        <FormField label="Default Sender Profile Pic URL" description="Default sender profile picture URL for meeting communications.">
-                            <div className="relative flex items-center">
-                                <User size={16} className="absolute left-2.5 text-text-tertiary pointer-events-none" />
-                                <input
-                                    type="url"
-                                    name="sender_default_profile_pic"
-                                    value={eventData.sender_default_profile_pic || ''}
-                                    onChange={handleInputChange}
-                                    className={getInputClass('sender_default_profile_pic', isFieldModified('sender_default_profile_pic'), true)}
-                                    placeholder="https://example.com/media/sender.jpg"
-                                />
-                            </div>
-                        </FormField>
+                        <SenderDefaultProfilePicField
+                            eventData={eventData}
+                            handleInputChange={handleInputChange}
+                            isFieldModified={isFieldModified}
+                        />
                     </div>
                 </div>
             </div>
