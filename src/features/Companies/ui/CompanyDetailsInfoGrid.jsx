@@ -135,6 +135,16 @@ export default function CompanyDetailsInfoGrid({ company, eventId }) {
           <Field label="Exhibitor UID" value={company.uid} mono />
           <Field label="Payment Made" value={company.is_payment_made ? 'Yes' : 'No'} />
           <Field label="Locked" value={company.is_company_submit_locked ? 'Yes' : 'No'} />
+          <Field
+            label="Featured"
+            value={
+              company.is_featured
+                ? Number(company.featured_rank) > 0
+                  ? `Yes (rank ${company.featured_rank})`
+                  : 'Yes'
+                : 'No'
+            }
+          />
         </div>
       </div>
     </div>

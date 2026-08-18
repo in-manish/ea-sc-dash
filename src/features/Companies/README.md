@@ -11,13 +11,15 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 
 | Path | Owns |
 |------|------|
-| `api/companyApi.js` | GET/POST/PATCH company, filter options, exhibitor overview, checklist remind POST, POC password reset |
+| `api/companyApi.js` | GET/POST/PATCH company, filter options, exhibitor overview, checklist remind POST, POC password reset, bulk lock/feature |
 | `api/checklistReminderApi.js` | Reminder settings GET/PATCH + reminder log list + progress poll |
 | `domain/checklistReminderHelpers.js` | Defaults, offsets, sent_status labels, progress %, `steps[]` / `step_ids` |
 | `domain/buildCompanyFormData.js` | Create → multipart |
 | `domain/buildCompanyPatchFormData.js` | Edit → changed fields only (+ `company_name`) |
 | `domain/companyFromApi.js` | GET response → form state |
 | `domain/parseCompanyError.js` | 400 ERROR / field errors |
+| `domain/companyBulkActionPayload.js` | Lock/feature bulk PATCH body (`single`/`multiple`/`all`) |
+| `hooks/useCompanyBulkAction.js` | PATCH bulk-action + success/error |
 | `domain/formatCompanySearchLabel.js` | Parent search display |
 | `domain/extractMatchmakingProductOptions.js` | Product option names from matchmaking `question_type=product` |
 | `domain/buildAttendeePrefillFromCompany.js` | Prefill create-attendee from company detail |
@@ -51,6 +53,11 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `ui/ExhibitorPasswordResetControl.jsx` | Confirm + reset button (list + attendee detail) |
 | `ui/ConfirmExhibitorPasswordResetModal.jsx` | Confirm POC password reset |
 | `ui/ExhibitorRemindBar.jsx` | Remind all incomplete / remind selected (no step_id) + single-select POC reset |
+| `ui/ExhibitorBulkActionBar.jsx` | List: lock menu + feature/rank selected |
+| `ui/ExhibitorLockMenu.jsx` | One Lock dropdown: selected vs all parents |
+| `ui/ConfirmCompanyLockModal.jsx` | Confirm lock/unlock; type `lock`/`unlock` for multiple or all |
+| `ui/FeatureCompanyModal.jsx` | Per-company `is_featured` + `featured_rank` (unfeatured rank is 0) |
+| `ui/CompanyLockFeatureControls.jsx` | Detail: lock/unlock this parent + feature/rank |
 | `ui/RemindSendProgress.jsx` | Poll progress bar (percentage / counts) |
 | `ui/ConfirmRemindSendModal.jsx` | Type `send` to confirm bulk remind (all or multi) |
 | `ui/ExhibitorListTable.jsx` | Exhibitor table with selection column |
@@ -94,6 +101,17 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 - `POST /events/:id/exhibitor/password/reset/` with `badge_id` and/or `company_id` (no `email` / `bulk_email` yet)
 - Exhibitors list: **Reset exhibitor POC password** enabled when exactly one company is selected
 - Attendee detail: **Reset exhibitor portal password** shown for exhibitors, enabled when `is_poc`
+
+## Bulk lock / feature
+
+- `PATCH /events/:id/companies/bulk-action/`
+- `operation_type`: `lock_company` | `feature_company`
+- `selection`: `single` (1 id) | `multiple` (2+) | `all` (`lock_company` only, parent exhibitors)
+- Lock and Feature / rank are disabled if any co-exhibitor is selected
+- Feature: `is_featured: false` always sends `featured_rank: 0`
+- List bar + company detail both use this endpoint
+- List lock UX is one **Lock parent exhibitors** menu (selected vs all parents)
+- Multiple or all lock/unlock: AWS type-to-confirm (`lock` / `unlock`); single is a click confirm
 
 ## Edit rules
 

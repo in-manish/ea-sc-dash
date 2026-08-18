@@ -66,11 +66,17 @@ export default function ExhibitorListRow({
                 <Printer size={14} className="text-green-600" title="Badge Printed" />
               )}
               {company.is_featured && (
-                <Star
-                  size={14}
-                  className="text-yellow-500 fill-yellow-500"
-                  title="Featured Company"
-                />
+                <span className="inline-flex items-center gap-0.5" title="Featured Company">
+                  <Star
+                    size={14}
+                    className="text-yellow-500 fill-yellow-500"
+                  />
+                  {Number(company.featured_rank) > 0 && (
+                    <span className="text-[10px] font-semibold text-yellow-700">
+                      #{company.featured_rank}
+                    </span>
+                  )}
+                </span>
               )}
             </div>
             <div className="text-xs text-text-tertiary mt-0.5 flex items-center gap-1">

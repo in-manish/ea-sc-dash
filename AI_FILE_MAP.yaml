@@ -240,6 +240,31 @@ tasks:
       Attendee selection bar: last action, only when exactly one selected
       attendee is_poc. Attendee detail: shown for exhibitors, enabled when
       is_poc. Email and bulk_email not sent from the dashboard yet.
+  company_bulk_action:
+    files:
+      - src/features/Companies/api/companyApi.js
+      - src/features/Companies/domain/companyBulkActionPayload.js
+      - src/features/Companies/hooks/useCompanyBulkAction.js
+      - src/features/Companies/ui/ExhibitorBulkActionBar.jsx
+      - src/features/Companies/ui/ExhibitorLockMenu.jsx
+      - src/features/Companies/ui/ConfirmCompanyLockModal.jsx
+      - src/features/Companies/ui/FeatureCompanyModal.jsx
+      - src/features/Companies/ui/CompanyLockFeatureControls.jsx
+      - src/features/Companies/ui/ExhibitorsListPanel.jsx
+      - src/features/Companies/ui/CompanyDetailsPage.jsx
+      - src/pages/Companies.jsx
+    routes:
+      - /event/:id/companies
+      - /event/:id/companies/:companyId
+    notes: >
+      PATCH /events/:eventId/companies/bulk-action/.
+      lock_company: single|multiple|all (parents only); all omits company_ids.
+      feature_company: single|multiple with companies[{id,is_featured,featured_rank}].
+      Unfeatured always stores featured_rank 0. Featured fields ignored on lock.
+      List lock is one dropdown (selected vs all parents) so the bar can grow.
+      Selected lock/unlock and feature/rank are disabled if any co-exhibitor is selected.
+      Multiple or all lock/unlock requires typing lock/unlock (AWS confirm);
+      single parent is a click confirm.
   matchmaking_form:
     files:
       - src/features/Matchmaking/api/matchmakingFormApi.js
@@ -302,6 +327,7 @@ features:
     api: POST /events/:eventId/companies/ (multipart, Token auth)
     overview_api: GET /exhibitor/events/:eventId/overview/?company_id=
     password_reset_api: POST /events/:eventId/exhibitor/password/reset/
+    bulk_action_api: PATCH /events/:eventId/companies/bulk-action/
     checklist_reminder_api: >
       POST /events/:eventId/exhibitor/setup-checklist/remind/;
       GET .../reminders/ + GET .../reminders/:logId/;
@@ -365,3 +391,4 @@ glossary:
   ea_email_content_variables: Create/update content_variables is { token: "" } from {{name}} in body/subject; supporting_variables catalog is shown on edit
   ar_tax_list: exhibitor_portal_data.additional_requirement.tax is [{name, rate}, ...]; PATCH replaces the whole list; [] means no tax
   exhibitor_poc_password_reset: POST /events/:id/exhibitor/password/reset/; identify POC with badge_id then company_id; skip email/bulk_email for now
+  company_bulk_action: PATCH /events/:id/companies/bulk-action/; lock_company single|multiple|all (parents); feature_company single|multiple; unfeatured rank is 0

@@ -41,6 +41,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Checklist Reminder tab | `src/features/Companies/ui/ChecklistReminderTab.jsx` + `api/checklistReminderApi.js` |
 | Checklist remind + progress poll | `hooks/useSetupChecklistRemind.js` + `ui/RemindSendProgress.jsx` |
 | Reset exhibitor POC password | `src/features/Companies/ui/ExhibitorPasswordResetControl.jsx` + attendee bar: `ui/AttendeeSelectionBar.jsx` (single POC) |
+| Bulk lock / feature companies | `src/features/Companies/ui/ExhibitorLockMenu.jsx` + `ExhibitorBulkActionBar.jsx` + `api/companyApi.js` (`bulkAction`) |
 | Company FormData / errors | `src/features/Companies/domain/buildCompanyFormData.js`, `parseCompanyError.js` |
 | Agenda list / edit session | `src/features/Agenda/ui/AgendaListPage.jsx`, `AgendaEditPage.jsx` |
 | Agenda API create/update | `src/services/agendaService.js` + `domain/buildAgendaFormData.js` |

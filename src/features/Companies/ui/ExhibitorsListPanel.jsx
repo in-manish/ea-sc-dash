@@ -1,10 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { useExhibitorListSelection } from '../hooks/useExhibitorListSelection';
 import ExhibitorRemindBar from './ExhibitorRemindBar';
+import ExhibitorBulkActionBar from './ExhibitorBulkActionBar';
 import ExhibitorListTable from './ExhibitorListTable';
 
 /**
- * Exhibitor list with multi-select + bulk remind (no step_id).
+ * Exhibitor list with multi-select + bulk remind / lock / feature.
  * Step-scoped remind stays on company detail only.
  */
 export default function ExhibitorsListPanel({
@@ -15,6 +16,7 @@ export default function ExhibitorsListPanel({
   error,
   page,
   onPageChange,
+  onUpdated,
 }) {
   const navigate = useNavigate();
   const {
@@ -39,6 +41,15 @@ export default function ExhibitorsListPanel({
         token={token}
         selectedIds={selectedIds}
         onCleared={clear}
+      />
+
+      <ExhibitorBulkActionBar
+        eventId={eventId}
+        token={token}
+        companies={companies}
+        selectedIds={selectedIds}
+        onCleared={clear}
+        onUpdated={onUpdated}
       />
 
       <ExhibitorListTable

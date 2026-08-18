@@ -50,7 +50,14 @@ export default function CompanyDetailsHeader({
             <h1 className="text-2xl font-bold mb-1.5 text-text-primary flex items-center gap-2 flex-wrap">
               {company.company_name}
               {company.is_featured && (
-                <Star size={20} className="text-yellow-500 fill-yellow-500" title="Featured Company" />
+                <span className="inline-flex items-center gap-1" title="Featured Company">
+                  <Star size={20} className="text-yellow-500 fill-yellow-500" />
+                  {Number(company.featured_rank) > 0 && (
+                    <span className="text-sm font-semibold text-yellow-700">
+                      #{company.featured_rank}
+                    </span>
+                  )}
+                </span>
               )}
               {company.apply_title_case && (
                 <span

@@ -9,6 +9,7 @@ import CompanyDetailsInfoGrid from './CompanyDetailsInfoGrid';
 import CompanyDetailsLowerSection from './CompanyDetailsLowerSection';
 import CompanyStallDetailsCard from './CompanyStallDetailsCard';
 import SetupProgressSection from './SetupProgressSection';
+import CompanyLockFeatureControls from './CompanyLockFeatureControls';
 
 /**
  * Company Detail page. Overview/Badge/Contact/System stay on company detail API.
@@ -25,6 +26,7 @@ export default function CompanyDetailsPage() {
   const [error, setError] = useState(null);
   const [detailTab, setDetailTab] = useState('co-exhibitors');
   const [setupExpanded, setSetupExpanded] = useState(false);
+  const [detailRefreshKey, setDetailRefreshKey] = useState(0);
 
   // Parallel with company detail — does not block cards
   const {
@@ -71,7 +73,7 @@ export default function CompanyDetailsPage() {
     return () => {
       active = false;
     };
-  }, [eventId, companyId, token]);
+  }, [eventId, companyId, token, detailRefreshKey]);
 
   useEffect(() => {
     setDetailTab('co-exhibitors');
@@ -113,6 +115,13 @@ export default function CompanyDetailsPage() {
         companyId={companyId}
         showSetupAction={checklistVisible}
         onOpenSetup={openSetup}
+      />
+
+      <CompanyLockFeatureControls
+        eventId={eventId}
+        token={token}
+        company={company}
+        onUpdated={() => setDetailRefreshKey((k) => k + 1)}
       />
 
       <div className="mb-4">

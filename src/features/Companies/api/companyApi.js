@@ -116,6 +116,23 @@ export const companyApi = {
   },
 
   /**
+   * PATCH /events/:eventId/companies/bulk-action/
+   * lock_company (single|multiple|all parents) or feature_company (single|multiple).
+   */
+  async bulkAction(eventId, token, payload) {
+    const response = await fetch(
+      `${getApiUrl()}/events/${eventId}/companies/bulk-action/`,
+      {
+        method: 'PATCH',
+        headers: { ...authHeaders(token), 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      },
+    );
+    if (!response.ok) await throwParsed(response);
+    return response.json().catch(() => ({}));
+  },
+
+  /**
    * POST /events/:eventId/exhibitor/password/reset/
    * Single POC only. Body: badge_id and/or company_id (no email / bulk_email).
    */

@@ -52,6 +52,7 @@ const Companies = () => {
     const [filters, setFilters] = useState(getInitialFilters());
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [uploadRefreshKey, setUploadRefreshKey] = useState(0);
+    const [listRefreshKey, setListRefreshKey] = useState(0);
 
     const handleExhViewChange = (viewName) => {
         const newParams = new URLSearchParams(searchParams);
@@ -172,7 +173,7 @@ const Companies = () => {
         if (selectedEvent && token) {
             fetchCompanies();
         }
-    }, [selectedEvent, page, debouncedSearch, activeTab, filters, token]);
+    }, [selectedEvent, page, debouncedSearch, activeTab, filters, token, listRefreshKey]);
 
     return (
         <div className="w-full animate-fade-in">
@@ -323,6 +324,7 @@ const Companies = () => {
                     error={error}
                     page={page}
                     onPageChange={setPage}
+                    onUpdated={() => setListRefreshKey((k) => k + 1)}
                 />
             )}
 
