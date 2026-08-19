@@ -9,3 +9,4 @@ export { default as ExhibitorsListPanel } from './ui/ExhibitorsListPanel';
 export { default as ProductMatchmakingPanel } from './ui/ProductMatchmakingPanel';
 export { companyApi } from './api/companyApi';
 export { checklistReminderApi } from './api/checklistReminderApi';
+export { exhibitorReportApi } from './api/exhibitorReportApi';

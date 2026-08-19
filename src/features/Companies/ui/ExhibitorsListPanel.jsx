@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom';
-import { useExhibitorListSelection } from '../hooks/useExhibitorListSelection';
 import { nextHeaderSort } from '../domain/companyListSort';
 import ExhibitorRemindBar from './ExhibitorRemindBar';
 import ExhibitorBulkActionBar from './ExhibitorBulkActionBar';
@@ -7,7 +6,8 @@ import ExhibitorListTable from './ExhibitorListTable';
 
 /**
  * Exhibitor list with multi-select + bulk remind / lock / feature.
- * Step-scoped remind stays on company detail only.
+ * Selection is owned by the parent (CompaniesPage) so the header Reports
+ * modal can scope downloads/emails to selected rows.
  */
 export default function ExhibitorsListPanel({
   eventId,
@@ -22,16 +22,14 @@ export default function ExhibitorsListPanel({
   sortOrder,
   onSortChange,
   overrideMessage,
+  selectedIds,
+  allPageSelected,
+  somePageSelected,
+  toggle,
+  togglePage,
+  clear,
 }) {
   const navigate = useNavigate();
-  const {
-    selectedIds,
-    allPageSelected,
-    somePageSelected,
-    toggle,
-    togglePage,
-    clear,
-  } = useExhibitorListSelection(companies);
 
   return (
     <>

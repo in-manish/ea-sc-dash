@@ -268,6 +268,28 @@ tasks:
       Selected lock/unlock and feature/rank are disabled if any co-exhibitor is selected.
       Multiple or all lock/unlock requires typing lock/unlock (AWS confirm);
       single parent is a click confirm.
+  exhibitor_csv_report:
+    files:
+      - src/features/Companies/api/exhibitorReportApi.js
+      - src/features/Companies/domain/exhibitorReportDownload.js
+      - src/features/Companies/domain/exhibitorReportQuery.js
+      - src/features/Companies/domain/parseExhibitorReportError.js
+      - src/features/Companies/hooks/useExhibitorReport.js
+      - src/features/Companies/ui/DownloadExhibitorReportButton.jsx
+      - src/features/Companies/ui/ExhibitorReportModal.jsx
+      - src/features/Companies/ui/ExhibitorReportModalPanes.jsx
+      - src/features/Companies/ui/CompaniesPageHeader.jsx
+      - src/features/Companies/ui/CompaniesPage.jsx
+      - src/pages/Companies.jsx
+    routes:
+      - /event/:id/companies
+    notes: >
+      GET /events/:eventId/exhibitor/report/. Download: Accept text/csv,
+      no send_to_emails, optional company_ids. Email: send_to_emails required,
+      optional company_ids, Accept application/json (queued, not a file).
+      Parent exhibitors only. Filename Event-{eventId}-ExhibitorReport.csv.
+      400 payload; 401 login; 403 Organizer access required; 404 event;
+      500 retry. Param is send_to_emails (not emails / sent_to_emails).
   company_list_sort:
     files:
       - src/features/Companies/api/companyApi.js
@@ -355,6 +377,9 @@ features:
     password_reset_api: POST /events/:eventId/exhibitor/password/reset/
     bulk_action_api: PATCH /events/:eventId/companies/bulk-action/
     list_api: GET /evc/events/:eventId/company_list/?sort_by=&sort_order=
+    exhibitor_report_api: >
+      GET /events/:eventId/exhibitor/report/ CSV blob or JSON email
+      (send_to_emails + optional company_ids)
     checklist_reminder_api: >
       POST /events/:eventId/exhibitor/setup-checklist/remind/;
       GET .../reminders/ + GET .../reminders/:logId/;
@@ -420,3 +445,6 @@ glossary:
   ar_tax_list: exhibitor_portal_data.additional_requirement.tax is [{name, rate}, ...]; PATCH replaces the whole list; [] means no tax
   exhibitor_poc_password_reset: POST /events/:id/exhibitor/password/reset/; identify POC with badge_id then company_id; skip email/bulk_email for now
   company_bulk_action: PATCH /events/:id/companies/bulk-action/; lock_company single|multiple|all (parents); feature_company single|multiple; unfeatured rank is 0
+  exhibitor_csv_report: >
+    GET /events/:id/exhibitor/report/; parent rows; CSV blob or send_to_emails
+    JSON; optional company_ids; 401/403/404/500

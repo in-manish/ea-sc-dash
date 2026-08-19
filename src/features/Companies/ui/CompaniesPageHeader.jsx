@@ -1,5 +1,6 @@
 import { Search, Filter, Upload } from 'lucide-react';
 import CreateCompanyButton from './CreateCompanyButton';
+import DownloadExhibitorReportButton from './DownloadExhibitorReportButton';
 import ExhibitorListSortControls from './ExhibitorListSortControls';
 
 export default function CompaniesPageHeader({
@@ -7,6 +8,9 @@ export default function CompaniesPageHeader({
   exhView,
   total,
   eventId,
+  token,
+  companies,
+  selectedIds,
   search,
   onSearchChange,
   filters,
@@ -33,6 +37,14 @@ export default function CompaniesPageHeader({
       {activeTab === 'exhibitors' && (
         <div className="flex gap-3 items-center flex-wrap justify-end">
           {eventId && <CreateCompanyButton eventId={eventId} />}
+          {eventId && (
+            <DownloadExhibitorReportButton
+              eventId={eventId}
+              token={token}
+              companies={companies}
+              selectedIds={selectedIds}
+            />
+          )}
           <button type="button" className="btn btn-primary" onClick={onUpload}>
             <Upload size={16} style={{ marginRight: '0.5rem' }} />
             Upload CSV

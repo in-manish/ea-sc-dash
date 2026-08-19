@@ -7,6 +7,7 @@ import CompanyUploadModal from '../../../components/companies/CompanyUploadModal
 import CompanyUploadStatus from '../../../components/companies/CompanyUploadStatus';
 import CompanyComprehensiveReportPanel from '../../../components/companies/CompanyComprehensiveReportPanel';
 import useExhibitorList from '../hooks/useExhibitorList';
+import { useExhibitorListSelection } from '../hooks/useExhibitorListSelection';
 import ProductMatchmakingPanel from './ProductMatchmakingPanel';
 import ChecklistReminderTab from './ChecklistReminderTab';
 import ExhibitorsListPanel from './ExhibitorsListPanel';
@@ -28,6 +29,7 @@ export default function CompaniesPage() {
     setSearchParams,
     activeTab,
   });
+  const selection = useExhibitorListSelection(list.companies);
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [uploadRefreshKey, setUploadRefreshKey] = useState(0);
@@ -83,6 +85,9 @@ export default function CompaniesPage() {
         exhView={exhView}
         total={list.total}
         eventId={eventId}
+        token={token}
+        companies={list.companies}
+        selectedIds={selection.selectedIds}
         search={list.search}
         onSearchChange={list.setSearch}
         filters={list.filters}
@@ -130,6 +135,12 @@ export default function CompaniesPage() {
           sortOrder={list.sortOrder}
           onSortChange={list.setSort}
           overrideMessage={list.overrideMessage}
+          selectedIds={selection.selectedIds}
+          allPageSelected={selection.allPageSelected}
+          somePageSelected={selection.somePageSelected}
+          toggle={selection.toggle}
+          togglePage={selection.togglePage}
+          clear={selection.clear}
         />
       )}
 

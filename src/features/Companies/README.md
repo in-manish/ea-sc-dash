@@ -5,14 +5,23 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 **Create:** `ui/CreateCompanyPage.jsx` → `/event/:id/companies/new`  
 **Edit:** `ui/EditCompanyPage.jsx` → `/event/:id/companies/:companyId/edit`  
 **Detail:** `ui/CompanyDetailsPage.jsx` → `/event/:id/companies/:companyId`  
-**API:** multipart `FormData` + `Authorization: Token …` (no `/api` prefix)
+**API:** multipart `FormData` + `Authorization: Token …` (no `/api` prefix)  
+**Exhibitor CSV report:** `GET /events/:id/exhibitor/report/` — CSV download or email via `send_to_emails`
 
 ## Layout
 
 | Path | Owns |
 |------|------|
 | `api/companyApi.js` | GET company list (`sort_by`/`sort_order`), GET/POST/PATCH company, filter options, exhibitor overview, checklist remind POST, POC password reset, bulk lock/feature |
+| `api/exhibitorReportApi.js` | GET parent-exhibitor report: CSV blob or email JSON |
 | `api/checklistReminderApi.js` | Reminder settings GET/PATCH + reminder log list + progress poll |
+| `domain/exhibitorReportDownload.js` | Filename (`Event-{id}-ExhibitorReport.csv`) + blob save |
+| `domain/exhibitorReportQuery.js` | `company_ids` + `send_to_emails` query (omit empty) |
+| `domain/parseExhibitorReportError.js` | 400 payload; 401/403/404/500 copy |
+| `hooks/useExhibitorReport.js` | Download blob or email JSON; 401 logs out |
+| `ui/DownloadExhibitorReportButton.jsx` | Header "Reports" button — opens modal |
+| `ui/ExhibitorReportModal.jsx` | Modal shell: Email Report / Download CSV tabs |
+| `ui/ExhibitorReportModalPanes.jsx` | Email, Download, SelectedBadge, Feedback panes |
 | `domain/checklistReminderHelpers.js` | Defaults, offsets, sent_status labels, progress %, `steps[]` / `step_ids` |
 | `domain/buildCompanyFormData.js` | Create → multipart |
 | `domain/buildCompanyPatchFormData.js` | Edit → changed fields only (+ `company_name`) |
@@ -39,7 +48,7 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `hooks/useChecklistReminderList.js` | Paginated reminder log |
 | `hooks/useChecklistReminderSettings.js` | Load/save reminder settings |
 | `ui/CompaniesPage.jsx` | Exhibitors / product matchmaking / AR tabs (list + sort) |
-| `ui/CompaniesPageHeader.jsx` | Title, create/upload, search, sort, filter |
+| `ui/CompaniesPageHeader.jsx` | Title, create/download report/upload, search, sort, filter |
 | `ui/CompaniesPageTabs.jsx` | Main tabs + exhibitor / AR sub-views |
 | `ui/ExhibitorListSortControls.jsx` | `sort_by` select + asc/desc |
 | `ui/ExhibitorFilterDrawer.jsx` | List filter drawer shell |
@@ -56,7 +65,7 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `ui/SetupProgressStep.jsx` | Checklist step row + Open / Remind |
 | `ui/SetupProgressSkeleton.jsx` | Setup Progress loading skeleton |
 | `ui/ChecklistReminderTab.jsx` | Reminder log + settings (no bulk send) |
-| `ui/ExhibitorsListPanel.jsx` | List + multi-select + remind all/selected |
+| `ui/ExhibitorsListPanel.jsx` | List + remind / lock / feature (selection lifted to CompaniesPage) |
 | `domain/exhibitorPasswordResetPayload.js` | Single POC reset body (`badge_id` / `company_id` only) |
 | `hooks/useExhibitorPasswordReset.js` | POST exhibitor POC password reset |
 | `ui/ExhibitorPasswordResetControl.jsx` | Confirm + reset button (list + attendee detail) |
@@ -137,6 +146,16 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 - Ignored when `q` is set (relevance) or `is_featured=true` with no `q` (rank then name)
 - Toolbar select + Company / Details / Stall column headers; `sort_by`/`sort_order` persist in the URL
 - Details column shows OBF, space (number), and sales person
+
+## Exhibitor CSV report
+
+- `GET /events/:id/exhibitor/report/` — **parent exhibitors only** (co-exhibitors are counts on the parent row)
+- Download: no `send_to_emails`; optional `company_ids` (comma-separated); `Accept: text/csv`; save `Event-{eventId}-ExhibitorReport.csv`
+- Email: `send_to_emails` (required, not `emails` / `sent_to_emails`) + optional `company_ids`; `Accept: application/json`; toast “Report will be emailed shortly”
+- Header **Reports** button opens a modal with **Email Report** / **Download CSV** tabs
+- If table rows are selected, modal shows "Download/Email selected" alongside "Download/Email all"
+- Selection is lifted to CompaniesPage so header + list both have access
+- 400 → payload message; 401 login; 403 organizer; 404 event not found; 500 retry
 
 ## Wired from
 
