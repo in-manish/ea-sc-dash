@@ -58,6 +58,55 @@ tasks:
       GET then full-body PATCH /events/:eventId/attendees/:uuid/.
       Request attendee_type is name string; response is {name,id}.
       Exhibitor type requires exhibitor_id.
+  attendee_type_drafts:
+    files:
+      - src/pages/AttendeeTypes.jsx
+      - src/pages/attendee-types/components/DraftsTab.jsx
+      - src/pages/attendee-types/components/AttendeeTypeDetailView.jsx
+      - src/pages/attendee-types/saveAttendeeTypeDrafts.js
+      - src/pages/attendee-types/parseAttendeeTypeDrafts.js
+      - src/pages/attendee-types/domain/badgeEmailVariables.js
+      - src/pages/attendee-types/domain/badgeEmailCalendarLinks.js
+      - src/pages/attendee-types/components/EmailInvitationDraft.jsx
+      - src/pages/attendee-types/components/BadgeEmailVariables.jsx
+      - src/pages/attendee-types/components/BadgeEmailVariablesRail.jsx
+      - src/pages/attendee-types/hooks/useBadgeEmailDraft.jsx
+      - src/services/eventService.js
+    routes:
+      - /event/:id/attendee-types
+    notes: >
+      POST emails/ often returns 201. Save Drafts also POSTs sms/; a failed SMS
+      must not show Save failed after email 201. Empty 2xx bodies are success.
+      Badge email tokens highlight on select and insert at the body caret.
+      Variables live in the left rail under the type tabs, with type-to-search.
+      Calendar tokens are bare href values (no {{}}, no URLs). Insert calendar_link
+      for one Google button, or calendar_links for Google/Outlook/.ics.
+  attendee_type_email_list:
+    files:
+      - src/features/Attendees/api/attendeeTypeEmailsApi.js
+      - src/features/Attendees/api/categoryTypeEmailsApi.js
+      - src/features/Attendees/domain/parseAttendeeTypeEmails.js
+      - src/features/Attendees/domain/parseCategoryTypeEmails.js
+      - src/features/Attendees/hooks/useAttendeeTypeEmails.js
+      - src/features/Attendees/hooks/useCategoryTypeEmails.js
+      - src/features/Attendees/ui/AttendeeEmailDraftsModal.jsx
+      - src/features/Attendees/ui/AttendeeEmailPicker.jsx
+      - src/features/Attendees/ui/AttendeeBadgeEmailRow.jsx
+      - src/features/Attendees/ui/AttendeeCategoryEmailSection.jsx
+      - src/features/Attendees/ui/AttendeeCategoryEmailRow.jsx
+      - src/features/Attendees/ui/AttendeeEmailDraftsPane.jsx
+      - src/features/Attendees/ui/AttendeeEmailDraftsList.jsx
+      - src/features/Attendees/ui/AttendeeSelectionBar.jsx
+      - src/features/Attendees/ui/AttendeesListView.jsx
+    routes:
+      - /event/:id/attendees
+    notes: >
+      Send Mail picker: Badge Email checkbox POSTs attendee_types/send_email/ (204).
+      View beside Badge Email loads GET .../attendee_types/emails/ drafts.
+      Categories Email lists GET .../category_types/emails/ (array of id,
+      category_name, email_name, email, subject); each row is a toggle.
+      Selected category ids POST .../category_types/send_email/ with email_ids.
+      Selected uses attendee_uuids; filtered/all may use search_queries.
   company_create:
     files:
       - src/features/Companies/api/companyApi.js
@@ -136,16 +185,22 @@ tasks:
       - src/features/Agenda/ui/AgendaListPage.jsx
       - src/features/Agenda/ui/AgendaCard.jsx
       - src/features/Agenda/ui/AgendaRow.jsx
+      - src/features/Agenda/ui/AgendaStatusBadges.jsx
+      - src/features/Agenda/ui/AgendaViewModal.jsx
       - src/services/agendaService.js
   agenda_edit_speakers_moderators:
     files:
       - src/features/Agenda/ui/AgendaEditPage.jsx
+      - src/features/Agenda/ui/SessionDetailsFields.jsx
       - src/features/Agenda/hooks/useAgendaForm.js
       - src/features/Agenda/domain/buildAgendaFormData.js
       - src/features/Agenda/domain/normalizePeople.js
       - src/features/Agenda/ui/SpeakerRosterSection.jsx
       - src/features/Agenda/ui/ModeratorRosterSection.jsx
       - src/services/agendaService.js
+    notes: >
+      force_attendance is a boolean FormData flag (true/false). When set, the
+      slot is blocked and meetings cannot be booked against it.
     routes:
       - /event/:id/agenda
       - /event/:id/agenda/new
@@ -367,6 +422,10 @@ features:
     root: src/features/Attendees/
     entry: src/pages/Attendees.jsx
     edit_api: GET|PATCH /events/:eventId/attendees/:uuid/ (full body PATCH)
+    type_emails_api: GET /events/:eventId/attendee_types/emails/; POST .../send_email/ (204)
+    category_emails_api: >
+      GET /events/:eventId/category_types/emails/;
+      POST .../category_types/send_email/ with email_ids (204)
   Companies:
     root: src/features/Companies/
     entry: src/pages/Companies.jsx
@@ -393,6 +452,7 @@ features:
     root: src/features/Agenda/
     entry: src/pages/event-agenda/index.jsx
     edit_entry: src/pages/event-agenda/AgendaEdit.jsx
+    force_attendance: boolean FormData true/false; blocks the slot for meetings
   ScManageUsers:
     root: src/features/ScManageUsers/
     entry: src/sc/pages/ManageUsers.jsx
@@ -427,7 +487,12 @@ glossary:
   auth_landing_resume: Bare host URL must restore an existing EA/SC token instead of forcing /login
 
   attendee_edit_full_patch: PATCH must mirror GET then change fields; not sparse. Send attendee_type as name string.
+  attendee_type_draft_save: Email POST 201 is success; chained SMS errors must not mark the save failed. Empty 2xx JSON is success.
+  badge_email_tokens: Bare tokens user_name/att_type/reg_id/event_code/event_name/user_email/company_name/event_date/event_venue; calendar_link (Google default) plus calendar_link_google/outlook/ics as href-only; \\n becomes a real newline
+  attendee_type_email_list: Send Mail Badge Email POSTs send_email/; View lists GET attendee_types/emails/
+  attendee_category_email_list: Send Mail lists GET category_types/emails/; toggles POST category_types/send_email/ with email_ids
   speaker_default_alpha_sort: When true, speakers sorted A-Z by name; when false, by speaker_sort_order
+  force_attendance: Agenda session flag; block slot so meetings cannot be set during this time
   speaker_image_N: Multipart file field index aligned with speaker array
   moderator_image_N: Multipart file field index aligned with moderator array
   company_create_multipart: Must use FormData; nested product/link/media as JSON strings; always send company_name, company_detail, website

@@ -1,5 +1,6 @@
 import React from 'react';
 import { MapPin, Clock, Edit2, Trash2, Eye, Users } from 'lucide-react';
+import AgendaStatusBadges from './AgendaStatusBadges';
 
 const AgendaRow = ({ item, onEdit, onDelete, onView }) => {
     return (
@@ -69,12 +70,9 @@ const AgendaRow = ({ item, onEdit, onDelete, onView }) => {
                         )}
                     </div>
 
-                    {/* Joinable Badge */}
-                    {item.enrollable && (
-                        <span className="hidden md:inline-flex bg-success/10 text-success text-[9px] font-black px-3 py-1.5 rounded-lg uppercase tracking-widest border border-success/20 whitespace-nowrap">
-                            Joinable
-                        </span>
-                    )}
+                    <div className="hidden md:block">
+                        <AgendaStatusBadges item={item} />
+                    </div>
 
                     {/* Action Buttons */}
                     <div className="flex gap-1.5 p-1 bg-bg-tertiary/30 rounded-xl border border-border group-hover:border-accent/20 transition-all duration-300">

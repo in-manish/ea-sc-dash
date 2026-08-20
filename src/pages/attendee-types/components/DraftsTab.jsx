@@ -1,5 +1,6 @@
 import React from 'react';
 import { Mail, MessageSquare, Loader2, Save } from 'lucide-react';
+import EmailInvitationDraft from './EmailInvitationDraft';
 
 const DraftsTab = ({
     emailDraft,
@@ -34,32 +35,11 @@ const DraftsTab = ({
                     </div>
                 </div>
 
-                {isPreviewMode ? (
-                    <div className="border border-border rounded-2xl overflow-hidden bg-white min-h-[400px]">
-                        <div className="p-4 border-b border-border bg-bg-secondary/50 flex flex-col gap-1">
-                            <span className="text-[10px] font-bold text-text-tertiary uppercase">Subject</span>
-                            <span className="text-sm font-medium">{emailDraft.subject || '(No subject)'}</span>
-                        </div>
-                        <div className="p-8 prose prose-slate max-w-none" dangerouslySetInnerHTML={{ __html: emailDraft.email || '<p class="text-text-tertiary italic">No content yet...</p>' }} />
-                    </div>
-                ) : (
-                    <div className="space-y-3">
-                        <input
-                            type="text"
-                            placeholder="Email Subject"
-                            value={emailDraft.subject}
-                            onChange={(e) => setEmailDraft({ ...emailDraft, subject: e.target.value })}
-                            className="w-full p-3 bg-bg-secondary border border-border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent"
-                        />
-                        <textarea
-                            rows={12}
-                            placeholder="Email Content (HTML supported)"
-                            value={emailDraft.email}
-                            onChange={(e) => setEmailDraft({ ...emailDraft, email: e.target.value })}
-                            className="w-full p-4 bg-bg-secondary border border-border rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-accent"
-                        />
-                    </div>
-                )}
+                <EmailInvitationDraft
+                    emailDraft={emailDraft}
+                    setEmailDraft={setEmailDraft}
+                    isPreviewMode={isPreviewMode}
+                />
             </div>
 
             <div className="space-y-4">

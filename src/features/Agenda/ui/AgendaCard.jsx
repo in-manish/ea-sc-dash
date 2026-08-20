@@ -1,5 +1,6 @@
 import React from 'react';
 import { MapPin, Clock, Edit2, Trash2, ChevronRight } from 'lucide-react';
+import AgendaStatusBadges from './AgendaStatusBadges';
 
 const AgendaCard = ({ item, onEdit, onDelete, onView }) => {
     return (
@@ -83,11 +84,7 @@ const AgendaCard = ({ item, onEdit, onDelete, onView }) => {
                 </div>
 
                 <div className="flex flex-col items-end gap-1.5 shrink-0">
-                    {item.enrollable && (
-                        <span className="bg-success/10 text-success border border-success/20 text-[8px] font-black py-0.5 px-2.5 rounded-md uppercase tracking-[0.15em] shadow-sm">
-                            Joinable
-                        </span>
-                    )}
+                    <AgendaStatusBadges item={item} className="justify-end" />
                     <button
                         className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-accent hover:text-accent/80 transition-colors group/btn"
                         onClick={() => onView(item)}

@@ -8,7 +8,8 @@ Session schedule management for an event: list, create/edit on a flat page (spea
 |------|------|
 | `ui/AgendaListPage.jsx` | List + pagination + view modal |
 | `ui/AgendaEditPage.jsx` | Flat create/edit page |
-| `ui/SessionDetailsFields.jsx` | Title, time, location, flags |
+| `ui/SessionDetailsFields.jsx` | Title, time, location, flags (`enrollable`, `admin`, `force_attendance`) |
+| `ui/AgendaStatusBadges.jsx` | Joinable + force attendance (block slot) chips |
 | `ui/SpeakerRosterSection.jsx` / `SpeakerCard.jsx` | Speakers + alpha/custom sort |
 | `ui/ModeratorRosterSection.jsx` / `ModeratorCard.jsx` | Moderators |
 | `hooks/useAgendaForm.js` | Form state + save |

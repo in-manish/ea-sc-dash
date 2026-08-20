@@ -14,13 +14,14 @@ export default function EmailBodyEditor({
   onToggle,
   contentRevision = 0,
   insertRef,
+  tokenRe,
 }) {
   const [editorMode, setEditorMode] = useState('visual');
   const [editorKey, setEditorKey] = useState(0);
   const visualInsertRef = useRef(null);
   const codeInsertRef = useRef(null);
   const html = value || '';
-  const highlight = { highlightName, onHover, onLeave, onToggle };
+  const highlight = { highlightName, onHover, onLeave, onToggle, tokenRe };
   const visualKey = `${editorKey}-${contentRevision}`;
 
   useEffect(() => {

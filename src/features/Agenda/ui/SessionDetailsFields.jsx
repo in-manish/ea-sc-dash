@@ -87,7 +87,7 @@ const SessionDetailsFields = ({ formData, updateField }) => (
       </Field>
     </div>
 
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
       <Toggle
         label="Joinable session"
         checked={formData.enrollable}
@@ -97,6 +97,12 @@ const SessionDetailsFields = ({ formData, updateField }) => (
         label="Admin visibility only"
         checked={formData.admin}
         onChange={(v) => updateField('admin', v)}
+      />
+      <Toggle
+        label="Force attendance"
+        hint="Block slot — this will not allow setting meetings"
+        checked={formData.force_attendance}
+        onChange={(v) => updateField('force_attendance', v)}
       />
     </div>
   </section>
@@ -114,13 +120,22 @@ function Field({ label, children, className = '' }) {
   );
 }
 
-function Toggle({ label, checked, onChange }) {
+function Toggle({ label, hint, checked, onChange }) {
   return (
-    <label className="flex items-center justify-between p-3.5 bg-bg-secondary/50 rounded-xl border border-border cursor-pointer">
-      <span className="text-[9px] font-black uppercase tracking-widest text-text-secondary">{label}</span>
+    <label className="flex items-center justify-between gap-3 p-3.5 bg-bg-secondary/50 rounded-xl border border-border cursor-pointer">
+      <span className="min-w-0">
+        <span className="block text-[9px] font-black uppercase tracking-widest text-text-secondary">
+          {label}
+        </span>
+        {hint ? (
+          <span className="block text-[10px] font-medium text-text-tertiary mt-0.5 leading-snug">
+            {hint}
+          </span>
+        ) : null}
+      </span>
       <input
         type="checkbox"
-        className="w-4 h-4 rounded-md accent-accent cursor-pointer"
+        className="w-4 h-4 rounded-md accent-accent cursor-pointer shrink-0"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
       />

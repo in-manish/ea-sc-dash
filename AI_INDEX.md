@@ -18,7 +18,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Feature | Path | Notes |
 |---------|------|-------|
 | Agenda | `src/features/Agenda/` | List + flat edit for speakers/moderators |
-| Attendees | `src/features/Attendees/` | List, create, edit badge, WhatsApp, e-badge, report |
+| Attendees | `src/features/Attendees/` | List, create, edit badge, WhatsApp, email drafts, e-badge, report |
 | Companies | `src/features/Companies/` | EA list (sort) + create/edit/detail + portal checklist + reminder tab + exhibitor CSV report |
 | ManageUsers | `src/features/ManageUsers/` | Staff users / permissions |
 | ScManageUsers | `src/features/ScManageUsers/` | SC admin users + saved cards |
@@ -34,6 +34,9 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Event settings / support email | `src/pages/event-settings/CommunicationSettings.jsx` (`support_email`) |
 | Event settings / sender profile pic | `src/pages/event-settings/SenderDefaultProfilePicField.jsx` (`sender_default_profile_pic`) |
 | Edit attendee / badge | `src/features/Attendees/ui/EditAttendeeModal.jsx` + `api/attendeeApi.js` + `domain/editAttendeeForm.js` |
+| Attendee type email / SMS drafts | `src/pages/AttendeeTypes.jsx` + `attendee-types/saveAttendeeTypeDrafts.js` + `EmailInvitationDraft.jsx` (badge tokens, calendar hrefs) |
+| List attendee type email drafts | `ui/AttendeeSelectionBar.jsx` + `hooks/useAttendeeTypeEmails.js` + `api/attendeeTypeEmailsApi.js` |
+| Send attendee emails | `ui/AttendeeEmailDraftsModal.jsx` (Badge Email + Categories Email toggles) + `hooks/useAttendeeTypeEmails.js` + `hooks/useCategoryTypeEmails.js` |
 | Create EA company / co-exhibitor | `src/features/Companies/ui/CreateCompanyPage.jsx` + `api/companyApi.js` |
 | Edit EA company | `src/features/Companies/ui/EditCompanyPage.jsx` + `domain/buildCompanyPatchFormData.js` |
 | Company Detail + Setup Progress | `src/features/Companies/ui/CompanyDetailsPage.jsx` + `SetupProgressSection.jsx` |
@@ -45,7 +48,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Download / email exhibitor CSV report | `ui/DownloadExhibitorReportButton.jsx` + `ui/ExhibitorReportModal.jsx` + `hooks/useExhibitorReport.js` + `api/exhibitorReportApi.js` |
 | Exhibitor list sort | `domain/companyListSort.js` + `hooks/useExhibitorList.js` + `ui/ExhibitorListSortControls.jsx` |
 | Company FormData / errors | `src/features/Companies/domain/buildCompanyFormData.js`, `parseCompanyError.js` |
-| Agenda list / edit session | `src/features/Agenda/ui/AgendaListPage.jsx`, `AgendaEditPage.jsx` |
+| Agenda list / edit session | `src/features/Agenda/ui/AgendaListPage.jsx`, `AgendaEditPage.jsx` (`force_attendance` block slot) |
 | Agenda API create/update | `src/services/agendaService.js` + `domain/buildAgendaFormData.js` |
 | Speaker/moderator payload shape | `src/features/Agenda/domain/normalizePeople.js` |
 | SC manage users / detail page | `src/features/ScManageUsers/ui/UserDetailsPage.jsx`, `ManageUsersPage.jsx` |

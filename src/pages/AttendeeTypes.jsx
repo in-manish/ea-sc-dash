@@ -7,6 +7,8 @@ import AttendeeTypeListView from './attendee-types/components/AttendeeTypeListVi
 import AttendeeTypeDetailView from './attendee-types/components/AttendeeTypeDetailView';
 import AddEditModal from './attendee-types/components/AddEditModal';
 import FullscreenPreview from './attendee-types/components/FullscreenPreview';
+import { parseEmailDraft, parseSmsDraft } from './attendee-types/parseAttendeeTypeDrafts';
+import { saveAttendeeTypeDrafts } from './attendee-types/saveAttendeeTypeDrafts';
 
 const AttendeeTypes = () => {
     const { id } = useParams();
@@ -128,12 +130,8 @@ const AttendeeTypes = () => {
 
             const emailData = await eventService.getEmailDrafts(id, token, type.id);
             const smsData = await eventService.getSMSDrafts(id, token, type.id);
-
-            setEmailDraft(emailData.attendee_types?.length > 0
-                ? { subject: emailData.attendee_types[0].subject || '', email: emailData.attendee_types[0].email || '' }
-                : { subject: '', email: '' });
-
-            setSmsDraft(smsData?.length > 0 ? { sms_body: smsData[0].sms_body || '' } : { sms_body: '' });
+            setEmailDraft(parseEmailDraft(emailData));
+            setSmsDraft(parseSmsDraft(smsData));
         } catch (err) {
             console.error(err);
         } finally {
@@ -190,8 +188,13 @@ const AttendeeTypes = () => {
     const handleSaveDrafts = async () => {
         setIsActionLoading(true);
         try {
-            await eventService.saveEmailDraft(id, token, { attendee_types: [selectedType.id], email: emailDraft.email, subject: emailDraft.subject });
-            await eventService.saveSMSDraft(id, token, { attendee_types: [selectedType.id], sms_body: smsDraft.sms_body });
+            await saveAttendeeTypeDrafts({
+                eventId: id,
+                token,
+                typeId: selectedType.id,
+                emailDraft,
+                smsDraft,
+            });
             setMessage({ type: 'success', text: 'Drafts saved.' });
         } catch (err) {
             setMessage({ type: 'error', text: 'Save failed.' });

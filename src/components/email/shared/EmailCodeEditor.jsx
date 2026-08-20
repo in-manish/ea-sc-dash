@@ -13,13 +13,14 @@ export default function EmailCodeEditor({
   onLeave,
   onToggle,
   insertRef,
+  tokenRe,
 }) {
   const preRef = useRef(null);
   const textareaRef = useRef(null);
   const caretRef = useRef({ start: 0, end: 0 });
   const valueRef = useRef(value);
   valueRef.current = value;
-  const html = highlightEscapedHtml(value, highlightName);
+  const html = highlightEscapedHtml(value, highlightName, tokenRe);
   const interactive = Boolean(onHover || onToggle);
 
   useEffect(() => {
@@ -55,7 +56,7 @@ export default function EmailCodeEditor({
 
   const syncFromCaret = (el, pin) => {
     saveCaret(el);
-    const name = placeholderAtIndex(el.value, el.selectionStart);
+    const name = placeholderAtIndex(el.value, el.selectionStart, tokenRe);
     if (name) {
       if (pin) onToggle?.(name);
       else onHover?.(name);

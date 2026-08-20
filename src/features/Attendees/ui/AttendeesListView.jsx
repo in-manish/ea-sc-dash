@@ -1,3 +1,4 @@
+import useAttendeeTypeEmails from '../hooks/useAttendeeTypeEmails';
 import AttendeeSearchToolbar from './AttendeeSearchToolbar';
 import ActiveFilterPills from './ActiveFilterPills';
 import AttendeeStatusBanners from './AttendeeStatusBanners';
@@ -5,6 +6,7 @@ import AttendeeSelectionBar from './AttendeeSelectionBar';
 import AttendeeTable from './AttendeeTable';
 import ListPagination from './ListPagination';
 import AttendeesReportPanel from './AttendeesReportPanel';
+import AttendeeEmailDraftsModal from './AttendeeEmailDraftsModal';
 
 const AttendeesListView = ({
     page,
@@ -19,8 +21,22 @@ const AttendeesListView = ({
     selectedEvent,
     token,
     hasActiveSearchOrFilters,
-}) => (
-    <>
+}) => {
+    const emailDrafts = useAttendeeTypeEmails({
+        eventId: selectedEvent?.id,
+        token,
+        getSelection: () => ({
+            selectionMode: selection.selectionMode,
+            selectedAttendeeUuids: selection.selectedAttendeeUuids,
+        }),
+        debouncedSearch: searchApi.debouncedSearch,
+        searchType: searchApi.searchType,
+        filters: filtersApi.filters,
+        clearSelection: selection.clearSelection,
+    });
+
+    return (
+        <>
         {selectedEvent?.id && token && (
             <AttendeesReportPanel
                 eventId={selectedEvent.id}
@@ -54,6 +70,7 @@ const AttendeesListView = ({
             error={list.error}
             whatsAppActionSuccess={whatsApp.whatsAppActionSuccess}
             whatsAppActionError={whatsApp.whatsAppActionError}
+            emailActionSuccess={emailDrafts.sendSuccess}
             selectedAttendee={list.selectedAttendee}
             scSyncSuccess={scSync.scSyncSuccess}
             scSyncError={scSync.scSyncError}
@@ -69,6 +86,7 @@ const AttendeesListView = ({
             onClearSelection={selection.clearSelection}
             onSelectAllMatching={selection.selectAllMatchingAttendees}
             onOpenWhatsApp={whatsApp.handleOpenWhatsAppModal}
+            onOpenEmail={emailDrafts.open}
             onCreateEBadge={eBadge.handleCreateEBadge}
             eventId={selectedEvent?.id}
             token={token}
@@ -103,7 +121,28 @@ const AttendeesListView = ({
             onPrev={() => setPage(page - 1)}
             onNext={() => setPage(page + 1)}
         />
-    </>
-);
+
+        <AttendeeEmailDraftsModal
+            isOpen={emailDrafts.isOpen}
+            onClose={emailDrafts.close}
+            selectedCount={selection.selectedCount}
+            viewingDrafts={emailDrafts.viewingDrafts}
+            onViewDrafts={emailDrafts.viewDrafts}
+            onBackToPicker={emailDrafts.backToPicker}
+            badgeEmailSelected={emailDrafts.badgeEmailSelected}
+            onToggleBadgeEmail={emailDrafts.toggleBadgeEmail}
+            categoryEmails={emailDrafts.categoryEmails}
+            drafts={emailDrafts.drafts}
+            loading={emailDrafts.loading}
+            error={emailDrafts.error}
+            expandedId={emailDrafts.expandedId}
+            onToggleExpand={emailDrafts.toggleExpand}
+            sending={emailDrafts.sending}
+            sendError={emailDrafts.sendError}
+            onSend={emailDrafts.send}
+        />
+        </>
+    );
+};
 
 export default AttendeesListView;

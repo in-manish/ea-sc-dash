@@ -13,12 +13,15 @@ export default function EmailVisualEditor({
   onLeave,
   onToggle,
   insertRef,
+  tokenRe,
 }) {
   const editorRef = useRef(null);
   const wrapRef = useRef(null);
   const highlightRef = useRef(highlightName);
+  const tokenReRef = useRef(tokenRe);
   const handlersRef = useRef({ onHover, onLeave, onToggle });
   highlightRef.current = highlightName;
+  tokenReRef.current = tokenRe;
   handlersRef.current = { onHover, onLeave, onToggle };
   const painting = useRef(false);
   const interactive = Boolean(onHover || onToggle);
@@ -31,7 +34,7 @@ export default function EmailVisualEditor({
     if (!root || painting.current) return;
     painting.current = true;
     try {
-      paintPlaceholderRoot(root, highlightRef.current, handlersRef.current);
+      paintPlaceholderRoot(root, highlightRef.current, handlersRef.current, tokenReRef.current);
     } finally {
       queueMicrotask(() => {
         painting.current = false;

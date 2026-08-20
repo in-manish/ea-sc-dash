@@ -14,6 +14,14 @@ export const PLACEHOLDER_HIGHLIGHT_CSS = `
 }
 `;
 
+function withG(tokenRe) {
+  return new RegExp(tokenRe.source, 'g');
+}
+
+function tokenKey(match) {
+  return match[1] || match[0];
+}
+
 export function stripPlaceholderMarks(html) {
   return String(html || '')
     .replace(/<span[^>]*data-ea-ph="[^"]*"[^>]*>([\s\S]*?)<\/span>/gi, '$1')
@@ -21,12 +29,15 @@ export function stripPlaceholderMarks(html) {
     .replace(/<span[^>]*data-jodit-selection_marker[^>]*>[\s\S]*?<\/span>/gi, '');
 }
 
-export function placeholderAtIndex(text, index) {
-  const re = new RegExp(PLACEHOLDER_RE.source, 'g');
-  let match = re.exec(String(text || ''));
+export function placeholderAtIndex(text, index, tokenRe = PLACEHOLDER_RE) {
+  const re = withG(tokenRe);
+  const src = String(text || '');
+  let match = re.exec(src);
   while (match) {
-    if (index >= match.index && index <= match.index + match[0].length) return match[1];
-    match = re.exec(text);
+    if (index >= match.index && index <= match.index + match[0].length) {
+      return tokenKey(match);
+    }
+    match = re.exec(src);
   }
   return null;
 }
@@ -38,16 +49,18 @@ export function escapeHtml(text) {
     .replace(/>/g, '&gt;');
 }
 
-export function highlightEscapedHtml(text, highlightName) {
-  return escapeHtml(text).replace(PLACEHOLDER_RE, (token, name) => {
-    const on = highlightName === name ? ' is-on' : '';
-    return `<span class="ea-ph${on}" data-ea-ph="${name}">${token}</span>`;
+export function highlightEscapedHtml(text, highlightName, tokenRe = PLACEHOLDER_RE) {
+  const re = withG(tokenRe);
+  return escapeHtml(text).replace(re, (token, name) => {
+    const key = name || token;
+    const on = highlightName === key ? ' is-on' : '';
+    return `<span class="ea-ph${on}" data-ea-ph="${escapeHtml(key)}">${token}</span>`;
   });
 }
 
-function wrapTextNode(node) {
+function wrapTextNode(node, tokenRe) {
   const text = node.nodeValue || '';
-  const re = new RegExp(PLACEHOLDER_RE.source, 'g');
+  const re = withG(tokenRe);
   if (!re.test(text)) return;
   re.lastIndex = 0;
   const frag = node.ownerDocument.createDocumentFragment();
@@ -58,7 +71,7 @@ function wrapTextNode(node) {
       frag.appendChild(node.ownerDocument.createTextNode(text.slice(last, match.index)));
     }
     const span = node.ownerDocument.createElement('span');
-    span.setAttribute('data-ea-ph', match[1]);
+    span.setAttribute('data-ea-ph', tokenKey(match));
     span.className = 'ea-ph';
     span.textContent = match[0];
     frag.appendChild(span);
@@ -71,7 +84,7 @@ function wrapTextNode(node) {
   node.parentNode?.replaceChild(frag, node);
 }
 
-export function decoratePlaceholderRoot(root, highlightName) {
+export function decoratePlaceholderRoot(root, highlightName, tokenRe = PLACEHOLDER_RE) {
   if (!root) return;
   const doc = root.ownerDocument;
   const walker = doc.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
@@ -80,14 +93,18 @@ export function decoratePlaceholderRoot(root, highlightName) {
       if (!parent || parent.closest('[data-ea-ph], [data-jodit-selection_marker]')) {
         return NodeFilter.FILTER_REJECT;
       }
-      if (parent.tagName === 'SCRIPT' || parent.tagName === 'STYLE') return NodeFilter.FILTER_REJECT;
-      if (!node.nodeValue || !node.nodeValue.includes('{{')) return NodeFilter.FILTER_REJECT;
+      if (parent.tagName === 'SCRIPT' || parent.tagName === 'STYLE') {
+        return NodeFilter.FILTER_REJECT;
+      }
+      if (!node.nodeValue || !withG(tokenRe).test(node.nodeValue)) {
+        return NodeFilter.FILTER_REJECT;
+      }
       return NodeFilter.FILTER_ACCEPT;
     },
   });
   const nodes = [];
   while (walker.nextNode()) nodes.push(walker.currentNode);
-  nodes.forEach(wrapTextNode);
+  nodes.forEach((node) => wrapTextNode(node, tokenRe));
   applyPlaceholderHighlight(root, highlightName);
 }
 
@@ -127,9 +144,9 @@ export function bindPlaceholderEvents(root, { onHover, onLeave, onToggle } = {})
   });
 }
 
-export function paintPlaceholderRoot(root, highlightName, handlers) {
+export function paintPlaceholderRoot(root, highlightName, handlers, tokenRe = PLACEHOLDER_RE) {
   if (!root) return;
   injectPlaceholderStyles(root.ownerDocument);
-  decoratePlaceholderRoot(root, highlightName);
+  decoratePlaceholderRoot(root, highlightName, tokenRe);
   bindPlaceholderEvents(root, handlers);
 }

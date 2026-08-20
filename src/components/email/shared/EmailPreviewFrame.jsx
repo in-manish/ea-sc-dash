@@ -10,6 +10,7 @@ export default function EmailPreviewFrame({
   onHover,
   onLeave,
   onToggle,
+  tokenRe,
 }) {
   const iframeRef = useRef(null);
   const handlersRef = useRef({ onHover, onLeave, onToggle });
@@ -18,7 +19,7 @@ export default function EmailPreviewFrame({
   const apply = () => {
     const doc = iframeRef.current?.contentDocument;
     if (!doc?.body) return;
-    paintPlaceholderRoot(doc.body, highlightName, handlersRef.current);
+    paintPlaceholderRoot(doc.body, highlightName, handlersRef.current, tokenRe);
     try {
       iframeRef.current.style.height = `${Math.max(500, doc.documentElement.scrollHeight)}px`;
     } catch {
@@ -28,7 +29,7 @@ export default function EmailPreviewFrame({
 
   useEffect(() => {
     apply();
-  }, [html, highlightName]);
+  }, [html, highlightName, tokenRe]);
 
   return (
     <iframe

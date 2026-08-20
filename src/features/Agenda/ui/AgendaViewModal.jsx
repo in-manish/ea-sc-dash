@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, Calendar, Clock, MapPin, Users } from 'lucide-react';
+import AgendaStatusBadges from './AgendaStatusBadges';
 
 const AgendaViewModal = ({ isOpen, onClose, selectedAgenda }) => {
     if (!isOpen || !selectedAgenda) return null;
@@ -61,6 +62,8 @@ const AgendaViewModal = ({ isOpen, onClose, selectedAgenda }) => {
                         <button className="absolute top-6 right-6 p-2 rounded-xl text-text-tertiary hover:text-text-primary hover:bg-bg-tertiary transition-all" onClick={onClose}>
                             <X size={20} />
                         </button>
+
+                        <AgendaStatusBadges item={selectedAgenda} className="mb-6 pr-10" />
 
                         {selectedAgenda.description && (
                             <div className="mb-8 mt-2">

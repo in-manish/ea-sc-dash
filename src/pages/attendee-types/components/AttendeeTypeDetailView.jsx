@@ -5,6 +5,8 @@ import BadgeTab from './BadgeTab';
 import DraftsTab from './DraftsTab';
 import TransferTab from './TransferTab';
 import EBadgeContentTab from './EBadgeContentTab';
+import { BadgeEmailDraftProvider } from '../hooks/useBadgeEmailDraft.jsx';
+import BadgeEmailVariablesRail from './BadgeEmailVariablesRail';
 
 const AttendeeTypeDetailView = ({
     selectedType,
@@ -109,6 +111,11 @@ const AttendeeTypeDetailView = ({
     };
 
     return (
+        <BadgeEmailDraftProvider
+            emailDraft={emailDraft}
+            setEmailDraft={setEmailDraft}
+            isPreviewMode={isPreviewMode}
+        >
         <div className="animate-fade-in w-full">
             <button
                 className="flex items-center gap-2 text-text-secondary hover:text-text-primary mb-6 transition-colors font-medium"
@@ -119,7 +126,7 @@ const AttendeeTypeDetailView = ({
 
             <div className="flex flex-col lg:flex-row gap-6">
                 {/* Sidebar Navigation */}
-                <div className="lg:w-64 flex flex-col gap-1">
+                <div className="lg:w-72 flex flex-col gap-1 lg:sticky lg:top-4 self-start">
                     {tabs.map(tab => (
                         <button
                             key={tab.id}
@@ -133,6 +140,7 @@ const AttendeeTypeDetailView = ({
                             {tab.label}
                         </button>
                     ))}
+                    {activeTab === 'drafts' && <BadgeEmailVariablesRail />}
                 </div>
 
                 {/* Content Area */}
@@ -167,6 +175,7 @@ const AttendeeTypeDetailView = ({
                 </div>
             </div>
         </div>
+        </BadgeEmailDraftProvider>
     );
 };
 

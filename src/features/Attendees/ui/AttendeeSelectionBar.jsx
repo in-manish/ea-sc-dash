@@ -1,4 +1,4 @@
-import { MessageCircle, IdCard } from 'lucide-react';
+import { MessageCircle, IdCard, Mail } from 'lucide-react';
 import { singleSelectedPocAttendee } from '../domain/exhibitorPoc';
 import { exhibitorPasswordResetPayload } from '../../Companies/domain/exhibitorPasswordResetPayload';
 import ExhibitorPasswordResetControl from '../../Companies/ui/ExhibitorPasswordResetControl';
@@ -13,6 +13,7 @@ const AttendeeSelectionBar = ({
     onClearSelection,
     onSelectAllMatching,
     onOpenWhatsApp,
+    onOpenEmail,
     onCreateEBadge,
     eventId,
     token,
@@ -58,6 +59,10 @@ const AttendeeSelectionBar = ({
                     <button className="btn btn-primary" onClick={onOpenWhatsApp}>
                         <MessageCircle size={16} style={{ marginRight: '0.5rem' }} />
                         WhatsApp
+                    </button>
+                    <button className="btn btn-primary" onClick={onOpenEmail}>
+                        <Mail size={16} style={{ marginRight: '0.5rem' }} />
+                        Email
                     </button>
                     <button
                         className="btn btn-primary flex items-center"

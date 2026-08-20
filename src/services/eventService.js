@@ -896,7 +896,7 @@ export const eventService = {
                 body: JSON.stringify(payload)
             });
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            return await response.json();
+            return await response.json().catch(() => ({}));
         } catch (error) {
             console.error('Save Email Draft Error:', error);
             throw error;
@@ -949,7 +949,7 @@ export const eventService = {
                 body: JSON.stringify(payload)
             });
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            return await response.json();
+            return await response.json().catch(() => ({}));
         } catch (error) {
             console.error('Save SMS Draft Error:', error);
             throw error;
