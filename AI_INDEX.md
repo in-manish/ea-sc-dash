@@ -12,6 +12,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 - `src/layouts/EventLayout.jsx` — event shell / nav
 - `src/services/` — HTTP clients
 - `src/contexts/authSession.js` — token restore, last path, landing URL
+- `src/components/alert/` — themed app alert/confirm (`useAlert`)
 
 ## Feature map
 
@@ -24,6 +25,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | ScManageUsers | `src/features/ScManageUsers/` | SC admin users + saved cards |
 | ScAuth / Profile | `src/features/ScAuth/`, `src/features/ScProfile/` | SC ADMIN login gate + profile |
 | ScEmailTemplates | `src/features/ScEmailTemplates/` | SC admin list; EA-like manage/edit modal |
+| WhatsApp | `src/features/WhatsApp/` | Communication WhatsApp templates: archive (not delete), Active/Archived list |
 | EaEmail | `src/components/email/` | Communication Email: category + templates; browse HTML into body |
 | Matchmaking | `src/features/Matchmaking/` | GET 404 = create/copy; 200 = editor only |
 
@@ -61,6 +63,8 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | SC email templates | `src/features/ScEmailTemplates/ui/EmailTemplatesPage.jsx` + `api/emailTemplateApi.js` |
 | SC email template create/edit content | `ui/EmailTemplateEditorLayout.jsx` + `EmailTemplatePreviewCanvas.jsx` + `EmailTemplateFormModalShell.jsx` |
 | EA category / template body import | `src/components/email/shared/EmailBodyEditor.jsx` + `EmailFileImport.jsx` + `readHtmlFile.js` |
+| Themed alert / confirm | `src/components/alert/AlertModal.jsx` + `src/contexts/AlertContext.jsx` (`useAlert`) |
+| WhatsApp templates archive | `src/features/WhatsApp/hooks/useWhatsAppTemplateList.js` + `api/whatsappTemplateApi.js` |
 | EA template list filters | `src/components/email/templates/domain/parseTemplateFilters.js` + `EmailTemplateFilters.jsx` |
 | EA template content_variables | `src/components/email/templates/domain/contentVariables.js` + `TemplateSupportingVariables.jsx` + `usePlaceholderHighlight.js` |
 | Event settings AR tax list | `src/pages/event-settings/exhibitorPortalDefaults.js` + `ArTaxList.jsx` + `useAdditionalRequirement.js` |

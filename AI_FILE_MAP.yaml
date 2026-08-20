@@ -381,6 +381,39 @@ tasks:
       GET /events/:id/questions/matchmaking/ — 404 empty (create or copy),
       200 editor only. Copy POST /evc/matchmaking/make_copy/ only on 404.
       Create omits form_id. Never copy into an event that already has a form.
+  app_alert:
+    files:
+      - src/components/alert/AlertModal.jsx
+      - src/components/alert/alertTypes.js
+      - src/components/alert/useNativeAlertBridge.js
+      - src/contexts/AlertContext.jsx
+      - src/App.jsx
+    notes: >
+      Single themed dialog for alert + confirm. useAlert().showAlert(msg, type, title)
+      and showConfirm(msg, { title, confirmText, cancelText, variant }). window.alert
+      is routed through the same modal. Prefer showConfirm over window.confirm.
+  wa_template_archive:
+    files:
+      - src/features/WhatsApp/api/whatsappTemplateApi.js
+      - src/features/WhatsApp/domain/templateListQuery.js
+      - src/features/WhatsApp/hooks/useWhatsAppTemplateList.js
+      - src/features/WhatsApp/hooks/useWhatsAppTemplateEditor.js
+      - src/features/WhatsApp/ui/WhatsAppConfig.jsx
+      - src/features/WhatsApp/ui/WhatsAppConfigHeader.jsx
+      - src/features/WhatsApp/ui/TemplateList.jsx
+      - src/features/WhatsApp/ui/TemplateCard.jsx
+      - src/features/WhatsApp/ui/TemplateScopeToggle.jsx
+      - src/features/WhatsApp/ui/TemplatePreview.jsx
+      - src/pages/Communication.jsx
+      - src/services/whatsappService.js
+      - src/features/Attendees/hooks/useWhatsAppSend.js
+    routes:
+      - /event/:id/communication?tab=whatsapp
+    notes: >
+      DELETE /wa/template/:id/ archives (is_active: false); 200 includes template.
+      List omit is_active = active; is_active=false = archived. Restore PATCH
+      { is_active: true }. Sending/preview omit is_active (active only). Names
+      stay unique across archived rows. GET by id still works after archive.
   ea_email_templates:
     files:
       - src/pages/Communication.jsx
@@ -461,6 +494,14 @@ features:
       - /users/manage
       - /users/manage/:userId
     cards_api: /evc/admin/users/{userId}/cards/
+  WhatsApp:
+    root: src/features/WhatsApp/
+    entry: src/pages/Communication.jsx
+    routes:
+      - /event/:id/communication?tab=whatsapp
+    list_api: GET /wa/template/list/
+    archive_api: DELETE /wa/template/:id/
+    restore_api: PATCH /wa/template/:id/ { is_active: true }
   EaEmail:
     root: src/components/email/
     entry: src/pages/Communication.jsx
@@ -504,6 +545,8 @@ glossary:
   sc_email_template_filters: List response filters are unscoped dropdown suggestions; query params filter results only
   sc_email_from_sender_name: Optional Mandrill from-name / {{ event_name }}; empty uses settings default; GET is always effective name
   sc_email_template_archive: No DELETE; PATCH {is_active:false} archives; uniqueness applies only to active rows
+  app_alert: Themed AlertModal via useAlert; window.alert is patched; confirm uses showConfirm
+  wa_template_archive: DELETE /wa/template/:id/ sets is_active false; list omit is_active = active; restore PATCH { is_active: true }
   ea_email_file_import: Browse .html/.htm/.txt (1 MB); extract body + style; append or replace into category/template body
   ea_email_template_filters: List filters { events: [id], template_types: [unique], names: [] }; query event, name, template_type
   ea_email_content_variables: Create/update content_variables is { token: "" } from {{name}} in body/subject; supporting_variables catalog is shown on edit

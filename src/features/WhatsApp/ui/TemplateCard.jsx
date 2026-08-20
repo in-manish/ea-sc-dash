@@ -1,10 +1,26 @@
 import React from 'react';
-import { Pencil, ChevronRight } from 'lucide-react';
+import { Archive, Pencil, ChevronRight, RotateCcw } from 'lucide-react';
 import TemplateStatusBadge from './TemplateStatusBadge';
 import MessageBubble from './MessageBubble';
 
-const TemplateCard = ({ template, onView, onEdit }) => {
+const actionBtn =
+    'inline-flex items-center gap-1.5 text-text-tertiary hover:text-accent text-[10px] font-bold uppercase tracking-wider transition-colors disabled:opacity-50';
+
+const TemplateCard = ({
+    template,
+    onView,
+    onEdit,
+    onArchive,
+    onRestore,
+    isArchived = false,
+    isBusy = false,
+}) => {
     const fieldCount = Object.keys(template.content_variables || {}).length;
+
+    const stop = (e, fn) => {
+        e.stopPropagation();
+        fn(template);
+    };
 
     return (
         <article
@@ -62,15 +78,33 @@ const TemplateCard = ({ template, onView, onEdit }) => {
                 <div className="flex items-center gap-4">
                     <button
                         type="button"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onEdit(template);
-                        }}
-                        className="inline-flex items-center gap-1.5 text-text-tertiary hover:text-accent text-[10px] font-bold uppercase tracking-wider transition-colors"
+                        onClick={(e) => stop(e, onEdit)}
+                        className={actionBtn}
                     >
                         <Pencil size={12} />
                         Edit
                     </button>
+                    {isArchived ? (
+                        <button
+                            type="button"
+                            disabled={isBusy}
+                            onClick={(e) => stop(e, onRestore)}
+                            className={actionBtn}
+                        >
+                            <RotateCcw size={12} />
+                            Restore
+                        </button>
+                    ) : (
+                        <button
+                            type="button"
+                            disabled={isBusy}
+                            onClick={(e) => stop(e, onArchive)}
+                            className={`${actionBtn} hover:text-danger`}
+                        >
+                            <Archive size={12} />
+                            Archive
+                        </button>
+                    )}
                     <span className="inline-flex items-center gap-1 text-accent text-[10px] font-bold uppercase tracking-wider">
                         View
                         <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />

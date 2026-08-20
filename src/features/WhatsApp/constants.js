@@ -16,6 +16,11 @@ export const STATUS_CHOICES = [
 
 export const STATUS_FILTER_ALL = 'all';
 
+export const TEMPLATE_SCOPE = {
+    ACTIVE: 'active',
+    ARCHIVED: 'archived',
+};
+
 export const CATEGORY_OPTIONS = [
     { value: 'attendee', label: 'Attendee' },
     { value: 'company', label: 'Company' },

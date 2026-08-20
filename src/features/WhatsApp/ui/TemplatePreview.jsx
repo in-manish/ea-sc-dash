@@ -48,7 +48,15 @@ const TemplatePreview = ({
                 </div>
             </div>
 
-            {mode === 'detail' && (
+            {mode === 'detail' && template?.is_active === false && (
+                <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-bg-secondary border border-border text-sm text-text-secondary">
+                    <Info size={16} className="text-accent shrink-0 mt-0.5" />
+                    <p>
+                        This template is archived. Restore it to show it on the default list and use it for sending.
+                    </p>
+                </div>
+            )}
+            {mode === 'detail' && template?.is_active !== false && (
                 <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-bg-secondary border border-border text-sm text-text-secondary">
                     <Info size={16} className="text-accent shrink-0 mt-0.5" />
                     <p>
