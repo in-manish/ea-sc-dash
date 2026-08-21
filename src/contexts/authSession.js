@@ -5,7 +5,12 @@ import {
   getAppPathname,
   getProjectRelativeLocation,
 } from '../projectPath';
-import { storageGet, storageRemove, storageSet } from '../storage/webStorage';
+import {
+  discardTabSessionIfLoggedOut,
+  storageGet,
+  storageRemove,
+  storageSet,
+} from '../storage/webStorage';
 
 /** Per-project + per-env session keys — EA and SC never share credentials. */
 export const getStorageKeys = (mode = getDashboardMode(), env = getEnv()) => ({
@@ -18,6 +23,7 @@ export const getStorageKeys = (mode = getDashboardMode(), env = getEnv()) => ({
 
 export const readSession = (mode, env) => {
   const keys = getStorageKeys(mode, env);
+  discardTabSessionIfLoggedOut(keys.token, Object.values(keys));
   const rawUser = storageGet(keys.user);
   const token = storageGet(keys.token);
   if (!rawUser || !token) return null;

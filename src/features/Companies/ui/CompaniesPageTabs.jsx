@@ -28,7 +28,7 @@ export default function CompaniesPageTabs({
 }) {
   return (
     <>
-      <div className="flex gap-4 border-b border-border mb-6">
+      <div className="flex flex-wrap gap-4 border-b border-border mb-6">
         <button type="button" className={tabClass(activeTab === 'exhibitors')} onClick={() => onTabChange('exhibitors')}>
           Exhibitors
         </button>
@@ -45,6 +45,13 @@ export default function CompaniesPageTabs({
           onClick={() => onTabChange('additional_requirements')}
         >
           Additional Requirements
+        </button>
+        <button
+          type="button"
+          className={tabClass(activeTab === 'exhibitor_engagement')}
+          onClick={() => onTabChange('exhibitor_engagement')}
+        >
+          Exhibitor Engagement
         </button>
       </div>
 

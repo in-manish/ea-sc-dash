@@ -25,3 +25,17 @@ export const storageRemove = (key) => {
     /* ignore */
   }
 };
+
+/**
+ * Logout can only clear this tab's sessionStorage. Other tabs still hold a copy.
+ * If localStorage no longer has the token, drop this tab's session keys.
+ */
+export const discardTabSessionIfLoggedOut = (tokenKey, allKeys) => {
+  try {
+    if (localStorage.getItem(tokenKey) != null) return;
+    if (sessionStorage.getItem(tokenKey) == null) return;
+    allKeys.forEach((key) => sessionStorage.removeItem(key));
+  } catch {
+    /* localStorage blocked — keep this tab's sessionStorage */
+  }
+};

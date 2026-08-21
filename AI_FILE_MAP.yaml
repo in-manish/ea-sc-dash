@@ -24,6 +24,7 @@ tasks:
     files:
       - src/contexts/authSession.js
       - src/contexts/AuthContext.jsx
+      - src/contexts/useCrossTabAuthSync.js
       - src/storage/webStorage.js
       - src/App.jsx
       - src/components/ProtectedRoute.jsx
@@ -39,7 +40,9 @@ tasks:
       so a new tab or bare host still finds the same login. Opening the domain
       without /ea|/sc uses findStoredSession + resolveLandingUrl (resume last
       path or selected event). Do not default to EA/STAGE login when another
-      combo still has a token.
+      combo still has a token. Logout must drop the other tab's sessionStorage
+      copy (localStorage is already empty) via BroadcastChannel + storage
+      event + visibility resync; otherwise that tab stays signed in.
   attendee_edit:
     files:
       - src/features/Attendees/api/attendeeApi.js
@@ -172,6 +175,7 @@ tasks:
       - src/features/Companies/api/companyApi.js
       - src/features/Companies/domain/checklistReminderHelpers.js
       - src/features/Companies/ui/CompaniesPage.jsx
+      - src/features/Companies/ui/CompaniesPagePanels.jsx
       - src/pages/Companies.jsx
     routes:
       - /event/:id/companies?exh_view=checklist_reminder
@@ -360,6 +364,29 @@ tasks:
       Parent exhibitors only. Filename Event-{eventId}-ExhibitorReport.csv.
       400 payload; 401 login; 403 Organizer access required; 404 event;
       500 retry. Param is send_to_emails (not emails / sent_to_emails).
+  exhibitor_engagement:
+    files:
+      - src/features/Companies/api/exhibitorEngagementApi.js
+      - src/features/Companies/domain/exhibitorEngagement.js
+      - src/features/Companies/hooks/useExhibitorEngagement.js
+      - src/features/Companies/ui/ExhibitorEngagementTab.jsx
+      - src/features/Companies/ui/ExhibitorEngagementSummary.jsx
+      - src/features/Companies/ui/ActivationFunnel.jsx
+      - src/features/Companies/ui/ActivationFunnelChart.jsx
+      - src/features/Companies/ui/ActivationFunnelStep.jsx
+      - src/features/Companies/ui/ExhibitorEngagementSkeleton.jsx
+      - src/features/Companies/ui/CompaniesPageTabs.jsx
+      - src/features/Companies/ui/CompaniesPagePanels.jsx
+      - src/features/Companies/ui/CompaniesPage.jsx
+      - src/pages/Companies.jsx
+    routes:
+      - /event/:id/companies?tab=exhibitor_engagement
+    notes: >
+      GET /events/:eventId/exhibitor/engagement/. Cached ~5 minutes.
+      refresh=true skips cache, recomputes, and recaches. Parent exhibitors
+      only. total_exhibitors plus activation_funnel.steps (count + percentage
+      of total). Steps are independent (open funnel), not nested drop-off.
+      from_cache true on hit. 401 login; 403 permission; 404 event.
   company_list_sort:
     files:
       - src/features/Companies/api/companyApi.js
@@ -487,6 +514,9 @@ features:
     exhibitor_report_api: >
       GET /events/:eventId/exhibitor/report/ CSV blob or JSON email
       (send_to_emails + optional company_ids)
+    engagement_api: >
+      GET /events/:eventId/exhibitor/engagement/?refresh=true
+      (cached 5 min; refresh skips cache)
     checklist_reminder_api: >
       POST /events/:eventId/exhibitor/setup-checklist/remind/;
       GET .../reminders/ + GET .../reminders/:logId/;
@@ -541,6 +571,7 @@ critical_paths:
 
 glossary:
   auth_landing_resume: Bare host URL must restore an existing EA/SC token instead of forcing /login
+  cross_tab_logout: Other tabs keep a sessionStorage copy after logout; drop it when localStorage token is gone
 
   attendee_edit_full_patch: PATCH must mirror GET then change fields; not sparse. Send attendee_type as name string.
   attendee_type_draft_save: Email POST 201 is success; chained SMS errors must not mark the save failed. Empty 2xx JSON is success.

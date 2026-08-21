@@ -6,7 +6,8 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 **Edit:** `ui/EditCompanyPage.jsx` → `/event/:id/companies/:companyId/edit`  
 **Detail:** `ui/CompanyDetailsPage.jsx` → `/event/:id/companies/:companyId`  
 **API:** multipart `FormData` + `Authorization: Token …` (no `/api` prefix)  
-**Exhibitor CSV report:** `GET /events/:id/exhibitor/report/` — CSV download or email via `send_to_emails`
+**Exhibitor CSV report:** `GET /events/:id/exhibitor/report/` — CSV download or email via `send_to_emails`  
+**Exhibitor Engagement:** `GET /events/:id/exhibitor/engagement/` — parent-exhibitor totals + activation funnel (`?refresh=true` to recompute)
 
 ## Layout
 
@@ -14,11 +15,14 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 |------|------|
 | `api/companyApi.js` | GET company list (`sort_by`/`sort_order`), GET/POST/PATCH company, filter options, exhibitor overview, checklist remind POST, POC password reset, bulk lock/feature |
 | `api/exhibitorReportApi.js` | GET parent-exhibitor report: CSV blob or email JSON |
+| `api/exhibitorEngagementApi.js` | GET parent-exhibitor engagement funnel (`refresh=true` skips 5 min cache) |
+| `domain/exhibitorEngagement.js` | Normalize steps vs total; weakest-step helper; 401/403/404 copy |
 | `api/checklistReminderApi.js` | Reminder settings GET/PATCH + reminder log list + progress poll |
 | `domain/exhibitorReportDownload.js` | Filename (`Event-{id}-ExhibitorReport.csv`) + blob save |
 | `domain/exhibitorReportQuery.js` | `company_ids` + `send_to_emails` query (omit empty) |
 | `domain/parseExhibitorReportError.js` | 400 payload; 401/403/404/500 copy |
 | `hooks/useExhibitorReport.js` | Download blob or email JSON; 401 logs out |
+| `hooks/useExhibitorEngagement.js` | Load cached funnel; `refresh()` sends `refresh=true` |
 | `ui/DownloadExhibitorReportButton.jsx` | Header "Reports" button — opens modal |
 | `ui/ExhibitorReportModal.jsx` | Modal shell: Email Report / Download CSV tabs |
 | `ui/ExhibitorReportModalPanes.jsx` | Email, Download, SelectedBadge, Feedback panes |
@@ -47,9 +51,16 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `hooks/useSetupChecklistRemind.js` | POST remind + poll progress until completed/failed |
 | `hooks/useChecklistReminderList.js` | Paginated reminder log |
 | `hooks/useChecklistReminderSettings.js` | Load/save reminder settings |
-| `ui/CompaniesPage.jsx` | Exhibitors / product matchmaking / AR tabs (list + sort) |
+| `ui/CompaniesPage.jsx` | Exhibitors / product matchmaking / AR / engagement tabs |
+| `ui/CompaniesPagePanels.jsx` | Tab body: list, upload status, reminder, AR, matchmaking, engagement |
 | `ui/CompaniesPageHeader.jsx` | Title, create/download report/upload, search, sort, filter |
 | `ui/CompaniesPageTabs.jsx` | Main tabs + exhibitor / AR sub-views |
+| `ui/ExhibitorEngagementTab.jsx` | Engagement dashboard: summary + activation funnel |
+| `ui/ExhibitorEngagementSummary.jsx` | Title, cache/live badge, refresh, total exhibitors |
+| `ui/ActivationFunnel.jsx` | KPI cards + horizontal comparison chart |
+| `ui/ActivationFunnelChart.jsx` | Full-label bars vs total exhibitors; weakest steps highlighted |
+| `ui/ActivationFunnelStep.jsx` | Step card: % of total, count, lowest badge |
+| `ui/ExhibitorEngagementSkeleton.jsx` | Engagement loading skeleton |
 | `ui/ExhibitorListSortControls.jsx` | `sort_by` select + asc/desc |
 | `ui/ExhibitorFilterDrawer.jsx` | List filter drawer shell |
 | `ui/ExhibitorFilterFields.jsx` | List filter fields |
@@ -146,6 +157,16 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 - Ignored when `q` is set (relevance) or `is_featured=true` with no `q` (rank then name)
 - Toolbar select + Company / Details / Stall column headers; `sort_by`/`sort_order` persist in the URL
 - Details column shows OBF, space (number), and sales person
+
+## Exhibitor Engagement
+
+- Route: `/event/:id/companies?tab=exhibitor_engagement`
+- `GET /events/:id/exhibitor/engagement/` — parent exhibitors only
+- Cached ~5 minutes; **Refresh** sends `refresh=true` to recompute and recache
+- `from_cache` true on a hit; `percentage` is round(count * 100 / total_exhibitors)
+- Steps are independent (open funnel) vs total — not a nested drop-off
+- UI: KPI cards + horizontal bars; lowest activation highlighted
+- 401 → sign in again; 403 permission; 404 event not found
 
 ## Exhibitor CSV report
 

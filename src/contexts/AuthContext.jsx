@@ -17,6 +17,7 @@ import {
     buildProjectHomeUrl,
 } from './authSession';
 import { storageSet } from '../storage/webStorage';
+import { broadcastAuthLogout, useCrossTabAuthSync } from './useCrossTabAuthSync';
 
 const AuthContext = createContext(null);
 
@@ -51,6 +52,16 @@ export const AuthProvider = ({ children }) => {
         setIsLoading(false);
     }, [currentMode, currentEnv]);
 
+    const applyLoggedOutState = () => {
+        setUser(null);
+        setToken(null);
+        setSelectedEvent(null);
+        setRecentEvents([]);
+        setIsAuthenticated(false);
+    };
+
+    useCrossTabAuthSync(currentMode, currentEnv, isAuthenticated, applyLoggedOutState);
+
     const login = (userData, authToken) => {
         const mode = getDashboardMode();
         const env = getEnv();
@@ -64,12 +75,9 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = () => {
-        clearStoredSession();
-        setUser(null);
-        setToken(null);
-        setSelectedEvent(null);
-        setRecentEvents([]);
-        setIsAuthenticated(false);
+        clearStoredSession(currentMode, currentEnv);
+        broadcastAuthLogout(currentMode, currentEnv);
+        applyLoggedOutState();
     };
 
     const selectEvent = (event) => {

@@ -12,6 +12,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 - `src/layouts/EventLayout.jsx` — event shell / nav
 - `src/services/` — HTTP clients
 - `src/contexts/authSession.js` — token restore, last path, landing URL
+- `src/contexts/useCrossTabAuthSync.js` — logout in one tab signs out the others
 - `src/components/alert/` — themed app alert/confirm (`useAlert`)
 
 ## Feature map
@@ -20,7 +21,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 |---------|------|-------|
 | Agenda | `src/features/Agenda/` | List + flat edit for speakers/moderators |
 | Attendees | `src/features/Attendees/` | List, create, edit badge, WhatsApp, email drafts, e-badge, report |
-| Companies | `src/features/Companies/` | EA list (sort) + create/edit/detail + portal checklist + reminder tab + exhibitor CSV report |
+| Companies | `src/features/Companies/` | EA list (sort) + create/edit/detail + portal checklist + reminder tab + exhibitor CSV report + engagement funnel |
 | ManageUsers | `src/features/ManageUsers/` | Staff users / permissions |
 | ScManageUsers | `src/features/ScManageUsers/` | SC admin users + saved cards |
 | ScAuth / Profile | `src/features/ScAuth/`, `src/features/ScProfile/` | SC ADMIN login gate + profile |
@@ -48,6 +49,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Reset exhibitor POC password | `src/features/Companies/ui/ExhibitorPasswordResetControl.jsx` + attendee bar: `ui/AttendeeSelectionBar.jsx` (single POC) |
 | Bulk lock / feature companies | `src/features/Companies/ui/ExhibitorLockMenu.jsx` + `ExhibitorBulkActionBar.jsx` + `api/companyApi.js` (`bulkAction`) |
 | Download / email exhibitor CSV report | `ui/DownloadExhibitorReportButton.jsx` + `ui/ExhibitorReportModal.jsx` + `hooks/useExhibitorReport.js` + `api/exhibitorReportApi.js` |
+| Exhibitor Engagement tab | `ui/ExhibitorEngagementTab.jsx` + `hooks/useExhibitorEngagement.js` + `api/exhibitorEngagementApi.js` |
 | Exhibitor list sort | `domain/companyListSort.js` + `hooks/useExhibitorList.js` + `ui/ExhibitorListSortControls.jsx` |
 | Company FormData / errors | `src/features/Companies/domain/buildCompanyFormData.js`, `parseCompanyError.js` |
 | Agenda list / edit session | `src/features/Agenda/ui/AgendaListPage.jsx`, `AgendaEditPage.jsx` (`force_attendance` block slot) |
@@ -56,6 +58,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | SC manage users / detail page | `src/features/ScManageUsers/ui/UserDetailsPage.jsx`, `ManageUsersPage.jsx` |
 | SC ADMIN login / profile | `src/features/ScAuth/domain/scLoginUser.js`, `src/features/ScProfile/ui/ScProfilePage.jsx` |
 | Auth restore / host URL | `src/contexts/authSession.js`, `src/storage/webStorage.js`, `src/App.jsx`, `src/components/ProtectedRoute.jsx` |
+| Auth logout / other tabs | `src/contexts/useCrossTabAuthSync.js` + `AuthContext.jsx` + `webStorage.js` (`discardTabSessionIfLoggedOut`) |
 | SC user pending requests | `src/features/ScManageUsers/ui/PendingCardsTab.jsx`, `hooks/useUserPendingCards.js` |
 | SC user card activity | `src/features/ScManageUsers/ui/CardRequestActivityTab.jsx`, `hooks/useUserCardRequests.js` |
 | SC saved cards Active/Archived | `src/features/ScManageUsers/ui/SavedCardsTab.jsx`, `hooks/useUserSavedCards.js` |

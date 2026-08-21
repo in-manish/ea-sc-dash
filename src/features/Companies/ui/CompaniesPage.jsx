@@ -1,18 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
-import AdditionalRequirementsOrders from '../../../pages/AdditionalRequirementsOrders';
-import ARManager from '../../../pages/ARManager';
 import CompanyUploadModal from '../../../components/companies/CompanyUploadModal';
-import CompanyUploadStatus from '../../../components/companies/CompanyUploadStatus';
-import CompanyComprehensiveReportPanel from '../../../components/companies/CompanyComprehensiveReportPanel';
 import useExhibitorList from '../hooks/useExhibitorList';
 import { useExhibitorListSelection } from '../hooks/useExhibitorListSelection';
-import ProductMatchmakingPanel from './ProductMatchmakingPanel';
-import ChecklistReminderTab from './ChecklistReminderTab';
-import ExhibitorsListPanel from './ExhibitorsListPanel';
 import CompaniesPageHeader from './CompaniesPageHeader';
 import CompaniesPageTabs from './CompaniesPageTabs';
+import CompaniesPagePanels from './CompaniesPagePanels';
 import ExhibitorFilterDrawer from './ExhibitorFilterDrawer';
 
 export default function CompaniesPage() {
@@ -76,7 +70,6 @@ export default function CompaniesPage() {
   }, [searchParams, setSearchParams]);
 
   const eventId = selectedEvent?.id;
-  const showList = activeTab === 'exhibitors' && exhView === 'list' && eventId;
 
   return (
     <div className="w-full animate-fade-in">
@@ -109,66 +102,23 @@ export default function CompaniesPage() {
         onArViewChange={(viewName) => setParam((p) => p.set('ar_view', viewName))}
       />
 
-      {showList && (
-        <CompanyComprehensiveReportPanel
-          eventId={eventId}
-          token={token}
-          parentExhibitorId={list.filters.parent_exhibitor_id || ''}
-        />
-      )}
-
-      {activeTab === 'exhibitors' && exhView === 'upload_status' && eventId && (
-        <CompanyUploadStatus eventId={eventId} token={token} refreshKey={uploadRefreshKey} />
-      )}
-
-      {showList && (
-        <ExhibitorsListPanel
-          eventId={eventId}
-          token={token}
-          companies={list.companies}
-          loading={list.loading}
-          error={list.error}
-          page={list.page}
-          onPageChange={list.setPage}
-          onUpdated={list.refresh}
-          sortBy={list.sortBy}
-          sortOrder={list.sortOrder}
-          onSortChange={list.setSort}
-          overrideMessage={list.overrideMessage}
-          selectedIds={selection.selectedIds}
-          allPageSelected={selection.allPageSelected}
-          somePageSelected={selection.somePageSelected}
-          toggle={selection.toggle}
-          togglePage={selection.togglePage}
-          clear={selection.clear}
-        />
-      )}
-
-      {activeTab === 'exhibitors' && exhView === 'checklist_reminder' && eventId && (
-        <ChecklistReminderTab
-          eventId={eventId}
-          token={token}
-          view={crView}
-          onViewChange={(viewName) =>
-            setParam((p) => {
-              if (viewName === 'list') p.delete('cr_view');
-              else p.set('cr_view', viewName);
-            })
-          }
-        />
-      )}
-
-      {activeTab === 'additional_requirements' && arView === 'orders' && eventId && (
-        <AdditionalRequirementsOrders eventId={eventId} />
-      )}
-
-      {activeTab === 'additional_requirements' && arView === 'setup' && <ARManager eventId={eventId} />}
-
-      {activeTab === 'product_matchmaking' && eventId && (
-        <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm animate-fade-in">
-          <ProductMatchmakingPanel eventId={eventId} token={token} />
-        </div>
-      )}
+      <CompaniesPagePanels
+        activeTab={activeTab}
+        exhView={exhView}
+        arView={arView}
+        crView={crView}
+        eventId={eventId}
+        token={token}
+        list={list}
+        selection={selection}
+        uploadRefreshKey={uploadRefreshKey}
+        onCrViewChange={(viewName) =>
+          setParam((p) => {
+            if (viewName === 'list') p.delete('cr_view');
+            else p.set('cr_view', viewName);
+          })
+        }
+      />
 
       <ExhibitorFilterDrawer
         isOpen={isFilterDrawerOpen}
