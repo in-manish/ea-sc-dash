@@ -280,6 +280,21 @@ tasks:
       additional_requirement.tax is [{name, rate}, ...]; PATCH replaces the whole
       list; [] = no tax; omitted/never-set defaults to GST 18; old object payload
       is wrapped as one item; type is ignored; rate is percentage 0-100.
+      Save sends exhibitor_portal_data via buildExhibitorPortalPayload (AR + meeting_diary).
+  event_settings_exhibitor_meeting_diary:
+    files:
+      - src/pages/event-settings/CompanyAccessControlsSection.jsx
+      - src/pages/event-settings/CompanySettings.jsx
+      - src/pages/event-settings/exhibitorPortalDefaults.js
+      - src/pages/event-settings/useExhibitorPortalMeetingDiary.js
+      - src/pages/event-settings/index.jsx
+    routes:
+      - /event/:id/settings?tab=companies
+    notes: >
+      exhibitor_portal_data.meeting_diary.is_meeting_option_active is a boolean
+      (default false). GET needs exhibitor_portal=true. PATCH sends
+      exhibitor_portal_data { additional_requirement, meeting_diary }.
+      Distinct from top-level meeting_diary / meeting_diary_enabled.
   exhibitor_poc_password_reset:
     files:
       - src/features/Companies/api/companyApi.js
@@ -551,6 +566,7 @@ glossary:
   ea_email_template_filters: List filters { events: [id], template_types: [unique], names: [] }; query event, name, template_type
   ea_email_content_variables: Create/update content_variables is { token: "" } from {{name}} in body/subject; supporting_variables catalog is shown on edit
   ar_tax_list: exhibitor_portal_data.additional_requirement.tax is [{name, rate}, ...]; PATCH replaces the whole list; [] means no tax
+  exhibitor_portal_meeting_diary: exhibitor_portal_data.meeting_diary.is_meeting_option_active toggles the exhibitor portal meeting diary option (default false)
   exhibitor_poc_password_reset: POST /events/:id/exhibitor/password/reset/; identify POC with badge_id then company_id; skip email/bulk_email for now
   company_bulk_action: PATCH /events/:id/companies/bulk-action/; lock_company single|multiple|all (parents); feature_company single|multiple; unfeatured rank is 0
   exhibitor_csv_report: >

@@ -104,10 +104,34 @@ export function buildAdditionalRequirementPayload(ar) {
     };
 }
 
+export const DEFAULT_MEETING_DIARY = {
+    is_meeting_option_active: false,
+};
+
+export function normalizeMeetingDiary(raw) {
+    return {
+        is_meeting_option_active: !!raw?.is_meeting_option_active,
+    };
+}
+
+export function buildMeetingDiaryPayload(raw) {
+    return normalizeMeetingDiary(raw);
+}
+
 export function normalizeExhibitorPortalData(portalData) {
     return {
         ...(portalData && typeof portalData === 'object' ? portalData : {}),
         additional_requirement: normalizeAdditionalRequirement(portalData?.additional_requirement),
+        meeting_diary: normalizeMeetingDiary(portalData?.meeting_diary),
+    };
+}
+
+export function buildExhibitorPortalPayload(portalData) {
+    return {
+        additional_requirement: buildAdditionalRequirementPayload(
+            portalData?.additional_requirement
+        ),
+        meeting_diary: buildMeetingDiaryPayload(portalData?.meeting_diary),
     };
 }
 

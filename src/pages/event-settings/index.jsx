@@ -17,11 +17,12 @@ import AgendaSettings from './AgendaSettings';
 import JsonTree from './components/JsonTree';
 import { DEFAULT_STALL_SCHEMA_TYPES } from './CompanySettings';
 import {
-    buildAdditionalRequirementPayload,
+    buildExhibitorPortalPayload,
     normalizeExhibitorPortalData,
     validateTaxList,
 } from './exhibitorPortalDefaults';
 import { useAdditionalRequirement } from './useAdditionalRequirement';
+import { useExhibitorPortalMeetingDiary } from './useExhibitorPortalMeetingDiary';
 
 const EventSettings = () => {
     const { id } = useParams();
@@ -342,6 +343,11 @@ const EventSettings = () => {
         isTaxModified,
     } = useAdditionalRequirement(eventData, originalEventData, setEventData);
 
+    const {
+        handleMeetingOptionActiveChange,
+        isMeetingOptionActiveModified,
+    } = useExhibitorPortalMeetingDiary(eventData, originalEventData, setEventData);
+
     const handleMeetingDiaryChange = (field, value) => {
         setEventData(prev => ({
             ...prev,
@@ -564,12 +570,11 @@ const EventSettings = () => {
             const currency = Array.isArray(eventData.currencies) ? eventData.currencies[0] : null;
             if (currency) formData.append('currencies', currency);
 
-            // Exhibitor portal AR tax (full list replace) + stall detail footer
-            formData.append('exhibitor_portal_data', JSON.stringify({
-                additional_requirement: buildAdditionalRequirementPayload(
-                    eventData.exhibitor_portal_data?.additional_requirement
-                ),
-            }));
+            // Exhibitor portal AR tax (full list replace) + stall detail footer + meeting diary
+            formData.append(
+                'exhibitor_portal_data',
+                JSON.stringify(buildExhibitorPortalPayload(eventData.exhibitor_portal_data))
+            );
 
             // --- MANUAL PAYLOAD MODIFICATION AREA ---
             // You can manually add or override any keys here before the update request.
@@ -684,6 +689,8 @@ const EventSettings = () => {
                         isInterestedInModified={isInterestedInModified}
                         handleStallSchemaTypeToggle={handleStallSchemaTypeToggle}
                         isStallSchemaTypesModified={isStallSchemaTypesModified}
+                        handleMeetingOptionActiveChange={handleMeetingOptionActiveChange}
+                        isMeetingOptionActiveModified={isMeetingOptionActiveModified}
                     />
                 )}
                 {activeTab === 'attendees' && (
