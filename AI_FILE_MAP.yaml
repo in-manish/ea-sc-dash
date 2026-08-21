@@ -79,8 +79,8 @@ tasks:
       must not show Save failed after email 201. Empty 2xx bodies are success.
       Badge email tokens highlight on select and insert at the body caret.
       Variables live in the left rail under the type tabs, with type-to-search.
-      Calendar tokens are bare href values (no {{}}, no URLs). Insert calendar_link
-      for one Google button, or calendar_links for Google/Outlook/.ics.
+      Calendar tokens are bare href values (no {{}}, no URLs). Rail lists
+      Google and Outlook only (calendar_link_google / calendar_link_outlook).
   attendee_type_email_list:
     files:
       - src/features/Attendees/api/attendeeTypeEmailsApi.js
@@ -529,7 +529,7 @@ glossary:
 
   attendee_edit_full_patch: PATCH must mirror GET then change fields; not sparse. Send attendee_type as name string.
   attendee_type_draft_save: Email POST 201 is success; chained SMS errors must not mark the save failed. Empty 2xx JSON is success.
-  badge_email_tokens: Bare tokens user_name/att_type/reg_id/event_code/event_name/user_email/company_name/event_date/event_venue; calendar_link (Google default) plus calendar_link_google/outlook/ics as href-only; \\n becomes a real newline
+  badge_email_tokens: Bare tokens user_name/att_type/reg_id/event_code/event_name/user_email/company_name/event_date/event_venue; calendar_link_google and calendar_link_outlook as href-only; \\n becomes a real newline
   attendee_type_email_list: Send Mail Badge Email POSTs send_email/; View lists GET attendee_types/emails/
   attendee_category_email_list: Send Mail lists GET category_types/emails/; toggles POST category_types/send_email/ with email_ids
   speaker_default_alpha_sort: When true, speakers sorted A-Z by name; when false, by speaker_sort_order

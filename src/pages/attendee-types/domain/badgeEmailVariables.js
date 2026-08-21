@@ -1,6 +1,6 @@
 import {
     CALENDAR_EMAIL_VARIABLES,
-    CALENDAR_LINKS_SNIPPET,
+    CALENDAR_TOKEN_NAMES,
     calendarInsertHtml,
 } from './badgeEmailCalendarLinks';
 
@@ -30,9 +30,13 @@ function escapeRe(value) {
     return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-const WORD_NAMES = BADGE_EMAIL_VARIABLES
-    .map((item) => item.name)
-    .filter((name) => name !== NEWLINE_TOKEN && name !== CALENDAR_LINKS_SNIPPET)
+const WORD_NAMES = [
+    ...BADGE_EMAIL_VARIABLES
+        .map((item) => item.name)
+        .filter((name) => name !== NEWLINE_TOKEN),
+    ...CALENDAR_TOKEN_NAMES,
+]
+    .filter((name, index, all) => all.indexOf(name) === index)
     .sort((a, b) => b.length - a.length);
 
 export const BADGE_EMAIL_TOKEN_RE = new RegExp(
@@ -75,7 +79,8 @@ export function filterBadgeEmailVariables(variables, query) {
     if (!q) return variables;
     return variables.filter((item) => {
         const name = String(item.name || '').toLowerCase();
+        const label = String(item.label || '').toLowerCase();
         const description = String(item.description || '').toLowerCase();
-        return name.includes(q) || description.includes(q);
+        return name.includes(q) || label.includes(q) || description.includes(q);
     });
 }

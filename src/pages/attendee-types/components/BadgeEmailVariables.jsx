@@ -99,11 +99,16 @@ function VariableRow({
             >
                 <span className="flex items-center justify-between gap-2">
                     <span className="min-w-0">
+                        {item.label ? (
+                            <span className="block text-xs font-semibold text-text-primary">
+                                {item.label}
+                            </span>
+                        ) : null}
                         <span className="block font-mono text-xs text-text-primary truncate">
                             {item.name}
                         </span>
                         {item.description ? (
-                            <span className="block text-[10px] text-text-tertiary truncate leading-snug">
+                            <span className="block text-[10px] text-text-tertiary leading-snug mt-0.5">
                                 {item.description}
                             </span>
                         ) : null}
