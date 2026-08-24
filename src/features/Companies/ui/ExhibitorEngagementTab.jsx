@@ -4,6 +4,7 @@ import { useExhibitorEngagement } from '../hooks/useExhibitorEngagement';
 import ExhibitorEngagementSummary from './ExhibitorEngagementSummary';
 import ExhibitorEngagementSkeleton from './ExhibitorEngagementSkeleton';
 import ActivationFunnel from './ActivationFunnel';
+import InviteTypeBreakdown from './InviteTypeBreakdown';
 
 export default function ExhibitorEngagementTab({ eventId, token }) {
   const { logout } = useAuth();
@@ -37,11 +38,8 @@ export default function ExhibitorEngagementTab({ eventId, token }) {
           {error}
         </p>
       )}
-      <ActivationFunnel
-        title={data.funnelTitle}
-        steps={data.steps}
-        totalExhibitors={data.totalExhibitors}
-      />
+      <ActivationFunnel title={data.funnelTitle} steps={data.steps} />
+      <InviteTypeBreakdown types={data.inviteTypes} />
     </div>
   );
 }

@@ -372,8 +372,8 @@ tasks:
       - src/features/Companies/ui/ExhibitorEngagementTab.jsx
       - src/features/Companies/ui/ExhibitorEngagementSummary.jsx
       - src/features/Companies/ui/ActivationFunnel.jsx
-      - src/features/Companies/ui/ActivationFunnelChart.jsx
       - src/features/Companies/ui/ActivationFunnelStep.jsx
+      - src/features/Companies/ui/InviteTypeBreakdown.jsx
       - src/features/Companies/ui/ExhibitorEngagementSkeleton.jsx
       - src/features/Companies/ui/CompaniesPageTabs.jsx
       - src/features/Companies/ui/CompaniesPagePanels.jsx
@@ -384,8 +384,9 @@ tasks:
     notes: >
       GET /events/:eventId/exhibitor/engagement/. Cached ~5 minutes.
       refresh=true skips cache, recomputes, and recaches. Parent exhibitors
-      only. total_exhibitors plus activation_funnel.steps (count + percentage
-      of total). Steps are independent (open funnel), not nested drop-off.
+      only. Steps use exhibitor_count when present else count; percentage of
+      total_exhibitors. invites_sent may include by_type (invite count per
+      label); UI shows Invites sent from API and Registered/Accepted as N/A.
       from_cache true on hit. 401 login; 403 permission; 404 event.
   company_list_sort:
     files:

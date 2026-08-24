@@ -1,6 +1,6 @@
 function toCount(value) {
   const n = Number(value);
-  return Number.isFinite(n) && n > 0 ? n : 0;
+  return Number.isFinite(n) ? Math.max(0, Math.round(n)) : 0;
 }
 
 function pctOf(count, total) {
@@ -15,6 +15,22 @@ function stepPercentage(raw, count, total) {
   return pctOf(count, total);
 }
 
+function normalizeByType(raw, totalExhibitors) {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((item, index) => {
+    const inviteCount = toCount(item?.count);
+    const exhibitorCount =
+      item?.exhibitor_count != null ? toCount(item.exhibitor_count) : inviteCount;
+    return {
+      key: item?.key || `type_${index + 1}`,
+      label: item?.label || `Type ${index + 1}`,
+      inviteCount,
+      exhibitorCount,
+      percentage: stepPercentage(item?.percentage, exhibitorCount, totalExhibitors),
+    };
+  });
+}
+
 /** Each step is % of total exhibitors (open funnel), not a nested subset. */
 export function normalizeExhibitorEngagement(payload) {
   const totalExhibitors = toCount(payload?.total_exhibitors);
@@ -23,13 +39,17 @@ export function normalizeExhibitorEngagement(payload) {
 
   const steps = rawSteps
     .map((item, index) => {
-      const count = toCount(item?.count);
+      const inviteCount = toCount(item?.count);
+      const exhibitorCount =
+        item?.exhibitor_count != null ? toCount(item.exhibitor_count) : inviteCount;
       return {
         step: Number(item?.step) || index + 1,
         key: item?.key || `step_${index + 1}`,
         label: item?.label || `Step ${index + 1}`,
-        count,
-        percentage: stepPercentage(item?.percentage, count, totalExhibitors),
+        count: exhibitorCount,
+        inviteCount,
+        percentage: stepPercentage(item?.percentage, exhibitorCount, totalExhibitors),
+        byType: normalizeByType(item?.by_type, totalExhibitors),
       };
     })
     .sort((a, b) => a.step - b.step);
@@ -41,6 +61,7 @@ export function normalizeExhibitorEngagement(payload) {
     fromCache: Boolean(payload?.from_cache),
     funnelTitle: funnel.title || 'Activation Funnel',
     steps,
+    inviteTypes: steps.find((s) => s.byType.length)?.byType || [],
   };
 }
 
@@ -71,19 +92,4 @@ export function formatCount(value) {
 export function formatExhibitorCount(value) {
   const n = toCount(value);
   return `${n.toLocaleString()} ${n === 1 ? 'exhibitor' : 'exhibitors'}`;
-}
-
-export function isWeakestStep(step, steps) {
-  if (!step || !Array.isArray(steps) || steps.length < 2) return false;
-  const min = Math.min(...steps.map((s) => s.percentage));
-  if (steps.every((s) => s.percentage === min)) return false;
-  return step.percentage === min;
-}
-
-export function barFillWidth(percentage) {
-  const fill = Math.max(0, Math.min(100, Number(percentage) || 0));
-  return {
-    width: `${fill}%`,
-    minWidth: fill > 0 ? '6px' : '0px',
-  };
 }

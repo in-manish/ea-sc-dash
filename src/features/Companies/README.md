@@ -16,7 +16,7 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `api/companyApi.js` | GET company list (`sort_by`/`sort_order`), GET/POST/PATCH company, filter options, exhibitor overview, checklist remind POST, POC password reset, bulk lock/feature |
 | `api/exhibitorReportApi.js` | GET parent-exhibitor report: CSV blob or email JSON |
 | `api/exhibitorEngagementApi.js` | GET parent-exhibitor engagement funnel (`refresh=true` skips 5 min cache) |
-| `domain/exhibitorEngagement.js` | Normalize steps vs total; weakest-step helper; 401/403/404 copy |
+| `domain/exhibitorEngagement.js` | Normalize steps + by_type; exhibitor_count; 401/403/404 copy |
 | `api/checklistReminderApi.js` | Reminder settings GET/PATCH + reminder log list + progress poll |
 | `domain/exhibitorReportDownload.js` | Filename (`Event-{id}-ExhibitorReport.csv`) + blob save |
 | `domain/exhibitorReportQuery.js` | `company_ids` + `send_to_emails` query (omit empty) |
@@ -57,9 +57,9 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `ui/CompaniesPageTabs.jsx` | Main tabs + exhibitor / AR sub-views |
 | `ui/ExhibitorEngagementTab.jsx` | Engagement dashboard: summary + activation funnel |
 | `ui/ExhibitorEngagementSummary.jsx` | Title, cache/live badge, refresh, total exhibitors |
-| `ui/ActivationFunnel.jsx` | KPI cards + horizontal comparison chart |
-| `ui/ActivationFunnelChart.jsx` | Full-label bars vs total exhibitors; weakest steps highlighted |
-| `ui/ActivationFunnelStep.jsx` | Step card: % of total, count, lowest badge |
+| `ui/ActivationFunnel.jsx` | Four-column vertical fill funnel |
+| `ui/ActivationFunnelStep.jsx` | Step: label, exhibitor count, vertical % bar |
+| `ui/InviteTypeBreakdown.jsx` | by_type cards: Invites sent + Registered/Accepted N/A |
 | `ui/ExhibitorEngagementSkeleton.jsx` | Engagement loading skeleton |
 | `ui/ExhibitorListSortControls.jsx` | `sort_by` select + asc/desc |
 | `ui/ExhibitorFilterDrawer.jsx` | List filter drawer shell |
@@ -163,9 +163,10 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 - Route: `/event/:id/companies?tab=exhibitor_engagement`
 - `GET /events/:id/exhibitor/engagement/` — parent exhibitors only
 - Cached ~5 minutes; **Refresh** sends `refresh=true` to recompute and recache
-- `from_cache` true on a hit; `percentage` is round(count * 100 / total_exhibitors)
-- Steps are independent (open funnel) vs total — not a nested drop-off
-- UI: KPI cards + horizontal bars; lowest activation highlighted
+- Funnel count prefers `exhibitor_count` when present; else `count`
+- `percentage` is of total_exhibitors; steps are independent (open funnel)
+- UI: title + total card; four vertical % bars; `by_type` cards with Invites sent + Registered/Accepted as N/A
+- Registered / accepted values stay N/A until API sends them
 - 401 → sign in again; 403 permission; 404 event not found
 
 ## Exhibitor CSV report
