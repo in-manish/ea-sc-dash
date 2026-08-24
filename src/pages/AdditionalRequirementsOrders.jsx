@@ -69,6 +69,7 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
     const [verifyingOrderId, setVerifyingOrderId] = useState(null);
     const [verificationError, setVerificationError] = useState(null);
     const [arTax, setArTax] = useState(DEFAULT_AR_TAX);
+    const [eventCurrency, setEventCurrency] = useState('INR');
 
     // Get filters from URL
     const page = parseInt(searchParams.get('page')) || 1;
@@ -197,6 +198,9 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
                 const data = await eventService.getEventDetails(eventId, token, { exhibitorPortal: true });
                 if (!cancelled) {
                     setArTax(normalizeAdditionalRequirement(data.exhibitor_portal_data?.additional_requirement).tax);
+                    if (data.currencies && data.currencies.length > 0) {
+                        setEventCurrency(data.currencies[0]);
+                    }
                 }
             } catch (err) {
                 console.error(err);
@@ -206,9 +210,10 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
     }, [eventId, token]);
 
     const formatCurrency = (amount, currency) => {
-        return new Intl.NumberFormat('en-IN', {
+        const activeCurrency = currency || eventCurrency || 'INR';
+        return new Intl.NumberFormat(activeCurrency === 'INR' ? 'en-IN' : 'en-US', {
             style: 'currency',
-            currency: currency || 'INR'
+            currency: activeCurrency
         }).format(amount);
     };
 
@@ -880,8 +885,14 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
                                                     <tr className="bg-bg-secondary">
                                                         <th className="text-left py-2.5 px-4 text-[11px] font-bold text-text-muted uppercase tracking-wider">Item</th>
                                                         <th className="text-center py-2.5 px-3 text-[11px] font-bold text-text-muted uppercase tracking-wider">Qty</th>
-                                                        <th className="text-right py-2.5 px-4 text-[11px] font-bold text-text-muted uppercase tracking-wider">INR</th>
-                                                        <th className="text-right py-2.5 px-4 text-[11px] font-bold text-text-muted uppercase tracking-wider">USD</th>
+                                                        {eventCurrency === 'USD' ? (
+                                                            <th className="text-right py-2.5 px-4 text-[11px] font-bold text-text-muted uppercase tracking-wider">Price (USD)</th>
+                                                        ) : (
+                                                            <>
+                                                                <th className="text-right py-2.5 px-4 text-[11px] font-bold text-text-muted uppercase tracking-wider">INR</th>
+                                                                <th className="text-right py-2.5 px-4 text-[11px] font-bold text-text-muted uppercase tracking-wider">USD</th>
+                                                            </>
+                                                        )}
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -894,8 +905,14 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
                                                                 </div>
                                                             </td>
                                                             <td className="py-3 px-3 text-center font-semibold text-text-secondary">{p.quantity}</td>
-                                                            <td className="py-3 px-4 text-right font-mono text-text-primary">{formatCurrency(p.prices?.inr * p.quantity, 'INR')}</td>
-                                                            <td className="py-3 px-4 text-right font-mono text-text-secondary">{p.prices?.usd ? formatCurrency(p.prices.usd * p.quantity, 'USD') : '-'}</td>
+                                                            {eventCurrency === 'USD' ? (
+                                                                <td className="py-3 px-4 text-right font-mono text-text-primary">{p.prices?.usd ? formatCurrency(p.prices.usd * p.quantity, 'USD') : '-'}</td>
+                                                            ) : (
+                                                                <>
+                                                                    <td className="py-3 px-4 text-right font-mono text-text-primary">{formatCurrency(p.prices?.inr * p.quantity, 'INR')}</td>
+                                                                    <td className="py-3 px-4 text-right font-mono text-text-secondary">{p.prices?.usd ? formatCurrency(p.prices.usd * p.quantity, 'USD') : '-'}</td>
+                                                                </>
+                                                            )}
                                                         </tr>
                                                     ))}
                                                 </tbody>
@@ -906,30 +923,32 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
 
                                 {/* Pricing */}
                                 {o.total_amount && (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div className="bg-bg-secondary rounded-xl p-4 border border-border/50">
-                                            <div className="flex items-center gap-2 mb-3">
-                                                <DollarSign size={14} className="text-accent" />
-                                                <span className="text-xs font-bold text-text-secondary uppercase tracking-widest">Amount (INR)</span>
+                                    <div className={`grid grid-cols-1 ${eventCurrency === 'USD' ? '' : 'sm:grid-cols-2'} gap-4`}>
+                                        {eventCurrency !== 'USD' && (
+                                            <div className="bg-bg-secondary rounded-xl p-4 border border-border/50">
+                                                <div className="flex items-center gap-2 mb-3">
+                                                    <DollarSign size={14} className="text-accent" />
+                                                    <span className="text-xs font-bold text-text-secondary uppercase tracking-widest">Amount (INR)</span>
+                                                </div>
+                                                <DetailRow label="Subtotal" value={`\u20B9${o.total_amount.subtotal}`} mono />
+                                                <DetailRow label={formatTaxLabel(arTax, o.total_amount.gst_rate)} value={`\u20B9${o.total_amount.gst_amount}`} mono />
+                                                <div className="flex justify-between items-center pt-2 mt-1 border-t border-border">
+                                                    <span className="text-xs font-bold text-text-primary uppercase">Total</span>
+                                                    <span className="text-base font-bold text-text-primary font-mono">{o.total_amount.formatted}</span>
+                                                </div>
                                             </div>
-                                            <DetailRow label="Subtotal" value={`\u20B9${o.total_amount.subtotal}`} mono />
-                                            <DetailRow label={formatTaxLabel(arTax, o.total_amount.gst_rate)} value={`\u20B9${o.total_amount.gst_amount}`} mono />
-                                            <div className="flex justify-between items-center pt-2 mt-1 border-t border-border">
-                                                <span className="text-xs font-bold text-text-primary uppercase">Total</span>
-                                                <span className="text-base font-bold text-text-primary font-mono">{o.total_amount.formatted}</span>
-                                            </div>
-                                        </div>
-                                        {o.total_amount_usd && (
+                                        )}
+                                        {(eventCurrency === 'USD' || o.total_amount_usd) && (
                                             <div className="bg-bg-secondary rounded-xl p-4 border border-border/50">
                                                 <div className="flex items-center gap-2 mb-3">
                                                     <DollarSign size={14} className="text-accent" />
                                                     <span className="text-xs font-bold text-text-secondary uppercase tracking-widest">Amount (USD)</span>
                                                 </div>
-                                                <DetailRow label="Subtotal" value={`$${o.total_amount_usd.subtotal}`} mono />
-                                                <DetailRow label={formatTaxLabel(arTax, o.total_amount_usd.gst_rate)} value={`$${o.total_amount_usd.gst_amount}`} mono />
+                                                <DetailRow label="Subtotal" value={`$${(o.total_amount_usd || o.total_amount).subtotal}`} mono />
+                                                <DetailRow label={formatTaxLabel(arTax, (o.total_amount_usd || o.total_amount).gst_rate)} value={`$${(o.total_amount_usd || o.total_amount).gst_amount}`} mono />
                                                 <div className="flex justify-between items-center pt-2 mt-1 border-t border-border">
                                                     <span className="text-xs font-bold text-text-primary uppercase">Total</span>
-                                                    <span className="text-base font-bold text-text-primary font-mono">{o.total_amount_usd.formatted}</span>
+                                                    <span className="text-base font-bold text-text-primary font-mono">{(o.total_amount_usd || o.total_amount).formatted}</span>
                                                 </div>
                                             </div>
                                         )}
@@ -1148,13 +1167,21 @@ const AdditionalRequirementsOrders = ({ eventId }) => {
                                         </div>
                                     </td>
                                     <td className="py-4 px-6 align-middle group-last:border-b-0">
-                                        <div className="font-medium">
-                                            {order.total_amount?.formatted}
-                                        </div>
-                                        {order.total_amount_usd && (
-                                            <div className="text-xs text-gray-500">
-                                                {order.total_amount_usd.formatted}
+                                        {eventCurrency === 'USD' ? (
+                                            <div className="font-medium">
+                                                {order.total_amount_usd?.formatted || order.total_amount?.formatted}
                                             </div>
+                                        ) : (
+                                            <>
+                                                <div className="font-medium">
+                                                    {order.total_amount?.formatted}
+                                                </div>
+                                                {order.total_amount_usd && (
+                                                    <div className="text-xs text-gray-500">
+                                                        {order.total_amount_usd.formatted}
+                                                    </div>
+                                                )}
+                                            </>
                                         )}
                                     </td>
                                     <td className="py-4 px-6 align-middle group-last:border-b-0">
