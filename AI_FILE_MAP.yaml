@@ -410,6 +410,40 @@ tasks:
       obf_number_alphabet sorts as company_slug. Invalid sort_by → 404.
       sort params ignored when q is set (_score desc) or is_featured=true
       with no q (featured_rank then company_slug). Empty q is omitted.
+  meeting_stats_report:
+    files:
+      - src/features/MeetingStats/api/meetingStatsReportApi.js
+      - src/features/MeetingStats/domain/meetingStatsQuery.js
+      - src/features/MeetingStats/domain/parseMeetingStatsError.js
+      - src/features/MeetingStats/domain/meetingStatsRows.js
+      - src/features/MeetingStats/hooks/useMeetingStatsReport.js
+      - src/features/MeetingStats/hooks/useEmailMeetingStatsReport.js
+      - src/features/MeetingStats/hooks/useAttendeeTypeOptions.js
+      - src/features/MeetingStats/domain/attendeeTypeNames.js
+      - src/features/MeetingStats/domain/excludeContractors.js
+      - src/features/MeetingStats/ui/MeetingStatsReportTab.jsx
+      - src/features/MeetingStats/ui/MeetingStatsFilters.jsx
+      - src/features/MeetingStats/ui/MeetingStatsEventPicker.jsx
+      - src/features/MeetingStats/hooks/useOrganizerEvents.js
+      - src/features/MeetingStats/domain/organizerEvents.js
+      - src/features/MeetingStats/ui/MeetingStatsTable.jsx
+      - src/features/MeetingStats/domain/eventRowColors.js
+      - src/features/MeetingStats/ui/MeetingStatsEmailModal.jsx
+      - src/pages/meetings/Meetings.jsx
+      - src/pages/meetings/MeetingsTabs.jsx
+      - src/layouts/EventLayout.jsx
+      - src/sc/layouts/EventLayout.jsx
+    routes:
+      - /event/:id/meetings?tab=stats
+    notes: >
+      GET /meetings/stats/report/ renders the table; POST emails CSV (emails ≥1,
+      not returned in body). event_ids required (≥1); picker defaults to current
+      event (contractors hidden). Rows are event × attendee_type (not
+      attendee_category). Columns include meeting_requests_sent and
+      meeting_requests_received (receiver-side only). Sender/receiver type
+      names (case-insensitive) AND when both sides set; same-side IDs+names
+      union. unique_participants default true. Cache is per filter set (10 min);
+      refresh=true busts cache. meeting_date_range wins over meeting_date.
   matchmaking_form:
     files:
       - src/features/Matchmaking/api/matchmakingFormApi.js
@@ -522,6 +556,13 @@ features:
       POST /events/:eventId/exhibitor/setup-checklist/remind/;
       GET .../reminders/ + GET .../reminders/:logId/;
       GET|PATCH /events/:eventId/exhibitor-setup-checklist/
+  MeetingStats:
+    root: src/features/MeetingStats/
+    entry: src/pages/meetings/Meetings.jsx
+    routes:
+      - /event/:id/meetings?tab=stats
+    report_api: >
+      GET|POST /meetings/stats/report/ (organizer token; GET table, POST email CSV)
   Matchmaking:
     root: src/features/Matchmaking/
     entry: src/features/Matchmaking/ui/Matchmaking.jsx
@@ -604,3 +645,6 @@ glossary:
   exhibitor_csv_report: >
     GET /events/:id/exhibitor/report/; parent rows; CSV blob or send_to_emails
     JSON; optional company_ids; 401/403/404/500
+  meeting_stats_report: >
+    GET|POST /meetings/stats/report/; event × attendee_type; sent + received
+    request columns; sender/receiver type names AND; cache per filters 10 min

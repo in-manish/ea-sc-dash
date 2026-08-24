@@ -29,6 +29,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | WhatsApp | `src/features/WhatsApp/` | Communication WhatsApp templates: archive (not delete), Active/Archived list |
 | EaEmail | `src/components/email/` | Communication Email: category + templates; browse HTML into body |
 | Matchmaking | `src/features/Matchmaking/` | GET 404 = create/copy; 200 = editor only |
+| MeetingStats | `src/features/MeetingStats/` | Organizer meeting stats by event × attendee type (GET) + email CSV (POST) |
 
 ## Common tasks → files
 
@@ -73,6 +74,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Event settings AR tax list | `src/pages/event-settings/exhibitorPortalDefaults.js` + `ArTaxList.jsx` + `useAdditionalRequirement.js` |
 | Event settings / exhibitor meeting diary | `src/pages/event-settings/CompanyAccessControlsSection.jsx` + `exhibitorPortalDefaults.js` (`exhibitor_portal_data.meeting_diary.is_meeting_option_active`) |
 | Matchmaking questions / copy | `src/features/Matchmaking/ui/MatchmakingQuestions.jsx` + `api/matchmakingFormApi.js` |
+| Meeting stats report | `src/features/MeetingStats/ui/MeetingStatsReportTab.jsx` + `api/meetingStatsReportApi.js` |
 
 ## Constraints
 

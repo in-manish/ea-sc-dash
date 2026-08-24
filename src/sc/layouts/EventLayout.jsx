@@ -405,6 +405,12 @@ const EventLayout = () => {
                                 >
                                     Restore Meeting
                                 </NavLink>
+                                <NavLink
+                                    to={`/event/${selectedEvent.id}/meetings?tab=stats`}
+                                    className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/meetings') && new URLSearchParams(location.search).get('tab') === 'stats' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
+                                >
+                                    Meeting Stats Report
+                                </NavLink>
                             </div>
                         )}
                     </div>
