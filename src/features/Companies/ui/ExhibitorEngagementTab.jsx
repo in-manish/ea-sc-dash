@@ -38,7 +38,11 @@ export default function ExhibitorEngagementTab({ eventId, token }) {
           {error}
         </p>
       )}
-      <ActivationFunnel title={data.funnelTitle} steps={data.steps} />
+      <ActivationFunnel
+        title={data.funnelTitle}
+        steps={data.steps}
+        totalExhibitors={data.totalExhibitors}
+      />
       <InviteTypeBreakdown types={data.inviteTypes} />
     </div>
   );

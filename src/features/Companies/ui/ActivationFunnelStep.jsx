@@ -1,8 +1,9 @@
-import { formatCount, formatExhibitorCount } from '../domain/exhibitorEngagement';
+import { formatCount } from '../domain/exhibitorEngagement';
 
-export default function ActivationFunnelStep({ step }) {
+export default function ActivationFunnelStep({ step, totalExhibitors }) {
   const fill = Math.max(0, Math.min(100, step.percentage));
   const labelInFill = fill >= 22;
+  const ratio = `${formatCount(step.count)}/${formatCount(totalExhibitors)}`;
 
   return (
     <article className="min-w-0 flex flex-col">
@@ -13,9 +14,7 @@ export default function ActivationFunnelStep({ step }) {
         {step.label}
       </h3>
       <p className="m-0 mt-3">
-        <span className="text-2xl font-bold tabular-nums text-text-primary">
-          {formatCount(step.count)}
-        </span>
+        <span className="text-2xl font-bold tabular-nums text-text-primary">{ratio}</span>
         <span className="ml-1.5 text-sm text-text-secondary">
           {step.count === 1 ? 'exhibitor' : 'exhibitors'}
         </span>
@@ -27,7 +26,7 @@ export default function ActivationFunnelStep({ step }) {
         aria-valuenow={fill}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-label={`${step.label}: ${formatExhibitorCount(step.count)}, ${fill}%`}
+        aria-label={`${step.label}: ${ratio} ${step.count === 1 ? 'exhibitor' : 'exhibitors'}, ${fill}%`}
       >
         <div
           className="absolute inset-x-0 bottom-0 bg-accent transition-all duration-700 ease-out flex items-center justify-center"

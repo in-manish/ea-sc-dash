@@ -58,7 +58,7 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `ui/ExhibitorEngagementTab.jsx` | Engagement dashboard: summary + activation funnel |
 | `ui/ExhibitorEngagementSummary.jsx` | Title, cache/live badge, refresh, total exhibitors |
 | `ui/ActivationFunnel.jsx` | Four-column vertical fill funnel |
-| `ui/ActivationFunnelStep.jsx` | Step: label, exhibitor count, vertical % bar |
+| `ui/ActivationFunnelStep.jsx` | Step: label, `11/274 exhibitors`, vertical % bar |
 | `ui/InviteTypeBreakdown.jsx` | by_type cards: Invites sent + Registered/Accepted N/A |
 | `ui/ExhibitorEngagementSkeleton.jsx` | Engagement loading skeleton |
 | `ui/ExhibitorListSortControls.jsx` | `sort_by` select + asc/desc |
