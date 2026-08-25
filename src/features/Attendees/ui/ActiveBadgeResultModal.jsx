@@ -1,14 +1,15 @@
-import { X } from 'lucide-react';
-import {
-  createStatusLabel,
-  statusRowLabel,
-} from '../domain/summarizeActiveBadge';
+import { X, Loader2 } from 'lucide-react';
+import ActiveBadgeCountChips from './ActiveBadgeCountChips';
+import ActiveBadgeResultList from './ActiveBadgeResultList';
 
 const ActiveBadgeResultModal = ({
   isOpen,
   kind,
   statusResult,
   createResult,
+  canCreateFromPreview = false,
+  creating = false,
+  onCreateFromPreview,
   onClose,
 }) => {
   if (!isOpen) return null;
@@ -16,7 +17,11 @@ const ActiveBadgeResultModal = ({
   const isStatus = kind === 'status';
   const result = isStatus ? statusResult : createResult;
   const rows = result?.data || [];
-  const title = isStatus ? 'Active Badge Status' : 'Set Active Badge';
+  const title = isStatus
+    ? result?.allWithoutActive
+      ? 'Eligible for active badge'
+      : 'Active badge status'
+    : 'Active badge results';
 
   return (
     <div
@@ -27,13 +32,13 @@ const ActiveBadgeResultModal = ({
       role="presentation"
     >
       <div
-        className="bg-bg-primary border border-border rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col"
+        className="bg-bg-primary border border-border rounded-xl shadow-xl w-full max-w-2xl max-h-[85vh] flex flex-col"
         role="dialog"
         aria-modal="true"
         aria-labelledby="active-badge-result-title"
       >
         <div className="flex items-start justify-between gap-4 px-5 py-4 border-b border-border">
-          <div>
+          <div className="min-w-0">
             <h2
               id="active-badge-result-title"
               className="text-base font-semibold text-text-primary"
@@ -43,10 +48,11 @@ const ActiveBadgeResultModal = ({
             {result?.summary && (
               <p className="mt-1 text-sm text-text-secondary">{result.summary}</p>
             )}
+            <ActiveBadgeCountChips kind={kind} result={result} />
           </div>
           <button
             type="button"
-            className="btn btn-ghost p-2"
+            className="btn btn-ghost p-2 shrink-0"
             onClick={onClose}
             aria-label="Close"
           >
@@ -55,55 +61,7 @@ const ActiveBadgeResultModal = ({
         </div>
 
         <div className="overflow-auto px-5 py-4">
-          {rows.length === 0 ? (
-            <p className="text-sm text-text-secondary">No matching badges.</p>
-          ) : (
-            <ul className="divide-y divide-border">
-              {rows.map((item) => (
-                <li
-                  key={item.uuid || item.id}
-                  className="py-3 flex flex-col gap-0.5 sm:flex-row sm:items-start sm:justify-between"
-                >
-                  <div>
-                    <div className="text-sm font-medium text-text-primary">
-                      {item.name || `Badge #${item.id}`}
-                    </div>
-                    <div className="text-xs text-text-tertiary font-mono">
-                      #{item.id}
-                      {item.uuid ? ` · ${item.uuid}` : ''}
-                    </div>
-                    {item.message && (
-                      <div className="text-xs text-text-secondary mt-1">
-                        {item.message}
-                      </div>
-                    )}
-                  </div>
-                  <span
-                    className={`mt-1 sm:mt-0 text-xs font-semibold shrink-0 ${
-                      isStatus
-                        ? item.has_active_badge
-                          ? 'text-emerald-700'
-                          : item.has_contact === false
-                            ? 'text-amber-700'
-                            : 'text-accent'
-                        : item.status === 'created'
-                          ? 'text-emerald-700'
-                          : item.status === 'failed'
-                            ? 'text-red-700'
-                            : item.status === 'skipped'
-                              ? 'text-amber-700'
-                              : 'text-text-secondary'
-                    }`}
-                  >
-                    {isStatus
-                      ? statusRowLabel(item)
-                      : createStatusLabel(item.status)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-
+          <ActiveBadgeResultList isStatus={isStatus} rows={rows} />
           {(result?.missingIds?.length > 0 ||
             result?.missingUuids?.length > 0) && (
             <p className="mt-4 text-xs text-text-tertiary">
@@ -118,10 +76,24 @@ const ActiveBadgeResultModal = ({
           )}
         </div>
 
-        <div className="px-5 py-4 border-t border-border flex justify-end">
-          <button type="button" className="btn btn-primary" onClick={onClose}>
-            Done
+        <div className="px-5 py-4 border-t border-border flex flex-wrap justify-end gap-2">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>
+            {isStatus ? 'Close' : 'Done'}
           </button>
+          {isStatus && canCreateFromPreview && onCreateFromPreview && (
+            <button
+              type="button"
+              className="btn btn-primary inline-flex items-center"
+              onClick={onCreateFromPreview}
+              disabled={creating}
+            >
+              {creating && (
+                <Loader2 size={16} className="animate-spin mr-2" />
+              )}
+              Create {statusResult?.eligible?.length || 0} active badge
+              {(statusResult?.eligible?.length || 0) === 1 ? '' : 's'}
+            </button>
+          )}
         </div>
       </div>
     </div>

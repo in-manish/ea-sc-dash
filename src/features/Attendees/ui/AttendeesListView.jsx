@@ -7,6 +7,7 @@ import AttendeeTable from './AttendeeTable';
 import ListPagination from './ListPagination';
 import AttendeesReportPanel from './AttendeesReportPanel';
 import AttendeeEmailDraftsModal from './AttendeeEmailDraftsModal';
+import ActiveBadgeToolbar from './ActiveBadgeToolbar';
 import ActiveBadgeResultModal from './ActiveBadgeResultModal';
 
 const AttendeesListView = ({
@@ -68,6 +69,15 @@ const AttendeesListView = ({
             onRemoveFilter={filtersApi.removeFilter}
         />
 
+        {selectedEvent?.id && token && (
+            <ActiveBadgeToolbar
+                checking={activeBadge.checking}
+                creating={activeBadge.creating}
+                onPreviewAll={activeBadge.previewAllEligible}
+                onCreateAll={activeBadge.createAllEligible}
+            />
+        )}
+
         <AttendeeStatusBanners
             error={list.error}
             whatsAppActionSuccess={whatsApp.whatsAppActionSuccess}
@@ -90,11 +100,10 @@ const AttendeesListView = ({
             onOpenWhatsApp={whatsApp.handleOpenWhatsAppModal}
             onOpenEmail={emailDrafts.open}
             onCreateEBadge={eBadge.handleCreateEBadge}
-            onCheckActiveBadge={activeBadge.checkStatus}
-            onSetActiveBadge={activeBadge.setActiveBadge}
-            activeBadgeChecking={activeBadge.checking}
-            activeBadgeCreating={activeBadge.creating}
-            canSetActiveBadge={activeBadge.canSetActiveBadge}
+            onCheckActiveBadge={activeBadge.checkSelected}
+            onSetActiveBadge={activeBadge.setSelected}
+            activeBadgeBusy={activeBadge.busy}
+            canSetActiveBadge={activeBadge.canSetSelected}
             canUseActiveBadgeSelection={activeBadge.canUseSelection}
             eventId={selectedEvent?.id}
             token={token}
@@ -155,6 +164,9 @@ const AttendeesListView = ({
             kind={activeBadge.resultKind}
             statusResult={activeBadge.statusResult}
             createResult={activeBadge.createResult}
+            canCreateFromPreview={activeBadge.canCreateFromPreview}
+            creating={activeBadge.creating}
+            onCreateFromPreview={activeBadge.createFromPreview}
             onClose={activeBadge.closeResult}
         />
         </>

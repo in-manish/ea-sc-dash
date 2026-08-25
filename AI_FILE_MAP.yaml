@@ -114,20 +114,25 @@ tasks:
     files:
       - src/features/Attendees/api/activeBadgeApi.js
       - src/features/Attendees/domain/summarizeActiveBadge.js
+      - src/features/Attendees/domain/activeBadgeFlow.js
+      - src/features/Attendees/domain/createActiveBadgeHandlers.js
       - src/features/Attendees/hooks/useActiveBadgeActions.js
+      - src/features/Attendees/ui/ActiveBadgeToolbar.jsx
       - src/features/Attendees/ui/ActiveBadgeResultModal.jsx
+      - src/features/Attendees/ui/ActiveBadgeResultList.jsx
+      - src/features/Attendees/ui/ActiveBadgeCountChips.jsx
       - src/features/Attendees/ui/AttendeeSelectionBar.jsx
       - src/features/Attendees/ui/AttendeesListView.jsx
-      - src/features/Attendees/ui/AttendeesPage.jsx
     routes:
       - /event/:id/attendees
     notes: >
       Organizer-only. POST status + POST create under
-      /events/:eventId/attendees/active_badge[/status]/. Body uses uuids
-      (also supports ids/badge_ids/badges). Batch HTTP 200 — inspect each
-      item status (created|already_active|skipped|failed). Set Active Badge
-      skips badges with has_active_badge; requires page selection (not
-      select-all/filtered). has_contact means email and/or phone.
+      /events/:eventId/attendees/active_badge[/status]/. Body uses
+      all_without_active:true OR uuids/ids/badges (identifiers ignored when
+      all_without_active). Recommended UX: Preview eligible then Create all
+      eligible; selection bar Check/Set selected for a subset. Batch HTTP 200
+      — count created|already_active|skipped|failed; show message on
+      failed/skipped. has_contact = email/phone; null evc_id syncs SnapCard first.
   company_create:
     files:
       - src/features/Companies/api/companyApi.js
@@ -556,7 +561,8 @@ features:
       POST .../category_types/send_email/ with email_ids (204)
     active_badge_api: >
       POST /events/:eventId/attendees/active_badge/status/;
-      POST /events/:eventId/attendees/active_badge/
+      POST /events/:eventId/attendees/active_badge/;
+      body all_without_active:true or ids/uuids/badges
   Companies:
     root: src/features/Companies/
     entry: src/pages/Companies.jsx
@@ -642,8 +648,9 @@ glossary:
   attendee_type_email_list: Send Mail Badge Email POSTs send_email/; View lists GET attendee_types/emails/
   attendee_category_email_list: Send Mail lists GET category_types/emails/; toggles POST category_types/send_email/ with email_ids
   attendee_active_badge: >
-    POST active_badge/status/ + active_badge/; batch by uuids/ids; create only when
-    !has_active_badge and has_contact; item status created|already_active|skipped|failed
+    POST active_badge/status/ + active_badge/; all_without_active lists/creates
+    contact badges without an active badge; else uuids/ids; item status
+    created|already_active|skipped|failed; null evc_id syncs SnapCard first
   speaker_default_alpha_sort: When true, speakers sorted A-Z by name; when false, by speaker_sort_order
   force_attendance: Agenda session flag; block slot so meetings cannot be set during this time
   speaker_image_N: Multipart file field index aligned with speaker array

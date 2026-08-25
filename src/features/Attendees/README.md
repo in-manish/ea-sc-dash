@@ -10,8 +10,8 @@ Event attendee list, filters, WhatsApp send, attendee-type email drafts, e-badge
 | Path | Owns |
 |------|------|
 | `constants.js` | Pill colors, action button style, filter URL keys |
-| `api/` | Report + single-attendee GET/PATCH (`attendeeApi.js`) + attendee-type emails (`attendeeTypeEmailsApi.js`) + category emails (`categoryTypeEmailsApi.js`) + active badge status/create (`activeBadgeApi.js`) |
-| `domain/` | Pure helpers — WhatsApp preview, job timing, field groups, edit payload, exhibitor POC, attendee-type + category email parse, active badge summaries |
+| `api/` | Report + single-attendee GET/PATCH (`attendeeApi.js`) + attendee-type emails (`attendeeTypeEmailsApi.js`) + category emails (`categoryTypeEmailsApi.js`) + active badge status/create (`activeBadgeApi.js`, supports `all_without_active`) |
+| `domain/` | Pure helpers — WhatsApp preview, job timing, field groups, edit payload, exhibitor POC, attendee-type + category email parse, active badge summaries/flow |
 | `hooks/` | List / search / filters / types / selection + WhatsApp / e-badge / SC / jobs / report / edit / active badge |
 | `ui/` | Page composition, table, toolbar, modals, report panel, edit form |
 
@@ -32,7 +32,7 @@ Event attendee list, filters, WhatsApp send, attendee-type email drafts, e-badge
 - Filters UI → `ui/AttendeeFilterDrawer.jsx` + `hooks/useAttendeeFilters.js` + `hooks/useAttendeeTypes.js`
 - List attendee email drafts → `ui/AttendeeSelectionBar.jsx` + `hooks/useAttendeeTypeEmails.js` + `api/attendeeTypeEmailsApi.js`
 - Send attendee emails → `ui/AttendeeEmailDraftsModal.jsx` (Badge Email + Categories Email) + `hooks/useCategoryTypeEmails.js` + `api/categoryTypeEmailsApi.js`
-- Active badge status / create → `ui/AttendeeSelectionBar.jsx` + `hooks/useActiveBadgeActions.js` + `api/activeBadgeApi.js` + `ui/ActiveBadgeResultModal.jsx`
+- Active badge status / create → `ui/ActiveBadgeToolbar.jsx` (preview/create all eligible) + `ui/AttendeeSelectionBar.jsx` (Check/Set selected) + `hooks/useActiveBadgeActions.js` + `api/activeBadgeApi.js` + `ui/ActiveBadgeResultModal.jsx`
 - Attendees report → `ui/AttendeesReportPanel.jsx` + `ui/AttendeesReportCharts.jsx` + `hooks/useAttendeesReport.js` + `api/attendeesReportApi.js`
 - Edit attendee / badge → `ui/EditAttendeeModal.jsx` + `hooks/useEditAttendee.js` + `api/attendeeApi.js` + `domain/editAttendeeForm.js`
 - Exhibitor portal password reset (POC) → `ui/AttendeeSelectionBar.jsx` (single selected POC) + `ui/AttendeeDetailModal.jsx` + `domain/exhibitorPoc.js`

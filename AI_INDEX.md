@@ -41,7 +41,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Attendee type email / SMS drafts | `src/pages/AttendeeTypes.jsx` + `attendee-types/saveAttendeeTypeDrafts.js` + `EmailInvitationDraft.jsx` (badge tokens, Google / Outlook calendar hrefs) |
 | List attendee type email drafts | `ui/AttendeeSelectionBar.jsx` + `hooks/useAttendeeTypeEmails.js` + `api/attendeeTypeEmailsApi.js` |
 | Send attendee emails | `ui/AttendeeEmailDraftsModal.jsx` (Badge Email + Categories Email toggles) + `hooks/useAttendeeTypeEmails.js` + `hooks/useCategoryTypeEmails.js` |
-| Active badge status / create | `ui/AttendeeSelectionBar.jsx` + `hooks/useActiveBadgeActions.js` + `api/activeBadgeApi.js` |
+| Active badge status / create | `ui/ActiveBadgeToolbar.jsx` + `hooks/useActiveBadgeActions.js` + `api/activeBadgeApi.js` |
 | Create EA company / co-exhibitor | `src/features/Companies/ui/CreateCompanyPage.jsx` + `api/companyApi.js` |
 | Edit EA company | `src/features/Companies/ui/EditCompanyPage.jsx` + `domain/buildCompanyPatchFormData.js` |
 | Company Detail + Setup Progress | `src/features/Companies/ui/CompanyDetailsPage.jsx` + `SetupProgressSection.jsx` |

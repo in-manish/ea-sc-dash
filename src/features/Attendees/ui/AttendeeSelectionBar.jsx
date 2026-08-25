@@ -17,8 +17,7 @@ const AttendeeSelectionBar = ({
     onCreateEBadge,
     onCheckActiveBadge,
     onSetActiveBadge,
-    activeBadgeChecking = false,
-    activeBadgeCreating = false,
+    activeBadgeBusy = false,
     canSetActiveBadge = true,
     canUseActiveBadgeSelection = true,
     eventId,
@@ -82,19 +81,15 @@ const AttendeeSelectionBar = ({
                             type="button"
                             className="btn btn-secondary flex items-center"
                             onClick={onCheckActiveBadge}
-                            disabled={
-                                activeBadgeChecking ||
-                                activeBadgeCreating ||
-                                !canUseActiveBadgeSelection
-                            }
+                            disabled={activeBadgeBusy || !canUseActiveBadgeSelection}
                             title={
                                 canUseActiveBadgeSelection
-                                    ? 'Check whether selected badges already have an active badge'
-                                    : 'Select specific attendees on this page (not Select all)'
+                                    ? 'Check active badge status for selected attendees'
+                                    : 'Use Preview eligible above for the whole event, or select rows on this page'
                             }
                         >
                             <BadgeCheck size={16} style={{ marginRight: '0.5rem' }} />
-                            {activeBadgeChecking ? 'Checking…' : 'Check Active Badge'}
+                            Active Badge Check selected
                         </button>
                     )}
                     {onSetActiveBadge && (
@@ -102,21 +97,17 @@ const AttendeeSelectionBar = ({
                             type="button"
                             className="btn btn-secondary flex items-center"
                             onClick={onSetActiveBadge}
-                            disabled={
-                                activeBadgeChecking ||
-                                activeBadgeCreating ||
-                                !canSetActiveBadge
-                            }
+                            disabled={activeBadgeBusy || !canSetActiveBadge}
                             title={
                                 !canUseActiveBadgeSelection
-                                    ? 'Select specific attendees on this page (not Select all)'
+                                    ? 'Use Create all eligible above, or select rows on this page'
                                     : !canSetActiveBadge
-                                      ? 'All selected badges already have an active badge'
+                                      ? 'Selected badges already have an active badge'
                                       : 'Create active badges for eligible selected attendees'
                             }
                         >
                             <BadgePlus size={16} style={{ marginRight: '0.5rem' }} />
-                            {activeBadgeCreating ? 'Setting…' : 'Set Active Badge'}
+                            Active Badge Set selected
                         </button>
                     )}
                     {pocAttendee && eventId && token && (

@@ -27,6 +27,21 @@ function createUrl(eventId) {
   return `${getApiUrl()}/events/${eventId}/attendees/active_badge/`;
 }
 
+/** Build POST body: all eligible, or ids/uuids/badges. */
+export function buildActiveBadgeBody({
+  allWithoutActive = false,
+  ids,
+  uuids,
+  badges,
+} = {}) {
+  if (allWithoutActive) return { all_without_active: true };
+  const body = {};
+  if (Array.isArray(ids) && ids.length) body.ids = ids;
+  if (Array.isArray(uuids) && uuids.length) body.uuids = uuids;
+  if (Array.isArray(badges) && badges.length) body.badges = badges;
+  return body;
+}
+
 export const activeBadgeApi = {
   /** POST /events/:eventId/attendees/active_badge/status/ */
   async getStatus(eventId, token, body) {

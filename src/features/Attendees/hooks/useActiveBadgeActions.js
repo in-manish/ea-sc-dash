@@ -1,11 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useAlert } from '../../../contexts/AlertContext';
-import { activeBadgeApi } from '../api/activeBadgeApi';
-import {
-  eligibleForCreate,
-  summarizeStatus,
-  summarizeCreate,
-} from '../domain/summarizeActiveBadge';
+import { eligibleForCreate } from '../domain/summarizeActiveBadge';
+import { createActiveBadgeHandlers } from '../domain/createActiveBadgeHandlers';
 
 export default function useActiveBadgeActions({
   selectedEvent,
@@ -21,12 +17,21 @@ export default function useActiveBadgeActions({
   const [createResult, setCreateResult] = useState(null);
   const [resultOpen, setResultOpen] = useState(false);
   const [resultKind, setResultKind] = useState(null);
+  const [scope, setScope] = useState(null);
   const uuidsKey = selectedAttendeeUuids.join(',');
-  const clearSelectionRef = useRef(clearSelection);
-  clearSelectionRef.current = clearSelection;
+  const clearRef = useRef(clearSelection);
+  clearRef.current = clearSelection;
+  const statusRef = useRef(statusResult);
+  statusRef.current = statusResult;
+  const scopeRef = useRef(scope);
+  scopeRef.current = scope;
+  const openResultRef = useRef(null);
 
   useEffect(() => {
+    // Keep event-wide eligible preview; only reset selection-scoped status.
+    if (statusRef.current?.allWithoutActive) return;
     setStatusResult(null);
+    setScope(null);
     setResultKind((kind) => {
       if (kind === 'status') {
         setResultOpen(false);
@@ -38,126 +43,68 @@ export default function useActiveBadgeActions({
 
   const canUseSelection =
     selectionMode === 'selected' && selectedAttendeeUuids.length > 0;
+  const eligible = statusResult ? eligibleForCreate(statusResult.data) : null;
+  const canCreateFromPreview = Boolean(eligible?.length);
+  const canSetSelected =
+    canUseSelection &&
+    (!statusResult || statusResult.allWithoutActive || canCreateFromPreview);
 
-  const eligible = statusResult
-    ? eligibleForCreate(statusResult.data)
-    : null;
-  const canSetActiveBadge =
-    canUseSelection && (!statusResult || (eligible && eligible.length > 0));
-
-  const openResult = (kind, payload) => {
+  const openResult = (kind, payload, nextScope) => {
     setResultKind(kind);
+    setScope(nextScope ?? null);
     if (kind === 'status') setStatusResult(payload);
     if (kind === 'create') setCreateResult(payload);
     setResultOpen(true);
   };
+  openResultRef.current = openResult;
 
   const closeResult = () => {
     const wasCreate = resultKind === 'create';
     setResultOpen(false);
     setResultKind(null);
-    if (wasCreate) clearSelectionRef.current?.();
+    if (!wasCreate) return;
+    setStatusResult(null);
+    setScope(null);
+    clearRef.current?.();
   };
 
-  const checkStatus = async () => {
-    if (!selectedEvent?.id || !token || !canUseSelection) {
-      await showAlert(
-        'Select specific attendees on this page to check active badge status.',
-        'info',
-        'Active Badge Status',
-      );
-      return;
-    }
-
-    setChecking(true);
-    try {
-      const raw = await activeBadgeApi.getStatus(selectedEvent.id, token, {
-        uuids: selectedAttendeeUuids,
-      });
-      const summarized = summarizeStatus(raw);
-      openResult('status', summarized);
-    } catch (err) {
-      await showAlert(
-        err.message || 'Failed to check active badge status.',
-        'error',
-        'Active Badge Status',
-      );
-    } finally {
-      setChecking(false);
-    }
-  };
-
-  const setActiveBadge = async () => {
-    if (!selectedEvent?.id || !token || !canUseSelection) {
-      await showAlert(
-        'Select specific attendees on this page to set active badges.',
-        'info',
-        'Set Active Badge',
-      );
-      return;
-    }
-
-    setCreating(true);
-    try {
-      let status = statusResult;
-      if (!status) {
-        const raw = await activeBadgeApi.getStatus(selectedEvent.id, token, {
+  const handlers = useMemo(
+    () =>
+      createActiveBadgeHandlers({
+        getEventId: () => selectedEvent?.id,
+        getToken: () => token,
+        getSelection: () => ({
+          canUseSelection:
+            selectionMode === 'selected' && selectedAttendeeUuids.length > 0,
           uuids: selectedAttendeeUuids,
-        });
-        status = summarizeStatus(raw);
-        setStatusResult(status);
-      }
-
-      const toCreate = eligibleForCreate(status.data);
-      if (!toCreate.length) {
-        openResult('status', status);
-        await showAlert(
-          status.active.length
-            ? 'All selected badges already have an active badge.'
-            : 'No selected badges are eligible (need email or phone, and no active badge).',
-          'info',
-          'Set Active Badge',
-        );
-        return;
-      }
-
-      const confirmed = await showConfirm(
-        `Create active badges for ${toCreate.length} attendee${toCreate.length === 1 ? '' : 's'}? Badges that already have an active badge will be skipped.`,
-        {
-          title: 'Set Active Badge',
-          confirmText: 'Create',
-          cancelText: 'Cancel',
-        },
-      );
-      if (!confirmed) return;
-
-      const raw = await activeBadgeApi.create(selectedEvent.id, token, {
-        uuids: toCreate.map((item) => item.uuid).filter(Boolean),
-      });
-      const summarized = summarizeCreate(raw);
-      openResult('create', summarized);
-    } catch (err) {
-      await showAlert(
-        err.message || 'Failed to create active badges.',
-        'error',
-        'Set Active Badge',
-      );
-    } finally {
-      setCreating(false);
-    }
-  };
+        }),
+        getStatusResult: () => statusRef.current,
+        getScope: () => scopeRef.current,
+        openResult: (...args) => openResultRef.current?.(...args),
+        showAlert,
+        showConfirm,
+        setChecking,
+        setCreating,
+      }),
+    [selectedEvent?.id, token, selectionMode, uuidsKey, showAlert, showConfirm],
+  );
 
   return {
     checking,
     creating,
+    busy: checking || creating,
     canUseSelection,
-    canSetActiveBadge,
+    canSetSelected,
+    canCreateFromPreview,
     statusResult,
     createResult,
     resultOpen,
     resultKind,
     closeResult,
-    checkStatus,
-    setActiveBadge,
+    previewAllEligible: handlers.previewAllEligible,
+    checkSelected: handlers.checkSelected,
+    createAllEligible: handlers.createAllEligible,
+    createFromPreview: handlers.createFromPreview,
+    setSelected: handlers.setSelected,
   };
 }
