@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { nextHeaderSort } from '../domain/companyListSort';
 import ExhibitorRemindBar from './ExhibitorRemindBar';
 import ExhibitorBulkActionBar from './ExhibitorBulkActionBar';
+import ExhibitorListToolbar from './ExhibitorListToolbar';
 import ExhibitorListTable from './ExhibitorListTable';
 
 /**
@@ -18,6 +19,12 @@ export default function ExhibitorsListPanel({
   page,
   onPageChange,
   onUpdated,
+  search,
+  onSearchChange,
+  filters,
+  onClearFilters,
+  onRemoveFilter,
+  onOpenFilters,
   sortBy,
   sortOrder,
   onSortChange,
@@ -39,24 +46,34 @@ export default function ExhibitorsListPanel({
         </div>
       )}
 
-      {overrideMessage && (
-        <p className="text-xs text-text-tertiary mb-3">{overrideMessage}</p>
-      )}
+      <div className="mb-4 space-y-2">
+        <ExhibitorRemindBar
+          eventId={eventId}
+          token={token}
+          selectedIds={selectedIds}
+          onCleared={clear}
+        />
+        <ExhibitorBulkActionBar
+          eventId={eventId}
+          token={token}
+          companies={companies}
+          selectedIds={selectedIds}
+          onCleared={clear}
+          onUpdated={onUpdated}
+        />
+      </div>
 
-      <ExhibitorRemindBar
-        eventId={eventId}
-        token={token}
-        selectedIds={selectedIds}
-        onCleared={clear}
-      />
-
-      <ExhibitorBulkActionBar
-        eventId={eventId}
-        token={token}
-        companies={companies}
-        selectedIds={selectedIds}
-        onCleared={clear}
-        onUpdated={onUpdated}
+      <ExhibitorListToolbar
+        search={search}
+        onSearchChange={onSearchChange}
+        filters={filters}
+        onClearFilters={onClearFilters}
+        onRemoveFilter={onRemoveFilter}
+        onOpenFilters={onOpenFilters}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSortChange={onSortChange}
+        overrideMessage={overrideMessage}
       />
 
       <ExhibitorListTable

@@ -145,21 +145,19 @@ const CompanyComprehensiveReportPanel = ({
     const isScoped = Boolean(appliedParentId);
 
     return (
-        <div className="mb-6 border border-border bg-bg-primary overflow-hidden animate-fade-in">
+        <div className="mb-4 rounded-lg border border-border bg-bg-primary overflow-hidden animate-fade-in">
             <button
                 type="button"
                 onClick={handleToggle}
-                className="w-full flex items-center justify-between gap-3 px-4 py-3 hover:bg-bg-secondary/50 transition-colors text-left"
+                className="w-full flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-bg-secondary/50 transition-colors text-left"
                 aria-expanded={expanded}
             >
                 <div className="flex items-center gap-2.5 min-w-0">
                     <BarChart3 size={16} className="text-accent shrink-0" />
-                    <div className="min-w-0">
-                        <p className="text-sm font-semibold text-text-primary m-0">Company Report</p>
-                        <p className="text-xs text-text-tertiary m-0 truncate">
-                            Parent / co-exhibitor totals, handover, water coupons, print badges
-                        </p>
-                    </div>
+                    <p className="text-sm font-semibold text-text-primary m-0">Company Report</p>
+                    <span className="hidden md:inline text-xs text-text-tertiary truncate">
+                        Totals, handover, water coupons, print badges
+                    </span>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                     {!expanded && report && (

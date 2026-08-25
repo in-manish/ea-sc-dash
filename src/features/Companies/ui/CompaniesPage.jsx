@@ -81,16 +81,7 @@ export default function CompaniesPage() {
         token={token}
         companies={list.companies}
         selectedIds={selection.selectedIds}
-        search={list.search}
-        onSearchChange={list.setSearch}
-        filters={list.filters}
-        onClearFilters={() => list.setFilters({})}
-        onOpenFilters={() => setIsFilterDrawerOpen(true)}
         onUpload={() => setIsUploadModalOpen(true)}
-        sortBy={list.sortBy}
-        sortOrder={list.sortOrder}
-        onSortChange={list.setSort}
-        overrideMessage={list.overrideMessage}
       />
 
       <CompaniesPageTabs
@@ -112,6 +103,7 @@ export default function CompaniesPage() {
         list={list}
         selection={selection}
         uploadRefreshKey={uploadRefreshKey}
+        onOpenFilters={() => setIsFilterDrawerOpen(true)}
         onCrViewChange={(viewName) =>
           setParam((p) => {
             if (viewName === 'list') p.delete('cr_view');

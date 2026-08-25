@@ -36,6 +36,7 @@ import UserManagement from './pages/UserManagement';
 import Payments from './pages/payments/Payments';
 import Matchmaking from './features/Matchmaking/ui/Matchmaking';
 import Meetings from './pages/meetings/Meetings';
+import Visiq from './pages/Visiq';
 import UtilsConfig from './pages/utils-config/UtilsConfig';
 import RedirectToUtilsTab from './pages/utils-config/RedirectToUtilsTab';
 import BrandManage from './pages/brand-manage/BrandManage';
@@ -105,6 +106,7 @@ const AppRoutes = ({ currentMode }) => {
         <Route path="celery-manage" element={<RedirectToUtilsTab tab="celery" />} />
         <Route path="email-kill-switch" element={<RedirectToUtilsTab tab="email_kill_switch" />} />
         <Route path="meetings" element={<Meetings />} />
+        <Route path="visiq" element={<Visiq />} />
         <Route path="exhibitor-certificate" element={<RedirectToUtilsTab tab="exhibitor_certificate" />} />
         <Route path="brand-manage" element={<BrandManage />} />
         <Route path="manage-users" element={<ManageUsers />} />

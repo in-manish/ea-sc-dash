@@ -5,7 +5,7 @@ import {
 } from '../domain/companyListSort';
 
 const selectClass =
-  'py-2 px-3 border border-border rounded-md text-sm bg-bg-primary outline-none transition-colors duration-200 focus:border-accent focus:ring-2 focus:ring-accent/10';
+  'h-12 py-0 px-3 border border-border rounded-md text-sm bg-bg-primary outline-none transition-colors duration-200 focus:border-accent focus:ring-2 focus:ring-accent/10';
 
 export default function ExhibitorListSortControls({
   sortBy,
@@ -15,6 +15,9 @@ export default function ExhibitorListSortControls({
 }) {
   return (
     <div className="flex items-center gap-1.5" title={overrideMessage || 'Sort exhibitors'}>
+      <span className="hidden text-xs font-medium text-text-secondary whitespace-nowrap sm:inline">
+        Sort
+      </span>
       <select
         aria-label="Sort companies by"
         className={selectClass}
@@ -35,7 +38,7 @@ export default function ExhibitorListSortControls({
       </select>
       <button
         type="button"
-        className="btn btn-secondary"
+        className="btn btn-secondary h-12 w-12 p-0"
         aria-label={sortOrder === 'asc' ? 'Sort ascending' : 'Sort descending'}
         onClick={() => onChange(sortBy, sortOrder === 'asc' ? 'desc' : 'asc')}
       >

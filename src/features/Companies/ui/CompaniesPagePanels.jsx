@@ -2,6 +2,7 @@ import AdditionalRequirementsOrders from '../../../pages/AdditionalRequirementsO
 import ARManager from '../../../pages/ARManager';
 import CompanyUploadStatus from '../../../components/companies/CompanyUploadStatus';
 import CompanyComprehensiveReportPanel from '../../../components/companies/CompanyComprehensiveReportPanel';
+import { removeExhibitorListFilter } from '../domain/exhibitorListFilters';
 import ProductMatchmakingPanel from './ProductMatchmakingPanel';
 import ChecklistReminderTab from './ChecklistReminderTab';
 import ExhibitorsListPanel from './ExhibitorsListPanel';
@@ -17,6 +18,7 @@ export default function CompaniesPagePanels({
   list,
   selection,
   uploadRefreshKey,
+  onOpenFilters,
   onCrViewChange,
 }) {
   const showList = activeTab === 'exhibitors' && exhView === 'list' && eventId;
@@ -45,6 +47,18 @@ export default function CompaniesPagePanels({
           page={list.page}
           onPageChange={list.setPage}
           onUpdated={list.refresh}
+          search={list.search}
+          onSearchChange={list.setSearch}
+          filters={list.filters}
+          onClearFilters={() => {
+            list.setFilters({});
+            list.setPage(1);
+          }}
+          onRemoveFilter={(key) => {
+            list.setFilters(removeExhibitorListFilter(list.filters, key));
+            list.setPage(1);
+          }}
+          onOpenFilters={onOpenFilters}
           sortBy={list.sortBy}
           sortOrder={list.sortOrder}
           onSortChange={list.setSort}

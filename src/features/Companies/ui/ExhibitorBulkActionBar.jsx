@@ -69,7 +69,7 @@ export default function ExhibitorBulkActionBar({
   };
 
   return (
-    <div className="mb-4 space-y-2">
+    <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-2">
         <ExhibitorLockMenu
           disabled={submitting || hasCoExhibitors}

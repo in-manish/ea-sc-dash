@@ -30,6 +30,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | EaEmail | `src/components/email/` | Communication Email: category + templates; browse HTML into body |
 | Matchmaking | `src/features/Matchmaking/` | GET 404 = create/copy; 200 = editor only |
 | MeetingStats | `src/features/MeetingStats/` | Organizer meeting stats by event × attendee type (GET) + email CSV (POST) |
+| Visiq | `src/features/Visiq/` | Tenant subscriber CRM: list/detail + CSV/Excel import jobs |
 
 ## Common tasks → files
 
@@ -52,7 +53,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Bulk lock / feature companies | `src/features/Companies/ui/ExhibitorLockMenu.jsx` + `ExhibitorBulkActionBar.jsx` + `api/companyApi.js` (`bulkAction`) |
 | Download / email exhibitor CSV report | `ui/DownloadExhibitorReportButton.jsx` + `ui/ExhibitorReportModal.jsx` + `hooks/useExhibitorReport.js` + `api/exhibitorReportApi.js` |
 | Exhibitor Engagement tab | `ui/ExhibitorEngagementTab.jsx` + `hooks/useExhibitorEngagement.js` + `api/exhibitorEngagementApi.js` |
-| Exhibitor list sort | `domain/companyListSort.js` + `hooks/useExhibitorList.js` + `ui/ExhibitorListSortControls.jsx` |
+| Exhibitor list sort | `domain/companyListSort.js` + `hooks/useExhibitorList.js` + `ui/ExhibitorListToolbar.jsx` + `ui/ExhibitorFilterChips.jsx` |
 | Company FormData / errors | `src/features/Companies/domain/buildCompanyFormData.js`, `parseCompanyError.js` |
 | Agenda list / edit session | `src/features/Agenda/ui/AgendaListPage.jsx`, `AgendaEditPage.jsx` (`force_attendance` block slot) |
 | Agenda API create/update | `src/services/agendaService.js` + `domain/buildAgendaFormData.js` |
@@ -76,6 +77,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Event settings / exhibitor meeting diary | `src/pages/event-settings/CompanyAccessControlsSection.jsx` + `exhibitorPortalDefaults.js` (`exhibitor_portal_data.meeting_diary.is_meeting_option_active`) |
 | Matchmaking questions / copy | `src/features/Matchmaking/ui/MatchmakingQuestions.jsx` + `api/matchmakingFormApi.js` |
 | Meeting stats report | `src/features/MeetingStats/ui/MeetingStatsReportTab.jsx` + `api/meetingStatsReportApi.js` |
+| Visiq subscribers / imports | `src/features/Visiq/ui/VisiqPage.jsx` + `api/importApi.js` (preview/download) + `hooks/useImportFileActions.js` |
 
 ## Constraints
 

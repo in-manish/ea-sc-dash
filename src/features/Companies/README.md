@@ -33,7 +33,7 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `domain/parseCompanyError.js` | 400 ERROR / field errors |
 | `domain/companyBulkActionPayload.js` | Lock/feature bulk PATCH body (`single`/`multiple`/`all`) |
 | `domain/companyListSort.js` | List `sort_by` fields, defaults (`space`/`desc`), header mapping |
-| `domain/exhibitorListFilters.js` | List filter keys + URL parse/apply |
+| `domain/exhibitorListFilters.js` | List filter keys + URL parse/apply + applied-filter chips |
 | `hooks/useCompanyBulkAction.js` | PATCH bulk-action + success/error |
 | `hooks/useExhibitorList.js` | Paginated list fetch + search/filters/sort URL state |
 | `domain/formatCompanySearchLabel.js` | Parent search display |
@@ -52,8 +52,10 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `hooks/useChecklistReminderList.js` | Paginated reminder log |
 | `hooks/useChecklistReminderSettings.js` | Load/save reminder settings |
 | `ui/CompaniesPage.jsx` | Exhibitors / product matchmaking / AR / engagement tabs |
-| `ui/CompaniesPagePanels.jsx` | Tab body: list, upload status, reminder, AR, matchmaking, engagement |
-| `ui/CompaniesPageHeader.jsx` | Title, create/download report/upload, search, sort, filter |
+| `ui/CompaniesPagePanels.jsx` | Tab body: list, upload status, reminder, AR, matchmaking, engagement; Company Report under tabs |
+| `ui/CompaniesPageHeader.jsx` | Title, create/download report/upload CSV |
+| `ui/ExhibitorListToolbar.jsx` | Find bar immediately above the table: search, then sort, then filter |
+| `ui/ExhibitorFilterChips.jsx` | Applied list filters as dismissible chips |
 | `ui/CompaniesPageTabs.jsx` | Main tabs + exhibitor / AR sub-views |
 | `ui/ExhibitorEngagementTab.jsx` | Engagement dashboard: summary + activation funnel |
 | `ui/ExhibitorEngagementSummary.jsx` | Title, cache/live badge, refresh, total exhibitors |
@@ -76,7 +78,7 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `ui/SetupProgressStep.jsx` | Checklist step row + Open / Remind |
 | `ui/SetupProgressSkeleton.jsx` | Setup Progress loading skeleton |
 | `ui/ChecklistReminderTab.jsx` | Reminder log + settings (no bulk send) |
-| `ui/ExhibitorsListPanel.jsx` | List + remind / lock / feature (selection lifted to CompaniesPage) |
+| `ui/ExhibitorsListPanel.jsx` | List + table toolbar + remind / lock / feature (selection lifted to CompaniesPage) |
 | `domain/exhibitorPasswordResetPayload.js` | Single POC reset body (`badge_id` / `company_id` only) |
 | `hooks/useExhibitorPasswordReset.js` | POST exhibitor POC password reset |
 | `ui/ExhibitorPasswordResetControl.jsx` | Confirm + reset button (list + attendee detail) |
@@ -155,7 +157,7 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 - Fields: `company_slug`, `obf_number`, `space` (as `space_num`), `space_num`, `obf_number_numeric`, `obf_number_alphabet` (as `company_slug`), `featured_rank`
 - Defaults: `space` / `desc`. Invalid `sort_by` → 404
 - Ignored when `q` is set (relevance) or `is_featured=true` with no `q` (rank then name)
-- Toolbar select + Company / Details / Stall column headers; `sort_by`/`sort_order` persist in the URL
+- Find bar (search + Sort + Filter) sits immediately above the table; applied filters show as dismissible chips; Company / Details / Stall column headers; `sort_by`/`sort_order` persist in the URL
 - Details column shows OBF, space (number), and sales person
 
 ## Exhibitor Engagement

@@ -418,9 +418,12 @@ tasks:
       - src/features/Companies/domain/exhibitorListFilters.js
       - src/features/Companies/hooks/useExhibitorList.js
       - src/features/Companies/ui/ExhibitorListSortControls.jsx
+      - src/features/Companies/ui/ExhibitorListToolbar.jsx
+      - src/features/Companies/ui/ExhibitorFilterChips.jsx
       - src/features/Companies/ui/ExhibitorListTable.jsx
       - src/features/Companies/ui/ExhibitorListRow.jsx
       - src/features/Companies/ui/ExhibitorsListPanel.jsx
+      - src/features/Companies/ui/CompaniesPagePanels.jsx
       - src/features/Companies/ui/CompaniesPage.jsx
       - src/pages/Companies.jsx
     routes:
@@ -467,6 +470,39 @@ tasks:
       names (case-insensitive) AND when both sides set; same-side IDs+names
       union. unique_participants default true. Cache is per filter set (10 min);
       refresh=true busts cache. meeting_date_range wins over meeting_date.
+  visiq_subscribers_imports:
+    files:
+      - src/features/Visiq/api/subscriberApi.js
+      - src/features/Visiq/api/importApi.js
+      - src/features/Visiq/domain/subscriberQuery.js
+      - src/features/Visiq/domain/subscriberStatus.js
+      - src/features/Visiq/domain/subscriberRow.js
+      - src/features/Visiq/domain/importStatus.js
+      - src/features/Visiq/domain/importRow.js
+      - src/features/Visiq/domain/buildImportFormData.js
+      - src/features/Visiq/domain/parseCsvPreview.js
+      - src/features/Visiq/domain/parseVisiqError.js
+      - src/features/Visiq/hooks/useSubscriberList.js
+      - src/features/Visiq/hooks/useSubscriberDetail.js
+      - src/features/Visiq/hooks/useImportList.js
+      - src/features/Visiq/hooks/useImportDetail.js
+      - src/features/Visiq/hooks/useCreateImport.js
+      - src/features/Visiq/hooks/useImportFileActions.js
+      - src/features/Visiq/ui/VisiqPage.jsx
+      - src/features/Visiq/ui/SubscribersTab.jsx
+      - src/features/Visiq/ui/ImportsTab.jsx
+      - src/features/Visiq/ui/ImportPreviewModal.jsx
+      - src/pages/Visiq.jsx
+      - src/layouts/EventLayout.jsx
+      - src/App.jsx
+    routes:
+      - /event/:id/visiq?tab=subscribers
+      - /event/:id/visiq?tab=imports
+    notes: >
+      Tenant-scoped /visiq/ APIs (no event id). Organizer Token.
+      Subscribers: GET list (page,size,search,status) + GET detail; rich row chips.
+      Imports: GET list, POST multipart → 202, GET detail (poll while active).
+      Preview/download fetch the `file` URL on the job (S3), parse CSV in browser.
   matchmaking_form:
     files:
       - src/features/Matchmaking/api/matchmakingFormApi.js
@@ -590,6 +626,18 @@ features:
       - /event/:id/meetings?tab=stats
     report_api: >
       GET|POST /meetings/stats/report/ (organizer token; GET table, POST email CSV)
+  Visiq:
+    root: src/features/Visiq/
+    entry: src/pages/Visiq.jsx
+    routes:
+      - /event/:id/visiq?tab=subscribers
+      - /event/:id/visiq?tab=imports
+    subscribers_api: >
+      GET /visiq/subscribers/; GET /visiq/subscribers/:id/
+    imports_api: >
+      GET /visiq/imports/; POST /visiq/imports/ (multipart 202);
+      GET /visiq/imports/:id/;
+      GET /visiq/imports/:id/preview/; GET /visiq/imports/:id/file/
   Matchmaking:
     root: src/features/Matchmaking/
     entry: src/features/Matchmaking/ui/Matchmaking.jsx
@@ -679,3 +727,6 @@ glossary:
   meeting_stats_report: >
     GET|POST /meetings/stats/report/; event × attendee_type; sent + received
     request columns; sender/receiver type names AND; cache per filters 10 min
+  visiq: >
+    Tenant CRM under /visiq/; subscribers list/detail + async CSV/Excel imports;
+    preview JSON + file download; local CSV preview before upload

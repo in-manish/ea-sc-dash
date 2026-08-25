@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink, useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, Users, Calendar, Settings, ChevronLeft, Building2, ArrowLeft, LogOut, MessageSquare, BarChart2, UserCog, ShieldCheck, IdCard, ChevronDown, CreditCard, Wrench, Layout, Video, Tag } from 'lucide-react';
+import { Menu, X, Users, Calendar, Settings, ChevronLeft, Building2, ArrowLeft, LogOut, MessageSquare, BarChart2, UserCog, ShieldCheck, IdCard, ChevronDown, CreditCard, Wrench, Layout, Video, Tag, Radio } from 'lucide-react';
 
 import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
@@ -19,6 +19,7 @@ const EventLayout = () => {
         'Communication': location.pathname.includes('/communication'),
         'Reports': location.pathname.includes('/reports'),
         'Meetings': location.pathname.includes('/meetings'),
+        'Visiq': location.pathname.includes('/visiq'),
         'Staff Management': location.pathname.includes('/staff'),
         'Utils Config': location.pathname.includes('/utils-config')
     });
@@ -401,6 +402,45 @@ const EventLayout = () => {
                                     className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/meetings') && new URLSearchParams(location.search).get('tab') === 'stats' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
                                 >
                                     Meeting Stats Report
+                                </NavLink>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Visiq with Submenu — subscribers vs import jobs */}
+                    <div className="flex flex-col gap-1">
+                        <div
+                            className={navLinkClass({ isActive: location.pathname.includes('/visiq') })}
+                            onClick={() => {
+                                toggleExpand('Visiq');
+                                if (!location.pathname.includes('/visiq')) {
+                                    navigate(`/event/${selectedEvent.id}/visiq?tab=subscribers`);
+                                }
+                            }}
+                            style={{ cursor: 'pointer' }}
+                            title={isCollapsed ? 'Visiq' : ''}
+                        >
+                            <Radio size={20} className="shrink-0" />
+                            {!isCollapsed && (
+                                <>
+                                    <span className="flex-1">Visiq</span>
+                                    <ChevronDown size={14} className={`transition-transform duration-200 ${expandedItems['Visiq'] ? 'rotate-180' : ''}`} />
+                                </>
+                            )}
+                        </div>
+                        {!isCollapsed && expandedItems['Visiq'] && (
+                            <div className="ml-9 flex flex-col gap-1 border-l border-border pl-2 my-1 animate-fade-in">
+                                <NavLink
+                                    to={`/event/${selectedEvent.id}/visiq?tab=subscribers`}
+                                    className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/visiq') && (new URLSearchParams(location.search).get('tab') === 'subscribers' || !new URLSearchParams(location.search).get('tab')) ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
+                                >
+                                    Subscribers
+                                </NavLink>
+                                <NavLink
+                                    to={`/event/${selectedEvent.id}/visiq?tab=imports`}
+                                    className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/visiq') && new URLSearchParams(location.search).get('tab') === 'imports' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
+                                >
+                                    Imports
                                 </NavLink>
                             </div>
                         )}
