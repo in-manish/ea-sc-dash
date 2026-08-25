@@ -1,4 +1,4 @@
-import { MessageCircle, IdCard, Mail } from 'lucide-react';
+import { MessageCircle, IdCard, Mail, BadgeCheck, BadgePlus } from 'lucide-react';
 import { singleSelectedPocAttendee } from '../domain/exhibitorPoc';
 import { exhibitorPasswordResetPayload } from '../../Companies/domain/exhibitorPasswordResetPayload';
 import ExhibitorPasswordResetControl from '../../Companies/ui/ExhibitorPasswordResetControl';
@@ -15,6 +15,12 @@ const AttendeeSelectionBar = ({
     onOpenWhatsApp,
     onOpenEmail,
     onCreateEBadge,
+    onCheckActiveBadge,
+    onSetActiveBadge,
+    activeBadgeChecking = false,
+    activeBadgeCreating = false,
+    canSetActiveBadge = true,
+    canUseActiveBadgeSelection = true,
     eventId,
     token,
 }) => {
@@ -71,6 +77,48 @@ const AttendeeSelectionBar = ({
                         <IdCard size={16} style={{ marginRight: '0.5rem' }} />
                         Create E-badge
                     </button>
+                    {onCheckActiveBadge && (
+                        <button
+                            type="button"
+                            className="btn btn-secondary flex items-center"
+                            onClick={onCheckActiveBadge}
+                            disabled={
+                                activeBadgeChecking ||
+                                activeBadgeCreating ||
+                                !canUseActiveBadgeSelection
+                            }
+                            title={
+                                canUseActiveBadgeSelection
+                                    ? 'Check whether selected badges already have an active badge'
+                                    : 'Select specific attendees on this page (not Select all)'
+                            }
+                        >
+                            <BadgeCheck size={16} style={{ marginRight: '0.5rem' }} />
+                            {activeBadgeChecking ? 'Checking…' : 'Check Active Badge'}
+                        </button>
+                    )}
+                    {onSetActiveBadge && (
+                        <button
+                            type="button"
+                            className="btn btn-secondary flex items-center"
+                            onClick={onSetActiveBadge}
+                            disabled={
+                                activeBadgeChecking ||
+                                activeBadgeCreating ||
+                                !canSetActiveBadge
+                            }
+                            title={
+                                !canUseActiveBadgeSelection
+                                    ? 'Select specific attendees on this page (not Select all)'
+                                    : !canSetActiveBadge
+                                      ? 'All selected badges already have an active badge'
+                                      : 'Create active badges for eligible selected attendees'
+                            }
+                        >
+                            <BadgePlus size={16} style={{ marginRight: '0.5rem' }} />
+                            {activeBadgeCreating ? 'Setting…' : 'Set Active Badge'}
+                        </button>
+                    )}
                     {pocAttendee && eventId && token && (
                         <ExhibitorPasswordResetControl
                             eventId={eventId}

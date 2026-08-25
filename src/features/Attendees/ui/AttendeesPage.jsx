@@ -8,6 +8,7 @@ import useAttendeeList from '../hooks/useAttendeeList';
 import useAttendeeSelection from '../hooks/useAttendeeSelection';
 import useWhatsAppSend from '../hooks/useWhatsAppSend';
 import useEBadgeActions from '../hooks/useEBadgeActions';
+import useActiveBadgeActions from '../hooks/useActiveBadgeActions';
 import useScBadgeSync from '../hooks/useScBadgeSync';
 import useEBadgeJobs from '../hooks/useEBadgeJobs';
 import useAttendeeTypes from '../hooks/useAttendeeTypes';
@@ -100,6 +101,14 @@ const AttendeesPage = () => {
         selectedAttendeeUuids: selection.selectedAttendeeUuids,
     });
 
+    const activeBadge = useActiveBadgeActions({
+        selectedEvent,
+        token,
+        selectionMode: selection.selectionMode,
+        selectedAttendeeUuids: selection.selectedAttendeeUuids,
+        clearSelection: selection.clearSelection,
+    });
+
     const scSync = useScBadgeSync({
         selectedEvent,
         token,
@@ -141,6 +150,7 @@ const AttendeesPage = () => {
                     selection={selection}
                     whatsApp={whatsApp}
                     eBadge={eBadge}
+                    activeBadge={activeBadge}
                     scSync={scSync}
                     selectedEvent={selectedEvent}
                     token={token}

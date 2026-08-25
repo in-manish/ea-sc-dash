@@ -7,6 +7,7 @@ import AttendeeTable from './AttendeeTable';
 import ListPagination from './ListPagination';
 import AttendeesReportPanel from './AttendeesReportPanel';
 import AttendeeEmailDraftsModal from './AttendeeEmailDraftsModal';
+import ActiveBadgeResultModal from './ActiveBadgeResultModal';
 
 const AttendeesListView = ({
     page,
@@ -17,6 +18,7 @@ const AttendeesListView = ({
     selection,
     whatsApp,
     eBadge,
+    activeBadge,
     scSync,
     selectedEvent,
     token,
@@ -88,6 +90,12 @@ const AttendeesListView = ({
             onOpenWhatsApp={whatsApp.handleOpenWhatsAppModal}
             onOpenEmail={emailDrafts.open}
             onCreateEBadge={eBadge.handleCreateEBadge}
+            onCheckActiveBadge={activeBadge.checkStatus}
+            onSetActiveBadge={activeBadge.setActiveBadge}
+            activeBadgeChecking={activeBadge.checking}
+            activeBadgeCreating={activeBadge.creating}
+            canSetActiveBadge={activeBadge.canSetActiveBadge}
+            canUseActiveBadgeSelection={activeBadge.canUseSelection}
             eventId={selectedEvent?.id}
             token={token}
         />
@@ -140,6 +148,14 @@ const AttendeesListView = ({
             sending={emailDrafts.sending}
             sendError={emailDrafts.sendError}
             onSend={emailDrafts.send}
+        />
+
+        <ActiveBadgeResultModal
+            isOpen={activeBadge.resultOpen}
+            kind={activeBadge.resultKind}
+            statusResult={activeBadge.statusResult}
+            createResult={activeBadge.createResult}
+            onClose={activeBadge.closeResult}
         />
         </>
     );

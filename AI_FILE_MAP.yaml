@@ -110,6 +110,24 @@ tasks:
       category_name, email_name, email, subject); each row is a toggle.
       Selected category ids POST .../category_types/send_email/ with email_ids.
       Selected uses attendee_uuids; filtered/all may use search_queries.
+  attendee_active_badge:
+    files:
+      - src/features/Attendees/api/activeBadgeApi.js
+      - src/features/Attendees/domain/summarizeActiveBadge.js
+      - src/features/Attendees/hooks/useActiveBadgeActions.js
+      - src/features/Attendees/ui/ActiveBadgeResultModal.jsx
+      - src/features/Attendees/ui/AttendeeSelectionBar.jsx
+      - src/features/Attendees/ui/AttendeesListView.jsx
+      - src/features/Attendees/ui/AttendeesPage.jsx
+    routes:
+      - /event/:id/attendees
+    notes: >
+      Organizer-only. POST status + POST create under
+      /events/:eventId/attendees/active_badge[/status]/. Body uses uuids
+      (also supports ids/badge_ids/badges). Batch HTTP 200 — inspect each
+      item status (created|already_active|skipped|failed). Set Active Badge
+      skips badges with has_active_badge; requires page selection (not
+      select-all/filtered). has_contact means email and/or phone.
   company_create:
     files:
       - src/features/Companies/api/companyApi.js
@@ -536,6 +554,9 @@ features:
     category_emails_api: >
       GET /events/:eventId/category_types/emails/;
       POST .../category_types/send_email/ with email_ids (204)
+    active_badge_api: >
+      POST /events/:eventId/attendees/active_badge/status/;
+      POST /events/:eventId/attendees/active_badge/
   Companies:
     root: src/features/Companies/
     entry: src/pages/Companies.jsx
@@ -620,6 +641,9 @@ glossary:
   badge_email_tokens: Bare tokens user_name/att_type/reg_id/event_code/event_name/user_email/company_name/event_date/event_venue; calendar_link_google and calendar_link_outlook as href-only; \\n becomes a real newline
   attendee_type_email_list: Send Mail Badge Email POSTs send_email/; View lists GET attendee_types/emails/
   attendee_category_email_list: Send Mail lists GET category_types/emails/; toggles POST category_types/send_email/ with email_ids
+  attendee_active_badge: >
+    POST active_badge/status/ + active_badge/; batch by uuids/ids; create only when
+    !has_active_badge and has_contact; item status created|already_active|skipped|failed
   speaker_default_alpha_sort: When true, speakers sorted A-Z by name; when false, by speaker_sort_order
   force_attendance: Agenda session flag; block slot so meetings cannot be set during this time
   speaker_image_N: Multipart file field index aligned with speaker array
