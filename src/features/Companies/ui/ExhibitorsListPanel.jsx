@@ -1,9 +1,10 @@
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { nextHeaderSort } from '../domain/companyListSort';
-import ExhibitorRemindBar from './ExhibitorRemindBar';
-import ExhibitorBulkActionBar from './ExhibitorBulkActionBar';
+import ExhibitorListActionsBar from './ExhibitorListActionsBar';
 import ExhibitorListToolbar from './ExhibitorListToolbar';
 import ExhibitorListTable from './ExhibitorListTable';
+import ExhibitorRowActionHost from './ExhibitorRowActionHost';
 
 /**
  * Exhibitor list with multi-select + bulk remind / lock / feature.
@@ -37,6 +38,7 @@ export default function ExhibitorsListPanel({
   clear,
 }) {
   const navigate = useNavigate();
+  const [rowAction, setRowAction] = useState(null);
 
   return (
     <>
@@ -45,23 +47,6 @@ export default function ExhibitorsListPanel({
           {error}
         </div>
       )}
-
-      <div className="mb-4 space-y-2">
-        <ExhibitorRemindBar
-          eventId={eventId}
-          token={token}
-          selectedIds={selectedIds}
-          onCleared={clear}
-        />
-        <ExhibitorBulkActionBar
-          eventId={eventId}
-          token={token}
-          companies={companies}
-          selectedIds={selectedIds}
-          onCleared={clear}
-          onUpdated={onUpdated}
-        />
-      </div>
 
       <ExhibitorListToolbar
         search={search}
@@ -76,6 +61,15 @@ export default function ExhibitorsListPanel({
         overrideMessage={overrideMessage}
       />
 
+      <ExhibitorListActionsBar
+        eventId={eventId}
+        token={token}
+        companies={companies}
+        selectedIds={selectedIds}
+        onCleared={clear}
+        onUpdated={onUpdated}
+      />
+
       <ExhibitorListTable
         companies={companies}
         loading={loading}
@@ -87,6 +81,7 @@ export default function ExhibitorsListPanel({
         onTogglePage={togglePage}
         onCompanyClick={(id) => navigate(`/event/${eventId}/companies/${id}`)}
         onNavigate={navigate}
+        onRowAction={(type, company) => setRowAction({ type, company })}
         sortBy={sortBy}
         sortOrder={sortOrder}
         onHeaderSort={(column) => {
@@ -114,6 +109,15 @@ export default function ExhibitorsListPanel({
           Next
         </button>
       </div>
+
+      <ExhibitorRowActionHost
+        eventId={eventId}
+        token={token}
+        company={rowAction?.company}
+        action={rowAction?.type}
+        onClose={() => setRowAction(null)}
+        onUpdated={onUpdated}
+      />
     </>
   );
 }

@@ -23,10 +23,14 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `domain/parseExhibitorReportError.js` | 400 payload; 401/403/404/500 copy |
 | `hooks/useExhibitorReport.js` | Download blob or email JSON; 401 logs out |
 | `hooks/useExhibitorEngagement.js` | Load cached funnel; `refresh()` sends `refresh=true` |
-| `ui/DownloadExhibitorReportButton.jsx` | Header "Reports" button — opens modal |
+| `ui/DownloadExhibitorReportButton.jsx` | Standalone CSV report button + modal |
+| `ui/CompaniesReportsMenu.jsx` | Header Reports: Company Report metrics + email/download CSV |
+| `ui/CompanyReportModal.jsx` | Modal shell for company totals / handover / coupons / badges (title is the only heading) |
+| `src/components/companies/CompanyComprehensiveReportPanel.jsx` | Report body: parent ID filter + metrics fetch |
+| `src/components/companies/CompanyReportMetricRow.jsx` | Metric row copy (`396 coupons`, progress caption) |
 | `ui/ExhibitorReportModal.jsx` | Modal shell: Email Report / Download CSV tabs |
 | `ui/ExhibitorReportModalPanes.jsx` | Email, Download, SelectedBadge, Feedback panes |
-| `domain/checklistReminderHelpers.js` | Defaults, offsets, sent_status labels, progress %, `steps[]` / `step_ids` |
+| `domain/checklistReminderHelpers.js` | Defaults, offsets, sent_status labels, progress %, `steps[]` / `step_ids`; sent_at via `formatDateTime` |
 | `domain/buildCompanyFormData.js` | Create → multipart |
 | `domain/buildCompanyPatchFormData.js` | Edit → changed fields only (+ `company_name`) |
 | `domain/companyFromApi.js` | GET response → form state |
@@ -52,10 +56,15 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `hooks/useChecklistReminderList.js` | Paginated reminder log |
 | `hooks/useChecklistReminderSettings.js` | Load/save reminder settings |
 | `ui/CompaniesPage.jsx` | Exhibitors / product matchmaking / AR / engagement tabs |
-| `ui/CompaniesPagePanels.jsx` | Tab body: list, upload status, reminder, AR, matchmaking, engagement; Company Report under tabs |
-| `ui/CompaniesPageHeader.jsx` | Title, create/download report/upload CSV |
-| `ui/ExhibitorListToolbar.jsx` | Find bar immediately above the table: search, then sort, then filter |
+| `ui/CompaniesPagePanels.jsx` | Tab body: list, upload status, reminder, AR, matchmaking, engagement |
+| `ui/CompaniesPageHeader.jsx` | Title; Add company (primary); Upload CSV + Reports (secondary) |
+| `ui/ExhibitorListToolbar.jsx` | Find: search, Filter, Sort (one control) immediately above the table |
 | `ui/ExhibitorFilterChips.jsx` | Applied list filters as dismissible chips |
+| `ui/ExhibitorListActionsBar.jsx` | Same-row "N selected · Clear selection" + Actions menu |
+| `ui/ExhibitorListActionsMenu.jsx` | Actions: Checklist / Selected / All parent exhibitors |
+| `ui/ExhibitorListActionDialogs.jsx` | Confirm dialogs for list Actions |
+| `ui/ExhibitorListRowMenu.jsx` | Row ⋯ menu: view, edit, reset, lock, feature |
+| `ui/ExhibitorRowActionHost.jsx` | Row ⋯ confirm dialogs |
 | `ui/CompaniesPageTabs.jsx` | Main tabs + exhibitor / AR sub-views |
 | `ui/ExhibitorEngagementTab.jsx` | Engagement dashboard: summary + activation funnel |
 | `ui/ExhibitorEngagementSummary.jsx` | Title, cache/live badge, refresh, total exhibitors |
@@ -63,7 +72,7 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `ui/ActivationFunnelStep.jsx` | Step: label, `11/274 exhibitors`, vertical % bar |
 | `ui/InviteTypeBreakdown.jsx` | by_type cards: Invites sent + Registered/Accepted N/A |
 | `ui/ExhibitorEngagementSkeleton.jsx` | Engagement loading skeleton |
-| `ui/ExhibitorListSortControls.jsx` | `sort_by` select + asc/desc |
+| `ui/ExhibitorListSortControls.jsx` | One Sort control: `Sort: Stall ↓` |
 | `ui/ExhibitorFilterDrawer.jsx` | List filter drawer shell |
 | `ui/ExhibitorFilterFields.jsx` | List filter fields |
 | `ui/CreateCompanyPage.jsx` | Full-page create |
@@ -78,7 +87,7 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `ui/SetupProgressStep.jsx` | Checklist step row + Open / Remind |
 | `ui/SetupProgressSkeleton.jsx` | Setup Progress loading skeleton |
 | `ui/ChecklistReminderTab.jsx` | Reminder log + settings (no bulk send) |
-| `ui/ExhibitorsListPanel.jsx` | List + table toolbar + remind / lock / feature (selection lifted to CompaniesPage) |
+| `ui/ExhibitorsListPanel.jsx` | Find toolbar + Actions + table (selection lifted to CompaniesPage) |
 | `domain/exhibitorPasswordResetPayload.js` | Single POC reset body (`badge_id` / `company_id` only) |
 | `hooks/useExhibitorPasswordReset.js` | POST exhibitor POC password reset |
 | `ui/ExhibitorPasswordResetControl.jsx` | Confirm + reset button (list + attendee detail) |
@@ -157,7 +166,10 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 - Fields: `company_slug`, `obf_number`, `space` (as `space_num`), `space_num`, `obf_number_numeric`, `obf_number_alphabet` (as `company_slug`), `featured_rank`
 - Defaults: `space` / `desc`. Invalid `sort_by` → 404
 - Ignored when `q` is set (relevance) or `is_featured=true` with no `q` (rank then name)
-- Find bar (search + Sort + Filter) sits immediately above the table; applied filters show as dismissible chips; Company / Details / Stall column headers; `sort_by`/`sort_order` persist in the URL
+- Find bar (search + Filter + Sort) sits immediately above the table; Sort is one control (`Sort: Stall ↓`); column headers still sort Company / Details / Stall with an indicator only on the active column
+- Applied filters show as dismissible chips; Filter (N) opens the existing drawer
+- Operational actions live in **Actions** (grouped Checklist / Selected / All parent exhibitors) with confirmation; **N selected · Clear selection** on the same row as Actions when rows are checked
+- Row **⋯** menu: view, edit, reset POC password, lock/unlock parent, feature/rank
 - Details column shows OBF, space (number), and sales person
 
 ## Exhibitor Engagement
@@ -176,7 +188,7 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 - `GET /events/:id/exhibitor/report/` — **parent exhibitors only** (co-exhibitors are counts on the parent row)
 - Download: no `send_to_emails`; optional `company_ids` (comma-separated); `Accept: text/csv`; save `Event-{eventId}-ExhibitorReport.csv`
 - Email: `send_to_emails` (required, not `emails` / `sent_to_emails`) + optional `company_ids`; `Accept: application/json`; toast “Report will be emailed shortly”
-- Header **Reports** button opens a modal with **Email Report** / **Download CSV** tabs
+- Header **Reports** opens a menu: **Company Report** (totals, handover, water coupons, print badges) and **Email / download CSV**
 - If table rows are selected, modal shows "Download/Email selected" alongside "Download/Email all"
 - Selection is lifted to CompaniesPage so header + list both have access
 - 400 → payload message; 401 login; 403 organizer; 404 event not found; 500 retry

@@ -20,6 +20,7 @@ SC admin email templates (`/email-templates`). Manage/edit modal matches EA: sid
 | `hooks/useCreateEmailTemplate.js` | POST create |
 | `hooks/useEmailTemplateDetail.js` | GET one, PUT, PATCH archive, revert |
 | `api/emailTemplateApi.js` | List / one / create / PUT / PATCH |
+| `domain/emailTemplateLabels.js` | Audience, from-name, updated date (en-IN/IST) |
 
 ## Modal (EA-like)
 

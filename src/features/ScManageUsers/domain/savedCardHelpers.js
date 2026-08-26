@@ -1,3 +1,5 @@
+import { formatDate } from '../../../utils/formatDateTime';
+
 export const cardInitials = (name) => {
   if (!name) return '?';
   return name
@@ -34,13 +36,7 @@ export const formatCardDate = (value) => {
     /^(\d{4}-\d{2}-\d{2})\s(\d{2}:\d{2}:\d{2})([+-]\d{2})(\d{2})$/,
     '$1T$2$3:$4'
   );
-  const d = new Date(normalized);
-  if (Number.isNaN(d.getTime())) return String(value);
-  return d.toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
+  return formatDate(normalized, String(value));
 };
 
 export const DELETE_REASON_LABELS = {

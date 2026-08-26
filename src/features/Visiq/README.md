@@ -21,6 +21,7 @@ APIs are tenant-scoped under `/visiq/` (no event id in path). Auth: organizer `T
 | `api/importApi.js` | List / create / detail |
 | `domain/loadImportCsvSource.js` | Fetch `job.file` URL; CSV parse / download |
 | `domain/parseCsvPreview.js` | CSV text → headers/rows |
+| `domain/formatDate.js` | List/detail dates via `src/utils/formatDateTime.js` (en-IN, IST) |
 | `hooks/useImportFileActions.js` | Preview / download from `job.file` or local File |
 | `ui/ImportPreviewModal.jsx` | In-browser table preview |
 | `ui/ImportsTab.jsx` | Upload, history, preview, download |

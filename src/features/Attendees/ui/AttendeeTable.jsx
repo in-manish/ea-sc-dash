@@ -54,7 +54,7 @@ const AttendeeTable = ({
                     <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">
                         Status
                     </th>
-                    <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border text-right">
+                    <th className="bg-bg-secondary py-3 px-4 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border text-right w-14">
                         Actions
                     </th>
                 </tr>

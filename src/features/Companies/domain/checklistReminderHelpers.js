@@ -1,3 +1,5 @@
+import { formatDateTime } from '../../../utils/formatDateTime';
+
 export const DEFAULT_CHECKLIST_REMINDER_SETTINGS = {
   enabled: false,
   version: 1,
@@ -58,12 +60,7 @@ export function formatOffsetDays(days) {
 }
 
 export function formatReminderSentAt(iso) {
-  if (!iso) return '—';
-  try {
-    return new Date(iso).toLocaleString();
-  } catch {
-    return String(iso);
-  }
+  return formatDateTime(iso);
 }
 
 export function formatStepId(stepId) {

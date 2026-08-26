@@ -2,7 +2,7 @@ import { Loader2 } from 'lucide-react';
 import ExhibitorListRow from './ExhibitorListRow';
 import { isHeaderSortActive } from '../domain/companyListSort';
 
-const COL_SPAN = 6;
+const COL_SPAN = 7;
 const thClass =
   'bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border';
 
@@ -35,6 +35,7 @@ export default function ExhibitorListTable({
   onTogglePage,
   onCompanyClick,
   onNavigate,
+  onRowAction,
   sortBy,
   sortOrder,
   onHeaderSort,
@@ -81,6 +82,7 @@ export default function ExhibitorListTable({
             />
             <th className={thClass}>Category</th>
             <th className={thClass}>Badges</th>
+            <th className={`${thClass} w-10 pr-4`} aria-label="Row actions" />
           </tr>
         </thead>
         <tbody>
@@ -106,6 +108,7 @@ export default function ExhibitorListTable({
                 onToggle={onToggle}
                 onCompanyClick={onCompanyClick}
                 onNavigate={onNavigate}
+                onRowAction={onRowAction}
               />
             ))
           )}

@@ -1,7 +1,12 @@
+import {
+    DASHBOARD_DATETIME_OPTIONS,
+    DASHBOARD_LOCALE,
+} from './formatDateTime';
+
 /**
  * Format API datetime strings that already carry IST wall-clock time.
  * Values like "2025-07-20 11:28:58.035146+00:00" must not be timezone-shifted —
- * the numeric time is already IST; only format for display.
+ * the numeric time is already IST; only format for display (en-IN).
  */
 export function formatApiDateTime(value, options = {}) {
     if (!value) return '-';
@@ -23,12 +28,8 @@ export function formatApiDateTime(value, options = {}) {
 
     if (Number.isNaN(date.getTime())) return String(value);
 
-    return date.toLocaleString([], {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
+    return date.toLocaleString(DASHBOARD_LOCALE, {
+        ...DASHBOARD_DATETIME_OPTIONS,
         ...options,
     });
 }

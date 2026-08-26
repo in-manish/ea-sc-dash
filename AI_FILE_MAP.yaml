@@ -61,6 +61,16 @@ tasks:
       GET then full-body PATCH /events/:eventId/attendees/:uuid/.
       Request attendee_type is name string; response is {name,id}.
       Exhibitor type requires exhibitor_id.
+  attendee_list_row_actions:
+    files:
+      - src/features/Attendees/ui/AttendeeTable.jsx
+      - src/features/Attendees/ui/AttendeeTableRow.jsx
+      - src/features/Attendees/ui/AttendeeTableRowMenu.jsx
+    routes:
+      - /event/:id/attendees
+    notes: >
+      List Actions column is a ⋯ overflow menu (Matchmaking, Re-create
+      E-badge, Sync SC when needed). Detail modal buttons are unchanged.
   attendee_type_drafts:
     files:
       - src/pages/AttendeeTypes.jsx
@@ -372,6 +382,10 @@ tasks:
       - src/features/Companies/domain/exhibitorReportQuery.js
       - src/features/Companies/domain/parseExhibitorReportError.js
       - src/features/Companies/hooks/useExhibitorReport.js
+      - src/features/Companies/ui/CompaniesReportsMenu.jsx
+      - src/features/Companies/ui/CompanyReportModal.jsx
+      - src/components/companies/CompanyComprehensiveReportPanel.jsx
+      - src/components/companies/CompanyReportMetricRow.jsx
       - src/features/Companies/ui/DownloadExhibitorReportButton.jsx
       - src/features/Companies/ui/ExhibitorReportModal.jsx
       - src/features/Companies/ui/ExhibitorReportModalPanes.jsx
@@ -387,6 +401,9 @@ tasks:
       Parent exhibitors only. Filename Event-{eventId}-ExhibitorReport.csv.
       400 payload; 401 login; 403 Organizer access required; 404 event;
       500 retry. Param is send_to_emails (not emails / sent_to_emails).
+      Header Reports also opens Company Report modal (totals, handover,
+      coupons, badges). GET /events/:eventId/company/comprehensive-report/.
+      Modal title is the only heading; metric copy includes units.
   exhibitor_engagement:
     files:
       - src/features/Companies/api/exhibitorEngagementApi.js
@@ -420,6 +437,10 @@ tasks:
       - src/features/Companies/ui/ExhibitorListSortControls.jsx
       - src/features/Companies/ui/ExhibitorListToolbar.jsx
       - src/features/Companies/ui/ExhibitorFilterChips.jsx
+      - src/features/Companies/ui/ExhibitorListActionsBar.jsx
+      - src/features/Companies/ui/ExhibitorListActionsMenu.jsx
+      - src/features/Companies/ui/ExhibitorListRowMenu.jsx
+      - src/features/Companies/ui/CompaniesReportsMenu.jsx
       - src/features/Companies/ui/ExhibitorListTable.jsx
       - src/features/Companies/ui/ExhibitorListRow.jsx
       - src/features/Companies/ui/ExhibitorsListPanel.jsx
@@ -554,8 +575,13 @@ tasks:
     files:
       - src/pages/Communication.jsx
       - src/components/EmailConfig.jsx
+      - src/components/email/EmailConfigTabs.jsx
+      - src/components/email/emailConfigTabs.js
       - src/components/email/EmailCategoryTypes.jsx
       - src/components/email/EmailTemplates.jsx
+      - src/components/email/templates/components/EmailTemplateList.jsx
+      - src/components/email/templates/components/TemplateActionsModal.jsx
+      - src/components/email/templates/components/TemplateRowActions.jsx
       - src/components/email/category/components/PreviewCanvas.jsx
       - src/components/email/templates/components/TemplatePreviewCanvas.jsx
       - src/components/email/shared/EmailBodyEditor.jsx
@@ -576,6 +602,7 @@ tasks:
       - src/services/emailTemplateApi.js
     routes:
       - /event/:id/communication?tab=email
+      - /event/:id/communication?tab=email&email_tab=history_scheduled
     notes: >
       Category Emails and Templates share EmailBodyEditor. Browse .html/.htm/.txt
       (1 MB); extract body + style from full documents; append or replace into
@@ -585,6 +612,59 @@ tasks:
       Hover/click a placeholder chip highlights all matches in the body, and vice versa.
       supporting_variables [{name, description}] is shown on edit to pick/insert tokens.
       Visual insert uses Jodit selection save/restore (not a DOM caret span in the email HTML).
+      Template rows use ⋯ → actions modal (View template, Delete). Campaigns have no
+      template_id; do not link History/Scheduled rows to a template.
+      History/Scheduled tab lists GET /events/:eventId/campaigns/email/?page= (size 10, no
+      search/status filter). Detail GET .../campaigns/email/:id/. Recipients GET
+      /campaigns/email_sent_details/:id/?page=. Scheduled PATCH datetime / DELETE cancel.
+
+  email_campaign_history:
+    files:
+      - src/features/EmailCampaigns/api/emailCampaignApi.js
+      - src/features/EmailCampaigns/domain/campaignHelpers.js
+      - src/utils/formatDateTime.js
+      - src/features/EmailCampaigns/hooks/useEmailCampaignList.js
+      - src/features/EmailCampaigns/hooks/useCampaignDetail.js
+      - src/features/EmailCampaigns/hooks/useCampaignRecipients.js
+      - src/features/EmailCampaigns/ui/EmailCampaignsPage.jsx
+      - src/features/EmailCampaigns/ui/CampaignList.jsx
+      - src/features/EmailCampaigns/ui/CampaignListRow.jsx
+      - src/features/EmailCampaigns/ui/CampaignRowActions.jsx
+      - src/features/EmailCampaigns/ui/HoverActionButton.jsx
+      - src/features/EmailCampaigns/ui/CampaignStatusFilter.jsx
+      - src/features/EmailCampaigns/ui/CampaignDetailModal.jsx
+      - src/features/EmailCampaigns/ui/CampaignRecipientsModal.jsx
+      - src/features/EmailCampaigns/ui/CampaignRecipientsTable.jsx
+      - src/features/EmailCampaigns/ui/RecipientRowActions.jsx
+      - src/components/EmailConfig.jsx
+      - src/components/email/EmailConfigTabs.jsx
+      - src/components/email/emailConfigTabs.js
+      - src/pages/Communication.jsx
+    routes:
+      - /event/:id/communication?tab=email&email_tab=history_scheduled
+    notes: >
+      List is page-only (DRF PAGE_SIZE 10). All/History/Scheduled is a client filter
+      (SCHEDULED/SCH vs other statuses). Clicking a campaign row opens CampaignDetailModal
+      (GET campaign). Row hover also reveals View details / View recipients pills;
+      scheduled rows show Reschedule/Cancel. HoverActionButton stopPropagation so those
+      clicks do not open detail. Recipient row hover View attendee →
+      /event/:id/attendees?q= (email, then user_uuid, then reg_id). Detail response is
+      { results: [campaign] }. Recipients are a separate paginated log. No name/status
+      query params on these EA endpoints. Date column shows Created + Updated (and Scheduled
+      when status is scheduled) via formatDateTime (en-IN, Asia/Kolkata). List payload
+      `count` is shown beside the filter as “N campaigns”; row Recipients is number_recipients.
+
+  dashboard_datetime:
+    files:
+      - src/utils/formatDateTime.js
+      - src/utils/formatApiDateTime.js
+      - src/features/EmailCampaigns/domain/campaignHelpers.js
+      - src/components/email/templates/components/EmailTemplateList.jsx
+    notes: >
+      User-visible timestamps: Intl en-IN + Asia/Kolkata (day-month-year, 12-hour).
+      Empty/invalid → em dash. formatApiDateTime still parses IST-already-in-string
+      values without shifting; only the display locale is Indian. Campaign list Date
+      column uses campaignDateLines (Created + Updated; Scheduled first if scheduled).
 
 features:
   Attendees:
@@ -664,11 +744,20 @@ features:
     list_api: GET /wa/template/list/
     archive_api: DELETE /wa/template/:id/
     restore_api: PATCH /wa/template/:id/ { is_active: true }
+  EmailCampaigns:
+    root: src/features/EmailCampaigns/
+    entry: src/pages/Communication.jsx
+    routes:
+      - /event/:id/communication?tab=email&email_tab=history_scheduled
+    list_api: GET /events/:eventId/campaigns/email/?page=
+    detail_api: GET /events/:eventId/campaigns/email/:id/
+    recipients_api: GET /campaigns/email_sent_details/:id/?page=
   EaEmail:
     root: src/components/email/
     entry: src/pages/Communication.jsx
     routes:
       - /event/:id/communication?tab=email
+      - /event/:id/communication?tab=email&email_tab=history_scheduled
   ScEmailTemplates:
     root: src/features/ScEmailTemplates/
     entry: src/sc/pages/EmailTemplates.jsx
@@ -687,6 +776,7 @@ critical_paths:
   - src/contexts/AuthContext.jsx
 
 glossary:
+  dashboard_datetime: Display timestamps with en-IN + Asia/Kolkata; empty/invalid → em dash
   auth_landing_resume: Bare host URL must restore an existing EA/SC token instead of forcing /login
   cross_tab_logout: Other tabs keep a sessionStorage copy after logout; drop it when localStorage token is gone
 
@@ -714,6 +804,11 @@ glossary:
   sc_email_template_archive: No DELETE; PATCH {is_active:false} archives; uniqueness applies only to active rows
   app_alert: Themed AlertModal via useAlert; window.alert is patched; confirm uses showConfirm
   wa_template_archive: DELETE /wa/template/:id/ sets is_active false; list omit is_active = active; restore PATCH { is_active: true }
+  email_campaign_list: >
+    GET /events/:id/campaigns/email/?page= only; no search/status filter; History/Scheduled
+    tab with All/History/Scheduled client filter; row-hover View details / View recipients;
+    detail and recipients extra GETs; Date column Created + Updated (Scheduled line if scheduled);
+    list `count` shown beside filter; Recipients column is number_recipients
   ea_email_file_import: Browse .html/.htm/.txt (1 MB); extract body + style; append or replace into category/template body
   ea_email_template_filters: List filters { events: [id], template_types: [unique], names: [] }; query event, name, template_type
   ea_email_content_variables: Create/update content_variables is { token: "" } from {{name}} in body/subject; supporting_variables catalog is shown on edit

@@ -6,6 +6,7 @@ import { useParams } from 'react-router-dom';
 import EmailTemplateList from './templates/components/EmailTemplateList';
 import EmailTemplateFilters from './templates/components/EmailTemplateFilters';
 import EmailTemplateEditorModal from './templates/components/EmailTemplateEditorModal';
+import TemplateActionsModal from './templates/components/TemplateActionsModal';
 import useEmailTemplatesList from './templates/hooks/useEmailTemplatesList';
 import { buildEmailTemplatePayload } from './templates/domain/buildEmailTemplatePayload';
 
@@ -40,6 +41,7 @@ const EmailTemplates = ({ viewMode = 'list', onAddSignal = 0 }) => {
     } = useEmailTemplatesList({ eventId, token });
 
     const [previewTemplate, setPreviewTemplate] = useState(null);
+    const [actionsTemplate, setActionsTemplate] = useState(null);
     const [previewDevice, setPreviewDevice] = useState('laptop14');
     const [isEditing, setIsEditing] = useState(false);
     const [editFormData, setEditFormData] = useState({});
@@ -109,11 +111,10 @@ const EmailTemplates = ({ viewMode = 'list', onAddSignal = 0 }) => {
         }
     };
 
-    const handleDelete = async (e, id) => {
-        e.stopPropagation();
+    const handleDelete = async (template) => {
         if (!window.confirm('Are you sure you want to delete this template?')) return;
         try {
-            await emailService.deleteEmailTemplate(eventId, id, token);
+            await emailService.deleteEmailTemplate(eventId, template.id, token);
             await refetch();
         } catch (err) {
             console.error('Error deleting template', err);
@@ -138,12 +139,19 @@ const EmailTemplates = ({ viewMode = 'list', onAddSignal = 0 }) => {
                 templates={templates}
                 viewMode={viewMode}
                 handleViewTemplate={handleViewTemplate}
-                handleDelete={handleDelete}
+                onOpenActions={setActionsTemplate}
                 handleCreateNew={handleCreateNew}
                 page={page}
                 totalPages={totalPages}
                 setPage={setPage}
                 hasActiveFilters={hasActiveFilters}
+            />
+
+            <TemplateActionsModal
+                template={actionsTemplate}
+                onClose={() => setActionsTemplate(null)}
+                onView={handleViewTemplate}
+                onDelete={handleDelete}
             />
 
             <EmailTemplateEditorModal

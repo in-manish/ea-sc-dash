@@ -77,57 +77,5 @@ export const emailService = {
         }
     },
 
-    getCampaigns: async (eventId, token) => {
-        try {
-            const response = await axios.get(`${getApiUrl()}/events/${eventId}/campaigns/email/`, {
-                headers: getHeaders(token),
-            });
-            return response.data;
-        } catch (error) {
-            console.error('Error fetching email campaigns:', error);
-            throw error;
-        }
-    },
-
-    getCampaign: async (eventId, campaignId, token) => {
-        try {
-            const response = await axios.get(
-                `${getApiUrl()}/events/${eventId}/campaigns/email/${campaignId}/`,
-                { headers: getHeaders(token) }
-            );
-            return response.data;
-        } catch (error) {
-            console.error('Error fetching email campaign:', error);
-            throw error;
-        }
-    },
-
-    rescheduleCampaign: async (eventId, campaignId, token, datetimeStr) => {
-        try {
-            const response = await axios.patch(
-                `${getApiUrl()}/events/${eventId}/campaigns/email/${campaignId}/`,
-                { datetime: datetimeStr },
-                { headers: getHeaders(token) }
-            );
-            return response.data;
-        } catch (error) {
-            console.error('Error rescheduling email campaign:', error);
-            throw error;
-        }
-    },
-
-    cancelCampaign: async (eventId, campaignId, token) => {
-        try {
-            const response = await axios.delete(
-                `${getApiUrl()}/events/${eventId}/campaigns/email/${campaignId}/`,
-                { headers: getHeaders(token) }
-            );
-            return response.data;
-        } catch (error) {
-            console.error('Error cancelling email campaign:', error);
-            throw error;
-        }
-    },
-
     ...emailTemplateApi,
 };

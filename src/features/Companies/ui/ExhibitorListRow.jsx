@@ -1,4 +1,6 @@
 import { Building2, ExternalLink, IdCard, Lock, Printer, Star } from 'lucide-react';
+import { isParentExhibitor } from '../domain/companyBulkActionPayload';
+import ExhibitorListRowMenu from './ExhibitorListRowMenu';
 
 export default function ExhibitorListRow({
   company,
@@ -7,6 +9,7 @@ export default function ExhibitorListRow({
   onToggle,
   onCompanyClick,
   onNavigate,
+  onRowAction,
 }) {
   const parentExhibitor = company.parent_exhibitor;
   const isCoExhibitor = Boolean(parentExhibitor?.id || parentExhibitor);
@@ -144,6 +147,20 @@ export default function ExhibitorListRow({
             />
           </span>
         </button>
+      </td>
+      <td
+        className="py-4 pr-4 pl-2 align-middle group-last:border-b-0 w-10"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <ExhibitorListRowMenu
+          isParent={isParentExhibitor(company)}
+          locked={Boolean(company.is_company_submit_locked)}
+          onView={() => onCompanyClick(company.id)}
+          onEdit={() => onNavigate(`/event/${eventId}/companies/${company.id}/edit`)}
+          onReset={() => onRowAction?.('reset', company)}
+          onToggleLock={() => onRowAction?.('lock', company)}
+          onFeature={() => onRowAction?.('feature', company)}
+        />
       </td>
     </tr>
   );

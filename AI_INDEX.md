@@ -11,6 +11,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 - `src/App.jsx` — routes; bare host (no `/ea`|`/sc`) resumes an existing token
 - `src/layouts/EventLayout.jsx` — event shell / nav
 - `src/services/` — HTTP clients
+- `src/utils/formatDateTime.js` — dashboard dates (`en-IN`, `Asia/Kolkata`)
 - `src/contexts/authSession.js` — token restore, last path, landing URL
 - `src/contexts/useCrossTabAuthSync.js` — logout in one tab signs out the others
 - `src/components/alert/` — themed app alert/confirm (`useAlert`)
@@ -28,6 +29,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | ScEmailTemplates | `src/features/ScEmailTemplates/` | SC admin list; EA-like manage/edit modal |
 | WhatsApp | `src/features/WhatsApp/` | Communication WhatsApp templates: archive (not delete), Active/Archived list |
 | EaEmail | `src/components/email/` | Communication Email: category + templates; browse HTML into body |
+| EmailCampaigns | `src/features/EmailCampaigns/` | History/Scheduled tab; row click or hover View details; hover View recipients; recipient hover View attendee |
 | Matchmaking | `src/features/Matchmaking/` | GET 404 = create/copy; 200 = editor only |
 | MeetingStats | `src/features/MeetingStats/` | Organizer meeting stats by event × attendee type (GET) + email CSV (POST) |
 | Visiq | `src/features/Visiq/` | Tenant subscriber CRM: list/detail + CSV/Excel import jobs |
@@ -39,6 +41,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Event settings / support email | `src/pages/event-settings/CommunicationSettings.jsx` (`support_email`) |
 | Event settings / sender profile pic | `src/pages/event-settings/SenderDefaultProfilePicField.jsx` (`sender_default_profile_pic`) |
 | Edit attendee / badge | `src/features/Attendees/ui/EditAttendeeModal.jsx` + `api/attendeeApi.js` + `domain/editAttendeeForm.js` |
+| Attendee list row actions | `src/features/Attendees/ui/AttendeeTableRowMenu.jsx` + `AttendeeTableRow.jsx` |
 | Attendee type email / SMS drafts | `src/pages/AttendeeTypes.jsx` + `attendee-types/saveAttendeeTypeDrafts.js` + `EmailInvitationDraft.jsx` (badge tokens, Google / Outlook calendar hrefs) |
 | List attendee type email drafts | `ui/AttendeeSelectionBar.jsx` + `hooks/useAttendeeTypeEmails.js` + `api/attendeeTypeEmailsApi.js` |
 | Send attendee emails | `ui/AttendeeEmailDraftsModal.jsx` (Badge Email + Categories Email toggles) + `hooks/useAttendeeTypeEmails.js` + `hooks/useCategoryTypeEmails.js` |
@@ -50,10 +53,11 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Checklist Reminder tab | `src/features/Companies/ui/ChecklistReminderTab.jsx` + `api/checklistReminderApi.js` |
 | Checklist remind + progress poll | `hooks/useSetupChecklistRemind.js` + `ui/RemindSendProgress.jsx` |
 | Reset exhibitor POC password | `src/features/Companies/ui/ExhibitorPasswordResetControl.jsx` + attendee bar: `ui/AttendeeSelectionBar.jsx` (single POC) |
-| Bulk lock / feature companies | `src/features/Companies/ui/ExhibitorLockMenu.jsx` + `ExhibitorBulkActionBar.jsx` + `api/companyApi.js` (`bulkAction`) |
-| Download / email exhibitor CSV report | `ui/DownloadExhibitorReportButton.jsx` + `ui/ExhibitorReportModal.jsx` + `hooks/useExhibitorReport.js` + `api/exhibitorReportApi.js` |
+| Bulk lock / feature companies | `src/features/Companies/ui/ExhibitorListActionsBar.jsx` + `ExhibitorListRowMenu.jsx` + `api/companyApi.js` (`bulkAction`) |
+| Download / email exhibitor CSV report | `ui/CompaniesReportsMenu.jsx` + `ui/ExhibitorReportModal.jsx` + `hooks/useExhibitorReport.js` + `api/exhibitorReportApi.js` |
+| Company Report metrics modal | `ui/CompanyReportModal.jsx` + `src/components/companies/CompanyComprehensiveReportPanel.jsx` + `CompanyReportMetricRow.jsx` |
 | Exhibitor Engagement tab | `ui/ExhibitorEngagementTab.jsx` + `hooks/useExhibitorEngagement.js` + `api/exhibitorEngagementApi.js` |
-| Exhibitor list sort | `domain/companyListSort.js` + `hooks/useExhibitorList.js` + `ui/ExhibitorListToolbar.jsx` + `ui/ExhibitorFilterChips.jsx` |
+| Exhibitor list sort | `domain/companyListSort.js` + `ui/ExhibitorListToolbar.jsx` + `ui/ExhibitorListActionsBar.jsx` |
 | Company FormData / errors | `src/features/Companies/domain/buildCompanyFormData.js`, `parseCompanyError.js` |
 | Agenda list / edit session | `src/features/Agenda/ui/AgendaListPage.jsx`, `AgendaEditPage.jsx` (`force_attendance` block slot) |
 | Agenda API create/update | `src/services/agendaService.js` + `domain/buildAgendaFormData.js` |
@@ -71,7 +75,10 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | EA category / template body import | `src/components/email/shared/EmailBodyEditor.jsx` + `EmailFileImport.jsx` + `readHtmlFile.js` |
 | Themed alert / confirm | `src/components/alert/AlertModal.jsx` + `src/contexts/AlertContext.jsx` (`useAlert`) |
 | WhatsApp templates archive | `src/features/WhatsApp/hooks/useWhatsAppTemplateList.js` + `api/whatsappTemplateApi.js` |
+| Email campaign history / scheduled | `src/features/EmailCampaigns/ui/EmailCampaignsPage.jsx` + `ui/CampaignListRow.jsx` (Date: Created + Updated) + `hooks/useEmailCampaignList.js` (`count` + list) + `ui/CampaignRowActions.jsx` |
+| Dashboard datetime (en-IN, IST) | `src/utils/formatDateTime.js` + EmailCampaigns `domain/campaignHelpers.js` (`formatCampaignDate`, `campaignDateLines`) |
 | EA template list filters | `src/components/email/templates/domain/parseTemplateFilters.js` + `EmailTemplateFilters.jsx` |
+| EA template row actions | `src/components/email/templates/components/TemplateActionsModal.jsx` + `TemplateRowActions.jsx` + `EmailTemplates.jsx` |
 | EA template content_variables | `src/components/email/templates/domain/contentVariables.js` + `TemplateSupportingVariables.jsx` + `usePlaceholderHighlight.js` |
 | Event settings AR tax list | `src/pages/event-settings/exhibitorPortalDefaults.js` + `ArTaxList.jsx` + `useAdditionalRequirement.js` |
 | Event settings / exhibitor meeting diary | `src/pages/event-settings/CompanyAccessControlsSection.jsx` + `exhibitorPortalDefaults.js` (`exhibitor_portal_data.meeting_diary.is_meeting_option_active`) |

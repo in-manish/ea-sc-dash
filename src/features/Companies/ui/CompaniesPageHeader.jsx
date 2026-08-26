@@ -1,6 +1,6 @@
 import { Upload } from 'lucide-react';
 import CreateCompanyButton from './CreateCompanyButton';
-import DownloadExhibitorReportButton from './DownloadExhibitorReportButton';
+import CompaniesReportsMenu from './CompaniesReportsMenu';
 
 export default function CompaniesPageHeader({
   activeTab,
@@ -10,6 +10,7 @@ export default function CompaniesPageHeader({
   token,
   companies,
   selectedIds,
+  parentExhibitorId,
   onUpload,
 }) {
   const showListTotal = activeTab === 'exhibitors' && exhView === 'list';
@@ -26,18 +27,19 @@ export default function CompaniesPageHeader({
       {activeTab === 'exhibitors' && (
         <div className="flex gap-3 items-center flex-wrap justify-end">
           {eventId && <CreateCompanyButton eventId={eventId} />}
+          <button type="button" className="btn btn-secondary" onClick={onUpload}>
+            <Upload size={16} style={{ marginRight: '0.5rem' }} />
+            Upload CSV
+          </button>
           {eventId && (
-            <DownloadExhibitorReportButton
+            <CompaniesReportsMenu
               eventId={eventId}
               token={token}
               companies={companies}
               selectedIds={selectedIds}
+              parentExhibitorId={parentExhibitorId}
             />
           )}
-          <button type="button" className="btn btn-primary" onClick={onUpload}>
-            <Upload size={16} style={{ marginRight: '0.5rem' }} />
-            Upload CSV
-          </button>
         </div>
       )}
     </div>

@@ -18,6 +18,8 @@ Event attendee list, filters, WhatsApp send, attendee-type email drafts, e-badge
 ## Key UI files
 
 - `AttendeesPage.jsx` — composes hooks + tabs / list / tasks / modals
+- `AttendeeTableRow.jsx` — name / contact / company / type / status cells
+- `AttendeeTableRowMenu.jsx` — row ⋯ menu: Matchmaking, Re-create E-badge, Sync SC
 - `AttendeesListView.jsx` — report panel, search, filter pills, selection bar, table, email drafts modal
 - `AttendeeEmailDraftsModal.jsx` — Send Mail: Badge Email + category email toggles; View attendee-type drafts
 - `AttendeesReportPanel.jsx` — collapsible badge counts by attendee type (ES/DB)
@@ -36,6 +38,6 @@ Event attendee list, filters, WhatsApp send, attendee-type email drafts, e-badge
 - Attendees report → `ui/AttendeesReportPanel.jsx` + `ui/AttendeesReportCharts.jsx` + `hooks/useAttendeesReport.js` + `api/attendeesReportApi.js`
 - Edit attendee / badge → `ui/EditAttendeeModal.jsx` + `hooks/useEditAttendee.js` + `api/attendeeApi.js` + `domain/editAttendeeForm.js`
 - Exhibitor portal password reset (POC) → `ui/AttendeeSelectionBar.jsx` (single selected POC) + `ui/AttendeeDetailModal.jsx` + `domain/exhibitorPoc.js`
-- Table row actions → `ui/AttendeeTableRow.jsx`
+- Table row actions → `ui/AttendeeTableRowMenu.jsx` (⋯ menu: Matchmaking, Re-create E-badge, Sync SC)
 - WhatsApp send → `hooks/useWhatsAppSend.js` + `ui/WhatsAppSendModal.jsx`
 - E-badge create/poll → `hooks/useEBadgeActions.js` + `hooks/useEBadgeJobs.js`

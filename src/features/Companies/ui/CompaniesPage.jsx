@@ -81,6 +81,7 @@ export default function CompaniesPage() {
         token={token}
         companies={list.companies}
         selectedIds={selection.selectedIds}
+        parentExhibitorId={list.filters.parent_exhibitor_id || ''}
         onUpload={() => setIsUploadModalOpen(true)}
       />
 

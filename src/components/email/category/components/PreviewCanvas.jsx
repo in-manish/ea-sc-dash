@@ -1,5 +1,6 @@
 import React from 'react';
 import { Mail } from 'lucide-react';
+import { formatDateTime } from '../../../../utils/formatDateTime';
 import EmailBodyEditor from '../../shared/EmailBodyEditor';
 
 const PreviewCanvas = ({
@@ -69,7 +70,7 @@ function InboxHeader({ previewEmail }) {
                     </div>
                 </div>
                 <div className="text-xs text-gray-400 font-medium mt-2 lg:mt-0 flex-shrink-0">
-                    {new Date().toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                    {formatDateTime(new Date())}
                 </div>
             </div>
         </>

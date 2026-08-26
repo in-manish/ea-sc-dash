@@ -25,7 +25,7 @@ SC admin Manage Users.
 | `hooks/useSavedCardMutations.js` | Restore + permanent delete |
 | `hooks/*` | List + cards data hooks |
 | `api/userCardsApi.js` | Admin cards / pending / activity APIs |
-| `domain/savedCardHelpers.js` | card_id, delete reason labels, dates |
+| `domain/savedCardHelpers.js` | card_id, delete reason labels, dates (en-IN/IST) |
 
 ## Saved cards API
 

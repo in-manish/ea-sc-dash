@@ -1,7 +1,6 @@
 import AdditionalRequirementsOrders from '../../../pages/AdditionalRequirementsOrders';
 import ARManager from '../../../pages/ARManager';
 import CompanyUploadStatus from '../../../components/companies/CompanyUploadStatus';
-import CompanyComprehensiveReportPanel from '../../../components/companies/CompanyComprehensiveReportPanel';
 import { removeExhibitorListFilter } from '../domain/exhibitorListFilters';
 import ProductMatchmakingPanel from './ProductMatchmakingPanel';
 import ChecklistReminderTab from './ChecklistReminderTab';
@@ -25,14 +24,6 @@ export default function CompaniesPagePanels({
 
   return (
     <>
-      {showList && (
-        <CompanyComprehensiveReportPanel
-          eventId={eventId}
-          token={token}
-          parentExhibitorId={list.filters.parent_exhibitor_id || ''}
-        />
-      )}
-
       {activeTab === 'exhibitors' && exhView === 'upload_status' && eventId && (
         <CompanyUploadStatus eventId={eventId} token={token} refreshKey={uploadRefreshKey} />
       )}

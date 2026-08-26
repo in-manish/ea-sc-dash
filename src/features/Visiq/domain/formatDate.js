@@ -1,25 +1,29 @@
-/** Locale datetime for list/detail rows; empty → em dash. */
-export function formatDateTime(value) {
-  if (!value) return '—';
-  try {
-    return new Date(value).toLocaleString();
-  } catch {
-    return String(value);
-  }
+import {
+  DASHBOARD_DATE_OPTIONS,
+  DASHBOARD_LOCALE,
+  DASHBOARD_TIMEZONE,
+} from '../../../utils/formatDateTime';
+
+export { formatDateTime } from '../../../utils/formatDateTime';
+
+function calendarYear(date) {
+  return date.toLocaleString(DASHBOARD_LOCALE, {
+    timeZone: DASHBOARD_TIMEZONE,
+    year: 'numeric',
+  });
 }
 
-/** Compact list date: "Aug 25" or "Aug 25, 2025" if not this year. */
+/** Compact list date: "26 Aug" or "26 Aug 2025" if not this year. */
 export function formatShortDate(value) {
   if (!value) return '—';
-  try {
-    const d = new Date(value);
-    const now = new Date();
-    const opts =
-      d.getFullYear() === now.getFullYear()
-        ? { month: 'short', day: 'numeric' }
-        : { month: 'short', day: 'numeric', year: 'numeric' };
-    return d.toLocaleDateString(undefined, opts);
-  } catch {
-    return String(value);
-  }
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '—';
+  const opts =
+    calendarYear(d) === calendarYear(new Date())
+      ? { month: 'short', day: '2-digit' }
+      : DASHBOARD_DATE_OPTIONS;
+  return d.toLocaleDateString(DASHBOARD_LOCALE, {
+    timeZone: DASHBOARD_TIMEZONE,
+    ...opts,
+  });
 }

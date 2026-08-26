@@ -6,7 +6,12 @@ Event organizer email templates under Communication → Email. Category Emails a
 |------|------|
 | `EmailCategoryTypes.jsx` | Category emails list + editor modal |
 | `EmailTemplates.jsx` | Reusable templates list + editor modal |
-| `EmailCampaigns.jsx` | Campaign list |
+| `templates/components/EmailTemplateList.jsx` | Template grid/list (created date en-IN/IST) |
+| `templates/components/TemplateRowActions.jsx` | ⋯ opens actions modal |
+| `templates/components/TemplateActionsModal.jsx` | View template, Delete |
+| `EmailConfigTabs.jsx` | Category / Templates / History/Scheduled |
+| `emailConfigTabs.js` | Email tab ids, copy, URL parse |
+| `EmailCampaigns.jsx` | Re-export of `src/features/EmailCampaigns` |
 | `category/components/PreviewCanvas.jsx` | Category preview / edit canvas |
 | `templates/components/TemplatePreviewCanvas.jsx` | Template preview / edit canvas |
 | `templates/components/EmailTemplateFilters.jsx` | Event / name / type / status filters |
@@ -33,6 +38,7 @@ Event organizer email templates under Communication → Email. Category Emails a
 
 List response `filters`: `{ events: [id], template_types: [unique], names: [] }`.
 Dropdowns for Event, Name, and Template Type. Query: `event`, `name` (also `email_name`), `template_type`.
+Row ⋯ opens View template (editor modal) or Delete.
 
 ## Content variables
 
@@ -41,3 +47,7 @@ Create/update sends `content_variables: { name: "", event_name: "", ... }`.
 Hover or click a chip to highlight every match in the body, and vice versa.
 `supporting_variables` (name + description) lists tokens you can insert at the cursor while editing.
 Click in the body, then pick a catalog token to insert at that spot (visual uses Jodit selection markers; a caret overlay shows the insert point).
+
+## History / Scheduled campaigns
+
+See `src/features/EmailCampaigns/README.md`. EA list/detail/recipients only support `page` (10 per page); there is no search or status filter on those endpoints.

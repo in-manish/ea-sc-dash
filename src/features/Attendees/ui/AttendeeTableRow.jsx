@@ -5,13 +5,10 @@ import {
     Globe,
     Building2,
     ShieldCheck,
-    Loader2,
-    RefreshCw,
-    HeartHandshake,
-    IdCard,
 } from 'lucide-react';
 import CopyableValue from './CopyableValue';
 import ObfCopyChip from './ObfCopyChip';
+import AttendeeTableRowMenu from './AttendeeTableRowMenu';
 
 const AttendeeTableRow = ({
     attendee,
@@ -154,40 +151,15 @@ const AttendeeTableRow = ({
                     {attendee.reg_type}
                 </span>
             </td>
-            <td className="py-4 px-6 align-middle group-last:border-b-0 text-right" onClick={(e) => e.stopPropagation()}>
-                <div className="inline-flex items-center gap-2">
-                    {needsScSync(attendee) && (
-                        <button
-                            className="btn btn-secondary btn-sm inline-flex items-center gap-1.5"
-                            onClick={() => onSyncSc(attendee)}
-                            disabled={syncingScUuid === attendee.uuid}
-                            title="Sync badge with SnapCard"
-                        >
-                            {syncingScUuid === attendee.uuid ? (
-                                <Loader2 size={14} className="animate-spin" />
-                            ) : (
-                                <RefreshCw size={14} />
-                            )}
-                            Sync SC
-                        </button>
-                    )}
-                    <button
-                        className="btn btn-secondary btn-sm inline-flex items-center gap-1.5"
-                        onClick={() => onMatchmaking(attendee)}
-                        title="View Matchmaking Answers"
-                    >
-                        <HeartHandshake size={14} />
-                        Matchmaking
-                    </button>
-                    <button
-                        className="btn btn-secondary btn-sm inline-flex items-center gap-1.5"
-                        onClick={() => onCreateEBadge(attendee.uuid)}
-                        title="Re-create E-badge"
-                    >
-                        <IdCard size={14} />
-                        Re-create E-badge
-                    </button>
-                </div>
+            <td className="py-4 px-4 align-middle group-last:border-b-0 text-right" onClick={(e) => e.stopPropagation()}>
+                <AttendeeTableRowMenu
+                    attendee={attendee}
+                    syncing={syncingScUuid === attendee.uuid}
+                    showSyncSc={needsScSync(attendee)}
+                    onSyncSc={onSyncSc}
+                    onMatchmaking={onMatchmaking}
+                    onCreateEBadge={onCreateEBadge}
+                />
             </td>
         </tr>
     );

@@ -1,3 +1,5 @@
+import { formatDateTime } from '../../../utils/formatDateTime';
+
 export function formatAudience(audience) {
   if (audience == null || audience === '') return 'Default';
   return String(audience).replace(/_/g, ' ');
@@ -14,10 +16,7 @@ export function formatFromName(name) {
 }
 
 export function formatTemplateDate(value) {
-  if (!value) return '—';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return String(value);
-  return date.toLocaleString();
+  return formatDateTime(value);
 }
 
 export function eventFilterId(item) {

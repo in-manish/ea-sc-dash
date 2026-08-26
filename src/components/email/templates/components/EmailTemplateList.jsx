@@ -1,12 +1,14 @@
 import React from 'react';
-import { Loader2, Mail, ArrowLeft, Trash2, Edit3 } from 'lucide-react';
+import { Loader2, Mail, ArrowLeft } from 'lucide-react';
+import { formatDate } from '../../../../utils/formatDateTime';
+import TemplateRowActions from './TemplateRowActions';
 
 const EmailTemplateList = ({
     isLoading,
     templates,
     viewMode,
     handleViewTemplate,
-    handleDelete,
+    onOpenActions,
     handleCreateNew,
     page,
     totalPages,
@@ -53,12 +55,7 @@ const EmailTemplateList = ({
                                     <h3 className="font-black text-text-primary group-hover:text-accent leading-tight text-base break-words pr-2 tracking-tight text-left">
                                         {template.email_name || 'Unnamed Template'}
                                     </h3>
-                                    <button
-                                        onClick={(e) => handleDelete(e, template.id)}
-                                        className="text-gray-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-md transition-colors flex-shrink-0 opacity-0 group-hover:opacity-100"
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
+                                    <TemplateRowActions template={template} onOpenActions={onOpenActions} />
                                 </div>
                                 {template.subject && (
                                     <div className="text-[10px] font-bold text-accent uppercase tracking-wider -mt-1 line-clamp-2" title={template.subject}>
@@ -67,7 +64,7 @@ const EmailTemplateList = ({
                                 )}
                                 <div className="flex justify-between items-center text-xs text-gray-500">
                                     <span>ID: {template.id}</span>
-                                    <span className="text-gray-400">{new Date(template.created_at).toLocaleDateString()}</span>
+                                    <span className="text-gray-400">{formatDate(template.created_at)}</span>
                                 </div>
                             </div>
 
@@ -109,24 +106,12 @@ const EmailTemplateList = ({
                                     {template.email_content ? template.email_content.replace(/<[^>]+>/g, '') : 'No content'}
                                 </div>
                                 <div className="text-[10px] text-text-tertiary font-medium mt-1.5">
-                                    {new Date(template.created_at).toLocaleDateString()}
+                                    {formatDate(template.created_at)}
                                 </div>
                             </div>
 
-                            <div className="px-5 py-3 sm:py-0 shrink-0 flex items-center justify-end gap-3 border-t sm:border-t-0 sm:border-l border-border bg-bg-secondary/40 sm:bg-transparent">
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); handleViewTemplate(template); }}
-                                    className="text-text-secondary hover:text-accent hover:bg-bg-primary px-4 py-2 rounded-xl transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest border border-border hover:border-accent/30 bg-bg-primary shadow-sm"
-                                >
-                                    <Edit3 size={14} /> Edit
-                                </button>
-                                <button
-                                    onClick={(e) => handleDelete(e, template.id)}
-                                    className="text-gray-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors border border-transparent hover:border-red-100"
-                                    title="Delete Template"
-                                >
-                                    <Trash2 size={16} />
-                                </button>
+                            <div className="px-5 py-3 sm:py-0 shrink-0 flex items-center justify-end border-t sm:border-t-0 sm:border-l border-border bg-bg-secondary/40 sm:bg-transparent">
+                                <TemplateRowActions template={template} onOpenActions={onOpenActions} />
                             </div>
                         </div>
                     ))}
