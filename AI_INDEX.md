@@ -42,7 +42,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Event settings / sender profile pic | `src/pages/event-settings/SenderDefaultProfilePicField.jsx` (`sender_default_profile_pic`) |
 | Edit attendee / badge | `src/features/Attendees/ui/EditAttendeeModal.jsx` + `api/attendeeApi.js` + `domain/editAttendeeForm.js` |
 | Attendee list row actions | `src/features/Attendees/ui/AttendeeTableRowMenu.jsx` + `AttendeeTableRow.jsx` |
-| Attendee type email / SMS drafts | `src/pages/AttendeeTypes.jsx` + `attendee-types/saveAttendeeTypeDrafts.js` + `EmailInvitationDraft.jsx` (badge tokens, Google / Outlook calendar hrefs) |
+| Attendee type email / SMS drafts | `src/pages/AttendeeTypes.jsx` + `EmailInvitationDraft.jsx` + `BadgeEmailVariablesRail.jsx` (badge tokens, `tv_referral_link` / `{title_slug}_referral_link`, calendar hrefs) |
 | List attendee type email drafts | `ui/AttendeeSelectionBar.jsx` + `hooks/useAttendeeTypeEmails.js` + `api/attendeeTypeEmailsApi.js` |
 | Send attendee emails | `ui/AttendeeEmailDraftsModal.jsx` (Badge Email + Categories Email toggles) + `hooks/useAttendeeTypeEmails.js` + `hooks/useCategoryTypeEmails.js` |
 | Active badge status / create | `ui/ActiveBadgeToolbar.jsx` + `hooks/useActiveBadgeActions.js` + `api/activeBadgeApi.js` |
@@ -78,8 +78,10 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Email campaign history / scheduled | `src/features/EmailCampaigns/ui/EmailCampaignsPage.jsx` + `ui/CampaignListRow.jsx` (Date: Created + Updated) + `hooks/useEmailCampaignList.js` (`count` + list) + `ui/CampaignRowActions.jsx` |
 | Dashboard datetime (en-IN, IST) | `src/utils/formatDateTime.js` + EmailCampaigns `domain/campaignHelpers.js` (`formatCampaignDate`, `campaignDateLines`) |
 | EA template list filters | `src/components/email/templates/domain/parseTemplateFilters.js` + `EmailTemplateFilters.jsx` |
+| EA template create by type | `templates/constants/emailTemplateTypes.js` + `CreateTemplateTypePicker.jsx` + `buildNewEmailTemplate.js` |
 | EA template row actions | `src/components/email/templates/components/TemplateActionsModal.jsx` + `TemplateRowActions.jsx` + `EmailTemplates.jsx` |
 | EA template content_variables | `src/components/email/templates/domain/contentVariables.js` + `TemplateSupportingVariables.jsx` + `usePlaceholderHighlight.js` |
+| EA invitee type placeholders | `InviteeTypePlaceholderForm.jsx` + `inviteeLinkPlaceholder.js` + `useInviteeLinkPlaceholders.js` |
 | Event settings AR tax list | `src/pages/event-settings/exhibitorPortalDefaults.js` + `ArTaxList.jsx` + `useAdditionalRequirement.js` |
 | Event settings / exhibitor meeting diary | `src/pages/event-settings/CompanyAccessControlsSection.jsx` + `exhibitorPortalDefaults.js` (`exhibitor_portal_data.meeting_diary.is_meeting_option_active`) |
 | Matchmaking questions / copy | `src/features/Matchmaking/ui/MatchmakingQuestions.jsx` + `api/matchmakingFormApi.js` |

@@ -20,6 +20,8 @@ const EmailTemplateEditorModal = ({
     setPreviewDevice,
     deviceDimensions,
     supportingVariables = [],
+    typeLocked = false,
+    eventId,
 }) => {
     const highlight = usePlaceholderHighlight();
     const insertAtCursorRef = useRef(null);
@@ -109,6 +111,8 @@ const EmailTemplateEditorModal = ({
                         onToggle={highlight.onToggle}
                         onInsertPlaceholder={insertPlaceholder}
                         supportingVariables={supportingVariables}
+                        typeLocked={typeLocked}
+                        eventId={eventId}
                     />
 
                     <div className="flex-1 flex flex-col bg-[#f0f2f5] min-w-0">

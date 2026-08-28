@@ -80,10 +80,14 @@ tasks:
       - src/pages/attendee-types/parseAttendeeTypeDrafts.js
       - src/pages/attendee-types/domain/badgeEmailVariables.js
       - src/pages/attendee-types/domain/badgeEmailCalendarLinks.js
+      - src/pages/attendee-types/domain/badgeEmailReferralLinks.js
+      - src/pages/attendee-types/domain/sessionReferralLinkPlaceholders.js
       - src/pages/attendee-types/components/EmailInvitationDraft.jsx
       - src/pages/attendee-types/components/BadgeEmailVariables.jsx
       - src/pages/attendee-types/components/BadgeEmailVariablesRail.jsx
+      - src/pages/attendee-types/components/ReferralLinkPlaceholderForm.jsx
       - src/pages/attendee-types/hooks/useBadgeEmailDraft.jsx
+      - src/pages/attendee-types/hooks/useBadgeReferralPlaceholders.js
       - src/services/eventService.js
     routes:
       - /event/:id/attendee-types
@@ -94,6 +98,9 @@ tasks:
       Variables live in the left rail under the type tabs, with type-to-search.
       Calendar tokens are bare href values (no {{}}, no URLs). Rail lists
       Google and Outlook only (calendar_link_google / calendar_link_outlook).
+      E-badge email also fills tv_referral_link and {title_slug}_referral_link
+      (bare tokens). Rail shows tv_referral_link, event complimentary titles,
+      and session-typed titles; highlight regex matches *_referral_link.
   attendee_type_email_list:
     files:
       - src/features/Attendees/api/attendeeTypeEmailsApi.js
@@ -579,6 +586,12 @@ tasks:
       - src/components/email/emailConfigTabs.js
       - src/components/email/EmailCategoryTypes.jsx
       - src/components/email/EmailTemplates.jsx
+      - src/components/email/templates/constants/emailTemplateTypes.js
+      - src/components/email/templates/domain/buildNewEmailTemplate.js
+      - src/components/email/templates/domain/parseEmailTemplateSaveError.js
+      - src/components/email/templates/hooks/useEmailTemplateEditor.js
+      - src/components/email/templates/components/CreateTemplateTypePicker.jsx
+      - src/components/email/templates/components/TemplateTypeField.jsx
       - src/components/email/templates/components/EmailTemplateList.jsx
       - src/components/email/templates/components/TemplateActionsModal.jsx
       - src/components/email/templates/components/TemplateRowActions.jsx
@@ -594,6 +607,10 @@ tasks:
       - src/components/email/templates/components/TemplateEditorSidebar.jsx
       - src/components/email/templates/components/TemplateVariablePlaceholders.jsx
       - src/components/email/templates/components/TemplateSupportingVariables.jsx
+      - src/components/email/templates/components/InviteeTypePlaceholderForm.jsx
+      - src/components/email/templates/domain/inviteeLinkPlaceholder.js
+      - src/components/email/templates/domain/sessionInviteeLinkPlaceholders.js
+      - src/components/email/templates/hooks/useInviteeLinkPlaceholders.js
       - src/components/email/templates/hooks/usePlaceholderHighlight.js
       - src/components/email/shared/placeholderHighlight.js
       - src/components/email/shared/insertAtCaret.js
@@ -609,8 +626,13 @@ tasks:
       email / email_content. Template list filters from response
       { events: [id], template_types: [unique], names: [] }.
       Create/update content_variables is { token: "" } from {{name}} in body.
+      Create Template opens a type picker; known EA types (incl.
+      exhibitor_attendee_added_welcome) prefill template_type for the event.
+      Unique together is (template_type, event); existing type opens the row.
       Hover/click a placeholder chip highlights all matches in the body, and vice versa.
       supporting_variables [{name, description}] is shown on edit to pick/insert tokens.
+      Invitee titles generate invitee_<title_slug>_link (EA slug) and persist per event
+      in session storage; add-while-editing also inserts at the cursor.
       Visual insert uses Jodit selection save/restore (not a DOM caret span in the email HTML).
       Template rows use ⋯ → actions modal (View template, Delete). Campaigns have no
       template_id; do not link History/Scheduled rows to a template.
@@ -782,7 +804,7 @@ glossary:
 
   attendee_edit_full_patch: PATCH must mirror GET then change fields; not sparse. Send attendee_type as name string.
   attendee_type_draft_save: Email POST 201 is success; chained SMS errors must not mark the save failed. Empty 2xx JSON is success.
-  badge_email_tokens: Bare tokens user_name/att_type/reg_id/event_code/event_name/user_email/company_name/event_date/event_venue; calendar_link_google and calendar_link_outlook as href-only; \\n becomes a real newline
+  badge_email_tokens: Bare tokens user_name/att_type/reg_id/event_code/event_name/user_email/company_name/event_date/event_venue/tv_referral_link/{title_slug}_referral_link; calendar_link_google and calendar_link_outlook as href-only; \\n becomes a real newline
   attendee_type_email_list: Send Mail Badge Email POSTs send_email/; View lists GET attendee_types/emails/
   attendee_category_email_list: Send Mail lists GET category_types/emails/; toggles POST category_types/send_email/ with email_ids
   attendee_active_badge: >
@@ -810,8 +832,10 @@ glossary:
     detail and recipients extra GETs; Date column Created + Updated (Scheduled line if scheduled);
     list `count` shown beside filter; Recipients column is number_recipients
   ea_email_file_import: Browse .html/.htm/.txt (1 MB); extract body + style; append or replace into category/template body
-  ea_email_template_filters: List filters { events: [id], template_types: [unique], names: [] }; query event, name, template_type
+  ea_email_template_filters: List filters { events: [id], template_types: [unique], names: [] }; query event, name, template_type; dropdown merges known EA types
+  ea_email_template_types: Known EA EmailTemplateType catalog in emailTemplateTypes.js; one template per type per event; create prefills type
   ea_email_content_variables: Create/update content_variables is { token: "" } from {{name}} in body/subject; supporting_variables catalog is shown on edit
+  ea_email_invitee_link_placeholder: Title → invitee_<slug>_link (EA space-to-underscore slug); session-persisted per event
   ar_tax_list: exhibitor_portal_data.additional_requirement.tax is [{name, rate}, ...]; PATCH replaces the whole list; [] means no tax
   exhibitor_portal_meeting_diary: exhibitor_portal_data.meeting_diary.is_meeting_option_active toggles the exhibitor portal meeting diary option (default false)
   exhibitor_poc_password_reset: POST /events/:id/exhibitor/password/reset/; identify POC with badge_id then company_id; skip email/bulk_email for now

@@ -66,6 +66,11 @@ const EmailTemplateList = ({
                                     <span>ID: {template.id}</span>
                                     <span className="text-gray-400">{formatDate(template.created_at)}</span>
                                 </div>
+                                {template.template_type ? (
+                                    <div className="text-[10px] font-mono text-gray-400 truncate">
+                                        {template.template_type}
+                                    </div>
+                                ) : null}
                             </div>
 
                             <div className="p-4 flex-1 text-left">
@@ -97,6 +102,11 @@ const EmailTemplateList = ({
                                 )}
                                 <div className="text-[10px] text-text-tertiary font-black uppercase tracking-[0.15em] mt-1.5 flex items-center gap-2">
                                     <span>REF: {template.id}</span>
+                                    {template.template_type ? (
+                                        <span className="font-mono normal-case tracking-normal text-gray-400">
+                                            {template.template_type}
+                                        </span>
+                                    ) : null}
                                 </div>
                             </div>
 

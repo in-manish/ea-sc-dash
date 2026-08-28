@@ -1,7 +1,14 @@
 import React from 'react';
 import TemplateVariablePlaceholders from './TemplateVariablePlaceholders';
 import TemplateSupportingVariables from './TemplateSupportingVariables';
-import { extractPlaceholderNames, pickSupportingVariables } from '../domain/contentVariables';
+import TemplateTypeField from './TemplateTypeField';
+import InviteeTypePlaceholderForm from './InviteeTypePlaceholderForm';
+import useInviteeLinkPlaceholders from '../hooks/useInviteeLinkPlaceholders';
+import {
+    extractPlaceholderNames,
+    mergeSupportingVariables,
+    pickSupportingVariables,
+} from '../domain/contentVariables';
 
 const TemplateEditorSidebar = ({
     isEditing,
@@ -15,15 +22,26 @@ const TemplateEditorSidebar = ({
     onToggle,
     onInsertPlaceholder,
     supportingVariables,
+    typeLocked = false,
+    eventId,
 }) => {
     const html = isEditing ? editFormData.email_content : previewTemplate?.email_content;
     const subject = isEditing ? editFormData.subject : previewTemplate?.subject;
     const usedNames = extractPlaceholderNames(html, subject);
-    const catalog = pickSupportingVariables(
-        previewTemplate?.supporting_variables,
-        editFormData?.supporting_variables,
-        supportingVariables,
+    const inviteeLinks = useInviteeLinkPlaceholders(eventId);
+    const catalog = mergeSupportingVariables(
+        pickSupportingVariables(
+            previewTemplate?.supporting_variables,
+            editFormData?.supporting_variables,
+            supportingVariables,
+        ),
+        inviteeLinks.items,
     );
+
+    const addInviteePlaceholder = (_item, title) => {
+        const created = inviteeLinks.addFromTitle(title);
+        if (created && isEditing) onInsertPlaceholder?.(created.name);
+    };
     return (
         <div className="w-[300px] border-r border-gray-100 bg-gray-50/50 p-6 flex flex-col gap-5 overflow-y-auto hidden lg:flex">
             <div>
@@ -87,20 +105,14 @@ const TemplateEditorSidebar = ({
                     <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">
                         Type
                     </label>
-                    {isEditing ? (
-                        <input
-                            type="text"
-                            name="template_type"
-                            value={editFormData.template_type || ''}
-                            onChange={handleEditChange}
-                            className="w-full text-xs font-medium text-gray-900 bg-white p-2.5 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all"
-                            placeholder="e.g. custom"
-                        />
-                    ) : (
-                        <div className="text-xs font-medium text-gray-800 bg-white p-2.5 rounded-lg border border-gray-100 break-all">
-                            {previewTemplate?.template_type || '-'}
-                        </div>
-                    )}
+                    <TemplateTypeField
+                        isEditing={isEditing}
+                        value={isEditing ? editFormData.template_type : previewTemplate?.template_type}
+                        locked={typeLocked}
+                        onChange={(value) =>
+                            handleEditChange({ target: { name: 'template_type', value } })
+                        }
+                    />
                 </div>
                 <div>
                     <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">
@@ -144,6 +156,9 @@ const TemplateEditorSidebar = ({
             </div>
 
             <div className="mt-auto">
+                {isEditing ? (
+                    <InviteeTypePlaceholderForm onAdd={addInviteePlaceholder} />
+                ) : null}
                 <TemplateSupportingVariables
                     variables={catalog}
                     usedNames={usedNames}

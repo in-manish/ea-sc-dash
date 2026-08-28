@@ -1,4 +1,8 @@
 import { Search, X } from 'lucide-react';
+import {
+    formatTemplateTypeLabel,
+    mergeTemplateTypeOptions,
+} from '../constants/emailTemplateTypes';
 
 const EmailTemplateFilters = ({
     searchInput,
@@ -57,7 +61,10 @@ const EmailTemplateFilters = ({
                     value={filters.template_type}
                     onChange={(value) => onFilterChange('template_type', value)}
                     empty="All types"
-                    options={filterOptions.template_types || []}
+                    options={mergeTemplateTypeOptions(filterOptions.template_types).map((value) => ({
+                        value,
+                        label: formatTemplateTypeLabel(value),
+                    }))}
                 />
                 <label className="flex flex-col gap-1">
                     <span className="text-[10px] font-black uppercase tracking-widest text-text-tertiary">

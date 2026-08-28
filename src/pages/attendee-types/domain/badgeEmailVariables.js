@@ -3,6 +3,10 @@ import {
     CALENDAR_TOKEN_NAMES,
     calendarInsertHtml,
 } from './badgeEmailCalendarLinks';
+import {
+    REFERRAL_LINK_NAME_RE,
+    TV_REFERRAL_LINK_VARIABLE,
+} from './badgeEmailReferralLinks';
 
 export const BADGE_EMAIL_VARIABLES = [
     { name: 'user_name', description: 'Badge name' },
@@ -20,6 +24,7 @@ export const BADGE_EMAIL_VARIABLES = [
         description: 'Event start_date as Month DD, YYYY (e.g. October 27, 2026)',
     },
     { name: 'event_venue', description: 'Event address' },
+    TV_REFERRAL_LINK_VARIABLE,
     ...CALENDAR_EMAIL_VARIABLES,
     { name: '\\n', description: 'Real newline (\\n\\n for a blank line)' },
 ];
@@ -40,9 +45,21 @@ const WORD_NAMES = [
     .sort((a, b) => b.length - a.length);
 
 export const BADGE_EMAIL_TOKEN_RE = new RegExp(
-    `(\\\\n|\\b(?:${WORD_NAMES.map(escapeRe).join('|')})\\b)`,
+    `(\\\\n|\\b(?:${WORD_NAMES.map(escapeRe).join('|')})\\b|\\b${REFERRAL_LINK_NAME_RE}\\b)`,
     'g',
 );
+
+export function mergeBadgeEmailVariables(...lists) {
+    const seen = new Set();
+    const out = [];
+    lists.flat().forEach((item) => {
+        const name = String(item?.name || '').trim();
+        if (!name || seen.has(name)) return;
+        seen.add(name);
+        out.push(item);
+    });
+    return out;
+}
 
 export function extractBadgeEmailTokens(...texts) {
     const names = [];

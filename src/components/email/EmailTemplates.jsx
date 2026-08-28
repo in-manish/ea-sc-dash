@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { emailService } from '../../services/emailService';
 import { Smartphone, Tablet, Monitor } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import EmailTemplateList from './templates/components/EmailTemplateList';
 import EmailTemplateFilters from './templates/components/EmailTemplateFilters';
 import EmailTemplateEditorModal from './templates/components/EmailTemplateEditorModal';
 import TemplateActionsModal from './templates/components/TemplateActionsModal';
+import CreateTemplateTypePicker from './templates/components/CreateTemplateTypePicker';
 import useEmailTemplatesList from './templates/hooks/useEmailTemplatesList';
-import { buildEmailTemplatePayload } from './templates/domain/buildEmailTemplatePayload';
+import useEmailTemplateEditor from './templates/hooks/useEmailTemplateEditor';
 
 const deviceDimensions = {
     mobile: { width: '375px', icon: Smartphone, label: 'Mobile' },
@@ -23,151 +23,70 @@ const EmailTemplates = ({ viewMode = 'list', onAddSignal = 0 }) => {
     const { id } = useParams();
     const eventId = id || selectedEvent?.id;
 
-    const {
-        templates,
-        filterOptions,
-        filters,
-        searchInput,
-        setSearchInput,
-        setFilter,
-        clearFilters,
-        hasActiveFilters,
-        isLoading,
-        page,
-        setPage,
-        totalPages,
-        supportingVariables,
-        refetch,
-    } = useEmailTemplatesList({ eventId, token });
-
-    const [previewTemplate, setPreviewTemplate] = useState(null);
-    const [actionsTemplate, setActionsTemplate] = useState(null);
-    const [previewDevice, setPreviewDevice] = useState('laptop14');
-    const [isEditing, setIsEditing] = useState(false);
-    const [editFormData, setEditFormData] = useState({});
-    const [isSaving, setIsSaving] = useState(false);
+    const list = useEmailTemplatesList({ eventId, token });
+    const editor = useEmailTemplateEditor({ eventId, token, refetch: list.refetch });
 
     useEffect(() => {
-        if (onAddSignal > 0) handleCreateNew();
+        if (onAddSignal > 0) editor.openTypePicker();
     }, [onAddSignal]);
-
-    const handleViewTemplate = async (template) => {
-        setPreviewTemplate(template);
-        setEditFormData({ ...template, email_content: template.email_content || '' });
-        setIsEditing(false);
-        if (!eventId || !template?.id) return;
-        try {
-            const detail = await emailService.getEmailTemplate(eventId, template.id, token);
-            const merged = { ...template, ...detail };
-            setPreviewTemplate(merged);
-            setEditFormData({ ...merged, email_content: merged.email_content || '' });
-        } catch {
-            /* list row is enough */
-        }
-    };
-
-    const handleCreateNew = () => {
-        const newTemplate = {
-            isNew: true,
-            email_name: '',
-            subject: '',
-            description: '',
-            template_type: 'custom',
-            is_active: true,
-            email_content: '<h1>New Template</h1><p>Edit your content here...</p>',
-        };
-        setPreviewTemplate(newTemplate);
-        setEditFormData(newTemplate);
-        setIsEditing(true);
-    };
-
-    const handleEditChange = (e) => {
-        const { name, value } = e.target;
-        setEditFormData((prev) => ({ ...prev, [name]: value }));
-    };
-
-    const handleSave = async () => {
-        if (!eventId) return;
-        if (!editFormData.email_name || !editFormData.subject || !editFormData.email_content) {
-            alert('Please fill in all required fields (Name, Subject, Content).');
-            return;
-        }
-        setIsSaving(true);
-        try {
-            const payload = buildEmailTemplatePayload(editFormData, eventId);
-            if (previewTemplate.isNew) {
-                await emailService.createEmailTemplate(eventId, token, payload);
-            } else {
-                await emailService.updateEmailTemplate(eventId, previewTemplate.id, token, payload);
-            }
-            await refetch();
-            setPreviewTemplate(null);
-            setIsEditing(false);
-        } catch (error) {
-            console.error('Error saving email template:', error);
-            alert('Failed to save email template. Please try again.');
-        } finally {
-            setIsSaving(false);
-        }
-    };
-
-    const handleDelete = async (template) => {
-        if (!window.confirm('Are you sure you want to delete this template?')) return;
-        try {
-            await emailService.deleteEmailTemplate(eventId, template.id, token);
-            await refetch();
-        } catch (err) {
-            console.error('Error deleting template', err);
-            alert('Failed to delete template.');
-        }
-    };
 
     return (
         <div className="relative min-h-[400px]">
             <EmailTemplateFilters
-                searchInput={searchInput}
-                onSearchChange={setSearchInput}
-                filters={filters}
-                onFilterChange={setFilter}
-                filterOptions={filterOptions}
-                onClear={clearFilters}
-                hasActiveFilters={hasActiveFilters}
+                searchInput={list.searchInput}
+                onSearchChange={list.setSearchInput}
+                filters={list.filters}
+                onFilterChange={list.setFilter}
+                filterOptions={list.filterOptions}
+                onClear={list.clearFilters}
+                hasActiveFilters={list.hasActiveFilters}
             />
 
             <EmailTemplateList
-                isLoading={isLoading}
-                templates={templates}
+                isLoading={list.isLoading}
+                templates={list.templates}
                 viewMode={viewMode}
-                handleViewTemplate={handleViewTemplate}
-                onOpenActions={setActionsTemplate}
-                handleCreateNew={handleCreateNew}
-                page={page}
-                totalPages={totalPages}
-                setPage={setPage}
-                hasActiveFilters={hasActiveFilters}
+                handleViewTemplate={editor.handleViewTemplate}
+                onOpenActions={editor.setActionsTemplate}
+                handleCreateNew={editor.openTypePicker}
+                page={list.page}
+                totalPages={list.totalPages}
+                setPage={list.setPage}
+                hasActiveFilters={list.hasActiveFilters}
+            />
+
+            <CreateTemplateTypePicker
+                open={editor.typePickerOpen}
+                eventId={eventId}
+                token={token}
+                onClose={editor.closeTypePicker}
+                onSelect={editor.createFromType}
+                onOpenExisting={editor.handleViewTemplate}
             />
 
             <TemplateActionsModal
-                template={actionsTemplate}
-                onClose={() => setActionsTemplate(null)}
-                onView={handleViewTemplate}
-                onDelete={handleDelete}
+                template={editor.actionsTemplate}
+                onClose={() => editor.setActionsTemplate(null)}
+                onView={editor.handleViewTemplate}
+                onDelete={editor.handleDelete}
             />
 
             <EmailTemplateEditorModal
-                previewTemplate={previewTemplate}
-                setPreviewTemplate={setPreviewTemplate}
-                isEditing={isEditing}
-                setIsEditing={setIsEditing}
-                editFormData={editFormData}
-                setEditFormData={setEditFormData}
-                handleEditChange={handleEditChange}
-                handleSave={handleSave}
-                isSaving={isSaving}
-                previewDevice={previewDevice}
-                setPreviewDevice={setPreviewDevice}
+                previewTemplate={editor.previewTemplate}
+                setPreviewTemplate={editor.setPreviewTemplate}
+                isEditing={editor.isEditing}
+                setIsEditing={editor.setIsEditing}
+                editFormData={editor.editFormData}
+                setEditFormData={editor.setEditFormData}
+                handleEditChange={editor.handleEditChange}
+                handleSave={editor.handleSave}
+                isSaving={editor.isSaving}
+                previewDevice={editor.previewDevice}
+                setPreviewDevice={editor.setPreviewDevice}
                 deviceDimensions={deviceDimensions}
-                supportingVariables={supportingVariables}
+                supportingVariables={list.supportingVariables}
+                typeLocked={editor.typeLocked}
+                eventId={eventId}
             />
         </div>
     );

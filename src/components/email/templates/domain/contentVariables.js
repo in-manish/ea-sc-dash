@@ -58,3 +58,16 @@ export function pickSupportingVariables(...sources) {
   }
   return [];
 }
+
+/** Dedupe supporting-variable catalogs, first list wins. */
+export function mergeSupportingVariables(...lists) {
+  const seen = new Set();
+  const out = [];
+  lists.flat().forEach((item) => {
+    const name = String(item?.name || '').trim();
+    if (!name || seen.has(name)) return;
+    seen.add(name);
+    out.push(item);
+  });
+  return out;
+}
