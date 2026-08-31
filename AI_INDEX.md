@@ -15,15 +15,14 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 - `src/contexts/authSession.js` — token restore, last path, landing URL
 - `src/contexts/useCrossTabAuthSync.js` — logout in one tab signs out the others
 - `src/components/alert/` — themed app alert/confirm (`useAlert`)
-- `src/components/imageEditor/` — reusable crop/resize/web-optimize modal for any file upload (`useImageEditor`)
 
 ## Feature map
 
 | Feature | Path | Notes |
 |---------|------|-------|
 | Agenda | `src/features/Agenda/` | List + flat edit for speakers/moderators |
-| Attendees | `src/features/Attendees/` | List, create, edit badge, WhatsApp, email drafts, e-badge, report, bulk CSV upload + dry-run validator |
-| Companies | `src/features/Companies/` | EA list (sort) + create/edit/detail + portal checklist + reminder tab + exhibitor CSV report + engagement funnel + portal matchmaking CSV |
+| Attendees | `src/features/Attendees/` | List, create, edit badge, WhatsApp, email drafts, e-badge, report |
+| Companies | `src/features/Companies/` | EA list (sort) + create/edit/detail + portal checklist + reminder tab + exhibitor CSV report + engagement funnel |
 | ManageUsers | `src/features/ManageUsers/` | Staff users / permissions |
 | ScManageUsers | `src/features/ScManageUsers/` | SC admin users + saved cards |
 | ScAuth / Profile | `src/features/ScAuth/`, `src/features/ScProfile/` | SC ADMIN login gate + profile |
@@ -41,15 +40,12 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 |------|------------|
 | Event settings / support email | `src/pages/event-settings/CommunicationSettings.jsx` (`support_email`) |
 | Event settings / sender profile pic | `src/pages/event-settings/SenderDefaultProfilePicField.jsx` (`sender_default_profile_pic`) |
-| Event settings / branding images | `src/pages/event-settings/EventBrandingImages.jsx` + `EventImageUploadField.jsx` (`/event/:id/settings?tab=event_images`); crop/resize/optimize per field via `domain/eventImageFields.js` `editorConfig` |
-| Reusable crop/resize/web-optimize image upload | `src/components/imageEditor/` (`useImageEditor` + `ImageEditorModal`) — any file-upload field, configurable aspect ratios / recommended size / WebP optimize per call site |
 | Edit attendee / badge | `src/features/Attendees/ui/EditAttendeeModal.jsx` + `api/attendeeApi.js` + `domain/editAttendeeForm.js` |
 | Attendee list row actions | `src/features/Attendees/ui/AttendeeTableRowMenu.jsx` + `AttendeeTableRow.jsx` |
 | Attendee type email / SMS drafts | `src/pages/AttendeeTypes.jsx` + `EmailInvitationDraft.jsx` + `BadgeEmailVariablesRail.jsx` (badge tokens, `tv_referral_link` / `{title_slug}_referral_link`, calendar hrefs) |
 | List attendee type email drafts | `ui/AttendeeSelectionBar.jsx` + `hooks/useAttendeeTypeEmails.js` + `api/attendeeTypeEmailsApi.js` |
 | Send attendee emails | `ui/AttendeeEmailDraftsModal.jsx` (Badge Email + Categories Email toggles) + `hooks/useAttendeeTypeEmails.js` + `hooks/useCategoryTypeEmails.js` |
 | Active badge status / create | `ui/ActiveBadgeToolbar.jsx` + `hooks/useActiveBadgeActions.js` + `api/activeBadgeApi.js` |
-| Bulk attendee CSV upload + dry-run validate | `ui/AttendeeUploadModal.jsx` + `ui/AttendeeUploadRowIssues.jsx` + `hooks/useAttendeeUpload.js` + `api/attendeeUploadApi.js` (create-flow only, no replicate/update by Reg ID) |
 | Create EA company / co-exhibitor | `src/features/Companies/ui/CreateCompanyPage.jsx` + `api/companyApi.js` |
 | Edit EA company | `src/features/Companies/ui/EditCompanyPage.jsx` + `domain/buildCompanyPatchFormData.js` |
 | Company Detail + Setup Progress | `src/features/Companies/ui/CompanyDetailsPage.jsx` + `SetupProgressSection.jsx` |
@@ -61,7 +57,6 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Download / email exhibitor CSV report | `ui/CompaniesReportsMenu.jsx` + `ui/ExhibitorReportModal.jsx` + `hooks/useExhibitorReport.js` + `api/exhibitorReportApi.js` |
 | Company Report metrics modal | `ui/CompanyReportModal.jsx` + `src/components/companies/CompanyComprehensiveReportPanel.jsx` + `CompanyReportMetricRow.jsx` |
 | Exhibitor Engagement tab | `ui/ExhibitorEngagementTab.jsx` + `hooks/useExhibitorEngagement.js` + `api/exhibitorEngagementApi.js` |
-| Download / email portal matchmaking CSV | `ui/ExhibitorEngagementReportModal.jsx` + `hooks/useExhibitorEngagementReport.js` + `api/exhibitorEngagementApi.js` (`format=csv` / `send_to_emails`) |
 | Exhibitor list sort | `domain/companyListSort.js` + `ui/ExhibitorListToolbar.jsx` + `ui/ExhibitorListActionsBar.jsx` |
 | Company FormData / errors | `src/features/Companies/domain/buildCompanyFormData.js`, `parseCompanyError.js` |
 | Agenda list / edit session | `src/features/Agenda/ui/AgendaListPage.jsx`, `AgendaEditPage.jsx` (`force_attendance` block slot) |

@@ -73,9 +73,8 @@ function messageFromBody(result) {
 
 function messageForStatus(result, status) {
   if (status === 401) return 'Authentication required. Please sign in again.';
-  if (status === 403) return 'Organizer access required';
+  if (status === 403) return 'You do not have permission to view exhibitor engagement.';
   if (status === 404) return messageFromBody(result) || 'Event not found.';
-  if (status === 500) return 'Something went wrong. Please try again.';
   return messageFromBody(result) || `Failed to load exhibitor engagement (${status})`;
 }
 
