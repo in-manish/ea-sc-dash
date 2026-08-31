@@ -6,13 +6,59 @@ tasks:
   event_settings_sender_profile_pic:
     files:
       - src/pages/event-settings/SenderDefaultProfilePicField.jsx
+      - src/pages/event-settings/EventImagePreviewThumb.jsx
+      - src/pages/event-settings/EventImageLightbox.jsx
       - src/pages/event-settings/MeetingDiarySettings.jsx
       - src/pages/event-settings/CommunicationSettings.jsx
     routes:
       - /event/:id/settings?tab=meeting_diary
     notes: >
       sender_default_profile_pic is a public image URL. Preview is a round
-      avatar (no alt-text overflow). Copyable + editable; PATCH with event save.
+      avatar (click to enlarge). Copyable + editable; PATCH with event save.
+  event_settings_branding_images:
+    files:
+      - src/pages/event-settings/EventBrandingImages.jsx
+      - src/pages/event-settings/EventImageUploadField.jsx
+      - src/pages/event-settings/EventImagePreviewThumb.jsx
+      - src/pages/event-settings/EventImageLightbox.jsx
+      - src/pages/event-settings/EventImageUrlPreviewField.jsx
+      - src/pages/event-settings/domain/eventImageFields.js
+      - src/pages/event-settings/domain/buildEventUpdateFormData.js
+      - src/pages/event-settings/domain/parseEventUpdateError.js
+      - src/pages/event-settings/index.jsx
+      - src/pages/event-settings/CommunicationSettings.jsx
+      - src/services/eventService.js
+      - src/components/imageEditor/
+    routes:
+      - /event/:id/settings?tab=event_images
+      - /event/:id/settings?tab=communication
+    notes: >
+      Tab Event Images. PATCH /events/:id/ multipart ImageFields: logo, logo2,
+      event_banner_logo, event_background_image, floor_plan,
+      meetingdiary_portal_bg_image. GET returns public URLs (floor_plan_url).
+      Existing URL strings are not re-sent; new Files are (incl. AVIF). Thumbnails + lightbox
+      preview. URL banners use EventImageUrlPreviewField (meeting_email_banner_link).
+      Picking a new file opens the reusable crop/resize/optimize modal
+      (src/components/imageEditor, per-field editorConfig in eventImageFields.js) before
+      onFileChange fires — see image_editor_reusable.
+  image_editor_reusable:
+    files:
+      - src/components/imageEditor/hooks/useImageEditor.jsx
+      - src/components/imageEditor/ui/ImageEditorModal.jsx
+      - src/components/imageEditor/ui/ImageEditorToolbar.jsx
+      - src/components/imageEditor/ui/ImageEditorSidePanel.jsx
+      - src/components/imageEditor/domain/imageOutput.js
+      - src/components/imageEditor/index.js
+    notes: >
+      Domain-agnostic crop/resize/optimize modal (cropperjs) for any file-upload field —
+      not tied to event settings. Call `useImageEditor({ config, onApply })`; feed a picked
+      File to `editor.openFile(file)` and render `{editor.modal}`. `onApply` fires with the
+      final processed File (or the original file untouched when `config` is falsy /
+      `config.enabled === false` — bypass mode for callers that don't need editing).
+      `config` per call site: aspectRatios [{label,value}] (value NaN = free; first entry is
+      the default), recommendedWidth/Height + recommendedNote (compliance hint, does not
+      block save), maxOutputDim (longest exported side, never upscaled), allowOptimize /
+      defaultOptimize. See image_editor_reusable glossary entry for the export-format rule.
   event_settings_support_email:
     files:
       - src/pages/event-settings/CommunicationSettings.jsx
@@ -61,6 +107,28 @@ tasks:
       GET then full-body PATCH /events/:eventId/attendees/:uuid/.
       Request attendee_type is name string; response is {name,id}.
       Exhibitor type requires exhibitor_id.
+  attendee_csv_upload:
+    files:
+      - src/features/Attendees/api/attendeeUploadApi.js
+      - src/features/Attendees/hooks/useAttendeeUpload.js
+      - src/features/Attendees/ui/AttendeeUploadModal.jsx
+      - src/features/Attendees/ui/AttendeeUploadRowIssues.jsx
+      - src/features/Attendees/ui/AttendeesPageHeader.jsx
+      - src/features/Attendees/ui/AttendeesModals.jsx
+      - src/features/Attendees/ui/AttendeesPage.jsx
+    routes:
+      - /event/:id/attendees
+    notes: >
+      POST /events/:eventId/attendees/upload/ (multipart, ?strict=true) creates attendees,
+      processed async - response is {task_id, progress_uuid, upload_id, msg}, no local list
+      refresh. Dry-run first: POST .../attendees/upload/validate/ (same file/params, zero
+      writes) returns {summary:{total_rows,valid_rows,rows_with_warnings,rows_with_errors,
+      errors_by_column,warnings_by_column,header_issues},rows:[{row_number,name,email,status,
+      errors:[{column,value,message,suggestion}],warnings:[...]}]}; ?export=csv on the same
+      validate endpoint downloads an annotated CSV instead of JSON. Upload button disabled
+      while validation shows rows_with_errors > 0. UI only exposes the plain create flow -
+      backend also supports replicate/update by Reg ID (?replicate=true/?update=true) but
+      that mode isn't wired into this screen yet.
   attendee_list_row_actions:
     files:
       - src/features/Attendees/ui/AttendeeTable.jsx
@@ -415,9 +483,14 @@ tasks:
     files:
       - src/features/Companies/api/exhibitorEngagementApi.js
       - src/features/Companies/domain/exhibitorEngagement.js
+      - src/features/Companies/domain/exhibitorEngagementQuery.js
       - src/features/Companies/hooks/useExhibitorEngagement.js
+      - src/features/Companies/hooks/useExhibitorEngagementReport.js
       - src/features/Companies/ui/ExhibitorEngagementTab.jsx
       - src/features/Companies/ui/ExhibitorEngagementSummary.jsx
+      - src/features/Companies/ui/ExhibitorEngagementReportButton.jsx
+      - src/features/Companies/ui/ExhibitorEngagementReportModal.jsx
+      - src/features/Companies/ui/ExhibitorEngagementReportPanes.jsx
       - src/features/Companies/ui/ActivationFunnel.jsx
       - src/features/Companies/ui/ActivationFunnelStep.jsx
       - src/features/Companies/ui/InviteTypeBreakdown.jsx
@@ -434,7 +507,13 @@ tasks:
       only. Steps use exhibitor_count when present else count; percentage of
       total_exhibitors. invites_sent may include by_type (invite count per
       label); UI shows Invites sent from API and Registered/Accepted as N/A.
-      from_cache true on hit. 401 login; 403 permission; 404 event.
+      from_cache true on hit. 401 login; 403 organizer; 404 event; 500 retry.
+      CSV download: format=csv (required) + optional completed=yes|no (omit
+      = all). Email: send_to_emails (required, never format=csv) + optional
+      completed; always JSON; queued async. Filename from Content-Disposition
+      (exhibitor-portal-matchmaking_{id}_YYYY-MM-DD_HHMMSS_IST.csv).
+      completed is case-insensitive; invalid → 400. Do not send format=csv
+      with send_to_emails.
   company_list_sort:
     files:
       - src/features/Companies/api/companyApi.js
@@ -701,6 +780,10 @@ features:
       POST /events/:eventId/attendees/active_badge/status/;
       POST /events/:eventId/attendees/active_badge/;
       body all_without_active:true or ids/uuids/badges
+    csv_upload_api: >
+      POST /events/:eventId/attendees/upload/ (multipart, async);
+      POST /events/:eventId/attendees/upload/validate/ (multipart, dry-run, zero writes,
+      ?export=csv for report download) - see task attendee_csv_upload
   Companies:
     root: src/features/Companies/
     entry: src/pages/Companies.jsx
@@ -715,8 +798,9 @@ features:
       GET /events/:eventId/exhibitor/report/ CSV blob or JSON email
       (send_to_emails + optional company_ids)
     engagement_api: >
-      GET /events/:eventId/exhibitor/engagement/?refresh=true
-      (cached 5 min; refresh skips cache)
+      GET /events/:eventId/exhibitor/engagement/ JSON funnel (?refresh=true);
+      CSV ?format=csv; email ?send_to_emails= (never with format=csv);
+      optional completed=yes|no on CSV/email
     checklist_reminder_api: >
       POST /events/:eventId/exhibitor/setup-checklist/remind/;
       GET .../reminders/ + GET .../reminders/:logId/;
@@ -831,18 +915,31 @@ glossary:
     tab with All/History/Scheduled client filter; row-hover View details / View recipients;
     detail and recipients extra GETs; Date column Created + Updated (Scheduled line if scheduled);
     list `count` shown beside filter; Recipients column is number_recipients
+  image_editor_export_format: >
+    useImageEditor "Optimize for web" always exports WebP (keeps transparency, falls back
+    to JPEG if the browser can't encode WebP); unchecked mirrors the source type (PNG stays
+    PNG lossless, anything else becomes JPEG q0.92). Output filename extension is swapped to
+    match. Never touches the caller's remote URL/original file — only new picks go through it.
   ea_email_file_import: Browse .html/.htm/.txt (1 MB); extract body + style; append or replace into category/template body
   ea_email_template_filters: List filters { events: [id], template_types: [unique], names: [] }; query event, name, template_type; dropdown merges known EA types
   ea_email_template_types: Known EA EmailTemplateType catalog in emailTemplateTypes.js; one template per type per event; create prefills type
   ea_email_content_variables: Create/update content_variables is { token: "" } from {{name}} in body/subject; supporting_variables catalog is shown on edit
   ea_email_invitee_link_placeholder: Title → invitee_<slug>_link (EA space-to-underscore slug); session-persisted per event
   ar_tax_list: exhibitor_portal_data.additional_requirement.tax is [{name, rate}, ...]; PATCH replaces the whole list; [] means no tax
+  event_branding_images: >
+    PATCH /events/:id/ ImageFields logo, logo2, event_banner_logo, event_background_image,
+    floor_plan, meetingdiary_portal_bg_image; GET public URLs (floor_plan_url); skip URL
+    strings on save; new Files uploaded; thumbnails + lightbox preview
   exhibitor_portal_meeting_diary: exhibitor_portal_data.meeting_diary.is_meeting_option_active toggles the exhibitor portal meeting diary option (default false)
   exhibitor_poc_password_reset: POST /events/:id/exhibitor/password/reset/; identify POC with badge_id then company_id; skip email/bulk_email for now
   company_bulk_action: PATCH /events/:id/companies/bulk-action/; lock_company single|multiple|all (parents); feature_company single|multiple; unfeatured rank is 0
   exhibitor_csv_report: >
     GET /events/:id/exhibitor/report/; parent rows; CSV blob or send_to_emails
     JSON; optional company_ids; 401/403/404/500
+  exhibitor_engagement_csv: >
+    GET /events/:id/exhibitor/engagement/?format=csv or ?send_to_emails=;
+    optional completed=yes|no (omit = all); email is always JSON and queued;
+    never send format=csv with send_to_emails; 400 invalid completed/emails
   meeting_stats_report: >
     GET|POST /meetings/stats/report/; event × attendee_type; sent + received
     request columns; sender/receiver type names AND; cache per filters 10 min
