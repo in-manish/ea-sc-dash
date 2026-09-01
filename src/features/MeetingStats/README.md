@@ -13,7 +13,7 @@ Organizer report of meeting stats grouped by event × attendee type.
 | `api/meetingStatsReportApi.js` | GET table + POST email |
 | `domain/meetingStatsQuery.js` | GET query / POST body; range wins over single date |
 | `domain/parseMeetingStatsError.js` | 400 `msg` / `emails`; 401/403/404/500 copy |
-| `domain/meetingStatsRows.js` | Sort event then attendee_type; number commas; unique column |
+| `domain/meetingStatsRows.js` | Group by event; sort nested attendee_types; number commas; unique column |
 | `domain/meetingStatsEmails.js` | Email chips + persist |
 | `hooks/useMeetingStatsReport.js` | Filters + GET (`refresh=true` busts 10 min cache) |
 | `hooks/useEmailMeetingStatsReport.js` | POST email; 5s cooldown; success alert |
@@ -25,8 +25,8 @@ Organizer report of meeting stats grouped by event × attendee type.
 | `ui/MeetingStatsReportTab.jsx` | Page compose |
 | `ui/MeetingStatsFilters.jsx` | Optional filters + apply/reset |
 | `ui/MeetingStatsEventPicker.jsx` | Multi-select events (≥1); default current |
-| `domain/eventRowColors.js` | Distinct tint per event in the table |
-| `ui/MeetingStatsTable.jsx` | Grouped table; Event is `#id` + title; Sent + Received columns |
+| `domain/eventRowColors.js` | Distinct tint per event, cycled by event_id order |
+| `ui/MeetingStatsTotals.jsx` | One row per event (unique meetings, participants, active, sent/received), tinted per event; click a row to expand its attendee_types breakdown |
 | `ui/MeetingStatsHeader.jsx` | Cache/live, last refreshed, refresh, email |
 | `ui/MeetingStatsEmailModal.jsx` | Recipient emails |
 | `ui/MeetingStatsEmailChips.jsx` | Email chip input |

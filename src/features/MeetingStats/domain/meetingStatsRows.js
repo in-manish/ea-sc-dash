@@ -9,18 +9,14 @@ export function rowAttendeeType(row) {
   return row?.attendee_type || row?.attendee_category || '';
 }
 
-export function compareStatsRows(a, b) {
-  const eventA = String(a.event || '');
-  const eventB = String(b.event || '');
-  const byEvent = eventA.localeCompare(eventB, undefined, { sensitivity: 'base' });
-  if (byEvent !== 0) return byEvent;
+export function compareAttendeeTypeRows(a, b) {
   return String(rowAttendeeType(a)).localeCompare(String(rowAttendeeType(b)), undefined, {
     sensitivity: 'base',
   });
 }
 
-export function sortMeetingStatsRows(rows) {
-  return [...rows].sort(compareStatsRows);
+export function sortAttendeeTypeRows(rows) {
+  return [...rows].sort(compareAttendeeTypeRows);
 }
 
 export function rowHasUnique(row) {
@@ -28,13 +24,35 @@ export function rowHasUnique(row) {
 }
 
 export function normalizeMeetingStats(payload) {
-  const results = Array.isArray(payload?.results) ? payload.results : [];
-  const visible = results.filter((row) => !isContractorLabel(rowAttendeeType(row)));
-  const rows = sortMeetingStatsRows(visible);
+  const eventGroups = Array.isArray(payload?.results) ? payload.results : [];
+  let showUnique = false;
+
+  const totals = eventGroups.map((group) => {
+    const attendeeTypes = Array.isArray(group?.attendee_types) ? group.attendee_types : [];
+    const visibleTypes = sortAttendeeTypeRows(
+      attendeeTypes.filter((row) => !isContractorLabel(rowAttendeeType(row))),
+    );
+    if (visibleTypes.some(rowHasUnique)) showUnique = true;
+    return {
+      event: group.event,
+      event_id: group.event_id,
+      unique_meetings: group.unique_meetings,
+      total_participants: group.total_participants,
+      active_users: group.active_users,
+      meeting_requests_sent: group.meeting_requests_sent,
+      meeting_requests_received: group.meeting_requests_received,
+      confirmed_meetings: group.confirmed_meetings,
+      ...(Object.prototype.hasOwnProperty.call(group, 'unique_confirmed_participants')
+        ? { unique_confirmed_participants: group.unique_confirmed_participants }
+        : {}),
+      attendee_types: visibleTypes,
+    };
+  });
+
   return {
     fromCache: Boolean(payload?.from_cache),
     generatedAt: payload?.generated_at || '',
-    rows,
-    showUnique: rows.some(rowHasUnique),
+    totals,
+    showUnique,
   };
 }

@@ -12,7 +12,7 @@ import { useOrganizerEvents } from '../hooks/useOrganizerEvents';
 import MeetingStatsEmailModal from './MeetingStatsEmailModal';
 import MeetingStatsFilters from './MeetingStatsFilters';
 import MeetingStatsHeader from './MeetingStatsHeader';
-import MeetingStatsTable from './MeetingStatsTable';
+import MeetingStatsTotals from './MeetingStatsTotals';
 
 export default function MeetingStatsReportTab() {
   const { id: eventId } = useParams();
@@ -96,18 +96,18 @@ export default function MeetingStatsReportTab() {
         emailLabel={email.cooldownLeft > 0 ? `Wait ${email.cooldownLeft}s` : 'Email report'}
       />
 
+      <MeetingStatsTotals
+        totals={report.data?.totals || []}
+        showUnique={Boolean(report.data?.showUnique)}
+        loading={report.loading}
+      />
+
       {report.error && (
         <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-start gap-3">
           <AlertCircle className="text-red-500 shrink-0 mt-0.5" size={18} />
           <div className="text-red-600 text-sm">{report.error}</div>
         </div>
       )}
-
-      <MeetingStatsTable
-        rows={report.data?.rows || []}
-        showUnique={Boolean(report.data?.showUnique)}
-        loading={report.loading}
-      />
 
       {emailOpen && (
         <MeetingStatsEmailModal
