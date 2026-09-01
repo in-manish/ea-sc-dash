@@ -57,6 +57,28 @@ const MeetingDiarySettings = ({
                             </div>
                         )}
                     </div>
+                    <div className="p-4 bg-bg-secondary rounded-lg border border-border">
+                        <div className="flex justify-between items-start gap-4 text-sm">
+                            <div>
+                                <p className="font-semibold text-text-primary m-0">Meeting Display to Attendees</p>
+                                <p className="text-xs text-text-tertiary mt-0.5">
+                                    Show meeting request/scheduling in the attendee app.
+                                </p>
+                                <p className="text-[11px] text-text-tertiary/70 mt-1">
+                                    Independent of the Meeting Diary Portal above — turn off to hide meetings from
+                                    attendees without disabling the portal itself.
+                                </p>
+                            </div>
+                            <div className="shrink-0 pt-0.5">
+                                <ToggleSwitch
+                                    name="meeting_display_enabled"
+                                    checked={!!eventData.meeting_display_enabled}
+                                    isModified={isFieldModified('meeting_display_enabled')}
+                                    onChange={handleInputChange}
+                                />
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
