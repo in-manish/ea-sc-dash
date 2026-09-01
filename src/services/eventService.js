@@ -236,6 +236,77 @@ export const eventService = {
         }
     },
 
+    async validateCompaniesCsv(eventId, token, file) {
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const headers = getHeaders(token);
+            delete headers['Content-Type']; // Browser sets multipart boundary
+
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/company/upload/validate/`, {
+                method: 'POST',
+                headers,
+                body: formData
+            });
+
+            const data = await response.json().catch(() => null);
+
+            if (!response.ok) {
+                const error = new Error(
+                    (data && (data.detail || data.message || data.msg)) || `Failed to validate companies CSV (status ${response.status})`
+                );
+                error.data = data;
+                error.status = response.status;
+                throw error;
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Validate Companies CSV Error:', error);
+            throw error;
+        }
+    },
+
+    async downloadCompanyUploadValidationReport(eventId, token, file) {
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const headers = getHeaders(token);
+            delete headers['Content-Type']; // Browser sets multipart boundary
+
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/company/upload/validate/?export=csv`, {
+                method: 'POST',
+                headers,
+                body: formData
+            });
+
+            if (!response.ok) {
+                const data = await response.json().catch(() => null);
+                const error = new Error(
+                    (data && (data.detail || data.message)) || `Failed to download validation report (status ${response.status})`
+                );
+                error.data = data;
+                error.status = response.status;
+                throw error;
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `company-upload-validation-${eventId}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Download Company Upload Validation Report Error:', error);
+            throw error;
+        }
+    },
+
     async getCompanyUploads(eventId, token, { page = 1, page_size = 20, uploadId = null } = {}) {
         try {
             const queryParams = new URLSearchParams();

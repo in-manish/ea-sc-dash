@@ -25,6 +25,7 @@ const AttendeesPage = () => {
     const navigate = useNavigate();
     const [page, setPage] = useState(parseInt(searchParams.get('page')) || 1);
     const [activeTab, setActiveTab] = useState('list');
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const clearSelectionRef = useRef(() => {});
     const getSelectionRef = useRef(() => ({
         selectionMode: 'none',
@@ -137,6 +138,7 @@ const AttendeesPage = () => {
                     list.setCreatePrefill(null);
                     list.setIsCreateModalOpen(true);
                 }}
+                onUploadClick={() => setIsUploadModalOpen(true)}
             />
             <AttendeesTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
@@ -189,6 +191,8 @@ const AttendeesPage = () => {
                 previewAttendee={previewAttendee}
                 attendeeTypes={attendeeTypes}
                 attendeeTypesLoading={attendeeTypesLoading}
+                isUploadModalOpen={isUploadModalOpen}
+                onCloseUploadModal={() => setIsUploadModalOpen(false)}
             />
         </div>
     );
