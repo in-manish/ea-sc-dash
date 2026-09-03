@@ -89,6 +89,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | EA invitee type placeholders | `InviteeTypePlaceholderForm.jsx` + `inviteeLinkPlaceholder.js` + `useInviteeLinkPlaceholders.js` |
 | Event settings AR tax list | `src/pages/event-settings/exhibitorPortalDefaults.js` + `ArTaxList.jsx` + `useAdditionalRequirement.js` |
 | Event settings / exhibitor meeting diary | `src/pages/event-settings/CompanyAccessControlsSection.jsx` + `exhibitorPortalDefaults.js` (`exhibitor_portal_data.meeting_diary.is_meeting_option_active`) |
+| Event settings / complimentary invitee links | `src/pages/event-settings/ComplimentaryInviteeLinkItem.jsx` (`is_active` enable/disable, `is_complementary`) |
 | Matchmaking questions / copy | `src/features/Matchmaking/ui/MatchmakingQuestions.jsx` + `api/matchmakingFormApi.js` |
 | Meeting stats report | `src/features/MeetingStats/ui/MeetingStatsReportTab.jsx` + `api/meetingStatsReportApi.js` |
 | Visiq subscribers / imports | `src/features/Visiq/ui/VisiqPage.jsx` + `api/importApi.js` (preview/download) + `hooks/useImportFileActions.js` |

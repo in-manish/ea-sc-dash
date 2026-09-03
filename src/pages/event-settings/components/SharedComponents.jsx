@@ -8,6 +8,18 @@ export const ToggleSwitch = ({ name, checked, isModified, onChange }) => (
     </label>
 );
 
+export const SettingsToggleRow = ({ title, description, ...toggleProps }) => (
+    <div className="flex justify-between items-center gap-4 p-4 bg-bg-primary rounded-lg border border-border text-sm">
+        <div>
+            <p className="font-semibold text-text-primary m-0">{title}</p>
+            {description && (
+                <p className="text-xs text-text-tertiary mt-0.5">{description}</p>
+            )}
+        </div>
+        <ToggleSwitch {...toggleProps} />
+    </div>
+);
+
 export const getInputClass = (fieldName, isModified, isIcon = false) => `w-full p-2.5 border rounded-md text-sm transition-colors duration-200 focus:outline-none focus:ring-2 ${isIcon ? 'pl-9' : ''} ${isModified ? 'border-amber-500 bg-[#fffbeb] text-amber-900 focus:border-amber-600 focus:ring-amber-500/20' : 'border-border bg-bg-primary text-text-primary focus:border-accent focus:ring-accent/10'}`;
 
 export const SectionHeader = ({ icon: Icon, title, colorClass = 'text-accent', borderClass = 'bg-accent' }) => (

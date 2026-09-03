@@ -165,6 +165,7 @@ const EventSettings = () => {
             title: item.title || '',
             description: item.description || '',
             is_complementary: !!item.is_complementary,
+            is_active: item.is_active !== false,
         };
         if (item.limit_mode === 'fixed') {
             next.limit_mode = 'fixed';
@@ -193,6 +194,7 @@ const EventSettings = () => {
                         title: '',
                         description: '',
                         is_complementary: true,
+                        is_active: true,
                         limit_mode: 'fixed',
                         invitee_limit: ''
                     }
