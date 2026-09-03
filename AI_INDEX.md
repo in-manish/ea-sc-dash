@@ -23,7 +23,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 |---------|------|-------|
 | Agenda | `src/features/Agenda/` | List + flat edit for speakers/moderators |
 | Attendees | `src/features/Attendees/` | List, create, edit badge, WhatsApp, email drafts, e-badge, report, bulk CSV upload + dry-run validator |
-| Companies | `src/features/Companies/` | EA list (sort) + create/edit/detail + portal checklist + reminder tab + exhibitor CSV report + engagement funnel + portal matchmaking CSV |
+| Companies | `src/features/Companies/` | EA list (sort) + create/edit/detail + portal checklist + reminder tab + exhibitor CSV report + engagement funnel + engagement report CSV |
 | ManageUsers | `src/features/ManageUsers/` | Staff users / permissions |
 | ScManageUsers | `src/features/ScManageUsers/` | SC admin users + saved cards |
 | ScAuth / Profile | `src/features/ScAuth/`, `src/features/ScProfile/` | SC ADMIN login gate + profile |
@@ -61,7 +61,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Download / email exhibitor CSV report | `ui/CompaniesReportsMenu.jsx` + `ui/ExhibitorReportModal.jsx` + `hooks/useExhibitorReport.js` + `api/exhibitorReportApi.js` |
 | Company Report metrics modal | `ui/CompanyReportModal.jsx` + `src/components/companies/CompanyComprehensiveReportPanel.jsx` + `CompanyReportMetricRow.jsx` |
 | Exhibitor Engagement tab | `ui/ExhibitorEngagementTab.jsx` + `hooks/useExhibitorEngagement.js` + `api/exhibitorEngagementApi.js` |
-| Download / email portal matchmaking CSV | `ui/ExhibitorEngagementReportModal.jsx` + `hooks/useExhibitorEngagementReport.js` + `api/exhibitorEngagementApi.js` (`format=csv` / `send_to_emails`) |
+| Download / email engagement report | `ui/ExhibitorEngagementReportModal.jsx` + `hooks/useExhibitorEngagementReport.js` + `api/exhibitorEngagementApi.js` (`format=csv` / `send_to_emails` / `include_matchmaking_questions`) |
 | Exhibitor list sort | `domain/companyListSort.js` + `ui/ExhibitorListToolbar.jsx` + `ui/ExhibitorListActionsBar.jsx` |
 | Company FormData / errors | `src/features/Companies/domain/buildCompanyFormData.js`, `parseCompanyError.js` |
 | Agenda list / edit session | `src/features/Agenda/ui/AgendaListPage.jsx`, `AgendaEditPage.jsx` (`force_attendance` block slot) |

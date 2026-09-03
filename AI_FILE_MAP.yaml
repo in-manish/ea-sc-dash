@@ -519,15 +519,19 @@ tasks:
       - /event/:id/companies?tab=exhibitor_engagement
     notes: >
       GET /events/:eventId/exhibitor/engagement/. Cached ~5 minutes.
-      refresh=true skips cache, recomputes, and recaches. Parent exhibitors
-      only. Steps use exhibitor_count when present else count; percentage of
+      refresh=true skips cache, recomputes, and recaches. Funnel JSON is
+      parent exhibitors only. CSV/email rows are parents and co-exhibitors.
+      Steps use exhibitor_count when present else count; percentage of
       total_exhibitors. invites_sent may include by_type (invite count per
       label); UI shows Invites sent from API and Registered/Accepted as N/A.
       from_cache true on hit. 401 login; 403 organizer; 404 event; 500 retry.
-      CSV download: format=csv (required) + optional completed=yes|no (omit
-      = all). Email: send_to_emails (required, never format=csv) + optional
-      completed; always JSON; queued async. Filename from Content-Disposition
-      (exhibitor-portal-matchmaking_{id}_YYYY-MM-DD_HHMMSS_IST.csv).
+      Engagement report (not Matchmaking CSV): format=csv + optional
+      completed=yes|no (omit = all) + include_matchmaking_questions=true|false
+      (default true). When true, each portal question is a CSV column; cells
+      are selected option names (comma-separated) or the text answer. Email:
+      send_to_emails (required, never format=csv) + same optional params;
+      always JSON; queued async. Filename from Content-Disposition
+      (exhibitor-engagement_{id}_YYYY-MM-DD_HHMMSS_IST.csv).
       completed is case-insensitive; invalid → 400. Do not send format=csv
       with send_to_emails.
   company_list_sort:
@@ -816,7 +820,7 @@ features:
     engagement_api: >
       GET /events/:eventId/exhibitor/engagement/ JSON funnel (?refresh=true);
       CSV ?format=csv; email ?send_to_emails= (never with format=csv);
-      optional completed=yes|no on CSV/email
+      optional completed=yes|no and include_matchmaking_questions on CSV/email
     checklist_reminder_api: >
       POST /events/:eventId/exhibitor/setup-checklist/remind/;
       GET .../reminders/ + GET .../reminders/:logId/;
@@ -955,8 +959,11 @@ glossary:
     JSON; optional company_ids; 401/403/404/500
   exhibitor_engagement_csv: >
     GET /events/:id/exhibitor/engagement/?format=csv or ?send_to_emails=;
-    optional completed=yes|no (omit = all); email is always JSON and queued;
-    never send format=csv with send_to_emails; 400 invalid completed/emails
+    optional completed=yes|no (omit = all) and include_matchmaking_questions
+    (default true; question columns + selected option names or text);
+    email is always JSON and queued; never send format=csv
+    with send_to_emails; filename exhibitor-engagement_{id}_…_IST.csv;
+    400 invalid completed/emails
   meeting_stats_report: >
     GET|POST /meetings/stats/report/; event × attendee_type; sent + received
     request columns; sender/receiver type names AND; cache per filters 10 min

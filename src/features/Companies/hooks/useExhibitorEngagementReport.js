@@ -5,13 +5,14 @@ import {
 } from '../api/exhibitorEngagementApi';
 import { saveExhibitorReportBlob } from '../domain/exhibitorReportDownload';
 
-const EMAIL_SUCCESS = 'Exhibitor portal matchmaking report has been sent to the provided email address(es)';
+const EMAIL_SUCCESS =
+  'Exhibitor engagement report has been sent to the provided email address(es)';
 
 function emailSuccessMessage(data) {
   const message = data?.message || EMAIL_SUCCESS;
   const count = Number(data?.record_count);
   if (!Number.isFinite(count)) return message;
-  return `${message} (${count} ${count === 1 ? 'company' : 'companies'})`;
+  return `${message} (${count} ${count === 1 ? 'exhibitor' : 'exhibitors'})`;
 }
 
 export function useExhibitorEngagementReport({ eventId, token, onUnauthorized }) {
@@ -32,13 +33,13 @@ export function useExhibitorEngagementReport({ eventId, token, onUnauthorized })
         onUnauthorized?.();
         return;
       }
-      setError(err.message || 'Failed to request matchmaking report.');
+      setError(err.message || 'Failed to request engagement report.');
     },
     [onUnauthorized],
   );
 
   const download = useCallback(
-    async (completed) => {
+    async ({ completed, includeMatchmakingQuestions } = {}) => {
       if (!eventId || !token || inFlight.current) return;
       inFlight.current = true;
       clearMessages();
@@ -46,6 +47,7 @@ export function useExhibitorEngagementReport({ eventId, token, onUnauthorized })
       try {
         const { blob, filename } = await downloadExhibitorEngagementCsv(eventId, token, {
           completed,
+          includeMatchmakingQuestions,
         });
         saveExhibitorReportBlob(blob, filename);
       } catch (err) {
@@ -59,7 +61,7 @@ export function useExhibitorEngagementReport({ eventId, token, onUnauthorized })
   );
 
   const sendEmail = useCallback(
-    async ({ emails, completed } = {}) => {
+    async ({ emails, completed, includeMatchmakingQuestions } = {}) => {
       if (!eventId || !token || inFlight.current || !emails?.length) return;
       inFlight.current = true;
       clearMessages();
@@ -68,6 +70,7 @@ export function useExhibitorEngagementReport({ eventId, token, onUnauthorized })
         const data = await emailExhibitorEngagementCsv(eventId, token, {
           emails,
           completed,
+          includeMatchmakingQuestions,
         });
         setSuccess(emailSuccessMessage(data));
       } catch (err) {

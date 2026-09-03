@@ -37,11 +37,19 @@ export async function getExhibitorEngagement(eventId, token, { refresh = false }
 }
 
 /**
- * GET ?format=csv. Optional completed=yes|no.
+ * GET ?format=csv. Optional completed=yes|no and include_matchmaking_questions.
  * Response is a CSV file, not JSON.
  */
-export async function downloadExhibitorEngagementCsv(eventId, token, { completed } = {}) {
-  const response = await fetch(engagementUrl(eventId, { format: 'csv', completed }), {
+export async function downloadExhibitorEngagementCsv(
+  eventId,
+  token,
+  { completed, includeMatchmakingQuestions = true } = {},
+) {
+  const response = await fetch(engagementUrl(eventId, {
+    format: 'csv',
+    completed,
+    includeMatchmakingQuestions,
+  }), {
     method: 'GET',
     headers: {
       Accept: 'text/csv',
@@ -60,10 +68,18 @@ export async function downloadExhibitorEngagementCsv(eventId, token, { completed
 
 /**
  * GET ?send_to_emails=. Always JSON; email is queued asynchronously.
- * Optional completed=yes|no. Do not send format=csv.
+ * Optional completed=yes|no and include_matchmaking_questions. Do not send format=csv.
  */
-export async function emailExhibitorEngagementCsv(eventId, token, { emails, completed } = {}) {
-  const response = await fetch(engagementUrl(eventId, { emails, completed }), {
+export async function emailExhibitorEngagementCsv(
+  eventId,
+  token,
+  { emails, completed, includeMatchmakingQuestions = true } = {},
+) {
+  const response = await fetch(engagementUrl(eventId, {
+    emails,
+    completed,
+    includeMatchmakingQuestions,
+  }), {
     method: 'GET',
     headers: {
       Accept: 'application/json',

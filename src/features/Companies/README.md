@@ -7,7 +7,7 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 **Detail:** `ui/CompanyDetailsPage.jsx` → `/event/:id/companies/:companyId`  
 **API:** multipart `FormData` + `Authorization: Token …` (no `/api` prefix)  
 **Exhibitor CSV report:** `GET /events/:id/exhibitor/report/` — CSV download or email via `send_to_emails`  
-**Exhibitor Engagement:** `GET /events/:id/exhibitor/engagement/` — parent-exhibitor totals + activation funnel (`?refresh=true` to recompute); CSV download (`?format=csv`) or email (`?send_to_emails=`) with optional `completed=yes|no`
+**Exhibitor Engagement:** `GET /events/:id/exhibitor/engagement/` — parent-exhibitor totals + activation funnel (`?refresh=true` to recompute); CSV download (`?format=csv`) or email (`?send_to_emails=`) with optional `completed=yes|no` and `include_matchmaking_questions`
 
 ## Layout
 
@@ -17,7 +17,7 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `api/exhibitorReportApi.js` | GET parent-exhibitor report: CSV blob or email JSON |
 | `api/exhibitorEngagementApi.js` | GET funnel (`refresh=true` skips cache); CSV blob (`format=csv`); email JSON (`send_to_emails`) |
 | `domain/exhibitorEngagement.js` | Normalize steps + by_type; exhibitor_count; 401/403/404/500 copy |
-| `domain/exhibitorEngagementQuery.js` | `refresh`, `format=csv`, `send_to_emails`, `completed=yes|no` (omit = all) |
+| `domain/exhibitorEngagementQuery.js` | `refresh`, `format=csv`, `send_to_emails`, `completed=yes|no` (omit = all), `include_matchmaking_questions` |
 | `hooks/useExhibitorEngagementReport.js` | Download blob or email JSON; 401 logs out |
 | `api/checklistReminderApi.js` | Reminder settings GET/PATCH + reminder log list + progress poll |
 | `domain/exhibitorReportDownload.js` | Filename (`Event-{id}-ExhibitorReport.csv`) + blob save |
@@ -25,9 +25,9 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `domain/parseExhibitorReportError.js` | 400 payload; 401/403/404/500 copy |
 | `hooks/useExhibitorReport.js` | Download blob or email JSON; 401 logs out |
 | `hooks/useExhibitorEngagement.js` | Load cached funnel; `refresh()` sends `refresh=true` |
-| `ui/ExhibitorEngagementReportButton.jsx` | Matchmaking CSV button + modal |
-| `ui/ExhibitorEngagementReportModal.jsx` | Email / download CSV + completed filter |
-| `ui/ExhibitorEngagementReportPanes.jsx` | Completed radios + download pane |
+| `ui/ExhibitorEngagementReportButton.jsx` | Engagement report button + modal |
+| `ui/ExhibitorEngagementReportModal.jsx` | Email / download CSV + completion filter + matchmaking-answers toggle |
+| `ui/ExhibitorEngagementReportPanes.jsx` | Always-included summary, questions toggle (On/Off), completion filter, download pane |
 | `ui/DownloadExhibitorReportButton.jsx` | Standalone CSV report button + modal |
 | `ui/CompaniesReportsMenu.jsx` | Header Reports: Company Report metrics + email/download CSV |
 | `ui/CompanyReportModal.jsx` | Modal shell for company totals / handover / coupons / badges (title is the only heading) |
@@ -71,8 +71,8 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `ui/ExhibitorListRowMenu.jsx` | Row ⋯ menu: view, edit, reset, lock, feature |
 | `ui/ExhibitorRowActionHost.jsx` | Row ⋯ confirm dialogs |
 | `ui/CompaniesPageTabs.jsx` | Main tabs + exhibitor / AR sub-views |
-| `ui/ExhibitorEngagementTab.jsx` | Engagement dashboard: summary + funnel + matchmaking CSV |
-| `ui/ExhibitorEngagementSummary.jsx` | Title, cache/live badge, refresh, Matchmaking CSV, total exhibitors |
+| `ui/ExhibitorEngagementTab.jsx` | Engagement dashboard: summary + funnel + engagement report |
+| `ui/ExhibitorEngagementSummary.jsx` | Title, cache/live badge, refresh, Engagement report, total exhibitors |
 | `ui/ActivationFunnel.jsx` | Four-column vertical fill funnel |
 | `ui/ActivationFunnelStep.jsx` | Step: label, `11/274 exhibitors`, vertical % bar |
 | `ui/InviteTypeBreakdown.jsx` | by_type cards: Invites sent + Registered/Accepted N/A |
@@ -184,16 +184,16 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 - Cached ~5 minutes; **Refresh** sends `refresh=true` to recompute and recache
 - Funnel count prefers `exhibitor_count` when present; else `count`
 - `percentage` is of total_exhibitors; steps are independent (open funnel)
-- UI: title + total card + **Matchmaking CSV**; four vertical % bars; `by_type` cards with Invites sent + Registered/Accepted as N/A
+- UI: title + total card + **Engagement report**; four vertical % bars; `by_type` cards with Invites sent + Registered/Accepted as N/A
 - Registered / accepted values stay N/A until API sends them
 - 401 → sign in again; 403 organizer; 404 event not found; 500 retry
 
-### Portal matchmaking CSV
+### Engagement report CSV
 
-- Same endpoint as the funnel. Download: `format=csv` (required) + optional `completed=yes|no` (omit = all rows). `Accept: text/csv`. Filename from Content-Disposition (`exhibitor-portal-matchmaking_{eventId}_YYYY-MM-DD_HHMMSS_IST.csv`)
-- Email: `send_to_emails` (required) + optional `completed`. Always JSON even if CSV Accept is sent; do **not** send `format=csv` on email. 200 means queued, not delivered
+- Same endpoint as the funnel. Download: `format=csv` (required) + optional `completed=yes|no` (omit = all rows) + `include_matchmaking_questions=true|false` (default true). `Accept: text/csv`. Filename from Content-Disposition (`exhibitor-engagement_{eventId}_YYYY-MM-DD_HHMMSS_IST.csv`)
+- Email: `send_to_emails` (required) + the same optional params. Always JSON even if CSV Accept is sent; do **not** send `format=csv` on email. 200 means queued, not delivered
 - `completed` is case-insensitive (`yes` / `no` / omit). Invalid → 400
-- Columns: Company ID, Company Name, OBF Number, Completed (Yes/No), then one column per portal question
+- Rows: parent and co-exhibitors. Columns: identity, parent flag, contact, salesperson, matchmaking completed, team members, invite counts, then optional portal question columns (header = question title; cell = selected option names, else text answer)
 - Completed is Yes only when every portal question is answered; no portal questions → every row No
 - Reuses exhibitor-report email chips + blob save helpers
 

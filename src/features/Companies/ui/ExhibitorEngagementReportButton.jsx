@@ -11,13 +11,13 @@ export default function ExhibitorEngagementReportButton({ eventId, token }) {
     <>
       <button
         type="button"
-        className="btn btn-secondary"
+        className="btn btn-secondary inline-flex items-center"
         onClick={() => setOpen(true)}
         disabled={!eventId || !token}
-        title="Download or email portal matchmaking CSV"
+        title="Download or email exhibitor engagement CSV"
       >
-        <FileSpreadsheet size={16} style={{ marginRight: '0.5rem' }} />
-        Matchmaking CSV
+        <FileSpreadsheet size={16} className="mr-2" />
+        Engagement report
       </button>
       {open && (
         <ExhibitorEngagementReportModal

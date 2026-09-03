@@ -8,9 +8,9 @@ export const COMPLETED_FILTERS = {
 };
 
 export const COMPLETED_FILTER_OPTIONS = [
-  { value: COMPLETED_FILTERS.ALL, label: 'All companies', hint: 'Completed Yes and No' },
-  { value: COMPLETED_FILTERS.YES, label: 'Completed only', hint: 'Answered all portal questions' },
-  { value: COMPLETED_FILTERS.NO, label: 'Incomplete only', hint: 'Missing portal answers' },
+  { value: COMPLETED_FILTERS.ALL, label: 'All', hint: 'Every exhibitor row (parents and co-exhibitors)' },
+  { value: COMPLETED_FILTERS.YES, label: 'Completed', hint: 'Answered every portal matchmaking question' },
+  { value: COMPLETED_FILTERS.NO, label: 'Incomplete', hint: 'Missing one or more portal answers' },
 ];
 
 export function normalizeCompletedFilter(value) {
@@ -23,12 +23,14 @@ export function normalizeCompletedFilter(value) {
  * Query for GET /events/:id/exhibitor/engagement/.
  * Funnel JSON: optional refresh. CSV: format=csv. Email: send_to_emails.
  * Do not send format=csv together with send_to_emails.
+ * include_matchmaking_questions only on CSV/email (default true).
  */
 export function buildExhibitorEngagementQuery({
   refresh = false,
   format,
   emails,
   completed,
+  includeMatchmakingQuestions,
 } = {}) {
   const params = new URLSearchParams();
   if (refresh) params.set('refresh', 'true');
@@ -37,9 +39,15 @@ export function buildExhibitorEngagementQuery({
   if (sendTo) params.set('send_to_emails', sendTo);
   const filter = normalizeCompletedFilter(completed);
   if (filter) params.set('completed', filter);
+  if (typeof includeMatchmakingQuestions === 'boolean') {
+    params.set(
+      'include_matchmaking_questions',
+      includeMatchmakingQuestions ? 'true' : 'false',
+    );
+  }
   return params.toString();
 }
 
 export function defaultEngagementCsvFilename(eventId) {
-  return `exhibitor-portal-matchmaking_${eventId}.csv`;
+  return `exhibitor-engagement_${eventId}.csv`;
 }

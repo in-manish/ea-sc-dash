@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Download, Mail, X } from 'lucide-react';
+import { Download, FileSpreadsheet, Mail, X } from 'lucide-react';
 import { useExhibitorEngagementReport } from '../hooks/useExhibitorEngagementReport';
 import {
   loadPersistedEmails,
@@ -10,7 +10,10 @@ import {
   EmailPane,
   FeedbackMessages,
 } from './ExhibitorReportModalPanes';
-import { CompletedFilter, DownloadPane } from './ExhibitorEngagementReportPanes';
+import {
+  DownloadPane,
+  ReportOptions,
+} from './ExhibitorEngagementReportPanes';
 
 const MODES = { EMAIL: 'email', DOWNLOAD: 'download' };
 
@@ -20,11 +23,13 @@ export default function ExhibitorEngagementReportModal({
   onUnauthorized,
   onClose,
 }) {
-  const [mode, setMode] = useState(MODES.EMAIL);
+  const [mode, setMode] = useState(MODES.DOWNLOAD);
   const [emails, setEmails] = useState(() => loadPersistedEmails());
   const [completed, setCompleted] = useState(COMPLETED_FILTERS.ALL);
+  const [includeQuestions, setIncludeQuestions] = useState(true);
   const report = useExhibitorEngagementReport({ eventId, token, onUnauthorized });
   const busy = report.downloading || report.sending;
+  const options = { completed, includeMatchmakingQuestions: includeQuestions };
 
   useEffect(() => { persistEmails(emails); }, [emails]);
 
@@ -46,28 +51,20 @@ export default function ExhibitorEngagementReportModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="eng-report-title"
-        className="bg-bg-primary border border-border rounded-lg shadow-xl w-full max-w-lg overflow-hidden animate-fade-in"
+        className="bg-bg-primary border border-border rounded-xl shadow-xl w-full max-w-lg overflow-hidden animate-fade-in"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="px-5 py-4 border-b border-border flex justify-between items-center">
-          <h3 id="eng-report-title" className="text-base font-semibold text-text-primary m-0">
-            Exhibitor Portal Matchmaking
-          </h3>
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={busy}
-            className="text-text-tertiary hover:text-text-primary bg-transparent border-none cursor-pointer p-1 rounded-md hover:bg-bg-secondary transition-colors disabled:opacity-50"
-            aria-label="Close"
-          >
-            <X size={16} />
-          </button>
-        </div>
-
+        <ModalHeader busy={busy} onClose={onClose} />
         <ModeTabs mode={mode} onModeChange={setMode} busy={busy} />
 
         <div className="px-5 py-4 space-y-4">
-          <CompletedFilter value={completed} onChange={setCompleted} disabled={busy} />
+          <ReportOptions
+            includeQuestions={includeQuestions}
+            onIncludeQuestionsChange={setIncludeQuestions}
+            completed={completed}
+            onCompletedChange={setCompleted}
+            disabled={busy}
+          />
 
           {mode === MODES.EMAIL ? (
             <EmailPane
@@ -76,13 +73,13 @@ export default function ExhibitorEngagementReportModal({
               busy={busy}
               sending={report.sending}
               hasSelected={false}
-              onSend={() => report.sendEmail({ emails, completed })}
+              onSend={() => report.sendEmail({ emails, ...options })}
             />
           ) : (
             <DownloadPane
               busy={busy}
               downloading={report.downloading}
-              onDownload={() => report.download(completed)}
+              onDownload={() => report.download(options)}
             />
           )}
 
@@ -90,9 +87,38 @@ export default function ExhibitorEngagementReportModal({
         </div>
 
         <div className="px-5 py-3 border-t border-border bg-bg-secondary/50 text-[11px] text-text-tertiary">
-          Email is queued asynchronously. Completed is Yes only when every portal question is answered.
+          Email is queued, not delivered yet. Completion is Yes only when every portal question is answered.
         </div>
       </div>
+    </div>
+  );
+}
+
+function ModalHeader({ busy, onClose }) {
+  return (
+    <div className="px-5 py-4 border-b border-border flex justify-between items-start gap-3">
+      <div className="flex items-start gap-3 min-w-0">
+        <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
+          <FileSpreadsheet size={18} />
+        </span>
+        <div>
+          <h3 id="eng-report-title" className="text-base font-semibold text-text-primary m-0">
+            Engagement Report
+          </h3>
+          <p className="m-0 mt-0.5 text-xs text-text-tertiary">
+            Download or email CSV for all exhibitors on this event.
+          </p>
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={onClose}
+        disabled={busy}
+        className="text-text-tertiary hover:text-text-primary bg-transparent border-none cursor-pointer p-1 rounded-md hover:bg-bg-secondary transition-colors disabled:opacity-50"
+        aria-label="Close"
+      >
+        <X size={16} />
+      </button>
     </div>
   );
 }
@@ -115,8 +141,8 @@ function ModeTabs({ mode, onModeChange, busy }) {
   );
   return (
     <div className="flex border-b border-border">
-      {tab(MODES.EMAIL, <Mail size={15} />, 'Email Report')}
       {tab(MODES.DOWNLOAD, <Download size={15} />, 'Download CSV')}
+      {tab(MODES.EMAIL, <Mail size={15} />, 'Email report')}
     </div>
   );
 }
