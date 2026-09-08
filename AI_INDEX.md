@@ -61,7 +61,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Download / email exhibitor CSV report | `ui/CompaniesReportsMenu.jsx` + `ui/ExhibitorReportModal.jsx` + `hooks/useExhibitorReport.js` + `api/exhibitorReportApi.js` |
 | Company Report metrics modal | `ui/CompanyReportModal.jsx` + `src/components/companies/CompanyComprehensiveReportPanel.jsx` + `CompanyReportMetricRow.jsx` |
 | Exhibitor Engagement tab | `ui/ExhibitorEngagementTab.jsx` + `hooks/useExhibitorEngagement.js` + `api/exhibitorEngagementApi.js` |
-| Download / email engagement report | `ui/ExhibitorEngagementReportModal.jsx` + `hooks/useExhibitorEngagementReport.js` + `api/exhibitorEngagementApi.js` (`format=csv` / `send_to_emails` / `include_matchmaking_questions`) |
+| Download / email engagement report | `ui/ExhibitorEngagementReportModal.jsx` + `hooks/useExhibitorEngagementReport.js` + `api/exhibitorEngagementApi.js` (`format=csv` / `send_to_emails` / `include_matchmaking_questions` / `include_login_info`) |
 | Exhibitor list sort | `domain/companyListSort.js` + `ui/ExhibitorListToolbar.jsx` + `ui/ExhibitorListActionsBar.jsx` |
 | Company FormData / errors | `src/features/Companies/domain/buildCompanyFormData.js`, `parseCompanyError.js` |
 | Agenda list / edit session | `src/features/Agenda/ui/AgendaListPage.jsx`, `AgendaEditPage.jsx` (`force_attendance` block slot) |

@@ -3,7 +3,10 @@ export default function ExhibitorEngagementSkeleton() {
     <div className="animate-pulse">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="h-8 w-56 rounded bg-bg-tertiary" />
-        <div className="h-[4.5rem] w-40 rounded-xl bg-bg-tertiary" />
+        <div className="flex items-center gap-3">
+          <div className="h-[4.5rem] w-40 rounded-xl bg-bg-tertiary" />
+          <div className="h-[4.5rem] w-44 rounded-xl bg-bg-tertiary" />
+        </div>
       </div>
       <div className="bg-bg-primary border border-border rounded-xl p-6 shadow-sm">
         <div className="h-5 w-40 rounded bg-bg-tertiary mb-6" />

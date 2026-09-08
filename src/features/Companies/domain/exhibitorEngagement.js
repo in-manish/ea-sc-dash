@@ -57,6 +57,9 @@ export function normalizeExhibitorEngagement(payload) {
   return {
     title: payload?.title || 'Exhibitor Engagement',
     totalExhibitors,
+    totalLoggedInPocs: toCount(payload?.total_logged_in_pocs),
+    loggedInExhibitorPocs: toCount(payload?.logged_in_exhibitor_pocs),
+    loggedInCoexhibitorPocs: toCount(payload?.logged_in_coexhibitor_pocs),
     generatedAt: payload?.generated_at || '',
     fromCache: Boolean(payload?.from_cache),
     funnelTitle: funnel.title || 'Activation Funnel',
@@ -93,4 +96,18 @@ export function formatCount(value) {
 export function formatExhibitorCount(value) {
   const n = toCount(value);
   return `${n.toLocaleString()} ${n === 1 ? 'exhibitor' : 'exhibitors'}`;
+}
+
+function formatUnit(value, one, many) {
+  const n = toCount(value);
+  return `${n.toLocaleString()} ${n === 1 ? one : many}`;
+}
+
+/** Parent vs co-exhibitor POC login split shown under the logged-in total. */
+export function formatLoggedInPocBreakdown(exhibitorCount, coexhibitorCount) {
+  return `${formatUnit(exhibitorCount, 'exhibitor', 'exhibitors')} · ${formatUnit(
+    coexhibitorCount,
+    'co-exhibitor',
+    'co-exhibitors',
+  )}`;
 }

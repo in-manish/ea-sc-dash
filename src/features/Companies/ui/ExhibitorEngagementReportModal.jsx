@@ -27,9 +27,14 @@ export default function ExhibitorEngagementReportModal({
   const [emails, setEmails] = useState(() => loadPersistedEmails());
   const [completed, setCompleted] = useState(COMPLETED_FILTERS.ALL);
   const [includeQuestions, setIncludeQuestions] = useState(true);
+  const [includeLoginInfo, setIncludeLoginInfo] = useState(false);
   const report = useExhibitorEngagementReport({ eventId, token, onUnauthorized });
   const busy = report.downloading || report.sending;
-  const options = { completed, includeMatchmakingQuestions: includeQuestions };
+  const options = {
+    completed,
+    includeMatchmakingQuestions: includeQuestions,
+    includeLoginInfo,
+  };
 
   useEffect(() => { persistEmails(emails); }, [emails]);
 
@@ -61,6 +66,8 @@ export default function ExhibitorEngagementReportModal({
           <ReportOptions
             includeQuestions={includeQuestions}
             onIncludeQuestionsChange={setIncludeQuestions}
+            includeLoginInfo={includeLoginInfo}
+            onIncludeLoginInfoChange={setIncludeLoginInfo}
             completed={completed}
             onCompletedChange={setCompleted}
             disabled={busy}
@@ -87,7 +94,8 @@ export default function ExhibitorEngagementReportModal({
         </div>
 
         <div className="px-5 py-3 border-t border-border bg-bg-secondary/50 text-[11px] text-text-tertiary">
-          Email is queued, not delivered yet. Completion is Yes only when every portal question is answered.
+          Email is queued, not delivered yet. Completion is Yes only when every portal
+          question is answered. Login columns are optional.
         </div>
       </div>
     </div>

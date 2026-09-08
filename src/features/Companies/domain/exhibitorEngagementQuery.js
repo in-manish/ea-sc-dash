@@ -19,11 +19,16 @@ export function normalizeCompletedFilter(value) {
   return COMPLETED_FILTERS.ALL;
 }
 
+function setBoolParam(params, key, value) {
+  if (typeof value === 'boolean') params.set(key, value ? 'true' : 'false');
+}
+
 /**
  * Query for GET /events/:id/exhibitor/engagement/.
  * Funnel JSON: optional refresh. CSV: format=csv. Email: send_to_emails.
  * Do not send format=csv together with send_to_emails.
- * include_matchmaking_questions only on CSV/email (default true).
+ * include_matchmaking_questions (default true) and include_login_info
+ * (default false) only on CSV/email.
  */
 export function buildExhibitorEngagementQuery({
   refresh = false,
@@ -31,6 +36,7 @@ export function buildExhibitorEngagementQuery({
   emails,
   completed,
   includeMatchmakingQuestions,
+  includeLoginInfo,
 } = {}) {
   const params = new URLSearchParams();
   if (refresh) params.set('refresh', 'true');
@@ -39,12 +45,8 @@ export function buildExhibitorEngagementQuery({
   if (sendTo) params.set('send_to_emails', sendTo);
   const filter = normalizeCompletedFilter(completed);
   if (filter) params.set('completed', filter);
-  if (typeof includeMatchmakingQuestions === 'boolean') {
-    params.set(
-      'include_matchmaking_questions',
-      includeMatchmakingQuestions ? 'true' : 'false',
-    );
-  }
+  setBoolParam(params, 'include_matchmaking_questions', includeMatchmakingQuestions);
+  setBoolParam(params, 'include_login_info', includeLoginInfo);
   return params.toString();
 }
 

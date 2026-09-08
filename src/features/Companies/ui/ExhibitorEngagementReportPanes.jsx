@@ -18,9 +18,30 @@ function ReportSwitch({ name, checked, onChange, disabled }) {
   );
 }
 
+function IncludeToggleRow({ name, title, hintOn, hintOff, checked, onChange, disabled, bordered }) {
+  return (
+    <div className={`flex items-start justify-between gap-4 px-3 py-3 bg-bg-primary ${bordered ? 'border-t border-border' : ''}`}>
+      <div className="min-w-0">
+        <p className="m-0 text-sm font-medium text-text-primary">{title}</p>
+        <p className="m-0 mt-1 text-[11px] leading-snug text-text-tertiary">
+          {checked ? hintOn : hintOff}
+        </p>
+      </div>
+      <div className="flex items-center gap-2 shrink-0 pt-0.5">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-text-tertiary">
+          {checked ? 'On' : 'Off'}
+        </span>
+        <ReportSwitch name={name} checked={checked} onChange={onChange} disabled={disabled} />
+      </div>
+    </div>
+  );
+}
+
 export function ReportOptions({
   includeQuestions,
   onIncludeQuestionsChange,
+  includeLoginInfo,
+  onIncludeLoginInfoChange,
   completed,
   onCompletedChange,
   disabled,
@@ -36,29 +57,25 @@ export function ReportOptions({
             Parents and co-exhibitors · contact, email, salesperson · team members and invite counts
           </p>
         </div>
-        <div className="flex items-start justify-between gap-4 px-3 py-3 bg-bg-primary">
-          <div className="min-w-0">
-            <p className="m-0 text-sm font-medium text-text-primary">
-              Include matchmaking questions
-            </p>
-            <p className="m-0 mt-1 text-[11px] leading-snug text-text-tertiary">
-              {includeQuestions
-                ? 'Each portal question is a column. Cells list selected option names, or the text answer.'
-                : 'Question columns omitted. Identity and invite counts only.'}
-            </p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0 pt-0.5">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-text-tertiary">
-              {includeQuestions ? 'On' : 'Off'}
-            </span>
-            <ReportSwitch
-              name="include_matchmaking_questions"
-              checked={includeQuestions}
-              onChange={onIncludeQuestionsChange}
-              disabled={disabled}
-            />
-          </div>
-        </div>
+        <IncludeToggleRow
+          name="include_matchmaking_questions"
+          title="Include matchmaking questions"
+          hintOn="Each portal question is a column. Cells list selected option names, or the text answer."
+          hintOff="Question columns omitted. Identity and invite counts only."
+          checked={includeQuestions}
+          onChange={onIncludeQuestionsChange}
+          disabled={disabled}
+        />
+        <IncludeToggleRow
+          name="include_login_info"
+          title="Include portal login info"
+          hintOn="Adds POC Logged In (Yes/No) and POC First Login after Registered Email."
+          hintOff="Login columns omitted. Identity and invite counts only."
+          checked={includeLoginInfo}
+          onChange={onIncludeLoginInfoChange}
+          disabled={disabled}
+          bordered
+        />
       </div>
 
       <CompletedFilter value={completed} onChange={onCompletedChange} disabled={disabled} />

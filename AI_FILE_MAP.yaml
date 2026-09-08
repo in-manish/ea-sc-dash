@@ -504,6 +504,7 @@ tasks:
       - src/features/Companies/hooks/useExhibitorEngagementReport.js
       - src/features/Companies/ui/ExhibitorEngagementTab.jsx
       - src/features/Companies/ui/ExhibitorEngagementSummary.jsx
+      - src/features/Companies/ui/ExhibitorEngagementStatCards.jsx
       - src/features/Companies/ui/ExhibitorEngagementReportButton.jsx
       - src/features/Companies/ui/ExhibitorEngagementReportModal.jsx
       - src/features/Companies/ui/ExhibitorEngagementReportPanes.jsx
@@ -521,17 +522,21 @@ tasks:
       GET /events/:eventId/exhibitor/engagement/. Cached ~5 minutes.
       refresh=true skips cache, recomputes, and recaches. Funnel JSON is
       parent exhibitors only. CSV/email rows are parents and co-exhibitors.
-      Steps use exhibitor_count when present else count; percentage of
+      JSON also returns total_logged_in_pocs, logged_in_exhibitor_pocs,
+      logged_in_coexhibitor_pocs (parents + co-exhibitors). Steps use
+      exhibitor_count when present else count; percentage of
       total_exhibitors. invites_sent may include by_type (invite count per
       label); UI shows Invites sent from API and Registered/Accepted as N/A.
       from_cache true on hit. 401 login; 403 organizer; 404 event; 500 retry.
       Engagement report (not Matchmaking CSV): format=csv + optional
       completed=yes|no (omit = all) + include_matchmaking_questions=true|false
-      (default true). When true, each portal question is a CSV column; cells
-      are selected option names (comma-separated) or the text answer. Email:
-      send_to_emails (required, never format=csv) + same optional params;
-      always JSON; queued async. Filename from Content-Disposition
-      (exhibitor-engagement_{id}_YYYY-MM-DD_HHMMSS_IST.csv).
+      (default true) + include_login_info=true|false (default false). When
+      questions true, each portal question is a CSV column; cells are
+      selected option names (comma-separated) or the text answer. When
+      login info true, POC Logged In / POC First Login follow Registered
+      Email. Email: send_to_emails (required, never format=csv) + same
+      optional params; always JSON; queued async. Filename from
+      Content-Disposition (exhibitor-engagement_{id}_YYYY-MM-DD_HHMMSS_IST.csv).
       completed is case-insensitive; invalid → 400. Do not send format=csv
       with send_to_emails.
   company_list_sort:
@@ -820,7 +825,8 @@ features:
     engagement_api: >
       GET /events/:eventId/exhibitor/engagement/ JSON funnel (?refresh=true);
       CSV ?format=csv; email ?send_to_emails= (never with format=csv);
-      optional completed=yes|no and include_matchmaking_questions on CSV/email
+      optional completed=yes|no, include_matchmaking_questions, and
+      include_login_info on CSV/email; JSON includes logged-in POC counts
     checklist_reminder_api: >
       POST /events/:eventId/exhibitor/setup-checklist/remind/;
       GET .../reminders/ + GET .../reminders/:logId/;
@@ -959,8 +965,9 @@ glossary:
     JSON; optional company_ids; 401/403/404/500
   exhibitor_engagement_csv: >
     GET /events/:id/exhibitor/engagement/?format=csv or ?send_to_emails=;
-    optional completed=yes|no (omit = all) and include_matchmaking_questions
-    (default true; question columns + selected option names or text);
+    optional completed=yes|no (omit = all), include_matchmaking_questions
+    (default true; question columns + selected option names or text),
+    and include_login_info (default false; POC Logged In / POC First Login);
     email is always JSON and queued; never send format=csv
     with send_to_emails; filename exhibitor-engagement_{id}_…_IST.csv;
     400 invalid completed/emails

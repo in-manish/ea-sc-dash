@@ -39,7 +39,7 @@ export function useExhibitorEngagementReport({ eventId, token, onUnauthorized })
   );
 
   const download = useCallback(
-    async ({ completed, includeMatchmakingQuestions } = {}) => {
+    async ({ completed, includeMatchmakingQuestions, includeLoginInfo } = {}) => {
       if (!eventId || !token || inFlight.current) return;
       inFlight.current = true;
       clearMessages();
@@ -48,6 +48,7 @@ export function useExhibitorEngagementReport({ eventId, token, onUnauthorized })
         const { blob, filename } = await downloadExhibitorEngagementCsv(eventId, token, {
           completed,
           includeMatchmakingQuestions,
+          includeLoginInfo,
         });
         saveExhibitorReportBlob(blob, filename);
       } catch (err) {
@@ -61,7 +62,7 @@ export function useExhibitorEngagementReport({ eventId, token, onUnauthorized })
   );
 
   const sendEmail = useCallback(
-    async ({ emails, completed, includeMatchmakingQuestions } = {}) => {
+    async ({ emails, completed, includeMatchmakingQuestions, includeLoginInfo } = {}) => {
       if (!eventId || !token || inFlight.current || !emails?.length) return;
       inFlight.current = true;
       clearMessages();
@@ -71,6 +72,7 @@ export function useExhibitorEngagementReport({ eventId, token, onUnauthorized })
           emails,
           completed,
           includeMatchmakingQuestions,
+          includeLoginInfo,
         });
         setSuccess(emailSuccessMessage(data));
       } catch (err) {
