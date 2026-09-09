@@ -1,4 +1,5 @@
 import { getApiUrl } from '../../../config';
+import { downloadBlob } from '../../../utils/downloadBlob';
 
 function authHeaders(token) {
     // No Content-Type: the browser must set the multipart boundary itself.
@@ -58,12 +59,5 @@ export async function downloadAttendeeUploadValidationReport(eventId, token, fil
     if (!response.ok) throw await parseError(response, 'Failed to download validation report');
 
     const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `attendee-upload-validation-${eventId}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.URL.revokeObjectURL(url);
+    downloadBlob(blob, `attendee-upload-validation-${eventId}.csv`);
 }

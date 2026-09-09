@@ -1,4 +1,5 @@
 import { getApiUrl } from '../config';
+import { downloadBlob } from '../utils/downloadBlob';
 
 const getHeaders = (token) => {
     const baseUrl = getApiUrl();
@@ -293,14 +294,7 @@ export const eventService = {
             }
 
             const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `company-upload-validation-${eventId}.csv`;
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            window.URL.revokeObjectURL(url);
+            downloadBlob(blob, `company-upload-validation-${eventId}.csv`);
         } catch (error) {
             console.error('Download Company Upload Validation Report Error:', error);
             throw error;

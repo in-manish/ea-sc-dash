@@ -138,7 +138,10 @@ const AttendeesModals = ({
                 eventId={selectedEvent.id}
                 token={token}
                 onClose={onCloseUploadModal}
-                onUploaded={onCloseUploadModal}
+                onUploaded={() => {
+                    list.handleCreated();
+                    onCloseUploadModal();
+                }}
             />
         )}
     </>

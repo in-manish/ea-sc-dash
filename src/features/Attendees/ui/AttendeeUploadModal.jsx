@@ -1,9 +1,9 @@
 import {
-    AlertCircle, AlertTriangle, CheckCircle2, Download, FileSpreadsheet,
-    Loader2, ShieldCheck, Upload, X, XCircle,
+    AlertCircle, CheckCircle2, FileSpreadsheet,
+    Loader2, ShieldCheck, Upload, X,
 } from 'lucide-react';
 import { useAttendeeUpload } from '../hooks/useAttendeeUpload';
-import AttendeeUploadRowIssues from './AttendeeUploadRowIssues';
+import CsvUploadResultPanel from '../../../components/common/CsvUploadResultPanel';
 
 /**
  * Bulk attendee CSV upload: pick a file, dry-run validate it (no attendees are created
@@ -13,9 +13,6 @@ import AttendeeUploadRowIssues from './AttendeeUploadRowIssues';
  */
 export default function AttendeeUploadModal({ eventId, token, onClose, onUploaded }) {
     const upload = useAttendeeUpload({ eventId, token, onUploaded });
-    const summary = upload.validation?.summary;
-    const rowIssues = upload.validation ? upload.validation.rows.filter((r) => r.status !== 'valid') : [];
-    const headerIssues = summary?.header_issues;
 
     return (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-[1300] animate-fade-in" onClick={onClose}>
@@ -89,7 +86,7 @@ export default function AttendeeUploadModal({ eventId, token, onClose, onUploade
                                 <button
                                     type="button"
                                     onClick={upload.handleValidate}
-                                    disabled={upload.validating}
+                                    disabled={upload.busy}
                                     className="btn btn-secondary btn-sm gap-2"
                                 >
                                     {upload.validating ? <Loader2 size={14} className="animate-spin" /> : <ShieldCheck size={14} />}
@@ -99,59 +96,24 @@ export default function AttendeeUploadModal({ eventId, token, onClose, onUploade
                         )}
                     </div>
 
-                    {summary && (
-                        <div className="p-5 bg-bg-primary rounded-lg border border-border space-y-4">
-                            <div className="flex items-center justify-between flex-wrap gap-2">
-                                <p className="text-sm font-semibold text-text-primary flex items-center gap-1.5">
-                                    <ShieldCheck size={15} className="text-accent" /> Validation results
-                                </p>
-                                <button
-                                    type="button"
-                                    onClick={upload.handleDownloadReport}
-                                    disabled={upload.downloadingReport}
-                                    className="btn btn-secondary btn-sm gap-1.5"
-                                >
-                                    {upload.downloadingReport ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
-                                    Download report
-                                </button>
-                            </div>
-
-                            <div className="flex items-center gap-2 flex-wrap text-xs">
-                                <span className="inline-flex items-center py-0.5 px-2 rounded-full bg-bg-secondary text-text-secondary font-medium border border-border">
-                                    Total {summary.total_rows}
-                                </span>
-                                <span className="inline-flex items-center gap-1 py-0.5 px-2 rounded-full bg-emerald-50 text-emerald-700 font-medium">
-                                    <CheckCircle2 size={12} /> {summary.valid_rows} valid
-                                </span>
-                                <span className="inline-flex items-center gap-1 py-0.5 px-2 rounded-full bg-amber-50 text-amber-700 font-medium">
-                                    <AlertTriangle size={12} /> {summary.rows_with_warnings} warning{summary.rows_with_warnings === 1 ? '' : 's'}
-                                </span>
-                                <span className="inline-flex items-center gap-1 py-0.5 px-2 rounded-full bg-red-50 text-red-700 font-medium">
-                                    <XCircle size={12} /> {summary.rows_with_errors} error{summary.rows_with_errors === 1 ? '' : 's'}
-                                </span>
-                            </div>
-
-                            {headerIssues && (headerIssues.unknown_headers?.length > 0 || headerIssues.duplicate_headers?.length > 0) && (
-                                <div className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 space-y-1">
-                                    {headerIssues.unknown_headers?.length > 0 && (
-                                        <p>Unrecognized columns (ignored): {headerIssues.unknown_headers.join(', ')}</p>
-                                    )}
-                                    {headerIssues.duplicate_headers?.length > 0 && (
-                                        <p>Duplicate columns: {headerIssues.duplicate_headers.join(', ')}</p>
-                                    )}
-                                </div>
-                            )}
-
-                            {upload.hasBlockingErrors && (
-                                <div className="p-3 bg-status-danger/5 border border-status-danger/10 rounded-lg flex items-start gap-2 text-status-danger text-xs">
-                                    <AlertCircle size={14} className="mt-0.5 shrink-0" />
-                                    <span>Fix the row errors below before uploading, or upload anyway and the affected rows will be rejected.</span>
-                                </div>
-                            )}
-
-                            <AttendeeUploadRowIssues rows={rowIssues} />
-                        </div>
-                    )}
+                    <CsvUploadResultPanel
+                        summary={upload.summary}
+                        rowIssues={upload.rowIssues}
+                        hasBlockingErrors={upload.hasBlockingErrors}
+                        downloadingReport={upload.downloadingReport}
+                        downloadDisabled={upload.busy}
+                        onDownloadReport={upload.handleDownloadReport}
+                        renderRowLabel={(row) => (
+                            <>
+                                {row.name && <span className="text-text-secondary">{row.name}</span>}
+                                {row.email && (
+                                    <span className="text-[11px] font-mono bg-bg-tertiary text-text-secondary px-1.5 py-0.5 rounded">
+                                        {row.email}
+                                    </span>
+                                )}
+                            </>
+                        )}
+                    />
                 </div>
 
                 <div className="p-4 border-t border-border flex justify-end gap-3 bg-bg-secondary">
@@ -161,8 +123,7 @@ export default function AttendeeUploadModal({ eventId, token, onClose, onUploade
                     <button
                         type="button"
                         onClick={upload.handleUpload}
-                        disabled={upload.uploading || !upload.file || upload.hasBlockingErrors}
-                        title={upload.hasBlockingErrors ? 'Resolve row errors before uploading' : undefined}
+                        disabled={upload.busy || !upload.file}
                         className="btn btn-primary gap-2"
                     >
                         {upload.uploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}

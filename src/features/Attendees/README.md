@@ -25,8 +25,7 @@ Event attendee list, filters, WhatsApp send, attendee-type email drafts, e-badge
 - `AttendeesReportPanel.jsx` — collapsible badge counts by attendee type (ES/DB)
 - `AttendeesReportCharts.jsx` — event total + vertical bar + pie charts
 - `AttendeesModals.jsx` — detail / filter / WhatsApp / SC / e-badge / create / edit / CSV upload
-- `AttendeeUploadModal.jsx` — pick CSV, dry-run validate (per-row errors/warnings, no attendees created), then upload for real
-- `AttendeeUploadRowIssues.jsx` — row-level error/warning cards for the upload validator
+- `AttendeeUploadModal.jsx` — pick CSV, dry-run validate (per-row errors/warnings, no attendees created), then upload for real; results rendered via shared `components/common/CsvUploadResultPanel.jsx`
 - `EditAttendeeModal.jsx` — GET then full-body PATCH edit form
 - `AttendeeDetailModal.jsx` — exhibitor portal password reset enabled when `is_poc`
 - `WhatsAppTemplatePreviewPane.jsx` — raw/preview pane (split from picker)
@@ -43,4 +42,4 @@ Event attendee list, filters, WhatsApp send, attendee-type email drafts, e-badge
 - Table row actions → `ui/AttendeeTableRowMenu.jsx` (⋯ menu: Matchmaking, Re-create E-badge, Sync SC)
 - WhatsApp send → `hooks/useWhatsAppSend.js` + `ui/WhatsAppSendModal.jsx`
 - E-badge create/poll → `hooks/useEBadgeActions.js` + `hooks/useEBadgeJobs.js`
-- Bulk attendee CSV upload / dry-run validate → `ui/AttendeeUploadModal.jsx` + `ui/AttendeeUploadRowIssues.jsx` + `hooks/useAttendeeUpload.js` + `api/attendeeUploadApi.js`; triggered from `ui/AttendeesPageHeader.jsx` (Upload CSV button), rendered from `ui/AttendeesModals.jsx`. Create-flow only (no replicate/update by Reg ID in this UI).
+- Bulk attendee CSV upload / dry-run validate → `ui/AttendeeUploadModal.jsx` + `hooks/useAttendeeUpload.js` (thin wrapper over the shared `src/hooks/useCsvUploadFlow.js`) + `api/attendeeUploadApi.js`; triggered from `ui/AttendeesPageHeader.jsx` (Upload CSV button), rendered from `ui/AttendeesModals.jsx`. Create-flow only (no replicate/update by Reg ID in this UI). The company bulk-upload flow (`src/components/companies/CompanyUploadModal.jsx`) shares the same hook + `components/common/CsvUploadResultPanel.jsx`.
