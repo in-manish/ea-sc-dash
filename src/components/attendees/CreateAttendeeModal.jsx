@@ -8,6 +8,24 @@ import {
     resolveAttendeeTypeName,
 } from '../../features/Attendees/domain/createAttendeeFormDefaults';
 
+/** Quick-pick shortcuts for the two attendee types used in most on-the-spot registrations. */
+const QUICK_ATTENDEE_TYPES = [
+    { label: 'Exhibitor', candidates: ['exhibitor'] },
+    { label: 'Trade Visitor', candidates: ['trade visitor', 'visitor'] },
+];
+
+/** Resolve a quick-pick label to the matching attendee type name loaded for this event, if any. */
+const matchQuickType = (candidates, types) => {
+    const exact = candidates
+        .map((candidate) => types.find((t) => String(t.name || '').trim().toLowerCase() === candidate))
+        .find(Boolean);
+    if (exact) return exact.name;
+    const partial = candidates
+        .map((candidate) => types.find((t) => String(t.name || '').toLowerCase().includes(candidate)))
+        .find(Boolean);
+    return partial?.name || null;
+};
+
 const CreateAttendeeModal = ({ eventId, token, onClose, onCreated, initialValues = null }) => {
     const [shared, setShared] = useState(() => mergeSharedPrefill(initialValues));
     const [attendees, setAttendees] = useState([emptyAttendee()]);
@@ -56,6 +74,11 @@ const CreateAttendeeModal = ({ eventId, token, onClose, onCreated, initialValues
     const removeAttendee = (index) => setAttendees((prev) => prev.filter((_, i) => i !== index));
 
     const isExhibitor = (shared.attendee_type || '').toLowerCase().includes('exhibitor');
+
+    const quickTypeOptions = QUICK_ATTENDEE_TYPES.map((q) => ({
+        label: q.label,
+        name: matchQuickType(q.candidates, attendeeTypes),
+    })).filter((q) => q.name);
 
     useEffect(() => {
         if (!isExhibitor || !showCompanySuggestions) return undefined;
@@ -207,6 +230,26 @@ const CreateAttendeeModal = ({ eventId, token, onClose, onCreated, initialValues
                     {/* Shared fields */}
                     <div className="space-y-4">
                         <h3 className="text-xs font-bold uppercase tracking-wider text-text-tertiary">Shared Details</h3>
+                        {quickTypeOptions.length > 0 && (
+                            <div>
+                                <label className="text-xs font-medium text-text-secondary block mb-1">Quick Select</label>
+                                <div className="flex flex-wrap gap-2">
+                                    {quickTypeOptions.map((q) => {
+                                        const isActive = shared.attendee_type === q.name;
+                                        return (
+                                            <button
+                                                key={q.name}
+                                                type="button"
+                                                className={`py-1.5 px-3 border rounded-full text-xs font-medium transition-all duration-200 ${isActive ? 'bg-accent text-white border-accent' : 'bg-bg-primary border-border text-text-secondary hover:border-accent hover:text-text-primary hover:bg-bg-secondary'}`}
+                                                onClick={() => updateShared('attendee_type', q.name)}
+                                            >
+                                                {q.label}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="text-xs font-medium text-text-secondary block mb-1">Attendee Type <span className="text-status-danger">*</span></label>

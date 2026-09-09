@@ -155,6 +155,8 @@ const AttendeesPage = () => {
                     selectedEvent={selectedEvent}
                     token={token}
                     hasActiveSearchOrFilters={hasActiveSearchOrFilters}
+                    attendeeTypes={attendeeTypes}
+                    attendeeTypesLoading={attendeeTypesLoading}
                 />
             ) : (
                 <EBadgeTasksPanel

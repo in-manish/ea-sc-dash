@@ -1,5 +1,11 @@
 import { Loader2, CheckSquare, Square } from 'lucide-react';
 import AttendeeTableRow from './AttendeeTableRow';
+import TableHeaderFilterDropdown from './TableHeaderFilterDropdown';
+
+const STATUS_OPTIONS = [
+    { value: 'PRE_REG', label: 'Pre-Registration' },
+    { value: 'ON_SPOT', label: 'On Spot' },
+];
 
 const AttendeeTable = ({
     attendees,
@@ -12,13 +18,20 @@ const AttendeeTable = ({
     allVisibleSelected,
     syncingScUuid,
     needsScSync,
+    filters = {},
+    updateFilter,
+    attendeeTypes = [],
+    attendeeTypesLoading = false,
     onToggleSelectAll,
     onToggleSelect,
     onOpenDetail,
     onSyncSc,
     onMatchmaking,
     onCreateEBadge,
-}) => (
+}) => {
+    const attendeeTypeOptions = attendeeTypes.map((t) => ({ value: t.name, label: t.name }));
+
+    return (
     <div className="bg-bg-primary border border-border rounded-lg overflow-x-auto shadow-sm">
         <table className="w-full text-left border-collapse">
             <thead>
@@ -49,10 +62,23 @@ const AttendeeTable = ({
                         Company
                     </th>
                     <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">
-                        Type
+                        <TableHeaderFilterDropdown
+                            label="Attendee Type"
+                            options={attendeeTypeOptions}
+                            selected={filters.attendee_type || []}
+                            onChange={(next) => updateFilter?.('attendee_type', next)}
+                            multiSelect
+                            loading={attendeeTypesLoading}
+                        />
                     </th>
                     <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">
-                        Status
+                        <TableHeaderFilterDropdown
+                            label="Status"
+                            options={STATUS_OPTIONS}
+                            selected={filters.reg_type ? [filters.reg_type] : []}
+                            onChange={(next) => updateFilter?.('reg_type', next[0] || '')}
+                            multiSelect={false}
+                        />
                     </th>
                     <th className="bg-bg-secondary py-3 px-4 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border text-right w-14">
                         Actions
@@ -100,6 +126,7 @@ const AttendeeTable = ({
             </tbody>
         </table>
     </div>
-);
+    );
+};
 
 export default AttendeeTable;

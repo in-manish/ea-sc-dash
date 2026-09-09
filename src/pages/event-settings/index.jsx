@@ -6,6 +6,7 @@ import { Save, Loader2 } from 'lucide-react';
 
 // Import modular components
 import GeneralSettings from './GeneralSettings';
+import EventBrandingImages from './EventBrandingImages';
 import CompanySettings from './CompanySettings';
 import AttendeeSettings from './AttendeeSettings';
 import PaymentSettings from './PaymentSettings';
@@ -93,6 +94,13 @@ const EventSettings = () => {
         setEventData(prev => ({
             ...prev,
             [name]: type === 'checkbox' ? checked : value
+        }));
+    };
+
+    const handleFileChange = (name, file) => {
+        setEventData(prev => ({
+            ...prev,
+            [name]: file
         }));
     };
 
@@ -491,7 +499,7 @@ const EventSettings = () => {
                 'exhibitor_portal_data',
             ];
             
-            const imageFields = ['logo', 'logo2', 'event_background_image', 'event_banner_logo', 'meetingdiary_portal_bg_image'];
+            const imageFields = ['logo', 'logo2', 'event_background_image', 'event_banner_logo', 'meetingdiary_portal_bg_image', 'event_banner_video'];
 
             Object.keys(eventData).forEach(key => {
                 const value = eventData[key];
@@ -611,6 +619,7 @@ const EventSettings = () => {
 
     const tabs = [
         { id: 'general', label: 'General' },
+        { id: 'images', label: 'Images' },
         { id: 'companies', label: 'Companies' },
         { id: 'attendees', label: 'Attendees' },
         { id: 'communication', label: 'Communication' },
@@ -667,6 +676,13 @@ const EventSettings = () => {
                         isFieldModified={isFieldModified} 
                         handleShowHoursChange={handleShowHoursChange}
                         originalShowHours={originalEventData?.show_hours}
+                    />
+                )}
+                {activeTab === 'images' && (
+                    <EventBrandingImages
+                        eventData={eventData}
+                        handleFileChange={handleFileChange}
+                        isFieldModified={isFieldModified}
                     />
                 )}
                 {activeTab === 'companies' && (

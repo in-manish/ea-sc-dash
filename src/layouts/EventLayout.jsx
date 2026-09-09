@@ -265,6 +265,12 @@ const EventLayout = () => {
                                 >
                                     Additional Requirements
                                 </NavLink>
+                                <NavLink
+                                    to={`/event/${selectedEvent.id}/companies?tab=exhibitor_engagement`}
+                                    className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/companies') && new URLSearchParams(location.search).get('tab') === 'exhibitor_engagement' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
+                                >
+                                    Exhibitor Engagement
+                                </NavLink>
                             </div>
                         )}
                     </div>

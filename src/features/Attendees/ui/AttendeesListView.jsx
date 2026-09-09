@@ -24,6 +24,8 @@ const AttendeesListView = ({
     selectedEvent,
     token,
     hasActiveSearchOrFilters,
+    attendeeTypes,
+    attendeeTypesLoading,
 }) => {
     const emailDrafts = useAttendeeTypeEmails({
         eventId: selectedEvent?.id,
@@ -114,6 +116,10 @@ const AttendeesListView = ({
             loading={list.loading}
             selectedEvent={selectedEvent}
             searchType={searchApi.searchType}
+            filters={filtersApi.filters}
+            updateFilter={filtersApi.updateFilter}
+            attendeeTypes={attendeeTypes}
+            attendeeTypesLoading={attendeeTypesLoading}
             selectionMode={selection.selectionMode}
             selectedAttendeeUuids={selection.selectedAttendeeUuids}
             isGlobalSelectionMode={selection.isGlobalSelectionMode}
