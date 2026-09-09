@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo } from 'react';
-import { Image as ImageIcon, Video } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Image as ImageIcon, Video, Play, X } from 'lucide-react';
 import { SectionHeader, FormField } from './components/SharedComponents';
 
 const IMAGE_FIELDS = [
@@ -26,14 +26,28 @@ const MediaField = ({ label, description, name, kind, eventData, handleFileChang
     }, [isFile, previewUrl]);
 
     const modified = isFieldModified(name);
+    const [isPlayerOpen, setIsPlayerOpen] = useState(false);
+    const isVideo = kind === 'video';
 
     return (
         <FormField label={label} description={description}>
             <div className="flex flex-col sm:flex-row gap-4 items-start">
-                <div className="flex items-center justify-center w-32 h-20 rounded-lg border border-border bg-bg-secondary overflow-hidden shrink-0">
+                <div
+                    className={`relative flex items-center justify-center w-32 h-20 rounded-lg border border-border bg-bg-secondary overflow-hidden shrink-0 ${isVideo && previewUrl ? 'group cursor-pointer' : ''}`}
+                    onClick={() => {
+                        if (isVideo && previewUrl) setIsPlayerOpen(true);
+                    }}
+                >
                     {previewUrl ? (
-                        kind === 'video' ? (
-                            <video src={previewUrl} className="w-full h-full object-cover" muted playsInline />
+                        isVideo ? (
+                            <>
+                                <video src={previewUrl} className="w-full h-full object-cover" muted playsInline />
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
+                                    <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white/90 text-black shadow group-hover:scale-110 transition-transform">
+                                        <Play size={14} fill="currentColor" className="ml-0.5" />
+                                    </span>
+                                </div>
+                            </>
                         ) : (
                             <img src={previewUrl} alt="" className="w-full h-full object-contain" />
                         )
@@ -84,6 +98,32 @@ const MediaField = ({ label, description, name, kind, eventData, handleFileChang
                     )}
                 </div>
             </div>
+
+            {isVideo && isPlayerOpen && previewUrl && (
+                <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 sm:p-6">
+                    <div
+                        className="fixed inset-0 bg-text-primary/40 backdrop-blur-md animate-backdrop-smooth"
+                        onClick={() => setIsPlayerOpen(false)}
+                    />
+                    <div className="relative bg-bg-primary rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden animate-modal-smooth resize overflow-auto min-w-[320px] min-h-[220px]">
+                        <button
+                            type="button"
+                            onClick={() => setIsPlayerOpen(false)}
+                            className="absolute top-3 right-3 z-10 flex items-center justify-center w-8 h-8 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+                            aria-label="Close video"
+                        >
+                            <X size={16} />
+                        </button>
+                        <video
+                            src={previewUrl}
+                            className="w-full h-full max-h-[80vh] bg-black"
+                            controls
+                            autoPlay
+                            playsInline
+                        />
+                    </div>
+                </div>
+            )}
         </FormField>
     );
 };
