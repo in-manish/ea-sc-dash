@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import { useAttendeeUpload } from '../hooks/useAttendeeUpload';
 import CsvUploadResultPanel from '../../../components/common/CsvUploadResultPanel';
+import CsvUploadErrorMessage from '../../../components/common/CsvUploadErrorMessage';
 
 /**
  * Bulk attendee CSV upload: pick a file, dry-run validate it (no attendees are created
@@ -37,7 +38,7 @@ export default function AttendeeUploadModal({ eventId, token, onClose, onUploade
                     {upload.error && (
                         <div className="p-4 bg-status-danger/5 border border-status-danger/10 rounded-lg flex items-start gap-3 text-status-danger text-sm">
                             <AlertCircle size={16} className="mt-0.5 shrink-0" />
-                            <span>{upload.error}</span>
+                            <CsvUploadErrorMessage message={upload.error} />
                         </div>
                     )}
                     {upload.success && (

@@ -10,8 +10,15 @@ function IssueLine({ issue, tone }) {
             <Icon size={12} className="mt-0.5 shrink-0" />
             <span>
                 {issue.column && <span className="font-medium">{issue.column}: </span>}
+                {issue.value != null && issue.value !== '' && (
+                    <code className="font-mono bg-black/5 px-1 py-0.5 rounded mr-1">{issue.value}</code>
+                )}
                 {issue.message}
-                {issue.suggestion && ` (Suggested: ${issue.suggestion})`}
+                {issue.suggestion && (
+                    <>
+                        {' '}(Suggested: <code className="font-mono bg-black/5 px-1 py-0.5 rounded">{issue.suggestion}</code>)
+                    </>
+                )}
             </span>
         </p>
     );

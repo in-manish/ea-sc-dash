@@ -499,7 +499,7 @@ const EventSettings = () => {
                 'exhibitor_portal_data',
             ];
             
-            const imageFields = ['logo', 'logo2', 'event_background_image', 'event_banner_logo', 'meetingdiary_portal_bg_image', 'event_banner_video'];
+            const imageFields = ['logo', 'logo2', 'event_background_image', 'event_banner_logo', 'meetingdiary_portal_bg_image', 'event_banner_video', 'event_banner_video_poster'];
 
             Object.keys(eventData).forEach(key => {
                 const value = eventData[key];

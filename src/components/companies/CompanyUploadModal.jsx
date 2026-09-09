@@ -2,6 +2,7 @@ import { eventService } from '../../services/eventService';
 import { Loader2, X, Upload, AlertCircle, CheckCircle2, FileSpreadsheet, ShieldCheck } from 'lucide-react';
 import { useCsvUploadFlow } from '../../hooks/useCsvUploadFlow';
 import CsvUploadResultPanel from '../common/CsvUploadResultPanel';
+import CsvUploadErrorMessage from '../common/CsvUploadErrorMessage';
 
 const CompanyUploadModal = ({ eventId, token, onClose, onUploaded }) => {
     const upload = useCsvUploadFlow({
@@ -39,7 +40,7 @@ const CompanyUploadModal = ({ eventId, token, onClose, onUploaded }) => {
                     {upload.error && (
                         <div className="p-4 bg-status-danger/5 border border-status-danger/10 rounded-lg flex items-start gap-3 text-status-danger text-sm">
                             <AlertCircle size={16} className="mt-0.5 shrink-0" />
-                            <span>{upload.error}</span>
+                            <CsvUploadErrorMessage message={upload.error} />
                         </div>
                     )}
                     {upload.success && (

@@ -10,7 +10,7 @@ const IMAGE_FIELDS = [
     { name: 'meetingdiary_portal_bg_image', label: 'Meeting Diary Portal Background', description: 'Background image for the meeting diary portal.' },
 ];
 
-const MediaField = ({ label, description, name, kind, eventData, handleFileChange, isFieldModified }) => {
+const MediaField = ({ label, description, name, kind, eventData, handleFileChange, isFieldModified, posterUrl }) => {
     const value = eventData[name];
     const isFile = value instanceof File;
     const stringUrl = typeof value === 'string' ? value : '';
@@ -41,7 +41,7 @@ const MediaField = ({ label, description, name, kind, eventData, handleFileChang
                     {previewUrl ? (
                         isVideo ? (
                             <>
-                                <video src={previewUrl} className="w-full h-full object-cover" muted playsInline />
+                                <video src={previewUrl} poster={posterUrl || undefined} className="w-full h-full object-cover" muted playsInline />
                                 <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
                                     <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white/90 text-black shadow group-hover:scale-110 transition-transform">
                                         <Play size={14} fill="currentColor" className="ml-0.5" />
@@ -116,6 +116,7 @@ const MediaField = ({ label, description, name, kind, eventData, handleFileChang
                         </button>
                         <video
                             src={previewUrl}
+                            poster={posterUrl || undefined}
                             className="w-full h-full max-h-[80vh] bg-black"
                             controls
                             autoPlay
@@ -129,6 +130,16 @@ const MediaField = ({ label, description, name, kind, eventData, handleFileChang
 };
 
 const EventBrandingImages = ({ eventData, handleFileChange, isFieldModified }) => {
+    const posterValue = eventData.event_banner_video_poster;
+    const posterPreviewUrl = useMemo(
+        () => (posterValue instanceof File ? URL.createObjectURL(posterValue) : (typeof posterValue === 'string' ? posterValue : '')),
+        [posterValue]
+    );
+    useEffect(() => {
+        if (!(posterValue instanceof File)) return undefined;
+        return () => URL.revokeObjectURL(posterPreviewUrl);
+    }, [posterValue, posterPreviewUrl]);
+
     return (
         <div className="animate-fade-in space-y-6">
             <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm overflow-hidden relative">
@@ -149,15 +160,27 @@ const EventBrandingImages = ({ eventData, handleFileChange, isFieldModified }) =
 
             <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm overflow-hidden relative">
                 <SectionHeader icon={Video} title="Video" colorClass="text-success" borderClass="bg-success" />
-                <MediaField
-                    name="event_banner_video"
-                    label="Event Banner Video"
-                    description="Video for the event banner."
-                    kind="video"
-                    eventData={eventData}
-                    handleFileChange={handleFileChange}
-                    isFieldModified={isFieldModified}
-                />
+                <div className="space-y-6">
+                    <MediaField
+                        name="event_banner_video"
+                        label="Event Banner Video"
+                        description="Video for the event banner."
+                        kind="video"
+                        eventData={eventData}
+                        handleFileChange={handleFileChange}
+                        isFieldModified={isFieldModified}
+                        posterUrl={posterPreviewUrl}
+                    />
+                    <MediaField
+                        name="event_banner_video_poster"
+                        label="Event Banner Video Poster"
+                        description="Poster/placeholder image shown before the event banner video plays."
+                        kind="image"
+                        eventData={eventData}
+                        handleFileChange={handleFileChange}
+                        isFieldModified={isFieldModified}
+                    />
+                </div>
             </div>
         </div>
     );
