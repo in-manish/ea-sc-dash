@@ -1,6 +1,8 @@
-import { Upload } from 'lucide-react';
+import { useState } from 'react';
+import { Star, Upload } from 'lucide-react';
 import CreateCompanyButton from './CreateCompanyButton';
 import CompaniesReportsMenu from './CompaniesReportsMenu';
+import ManageFeaturedCompaniesModal from './ManageFeaturedCompaniesModal';
 
 export default function CompaniesPageHeader({
   activeTab,
@@ -12,8 +14,10 @@ export default function CompaniesPageHeader({
   selectedIds,
   parentExhibitorId,
   onUpload,
+  onUpdated,
 }) {
   const showListTotal = activeTab === 'exhibitors' && exhView === 'list';
+  const [featuredModalOpen, setFeaturedModalOpen] = useState(false);
 
   return (
     <div className="flex justify-between items-end mb-8">
@@ -32,6 +36,16 @@ export default function CompaniesPageHeader({
             Upload CSV
           </button>
           {eventId && (
+            <button
+              type="button"
+              className="btn btn-secondary inline-flex items-center gap-1.5"
+              onClick={() => setFeaturedModalOpen(true)}
+            >
+              <Star size={16} />
+              Featured companies
+            </button>
+          )}
+          {eventId && (
             <CompaniesReportsMenu
               eventId={eventId}
               token={token}
@@ -41,6 +55,18 @@ export default function CompaniesPageHeader({
             />
           )}
         </div>
+      )}
+
+      {featuredModalOpen && eventId && (
+        <ManageFeaturedCompaniesModal
+          eventId={eventId}
+          token={token}
+          onSaved={() => {
+            setFeaturedModalOpen(false);
+            onUpdated?.();
+          }}
+          onCancel={() => setFeaturedModalOpen(false)}
+        />
       )}
     </div>
   );

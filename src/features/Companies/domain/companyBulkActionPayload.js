@@ -75,3 +75,32 @@ export function featureSuccessMessage(data) {
   const n = data?.updated_count ?? 0;
   return `Updated featured status for ${n} compan${n === 1 ? 'y' : 'ies'}.`;
 }
+
+/**
+ * Build a feature_company payload from a manage-featured-list draft:
+ * orderedRows (kept, in display order) get sequential ranks 1..N;
+ * removedIds (previously featured, taken out of the list) get unfeatured.
+ */
+export function buildFeaturedOrderPayload(orderedRows = [], removedIds = []) {
+  const featured = orderedRows.map((row, index) => ({
+    id: Number(row.id),
+    is_featured: true,
+    featured_rank: index + 1,
+  }));
+  const unfeatured = removedIds.map((id) => ({
+    id: Number(id),
+    is_featured: false,
+    featured_rank: 0,
+  }));
+  const companies = [...featured, ...unfeatured];
+  return {
+    operation_type: COMPANY_BULK_OPS.FEATURE,
+    selection: bulkSelectionForCount(companies.length),
+    companies,
+  };
+}
+
+export function featuredOrderSuccessMessage(data) {
+  const n = data?.updated_count ?? 0;
+  return `Saved featured order (${n} compan${n === 1 ? 'y' : 'ies'} updated).`;
+}

@@ -83,6 +83,7 @@ export default function CompaniesPage() {
         selectedIds={selection.selectedIds}
         parentExhibitorId={list.filters.parent_exhibitor_id || ''}
         onUpload={() => setIsUploadModalOpen(true)}
+        onUpdated={list.refresh}
       />
 
       <CompaniesPageTabs
