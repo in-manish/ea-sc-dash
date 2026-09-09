@@ -1,20 +1,18 @@
-import { eventService } from '../../services/eventService';
-import { Loader2, X, Upload, AlertCircle, CheckCircle2, FileSpreadsheet, ShieldCheck } from 'lucide-react';
-import { useCsvUploadFlow } from '../../hooks/useCsvUploadFlow';
-import CsvUploadResultPanel from '../common/CsvUploadResultPanel';
+import {
+    AlertCircle, CheckCircle2, FileSpreadsheet,
+    Loader2, ShieldCheck, Upload, X,
+} from 'lucide-react';
+import { useAttendeeUpload } from '../hooks/useAttendeeUpload';
+import CsvUploadResultPanel from '../../../components/common/CsvUploadResultPanel';
 
-const CompanyUploadModal = ({ eventId, token, onClose, onUploaded }) => {
-    const upload = useCsvUploadFlow({
-        eventId,
-        token,
-        onUploaded: () => {
-            onUploaded?.();
-            onClose();
-        },
-        validateFn: eventService.validateCompaniesCsv,
-        uploadFn: eventService.uploadCompaniesCsv,
-        downloadReportFn: eventService.downloadCompanyUploadValidationReport,
-    });
+/**
+ * Bulk attendee CSV upload: pick a file, dry-run validate it (no attendees are created
+ * until "Upload CSV"), review per-row errors/warnings, then upload for real.
+ * Scope note: only the plain create flow is exposed here (no replicate/update by Reg ID) -
+ * see badge/views/AttendeeUploadValidateView.py for that mode.
+ */
+export default function AttendeeUploadModal({ eventId, token, onClose, onUploaded }) {
+    const upload = useAttendeeUpload({ eventId, token, onUploaded });
 
     return (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-[1300] animate-fade-in" onClick={onClose}>
@@ -26,9 +24,9 @@ const CompanyUploadModal = ({ eventId, token, onClose, onUploaded }) => {
                     <div>
                         <h2 className="text-xl font-bold text-text-primary mb-1 flex items-center gap-2">
                             <FileSpreadsheet size={20} className="text-accent" />
-                            Bulk Company Upload
+                            Bulk Attendee Upload
                         </h2>
-                        <p className="text-sm text-text-secondary">Create or update multiple companies via CSV.</p>
+                        <p className="text-sm text-text-secondary">Create multiple attendees via CSV.</p>
                     </div>
                     <button type="button" className="bg-transparent border-none text-text-tertiary cursor-pointer p-1 rounded-sm flex items-center justify-center transition-colors hover:bg-bg-tertiary hover:text-text-primary" onClick={onClose}>
                         <X size={20} />
@@ -55,8 +53,9 @@ const CompanyUploadModal = ({ eventId, token, onClose, onUploaded }) => {
                             <div>
                                 <p className="text-sm font-semibold text-text-primary">CSV file</p>
                                 <p className="text-xs text-text-tertiary mt-1 leading-relaxed">
-                                    Upload a CSV to create new companies or update existing ones. Processing runs in the
-                                    background — track progress under the <span className="font-medium">Upload Status</span> tab.
+                                    Columns: name, country code, phone number, email, designation, company, address,
+                                    city, state, country, website, attendee type, permission1, permission2.
+                                    Processing runs in the background.
                                 </p>
                             </div>
                         </div>
@@ -68,6 +67,17 @@ const CompanyUploadModal = ({ eventId, token, onClose, onUploaded }) => {
                             onChange={(e) => upload.handleFileChange(e.target.files?.[0])}
                             className="w-full p-2 text-sm border border-border rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-accent/10 file:text-accent hover:file:bg-accent/20"
                         />
+
+                        <label className="flex items-center gap-2 text-sm text-text-secondary">
+                            <input
+                                type="checkbox"
+                                checked={upload.strict}
+                                onChange={(e) => upload.setStrict(e.target.checked)}
+                                className="rounded border-border"
+                            />
+                            Prevent duplicate attendees (strict mode)
+                        </label>
+
                         {upload.file && (
                             <div className="flex items-center justify-between gap-3">
                                 <p className="text-xs text-text-tertiary">
@@ -95,9 +105,11 @@ const CompanyUploadModal = ({ eventId, token, onClose, onUploaded }) => {
                         onDownloadReport={upload.handleDownloadReport}
                         renderRowLabel={(row) => (
                             <>
-                                {row.company && <span className="text-text-secondary">{row.company}</span>}
-                                {row.obf_number && (
-                                    <span className="text-[11px] font-mono bg-bg-tertiary text-text-secondary px-1.5 py-0.5 rounded">OBF {row.obf_number}</span>
+                                {row.name && <span className="text-text-secondary">{row.name}</span>}
+                                {row.email && (
+                                    <span className="text-[11px] font-mono bg-bg-tertiary text-text-secondary px-1.5 py-0.5 rounded">
+                                        {row.email}
+                                    </span>
                                 )}
                             </>
                         )}
@@ -121,6 +133,4 @@ const CompanyUploadModal = ({ eventId, token, onClose, onUploaded }) => {
             </div>
         </div>
     );
-};
-
-export default CompanyUploadModal;
+}

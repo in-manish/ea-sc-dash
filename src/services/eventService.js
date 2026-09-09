@@ -1,4 +1,5 @@
 import { getApiUrl } from '../config';
+import { downloadBlob } from '../utils/downloadBlob';
 
 const getHeaders = (token) => {
     const baseUrl = getApiUrl();
@@ -232,6 +233,70 @@ export const eventService = {
             return data;
         } catch (error) {
             console.error('Upload Companies CSV Error:', error);
+            throw error;
+        }
+    },
+
+    async validateCompaniesCsv(eventId, token, file) {
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const headers = getHeaders(token);
+            delete headers['Content-Type']; // Browser sets multipart boundary
+
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/company/upload/validate/`, {
+                method: 'POST',
+                headers,
+                body: formData
+            });
+
+            const data = await response.json().catch(() => null);
+
+            if (!response.ok) {
+                const error = new Error(
+                    (data && (data.detail || data.message || data.msg)) || `Failed to validate companies CSV (status ${response.status})`
+                );
+                error.data = data;
+                error.status = response.status;
+                throw error;
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Validate Companies CSV Error:', error);
+            throw error;
+        }
+    },
+
+    async downloadCompanyUploadValidationReport(eventId, token, file) {
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const headers = getHeaders(token);
+            delete headers['Content-Type']; // Browser sets multipart boundary
+
+            const response = await fetch(`${getApiUrl()}/events/${eventId}/company/upload/validate/?export=csv`, {
+                method: 'POST',
+                headers,
+                body: formData
+            });
+
+            if (!response.ok) {
+                const data = await response.json().catch(() => null);
+                const error = new Error(
+                    (data && (data.detail || data.message)) || `Failed to download validation report (status ${response.status})`
+                );
+                error.data = data;
+                error.status = response.status;
+                throw error;
+            }
+
+            const blob = await response.blob();
+            downloadBlob(blob, `company-upload-validation-${eventId}.csv`);
+        } catch (error) {
+            console.error('Download Company Upload Validation Report Error:', error);
             throw error;
         }
     },

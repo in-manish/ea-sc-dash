@@ -6,6 +6,7 @@ import EBadgeResultModal from './EBadgeResultModal';
 import AttendeeMatchmakingAnswers from '../../Matchmaking/ui/AttendeeMatchmakingAnswers';
 import CreateAttendeeModal from '../../../components/attendees/CreateAttendeeModal';
 import EditAttendeeModal from './EditAttendeeModal';
+import AttendeeUploadModal from './AttendeeUploadModal';
 
 const AttendeesModals = ({
     list,
@@ -20,6 +21,8 @@ const AttendeesModals = ({
     previewAttendee,
     attendeeTypes = [],
     attendeeTypesLoading = false,
+    isUploadModalOpen = false,
+    onCloseUploadModal,
 }) => (
     <>
         <AttendeeDetailModal
@@ -127,6 +130,18 @@ const AttendeesModals = ({
                 attendeeTypesLoading={attendeeTypesLoading}
                 onClose={list.closeEditAttendee}
                 onSaved={list.handleAttendeeUpdated}
+            />
+        )}
+
+        {isUploadModalOpen && selectedEvent && (
+            <AttendeeUploadModal
+                eventId={selectedEvent.id}
+                token={token}
+                onClose={onCloseUploadModal}
+                onUploaded={() => {
+                    list.handleCreated();
+                    onCloseUploadModal();
+                }}
             />
         )}
     </>
