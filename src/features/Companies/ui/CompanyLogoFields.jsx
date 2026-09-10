@@ -1,12 +1,25 @@
 import React from 'react';
+import { EDITOR_PRESETS, useImageEditor } from '../../../components/imageEditor';
 
 const fieldClass =
   'w-full text-sm text-text-secondary file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:bg-accent/10 file:text-accent file:text-sm file:font-medium';
 
 /** Logo upload / remove for company create & edit. */
 const CompanyLogoFields = ({ form, setField, isEdit = false }) => {
+  const { editImage } = useImageEditor();
   const showExisting =
     isEdit && form.existingLogoUrl && !form.removeLogo && !(form.company_logo instanceof File);
+
+  const onPickLogo = async (file) => {
+    if (!file) {
+      setField('company_logo', null);
+      return;
+    }
+    const edited = await editImage(file, EDITOR_PRESETS.logo);
+    if (!edited) return;
+    setField('company_logo', edited);
+    setField('removeLogo', false);
+  };
 
   return (
     <div className="space-y-1.5">
@@ -34,8 +47,8 @@ const CompanyLogoFields = ({ form, setField, isEdit = false }) => {
         accept="image/*"
         className={fieldClass}
         onChange={(e) => {
-          setField('company_logo', e.target.files?.[0] || null);
-          if (e.target.files?.[0]) setField('removeLogo', false);
+          onPickLogo(e.target.files?.[0] || null);
+          e.target.value = '';
         }}
       />
       {isEdit && !showExisting && !form.company_logo && (

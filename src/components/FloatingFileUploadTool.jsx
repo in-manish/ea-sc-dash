@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Copy, GripHorizontal, Link2, Upload, X } from 'lucide-react';
 import { fileUploadService } from '../services/fileUploadService';
 import { useAuth } from '../contexts/AuthContext';
+import FloatingFileInput from './FloatingFileInput';
 
 const DEFAULT_POSITION = { x: 0, y: 80 };
 const HISTORY_LIMIT = 20;
@@ -192,11 +193,7 @@ const FloatingFileUploadTool = () => {
           </div>
 
           <div className="p-3 space-y-3">
-            <input
-              type="file"
-              onChange={(event) => setSelectedFile(event.target.files?.[0] || null)}
-              className="w-full text-sm text-text-primary file:mr-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:bg-bg-secondary file:text-text-primary"
-            />
+            <FloatingFileInput onFile={setSelectedFile} />
             <button
               onClick={onUpload}
               disabled={isUploading}

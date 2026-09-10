@@ -6,7 +6,6 @@ import { useAlert } from '../../../contexts/AlertContext';
 import { agendaService } from '../../../services/agendaService';
 import { useAgendaForm } from '../hooks/useAgendaForm';
 import { usePersonImageCrop } from '../hooks/usePersonImageCrop';
-import ImageCropModal from './ImageCropModal';
 import ModeratorRosterSection from './ModeratorRosterSection';
 import SessionDetailsFields from './SessionDetailsFields';
 import SpeakerRosterSection from './SpeakerRosterSection';
@@ -56,11 +55,8 @@ const AgendaEditPage = () => {
   });
 
   const crop = usePersonImageCrop({
-    speakers: form.speakers,
     setSpeakers: form.setSpeakers,
-    moderators: form.moderators,
     setModerators: form.setModerators,
-    imageBlobs: form.imageBlobs,
     setImageBlobs: form.setImageBlobs,
   });
 
@@ -142,20 +138,6 @@ const AgendaEditPage = () => {
           onPickImage={crop.pickImage}
         />
       </form>
-
-      {crop.isCropping && crop.croppingTarget && (
-        <ImageCropModal
-          url={crop.croppingTarget.url}
-          imageRef={crop.imageRef}
-          cropMeta={crop.cropMeta}
-          onCancel={crop.cancelCrop}
-          onSave={crop.saveCrop}
-          onZoomIn={crop.zoomIn}
-          onZoomOut={crop.zoomOut}
-          onRotateLeft={crop.rotateLeft}
-          onRotateRight={crop.rotateRight}
-        />
-      )}
     </div>
   );
 };

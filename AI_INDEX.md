@@ -15,7 +15,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 - `src/contexts/authSession.js` — token restore, last path, landing URL
 - `src/contexts/useCrossTabAuthSync.js` — logout in one tab signs out the others
 - `src/components/alert/` — themed app alert/confirm (`useAlert`)
-- `src/components/imageEditor/` — reusable crop/resize/web-optimize modal for any file upload (`useImageEditor`)
+- `src/components/imageEditor/` — reusable crop/resize/web-optimize modal for any image upload (`useImageEditor` + `ImageEditorProvider`)
 
 ## Feature map
 
@@ -41,8 +41,8 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 |------|------------|
 | Event settings / support email | `src/pages/event-settings/CommunicationSettings.jsx` (`support_email`) |
 | Event settings / sender profile pic | `src/pages/event-settings/SenderDefaultProfilePicField.jsx` (`sender_default_profile_pic`) |
-| Event settings / branding images | `src/pages/event-settings/EventBrandingImages.jsx` + `EventImageUploadField.jsx` (`/event/:id/settings?tab=event_images`); crop/resize/optimize per field via `domain/eventImageFields.js` `editorConfig` |
-| Reusable crop/resize/web-optimize image upload | `src/components/imageEditor/` (`useImageEditor` + `ImageEditorModal`) — any file-upload field, configurable aspect ratios / recommended size / WebP optimize per call site |
+| Event settings / branding images | `src/pages/event-settings/EventBrandingImages.jsx` + `EventImageUploadField.jsx` (`/event/:id/settings?tab=event_images`); size/dimensions + green **Web optimized** chip; **Edit image** opens the crop modal on the current file/URL; `domain/eventImageFields.js` `editorConfig` |
+| Reusable crop/resize/web-optimize image upload | `src/components/imageEditor/` (`useImageEditor` + `ImageEditorModal`) — independent crop, compression slider, target KB, dimensions, web/mobile hints, live preview |
 | Edit attendee / badge | `src/features/Attendees/ui/EditAttendeeModal.jsx` + `api/attendeeApi.js` + `domain/editAttendeeForm.js` |
 | Attendee list row actions | `src/features/Attendees/ui/AttendeeTableRowMenu.jsx` + `AttendeeTableRow.jsx` |
 | Attendee type email / SMS drafts | `src/pages/AttendeeTypes.jsx` + `EmailInvitationDraft.jsx` + `BadgeEmailVariablesRail.jsx` (badge tokens, `tv_referral_link` / `{title_slug}_referral_link`, calendar hrefs) |

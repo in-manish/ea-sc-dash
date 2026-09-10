@@ -119,7 +119,7 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `ui/CreateCompanyButton.jsx` | Navigates to create page |
 | `ui/CreateCompanyBasicsFields.jsx` | Shared basics (create + edit) |
 | `ui/CreateCompanyProfileFields.jsx` | Shared profile (create includes category/logo) |
-| `ui/CompanyLogoFields.jsx` | Logo upload / remove (top of edit form) |
+| `ui/CompanyLogoFields.jsx` | Logo upload / remove; opens shared image editor (`EDITOR_PRESETS.logo`) |
 | `ui/CompanyCategoryProductsSection.jsx` | Edit: category then products |
 | `ui/CompanyProductSelectFields.jsx` | Edit: multi-select + setup Product question CTA |
 | `ui/ProductMatchmakingPanel.jsx` | Exhibitors → Product Matchmaking (grouped listing / create) |

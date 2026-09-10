@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Upload, Settings, Loader2, Save, Mail, Plus } from 'lucide-react';
+import BadgeEmailTemplateFileInput from './BadgeEmailTemplateFileInput';
 
 const BadgeTab = ({
     selectedType,
@@ -77,7 +78,7 @@ const BadgeTab = ({
                 <div className="w-full xl:w-3/4 mx-auto min-h-[600px] glass-premium rounded-[2.5rem] p-6 relative overflow-hidden group/email mesh-bg animate-mesh">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
                     <label className="w-full min-h-[600px] border-[3px] border-dashed border-white/20 rounded-[2rem] flex flex-col items-center justify-center gap-6 bg-white/5 hover:bg-white/10 transition-all cursor-pointer relative overflow-hidden">
-                        <input type="file" className="sr-only" accept="image/*" onChange={(e) => handleUploadEmailTemplate(e.target.files[0])} disabled={isActionLoading} />
+                        <BadgeEmailTemplateFileInput disabled={isActionLoading} onUpload={handleUploadEmailTemplate} />
                         {selectedType.email_badge_template ? (
                             <>
                                 <img 

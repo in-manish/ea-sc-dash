@@ -13,7 +13,7 @@ Session schedule management for an event: list, create/edit on a flat page (spea
 | `ui/SpeakerRosterSection.jsx` / `SpeakerCard.jsx` | Speakers + alpha/custom sort |
 | `ui/ModeratorRosterSection.jsx` / `ModeratorCard.jsx` | Moderators |
 | `hooks/useAgendaForm.js` | Form state + save |
-| `hooks/usePersonImageCrop.js` | Crop + `speaker_image_N` blobs |
+| `hooks/usePersonImageCrop.js` | Pick image → shared `imageEditor` (`EDITOR_PRESETS.avatar`) → `speaker_image_N` blobs |
 | `domain/buildAgendaFormData.js` | Multipart payload |
 | `domain/normalizePeople.js` | Speaker/moderator shapes |
 | `constants.js` | Empty defaults |

@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
 import { Loader2, Plus, Edit2, Trash2, ChevronRight, ChevronDown, Package, Image as ImageIcon, Eye, RefreshCw, Code, Layout } from 'lucide-react';
 import ARSyncModal from '../features/ARSync/ARSyncModal';
+import ProductPhotoField from './ProductPhotoField';
 import { toPythonString, parsePythonString, pythonToJson, cleanPythonString } from '../utils/pythonUtils';
 
 const ARManager = ({ eventId }) => {
@@ -369,13 +370,11 @@ const ARManager = ({ eventId }) => {
                             </label>
                         </div>
                     </div>
-                    <div>
-                        <label className="block text-xs font-bold text-text-tertiary uppercase tracking-wider mb-2">Product Photo</label>
-                        <input type="file" className="w-full p-2 text-sm border border-border rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-accent hover:file:bg-blue-100" onChange={e => setProductPhoto(e.target.files[0])} accept="image/*" />
-                        {editingProduct?.product_photo && !productPhoto && (
-                            <div className="mt-2 text-xs text-text-secondary">Current photo exists. Uploading a new one will replace it.</div>
-                        )}
-                    </div>
+                    <ProductPhotoField
+                        currentUrl={editingProduct?.product_photo}
+                        hasNewFile={Boolean(productPhoto)}
+                        onFile={setProductPhoto}
+                    />
                 </div>
                 <div className="p-6 border-t border-border flex justify-end gap-3 rounded-b-xl bg-gray-50">
                     <button className="btn btn-secondary font-semibold" onClick={() => setIsProductModalOpen(false)}>Cancel</button>

@@ -19,14 +19,13 @@ tasks:
     files:
       - src/pages/event-settings/EventBrandingImages.jsx
       - src/pages/event-settings/EventImageUploadField.jsx
-      - src/pages/event-settings/EventImagePreviewThumb.jsx
-      - src/pages/event-settings/EventImageLightbox.jsx
-      - src/pages/event-settings/EventImageUrlPreviewField.jsx
+      - src/pages/event-settings/EventImageMetaHints.jsx
       - src/pages/event-settings/domain/eventImageFields.js
-      - src/pages/event-settings/domain/buildEventUpdateFormData.js
-      - src/pages/event-settings/domain/parseEventUpdateError.js
+      - src/pages/event-settings/domain/imageFieldHints.js
+      - src/pages/event-settings/hooks/useImageFieldMeta.js
+      - src/pages/event-settings/hooks/useEventImageEdit.js
+      - vite.imageMetaPlugin.js
       - src/pages/event-settings/index.jsx
-      - src/pages/event-settings/CommunicationSettings.jsx
       - src/services/eventService.js
       - src/components/imageEditor/
     routes:
@@ -38,27 +37,41 @@ tasks:
       meetingdiary_portal_bg_image. GET returns public URLs (floor_plan_url).
       Existing URL strings are not re-sent; new Files are (incl. AVIF). Thumbnails + lightbox
       preview. URL banners use EventImageUrlPreviewField (meeting_email_banner_link).
-      Picking a new file opens the reusable crop/resize/optimize modal
-      (src/components/imageEditor, per-field editorConfig in eventImageFields.js) before
-      onFileChange fires — see image_editor_reusable.
+      Picking a new image opens the crop/resize/optimize modal. Edit image loads the
+      current File or saved URL into the same modal (dev GET proxy `/__image-file`).
+      Each field also shows file size, dimensions, format, and a web-optimize hint.
+      The "Web optimized" chip is green. "Heavy" means file KB over the web target —
+      large pixel dimensions with a small AVIF/WebP do not fail.
   image_editor_reusable:
     files:
+      - src/components/imageEditor/ImageEditorProvider.jsx
+      - src/components/imageEditor/imageEditorContext.js
       - src/components/imageEditor/hooks/useImageEditor.jsx
+      - src/components/imageEditor/hooks/useCropperSession.js
       - src/components/imageEditor/ui/ImageEditorModal.jsx
       - src/components/imageEditor/ui/ImageEditorToolbar.jsx
       - src/components/imageEditor/ui/ImageEditorSidePanel.jsx
+      - src/components/imageEditor/ui/ImageEditorIndependentCrop.jsx
+      - src/components/imageEditor/ui/ImageEditorCompressControls.jsx
       - src/components/imageEditor/domain/imageOutput.js
+      - src/components/imageEditor/domain/encodeImage.js
+      - src/components/imageEditor/domain/editorPresets.js
+      - src/components/imageEditor/domain/fileFromSource.js
       - src/components/imageEditor/index.js
+      - src/App.jsx
     notes: >
-      Domain-agnostic crop/resize/optimize modal (cropperjs) for any file-upload field —
-      not tied to event settings. Call `useImageEditor({ config, onApply })`; feed a picked
-      File to `editor.openFile(file)` and render `{editor.modal}`. `onApply` fires with the
-      final processed File (or the original file untouched when `config` is falsy /
-      `config.enabled === false` — bypass mode for callers that don't need editing).
-      `config` per call site: aspectRatios [{label,value}] (value NaN = free; first entry is
-      the default), recommendedWidth/Height + recommendedNote (compliance hint, does not
-      block save), maxOutputDim (longest exported side, never upscaled), allowOptimize /
-      defaultOptimize. See image_editor_reusable glossary entry for the export-format rule.
+      Domain-agnostic crop/resize/optimize modal (cropperjs, MIT) for any image-upload
+      field. Wrap the app with ImageEditorProvider; call useImageEditor().editImage(fileOrUrl, config).
+      Resolves with the processed File, or null on cancel. A URL string is fetched into a File
+      (direct, then `/__image-file` proxy). Non-images pass through.
+      Default crop is free: width and height are independent (drag edges or type px).
+      Compression slider (0-100%) and optional target size in KB; live preview encodes to
+      WebP/JPEG and, if still over target, lowers quality then scales down.
+      config per call site: aspectRatios (NaN = free), recommended web/mobile size hints,
+      maxOutputDim, allowOptimize / defaultOptimize. config.enabled === false bypasses.
+      Call sites: event branding, company logo, agenda speaker/moderator photos, AR product
+      photo, certificate template, badge email template, document thumbnail, floating file
+      upload (images only).
   event_settings_support_email:
     files:
       - src/pages/event-settings/CommunicationSettings.jsx
@@ -969,10 +982,10 @@ glossary:
     detail and recipients extra GETs; Date column Created + Updated (Scheduled line if scheduled);
     list `count` shown beside filter; Recipients column is number_recipients
   image_editor_export_format: >
-    useImageEditor "Optimize for web" always exports WebP (keeps transparency, falls back
-    to JPEG if the browser can't encode WebP); unchecked mirrors the source type (PNG stays
-    PNG lossless, anything else becomes JPEG q0.92). Output filename extension is swapped to
-    match. Never touches the caller's remote URL/original file — only new picks go through it.
+    useImageEditor "Optimize for web" exports WebP (JPEG fallback). Compression slider
+    (0% = higher quality, 100% = smaller file) plus optional target KB; encoder lowers
+    quality then downscales to aim at or under the target. Unchecked + 0% compression
+    and no target keeps PNG lossless. Filename extension matches output type.
   ea_email_file_import: Browse .html/.htm/.txt (1 MB); extract body + style; append or replace into category/template body
   ea_email_template_filters: List filters { events: [id], template_types: [unique], names: [] }; query event, name, template_type; dropdown merges known EA types
   ea_email_template_types: Known EA EmailTemplateType catalog in emailTemplateTypes.js; one template per type per event; create prefills type

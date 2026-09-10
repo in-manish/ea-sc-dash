@@ -2,6 +2,7 @@ import React, { useLayoutEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { AlertProvider } from './contexts/AlertContext';
+import { ImageEditorProvider } from './components/imageEditor';
 import Login from './pages/Login';
 import LoginLocal from './pages/LoginLocal';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -135,10 +136,12 @@ const App = () => {
   return (
     <AuthProvider>
       <AlertProvider>
-        <Router basename={basename} key={basename}>
-          <LastPathTracker />
-          <AppRoutes currentMode={pathProject} />
-        </Router>
+        <ImageEditorProvider>
+          <Router basename={basename} key={basename}>
+            <LastPathTracker />
+            <AppRoutes currentMode={pathProject} />
+          </Router>
+        </ImageEditorProvider>
       </AlertProvider>
     </AuthProvider>
   );
