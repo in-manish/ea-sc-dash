@@ -39,6 +39,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 
 | Task | Start here |
 |------|------------|
+| Event settings / theme color | `src/pages/event-settings/ThemeColorCodeField.jsx` (`theme_color_code`) |
 | Event settings / support email | `src/pages/event-settings/CommunicationSettings.jsx` (`support_email`) |
 | Event settings / sender profile pic | `src/pages/event-settings/SenderDefaultProfilePicField.jsx` (`sender_default_profile_pic`) |
 | Event settings / branding images | `src/pages/event-settings/EventBrandingImages.jsx` + `EventImageUploadField.jsx` (`/event/:id/settings?tab=event_images`); size/dimensions + green **Web optimized** chip; **Edit image** opens the crop modal on the current file/URL; `domain/eventImageFields.js` `editorConfig` |
