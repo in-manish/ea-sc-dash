@@ -129,6 +129,28 @@ tasks:
       while validation shows rows_with_errors > 0. UI only exposes the plain create flow -
       backend also supports replicate/update by Reg ID (?replicate=true/?update=true) but
       that mode isn't wired into this screen yet.
+  event_uploads:
+    files:
+      - src/pages/AttendeeUploads.jsx
+      - src/features/Attendees/ui/UploadsTabs.jsx
+      - src/features/Attendees/ui/AttendeeUploadHistoryPanel.jsx
+      - src/features/Attendees/hooks/useAttendeeUploadHistory.js
+      - src/features/Attendees/api/attendeeUploadApi.js
+      - src/features/Companies/ui/CompanyUploadHistoryPanel.jsx
+      - src/features/Companies/hooks/useCompanyUploadHistory.js
+      - src/features/Companies/api/companyUploadApi.js
+      - src/components/uploadHistory/UploadHistoryTable.jsx
+      - src/layouts/EventLayout.jsx
+    routes:
+      - /event/:id/uploads
+      - /event/:id/uploads?tab=companies
+    notes: >
+      Sidebar Uploads. Tabs: Attendees (default) and Companies (?tab=companies).
+      Attendee history GET /events/:eventId/attendee/upload/report/?sort_by=&sort_order=&upload_type=&page=&size=
+      returns {total, upload_data[]}. Company history GET /events/:eventId/company/upload/?sort_by=&sort_order=&upload_type=&page=&page_size=
+      returns {total, results[]} with success/rejectee/upload_data, status, uploaded_by, processing_time.
+      Shared table in src/components/uploadHistory/. Companies page still has a card-style
+      Upload Status sub-view via CompanyUploadStatus + eventService.getCompanyUploads.
   attendee_list_row_actions:
     files:
       - src/features/Attendees/ui/AttendeeTable.jsx
@@ -809,6 +831,8 @@ features:
       POST /events/:eventId/attendees/upload/ (multipart, async);
       POST /events/:eventId/attendees/upload/validate/ (multipart, dry-run, zero writes,
       ?export=csv for report download) - see task attendee_csv_upload
+    upload_history_api: >
+      GET /events/:eventId/attendee/upload/report/ - see task event_uploads
   Companies:
     root: src/features/Companies/
     entry: src/pages/Companies.jsx
@@ -827,6 +851,9 @@ features:
       CSV ?format=csv; email ?send_to_emails= (never with format=csv);
       optional completed=yes|no, include_matchmaking_questions, and
       include_login_info on CSV/email; JSON includes logged-in POC counts
+    company_upload_history_api: >
+      GET /events/:eventId/company/upload/?sort_by=&sort_order=&upload_type=&page=&page_size=
+      returns {total, results[]} - see task event_uploads
     checklist_reminder_api: >
       POST /events/:eventId/exhibitor/setup-checklist/remind/;
       GET .../reminders/ + GET .../reminders/:logId/;
@@ -977,3 +1004,6 @@ glossary:
   visiq: >
     Tenant CRM under /visiq/; subscribers list/detail + async CSV/Excel imports;
     preview JSON + file download; local CSV preview before upload
+  event_uploads: >
+    Sidebar /event/:id/uploads; Attendees tab GET attendee/upload/report/;
+    Companies tab GET company/upload/ ({total, results[]}); shared table UI

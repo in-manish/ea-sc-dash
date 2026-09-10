@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { eventService } from '../../../services/eventService';
+import { FILTER_PARAM_KEYS } from '../constants';
 
 export default function useAttendeeList({
     selectedEvent,
@@ -24,23 +25,29 @@ export default function useAttendeeList({
     const [isModalMaximized, setIsModalMaximized] = useState(false);
 
     useEffect(() => {
-        const params = new URLSearchParams();
-        if (page > 1) params.set('page', page);
-        if (debouncedSearch) params.set('q', debouncedSearch);
-        if (searchType && searchType !== 'local') params.set('search_type', searchType);
+        setSearchParams((prev) => {
+            const params = new URLSearchParams(prev);
 
-        Object.keys(filters).forEach((key) => {
-            const value = filters[key];
-            if (value) {
-                if (Array.isArray(value)) {
-                    if (value.length > 0) params.set(key, value.join(','));
+            if (page > 1) params.set('page', page);
+            else params.delete('page');
+
+            if (debouncedSearch) params.set('q', debouncedSearch);
+            else params.delete('q');
+
+            if (searchType && searchType !== 'local') params.set('search_type', searchType);
+            else params.delete('search_type');
+
+            FILTER_PARAM_KEYS.forEach((key) => {
+                const value = filters[key];
+                if (value && (!Array.isArray(value) || value.length > 0)) {
+                    params.set(key, Array.isArray(value) ? value.join(',') : value);
                 } else {
-                    params.set(key, value);
+                    params.delete(key);
                 }
-            }
-        });
+            });
 
-        setSearchParams(params, { replace: true });
+            return params;
+        }, { replace: true });
     }, [page, debouncedSearch, searchType, filters, setSearchParams]);
 
     useEffect(() => {

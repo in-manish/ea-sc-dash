@@ -48,6 +48,21 @@ export async function validateAttendeesCsv(eventId, token, file, options = {}) {
     return response.json();
 }
 
+/** GET /events/:eventId/attendee/upload/report/ - paginated history of past CSV uploads. */
+export async function getAttendeeUploads(eventId, token, {
+    page = 1, size = 20, sortBy = 'uploaded_on', sortOrder = 'desc', uploadType = '',
+} = {}) {
+    const params = new URLSearchParams({
+        sort_by: sortBy, sort_order: sortOrder, upload_type: uploadType, page, size,
+    });
+    const response = await fetch(
+        `${getApiUrl()}/events/${eventId}/attendee/upload/report/?${params}`,
+        { method: 'GET', headers: authHeaders(token) }
+    );
+    if (!response.ok) throw await parseError(response, 'Failed to load upload history');
+    return response.json();
+}
+
 /** Same validate endpoint with ?export=csv - triggers a browser download of the report. */
 export async function downloadAttendeeUploadValidationReport(eventId, token, file, options = {}) {
     const formData = new FormData();

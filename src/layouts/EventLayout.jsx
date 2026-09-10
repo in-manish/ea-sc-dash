@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink, useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, Users, Calendar, Settings, ChevronLeft, Building2, ArrowLeft, LogOut, MessageSquare, BarChart2, UserCog, ShieldCheck, IdCard, ChevronDown, CreditCard, Wrench, Layout, Video, Tag, Radio } from 'lucide-react';
+import { Menu, X, Users, Calendar, Settings, ChevronLeft, Building2, ArrowLeft, LogOut, MessageSquare, BarChart2, UserCog, ShieldCheck, IdCard, ChevronDown, CreditCard, Wrench, Layout, Video, Tag, Radio, ArrowUpFromLine } from 'lucide-react';
 
 import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
@@ -213,6 +213,15 @@ const EventLayout = () => {
                     >
                         <Users size={20} className="shrink-0" />
                         {!isCollapsed && <span className="flex-1">Attendees</span>}
+                    </NavLink>
+
+                    <NavLink
+                        to={`/event/${selectedEvent.id}/uploads`}
+                        className={navLinkClass}
+                        title={isCollapsed ? "Uploads" : ""}
+                    >
+                        <ArrowUpFromLine size={20} className="shrink-0" />
+                        {!isCollapsed && <span className="flex-1">Uploads</span>}
                     </NavLink>
 
                     <NavLink

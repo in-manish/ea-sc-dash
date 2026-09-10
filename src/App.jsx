@@ -22,6 +22,7 @@ import ProfileSC from './sc/pages/Profile';
 import ScAdminGate from './features/ScAuth/ui/ScAdminGate';
 
 import Attendees from './pages/Attendees';
+import AttendeeUploads from './pages/AttendeeUploads';
 import Companies from './pages/Companies';
 import CompanyDetails from './pages/CompanyDetails';
 import CreateCompany from './pages/CreateCompany';
@@ -86,6 +87,7 @@ const AppRoutes = ({ currentMode }) => {
 
       <Route path="/event/:id" element={<ProtectedRoute><EventLayout /></ProtectedRoute>}>
         <Route path="attendees" element={<Attendees />} />
+        <Route path="uploads" element={<AttendeeUploads />} />
         <Route path="users" element={<UsersSearch />} />
         <Route path="companies" element={<Companies />} />
         <Route path="companies/new" element={<CreateCompany />} />

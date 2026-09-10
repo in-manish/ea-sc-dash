@@ -142,7 +142,7 @@ const AttendeesPage = () => {
             />
             <AttendeesTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
-            {activeTab === 'list' ? (
+            {activeTab === 'list' && (
                 <AttendeesListView
                     page={page}
                     setPage={setPage}
@@ -160,7 +160,9 @@ const AttendeesPage = () => {
                     attendeeTypes={attendeeTypes}
                     attendeeTypesLoading={attendeeTypesLoading}
                 />
-            ) : (
+            )}
+
+            {activeTab === 'tasks' && (
                 <EBadgeTasksPanel
                     jobs={jobsApi.jobs}
                     jobsLoading={jobsApi.jobsLoading}

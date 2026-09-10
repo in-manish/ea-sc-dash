@@ -22,8 +22,8 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Feature | Path | Notes |
 |---------|------|-------|
 | Agenda | `src/features/Agenda/` | List + flat edit for speakers/moderators |
-| Attendees | `src/features/Attendees/` | List, create, edit badge, WhatsApp, email drafts, e-badge, report, bulk CSV upload + dry-run validator |
-| Companies | `src/features/Companies/` | EA list (sort) + create/edit/detail + portal checklist + reminder tab + exhibitor CSV report + engagement funnel + engagement report CSV |
+| Attendees | `src/features/Attendees/` | List, create, edit badge, WhatsApp, email drafts, e-badge, report, bulk CSV upload + dry-run validator, event upload history (Attendees tab) |
+| Companies | `src/features/Companies/` | EA list (sort) + create/edit/detail + portal checklist + reminder tab + exhibitor CSV report + engagement funnel + engagement report CSV + company CSV upload history (Uploads page Companies tab) |
 | ManageUsers | `src/features/ManageUsers/` | Staff users / permissions |
 | ScManageUsers | `src/features/ScManageUsers/` | SC admin users + saved cards |
 | ScAuth / Profile | `src/features/ScAuth/`, `src/features/ScProfile/` | SC ADMIN login gate + profile |
@@ -50,6 +50,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Send attendee emails | `ui/AttendeeEmailDraftsModal.jsx` (Badge Email + Categories Email toggles) + `hooks/useAttendeeTypeEmails.js` + `hooks/useCategoryTypeEmails.js` |
 | Active badge status / create | `ui/ActiveBadgeToolbar.jsx` + `hooks/useActiveBadgeActions.js` + `api/activeBadgeApi.js` |
 | Bulk attendee CSV upload + dry-run validate | `ui/AttendeeUploadModal.jsx` + `ui/AttendeeUploadRowIssues.jsx` + `hooks/useAttendeeUpload.js` + `api/attendeeUploadApi.js` (create-flow only, no replicate/update by Reg ID) |
+| Event upload history (attendee + company tabs) | `src/pages/AttendeeUploads.jsx` + `ui/UploadsTabs.jsx` + `ui/AttendeeUploadHistoryPanel.jsx` + `ui/CompanyUploadHistoryPanel.jsx` + `src/components/uploadHistory/` |
 | Create EA company / co-exhibitor | `src/features/Companies/ui/CreateCompanyPage.jsx` + `api/companyApi.js` |
 | Edit EA company | `src/features/Companies/ui/EditCompanyPage.jsx` + `domain/buildCompanyPatchFormData.js` |
 | Company Detail + Setup Progress | `src/features/Companies/ui/CompanyDetailsPage.jsx` + `SetupProgressSection.jsx` |

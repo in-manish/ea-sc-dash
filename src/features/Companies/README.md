@@ -7,13 +7,15 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 **Detail:** `ui/CompanyDetailsPage.jsx` → `/event/:id/companies/:companyId`  
 **API:** multipart `FormData` + `Authorization: Token …` (no `/api` prefix)  
 **Exhibitor CSV report:** `GET /events/:id/exhibitor/report/` — CSV download or email via `send_to_emails`  
-**Exhibitor Engagement:** `GET /events/:id/exhibitor/engagement/` — parent-exhibitor totals + activation funnel (`?refresh=true` to recompute); JSON includes logged-in POC counts (parents + co-exhibitors); CSV download (`?format=csv`) or email (`?send_to_emails=`) with optional `completed=yes|no`, `include_matchmaking_questions`, and `include_login_info`
+**Exhibitor Engagement:** `GET /events/:id/exhibitor/engagement/` — parent-exhibitor totals + activation funnel (`?refresh=true` to recompute); JSON includes logged-in POC counts (parents + co-exhibitors); CSV download (`?format=csv`) or email (`?send_to_emails=`) with optional `completed=yes|no`, `include_matchmaking_questions`, and `include_login_info`  
+**Company upload history:** `GET /events/:id/company/upload/` — paginated `{total, results[]}` on `/event/:id/uploads?tab=companies`
 
 ## Layout
 
 | Path | Owns |
 |------|------|
 | `api/companyApi.js` | GET company list (`sort_by`/`sort_order`), GET/POST/PATCH company, filter options, exhibitor overview, checklist remind POST, POC password reset, bulk lock/feature |
+| `api/companyUploadApi.js` | GET company CSV upload history (`sort_by`/`sort_order`/`upload_type`/`page`/`page_size`) |
 | `api/exhibitorReportApi.js` | GET parent-exhibitor report: CSV blob or email JSON |
 | `api/exhibitorEngagementApi.js` | GET funnel (`refresh=true` skips cache); CSV blob (`format=csv`); email JSON (`send_to_emails`) |
 | `domain/exhibitorEngagement.js` | Normalize steps + by_type + logged-in POC counts; exhibitor_count; 401/403/404/500 copy |
@@ -56,7 +58,8 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `hooks/useEditCompany.js` | Load + patch submit |
 | `hooks/useCompanyCountries.js` | Country keys from filter options |
 | `hooks/useMatchmakingProductOptions.js` | Matchmaking product question options for edit |
-| `hooks/useExhibitorOverview.js` | Soft-fail Overview API for Setup Progress |
+| `hooks/useCompanyUploadHistory.js` | Paginated company CSV upload history for the Uploads page |
+| `ui/CompanyUploadHistoryPanel.jsx` | Uploads page Companies tab — same table as attendee history |
 | `hooks/useSetupChecklistRemind.js` | POST remind + poll progress until completed/failed |
 | `hooks/useChecklistReminderList.js` | Paginated reminder log |
 | `hooks/useChecklistReminderSettings.js` | Load/save reminder settings |
@@ -214,3 +217,4 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 - `src/pages/Companies.jsx` — re-export of `ui/CompaniesPage.jsx`
 - `src/pages/CompanyDetails.jsx` — thin re-export of `CompanyDetailsPage`
 - `src/pages/CreateCompany.jsx` / `EditCompany.jsx` — thin re-exports
+- `src/pages/AttendeeUploads.jsx` — Uploads page Companies tab (`?tab=companies`) via `ui/CompanyUploadHistoryPanel.jsx`
