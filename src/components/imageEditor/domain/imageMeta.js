@@ -1,5 +1,3 @@
-const MAX_OUTPUT = 1200;
-
 export function formatRatio(w, h) {
   if (!w || !h) return '—';
   return `${(w / h).toFixed(2)}:1`;
@@ -12,22 +10,15 @@ export function formatKb(bytes) {
   return `${Math.round(kb)} KB`;
 }
 
-export function outputSize(naturalW, naturalH) {
-  const longest = Math.max(naturalW, naturalH);
-  if (longest <= MAX_OUTPUT) {
-    return { width: Math.round(naturalW), height: Math.round(naturalH) };
-  }
-  const scale = MAX_OUTPUT / longest;
-  return {
-    width: Math.round(naturalW * scale),
-    height: Math.round(naturalH * scale),
-  };
+export function bytesToKb(bytes) {
+  if (!bytes && bytes !== 0) return 0;
+  return bytes / 1024;
 }
 
 export function emptyCropMeta() {
   return {
-    before: { width: 0, height: 0, ratio: '—', kb: '—' },
-    after: { width: 0, height: 0, ratio: '—', kb: '—' },
+    before: { width: 0, height: 0, ratio: '—', kb: '—', bytes: 0 },
+    after: { width: 0, height: 0, ratio: '—', kb: '—', bytes: 0 },
     previewUrl: null,
   };
 }
@@ -39,4 +30,8 @@ export function measureImage(url) {
     img.onerror = () => resolve({ width: 0, height: 0 });
     img.src = url;
   });
+}
+
+export function isImageFile(file) {
+  return Boolean(file && typeof file.type === 'string' && file.type.startsWith('image/'));
 }

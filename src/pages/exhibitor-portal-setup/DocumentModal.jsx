@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Upload, FileText, CheckCircle2, Loader2, Save } from 'lucide-react';
+import DocumentThumbnailField from './DocumentThumbnailField';
 
 const DocumentModal = ({ isOpen, onClose, onSave, editingDocument }) => {
     const [formData, setFormData] = useState({
@@ -48,13 +49,7 @@ const DocumentModal = ({ isOpen, onClose, onSave, editingDocument }) => {
 
         setFormData(prev => ({ ...prev, [field]: file }));
 
-        if (field === 'doc_thumbnail' && file.type.startsWith('image/')) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setPreviews(prev => ({ ...prev, thumbnail: reader.result }));
-            };
-            reader.readAsDataURL(file);
-        } else if (field === 'doc_file') {
+        if (field === 'doc_file') {
             setPreviews(prev => ({ ...prev, file: file.name }));
         }
     };
@@ -114,31 +109,13 @@ const DocumentModal = ({ isOpen, onClose, onSave, editingDocument }) => {
                     </div>
 
                     <div className="grid grid-cols-2 gap-6">
-                        {/* Thumbnail Upload */}
-                        <div className="space-y-2">
-                            <label className="text-xs font-bold text-text-tertiary uppercase tracking-wider">Thumbnail Image</label>
-                            <label className="group relative aspect-video border-2 border-dashed border-border rounded-xl bg-bg-secondary hover:bg-bg-tertiary flex flex-col items-center justify-center gap-2 cursor-pointer transition-all overflow-hidden">
-                                <input
-                                    type="file"
-                                    className="sr-only"
-                                    accept="image/*"
-                                    onChange={(e) => handleFileChange(e, 'doc_thumbnail')}
-                                />
-                                {previews.thumbnail ? (
-                                    <>
-                                        <img src={previews.thumbnail} className="w-full h-full object-cover" alt="Preview" />
-                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <Upload size={24} className="text-white" />
-                                        </div>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Upload size={20} className="text-text-tertiary group-hover:text-accent transition-colors" />
-                                        <span className="text-[10px] font-bold text-text-tertiary uppercase">Upload Image</span>
-                                    </>
-                                )}
-                            </label>
-                        </div>
+                        <DocumentThumbnailField
+                            preview={previews.thumbnail}
+                            onFile={(file) => {
+                                setFormData((prev) => ({ ...prev, doc_thumbnail: file }));
+                                setPreviews((prev) => ({ ...prev, thumbnail: URL.createObjectURL(file) }));
+                            }}
+                        />
 
                         {/* File Upload */}
                         <div className="space-y-2">

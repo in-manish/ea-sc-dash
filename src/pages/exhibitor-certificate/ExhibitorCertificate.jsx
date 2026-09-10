@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAlert } from '../../contexts/AlertContext';
 import { exhibitorCertificateService } from '../../services/exhibitorCertificateService';
+import CertificateTemplateFileInput from './CertificateTemplateFileInput';
 import { 
     Award, 
     UploadCloud, 
@@ -138,8 +139,7 @@ const ExhibitorCertificate = () => {
     };
 
     // Upload template
-    const handleTemplateUpload = async (e) => {
-        const file = e.target.files?.[0];
+    const handleTemplateUpload = async (file) => {
         if (!file) return;
 
         if (!file.type.startsWith('image/')) {
@@ -434,11 +434,8 @@ const ExhibitorCertificate = () => {
                                         <p className="text-sm font-semibold text-text-primary">Click or drag image here</p>
                                         <p className="text-xs text-text-tertiary mt-1">PNG or JPG formats accepted</p>
                                     </div>
-                                    <input 
-                                        type="file" 
-                                        accept="image/*" 
-                                        className="hidden" 
-                                        onChange={handleTemplateUpload}
+                                    <CertificateTemplateFileInput
+                                        onFile={handleTemplateUpload}
                                         disabled={isUploading}
                                     />
                                 </label>
@@ -457,11 +454,8 @@ const ExhibitorCertificate = () => {
                                 <label className="btn btn-secondary cursor-pointer flex-1 flex items-center justify-center gap-2">
                                     <UploadCloud size={16} />
                                     Upload New Template
-                                    <input 
-                                        type="file" 
-                                        accept="image/*" 
-                                        className="hidden" 
-                                        onChange={handleTemplateUpload}
+                                    <CertificateTemplateFileInput
+                                        onFile={handleTemplateUpload}
                                         disabled={isUploading}
                                     />
                                 </label>
