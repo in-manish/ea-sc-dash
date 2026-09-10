@@ -3,6 +3,19 @@
 # Skill: .agents/skills/project-map/SKILL.md — do not add a third map format.
 
 tasks:
+  event_settings_theme_color:
+    files:
+      - src/pages/event-settings/ThemeColorCodeField.jsx
+      - src/pages/event-settings/EventIdentitySection.jsx
+      - src/pages/event-settings/domain/themeColorCode.js
+      - src/pages/event-settings/GeneralSettings.jsx
+      - src/pages/event-settings/index.jsx
+      - src/services/eventService.js
+    routes:
+      - /event/:id/settings?tab=general
+    notes: >
+      theme_color_code is a top-level event hex (#RRGGBB). Native color picker
+      plus hex text; live portal/button preview. PATCH with event save.
   event_settings_sender_profile_pic:
     files:
       - src/pages/event-settings/SenderDefaultProfilePicField.jsx
@@ -948,6 +961,7 @@ critical_paths:
   - src/contexts/AuthContext.jsx
 
 glossary:
+  theme_color_code: Top-level event hex brand color (#RRGGBB); General settings picker + live preview; PATCH with event save
   dashboard_datetime: Display timestamps with en-IN + Asia/Kolkata; empty/invalid → em dash
   auth_landing_resume: Bare host URL must restore an existing EA/SC token instead of forcing /login
   cross_tab_logout: Other tabs keep a sessionStorage copy after logout; drop it when localStorage token is gone
