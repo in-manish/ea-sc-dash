@@ -2,6 +2,12 @@ import { EDITOR_PRESETS } from '../../../components/imageEditor';
 
 export const EVENT_IMAGE_FIELDS = [
   {
+    name: 'meta_logo',
+    label: 'Meta Logo',
+    description: 'Logo used in meta tags and social previews (Open Graph).',
+    editorConfig: EDITOR_PRESETS.logo,
+  },
+  {
     name: 'logo',
     label: 'Logo',
     description: 'Primary event logo.',
@@ -34,3 +40,13 @@ export const EVENT_IMAGE_FIELDS = [
 ];
 
 export const EVENT_VIDEO_POSTER_EDITOR = EDITOR_PRESETS.banner;
+
+export const EVENT_VIDEO_FIELD_NAMES = [
+  'event_banner_video',
+  'event_banner_video_poster',
+];
+
+export const EVENT_MEDIA_FIELD_NAMES = [
+  ...EVENT_IMAGE_FIELDS.map((field) => field.name),
+  ...EVENT_VIDEO_FIELD_NAMES,
+];

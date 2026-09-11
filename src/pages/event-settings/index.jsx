@@ -24,6 +24,7 @@ import {
 } from './exhibitorPortalDefaults';
 import { useAdditionalRequirement } from './useAdditionalRequirement';
 import { useExhibitorPortalMeetingDiary } from './useExhibitorPortalMeetingDiary';
+import { EVENT_MEDIA_FIELD_NAMES } from './domain/eventImageFields';
 
 const EventSettings = () => {
     const { id } = useParams();
@@ -499,7 +500,7 @@ const EventSettings = () => {
                 'exhibitor_portal_data',
             ];
             
-            const imageFields = ['logo', 'logo2', 'event_background_image', 'event_banner_logo', 'meetingdiary_portal_bg_image', 'event_banner_video', 'event_banner_video_poster'];
+            const imageFields = EVENT_MEDIA_FIELD_NAMES;
 
             Object.keys(eventData).forEach(key => {
                 const value = eventData[key];

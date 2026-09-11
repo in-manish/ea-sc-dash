@@ -42,10 +42,10 @@ tasks:
       - src/services/eventService.js
       - src/components/imageEditor/
     routes:
-      - /event/:id/settings?tab=event_images
+      - /event/:id/settings?tab=images
       - /event/:id/settings?tab=communication
     notes: >
-      Tab Event Images. PATCH /events/:id/ multipart ImageFields: logo, logo2,
+      Tab Event Images. PATCH /events/:id/ multipart ImageFields: meta_logo, logo, logo2,
       event_banner_logo, event_background_image, floor_plan,
       meetingdiary_portal_bg_image. GET returns public URLs (floor_plan_url).
       Existing URL strings are not re-sent; new Files are (incl. AVIF). Thumbnails + lightbox
@@ -1007,9 +1007,9 @@ glossary:
   ea_email_invitee_link_placeholder: Title → invitee_<slug>_link (EA space-to-underscore slug); session-persisted per event
   ar_tax_list: exhibitor_portal_data.additional_requirement.tax is [{name, rate}, ...]; PATCH replaces the whole list; [] means no tax
   event_branding_images: >
-    PATCH /events/:id/ ImageFields logo, logo2, event_banner_logo, event_background_image,
-    floor_plan, meetingdiary_portal_bg_image; GET public URLs (floor_plan_url); skip URL
-    strings on save; new Files uploaded; thumbnails + lightbox preview
+    PATCH /events/:id/ ImageFields meta_logo, logo, logo2, event_banner_logo,
+    event_background_image, floor_plan, meetingdiary_portal_bg_image; GET public URLs
+    (floor_plan_url); skip URL strings on save; new Files uploaded; thumbnails + lightbox preview
   exhibitor_portal_meeting_diary: exhibitor_portal_data.meeting_diary.is_meeting_option_active toggles the exhibitor portal meeting diary option (default false)
   complimentary_invitee_link_is_active: Per-link is_active (default true); false hides the link from exhibitors without deleting it
   exhibitor_poc_password_reset: POST /events/:id/exhibitor/password/reset/; identify POC with badge_id then company_id; skip email/bulk_email for now
