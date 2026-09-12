@@ -85,6 +85,43 @@ tasks:
       Call sites: event branding, company logo, agenda speaker/moderator photos, AR product
       photo, certificate template, badge email template, document thumbnail, floating file
       upload (images only).
+  image_editor_canvas:
+    files:
+      - src/features/ImageEditor/ui/ImageEditorPage.jsx
+      - src/features/ImageEditor/ui/ImageEditorShell.jsx
+      - src/features/ImageEditor/ui/EditorCanvas.jsx
+      - src/features/ImageEditor/hooks/EditorProvider.jsx
+      - src/features/ImageEditor/hooks/useFabricCanvas.js
+      - src/features/ImageEditor/domain/exportCanvas.js
+      - src/features/ImageEditor/domain/encodeAvif.js
+      - src/features/ImageEditor/domain/exportFormats.js
+      - src/features/ImageEditor/domain/placeImage.js
+      - src/features/ImageEditor/domain/viewportMath.js
+      - src/features/ImageEditor/domain/shouldPan.js
+      - src/features/ImageEditor/hooks/useEditorViewport.js
+      - src/features/ImageEditor/ui/imageEditor.css
+      - src/features/ImageEditor/domain/copyImageBlob.js
+      - src/features/ImageEditor/ui/ExportDialog.jsx
+      - src/features/ImageEditor/ui/CropBar.jsx
+      - src/features/ImageEditor/ui/panels/CropPanel.jsx
+      - src/features/ImageEditor/hooks/useEditorCrop.js
+      - src/pages/ImageEditor.jsx
+      - src/App.jsx
+      - src/layouts/EventLayout.jsx
+      - src/sc/layouts/EventLayout.jsx
+    routes:
+      - /event/:id/image-editor
+    notes: >
+      Fabric.js editor listed under event sidebar Utils Config. Local-only;
+      event id is only for the layout shell, not image APIs.
+      Distinct from src/components/imageEditor/ crop modal.
+      Workspace host must fill the flex column (absolute inset-0).
+      A zero-height host keeps Fabric at 300x150 so the photo looks tiny.
+      AVIF export: Chrome/Brave decode AVIF but canvas.toBlob('image/avif')
+      returns PNG. Encode with @jsquash/avif (libavif WASM) after flatten.
+      Export resets viewport to 1:1 and crops to the artboard/image.
+      Crop tool shows Apply crop on the canvas (Enter/Esc). Crop tab and
+      crop tool both start a crop box; custom W×H resizes that box.
   event_settings_support_email:
     files:
       - src/pages/event-settings/CommunicationSettings.jsx
@@ -943,6 +980,14 @@ features:
     routes:
       - /event/:id/communication?tab=email
       - /event/:id/communication?tab=email&email_tab=history_scheduled
+  ImageEditor:
+    root: src/features/ImageEditor/
+    entry: src/pages/ImageEditor.jsx
+    routes:
+      - /event/:id/image-editor
+    notes: >
+      Browser-only canvas editor (fabric). Event Utils Config nav; no image APIs.
+      Does not replace src/components/imageEditor/ upload crop modal.
   ScEmailTemplates:
     root: src/features/ScEmailTemplates/
     entry: src/sc/pages/EmailTemplates.jsx
@@ -995,6 +1040,7 @@ glossary:
     tab with All/History/Scheduled client filter; row-hover View details / View recipients;
     detail and recipients extra GETs; Date column Created + Updated (Scheduled line if scheduled);
     list `count` shown beside filter; Recipients column is number_recipients
+  image_editor_canvas: Event Utils Config /event/:id/image-editor Fabric.js workspace; images stay in the browser; copy/download flatten only at export (identity viewport + artboard crop). AVIF download uses libavif WASM because canvas.toBlob('image/avif') is PNG in Chrome/Brave.
   image_editor_export_format: >
     useImageEditor "Optimize for web" exports WebP (JPEG fallback). Compression slider
     (0% = higher quality, 100% = smaller file) plus optional target KB; encoder lowers

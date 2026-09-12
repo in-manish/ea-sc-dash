@@ -21,7 +21,7 @@ const EventLayout = () => {
         'Meetings': location.pathname.includes('/meetings'),
         'Visiq': location.pathname.includes('/visiq'),
         'Staff Management': location.pathname.includes('/staff'),
-        'Utils Config': location.pathname.includes('/utils-config')
+        'Utils Config': location.pathname.includes('/utils-config') || location.pathname.includes('/image-editor'),
     });
 
     // Handle body class for CSS variable shifting
@@ -467,10 +467,10 @@ const EventLayout = () => {
                         {/* Utils Config with Submenu */}
                         <div className="flex flex-col gap-1">
                             <div
-                                className={navLinkClass({ isActive: location.pathname.includes('/utils-config') })}
+                                className={navLinkClass({ isActive: location.pathname.includes('/utils-config') || location.pathname.includes('/image-editor') })}
                                 onClick={() => {
                                     toggleExpand('Utils Config');
-                                    if (!location.pathname.includes('/utils-config')) {
+                                    if (!location.pathname.includes('/utils-config') && !location.pathname.includes('/image-editor')) {
                                         navigate(`/event/${selectedEvent.id}/utils-config?tab=exhibitor_portal`);
                                     }
                                 }}
@@ -510,6 +510,12 @@ const EventLayout = () => {
                                         className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/utils-config') && new URLSearchParams(location.search).get('tab') === 'email_kill_switch' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
                                     >
                                         Email Kill Switch
+                                    </NavLink>
+                                    <NavLink
+                                        to={`/event/${selectedEvent.id}/image-editor`}
+                                        className={({ isActive }) => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${isActive ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
+                                    >
+                                        Image Editor
                                     </NavLink>
                                 </div>
                             )}

@@ -6,4 +6,10 @@ import { imageMetaPlugin } from './vite.imageMetaPlugin.js'
 export default defineConfig({
   base: '/',
   plugins: [react(), imageMetaPlugin()],
+  optimizeDeps: {
+    exclude: ['@jsquash/avif'],
+  },
+  worker: {
+    format: 'es',
+  },
 })
