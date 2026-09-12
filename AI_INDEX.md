@@ -16,6 +16,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 - `src/contexts/useCrossTabAuthSync.js` — logout in one tab signs out the others
 - `src/components/alert/` — themed app alert/confirm (`useAlert`)
 - `src/components/imageEditor/` — reusable crop/resize/web-optimize modal for any image upload (`useImageEditor` + `ImageEditorProvider`)
+- `src/features/ImageEditor/` — browser canvas editor at `/event/:id/image-editor` (Utils Config). Local-only; does not replace the upload crop modal
 
 ## Feature map
 
@@ -33,7 +34,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | EmailCampaigns | `src/features/EmailCampaigns/` | History/Scheduled tab; row click or hover View details; hover View recipients; recipient hover View attendee |
 | Matchmaking | `src/features/Matchmaking/` | GET 404 = create/copy; 200 = editor only |
 | MeetingStats | `src/features/MeetingStats/` | Organizer meeting stats by event × attendee type (GET) + email CSV (POST) |
-| Visiq | `src/features/Visiq/` | Tenant subscriber CRM: list/detail + CSV/Excel import jobs |
+| ImageEditor | `src/features/ImageEditor/` | Event Utils Config → Image Editor (`/event/:id/image-editor`). Fabric.js, local-only. Distinct from `src/components/imageEditor/` crop modal |
 
 ## Common tasks → files
 
@@ -44,6 +45,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Event settings / sender profile pic | `src/pages/event-settings/SenderDefaultProfilePicField.jsx` (`sender_default_profile_pic`) |
 | Event settings / branding images | `src/pages/event-settings/EventBrandingImages.jsx` + `EventImageUploadField.jsx` (`/event/:id/settings?tab=images`); size/dimensions + green **Web optimized** chip; **Edit image** opens the crop modal on the current file/URL; `domain/eventImageFields.js` (`meta_logo` first, then `logo`, `logo2`, …) `editorConfig` |
 | Reusable crop/resize/web-optimize image upload | `src/components/imageEditor/` (`useImageEditor` + `ImageEditorModal`) — independent crop, compression slider, target KB, dimensions, web/mobile hints, live preview |
+| Standalone canvas Image Editor | `src/features/ImageEditor/ui/ImageEditorPage.jsx` — `/event/:id/image-editor` under Utils Config; pan/zoom workspace; AVIF export via libavif WASM (`domain/encodeAvif.js`); upload/paste/draw/text/export/copy in the browser |
 | Edit attendee / badge | `src/features/Attendees/ui/EditAttendeeModal.jsx` + `api/attendeeApi.js` + `domain/editAttendeeForm.js` |
 | Attendee list row actions | `src/features/Attendees/ui/AttendeeTableRowMenu.jsx` + `AttendeeTableRow.jsx` |
 | Attendee type email / SMS drafts | `src/pages/AttendeeTypes.jsx` + `EmailInvitationDraft.jsx` + `BadgeEmailVariablesRail.jsx` (badge tokens, `tv_referral_link` / `{title_slug}_referral_link`, calendar hrefs) |

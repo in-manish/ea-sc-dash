@@ -1,4 +1,4 @@
-import React, { useLayoutEffect } from 'react';
+import React, { lazy, Suspense, useLayoutEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { AlertProvider } from './contexts/AlertContext';
@@ -44,6 +44,12 @@ import RedirectToUtilsTab from './pages/utils-config/RedirectToUtilsTab';
 import BrandManage from './pages/brand-manage/BrandManage';
 import ManageUsers from './pages/ManageUsers';
 import ExhibitorPortalLanding from './pages/exhibitor-portal/ExhibitorPortalLanding';
+
+const ImageEditor = lazy(() => import('./pages/ImageEditor'));
+
+const EditorFallback = () => (
+  <div className="p-8 text-sm text-text-secondary">Loading image editor…</div>
+);
 
 import { getProjectFromPathname, getRouterBasename } from './projectPath';
 import { resolveLandingUrl } from './contexts/authSession';
@@ -104,6 +110,10 @@ const AppRoutes = ({ currentMode }) => {
         <Route path="settings" element={<Settings />} />
         <Route path="payments" element={<Payments />} />
         <Route path="utils-config" element={<UtilsConfig />} />
+        <Route
+          path="image-editor"
+          element={<Suspense fallback={<EditorFallback />}><ImageEditor /></Suspense>}
+        />
         <Route path="exhibitor-portal-setup" element={<RedirectToUtilsTab tab="exhibitor_portal" />} />
         <Route path="matchmaking" element={<Matchmaking />} />
         <Route path="celery-manage" element={<RedirectToUtilsTab tab="celery" />} />

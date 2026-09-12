@@ -10,8 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@jsquash/avif": "^2.1.1",
     "axios": "^1.13.5",
     "cropperjs": "^1.6.2",
+    "fabric": "^7.4.0",
     "jodit": "^4.9.6",
     "jodit-react": "^5.3.21",
     "lucide-react": "^0.564.0",
