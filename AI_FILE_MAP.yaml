@@ -683,6 +683,46 @@ tasks:
       Subscribers: GET list (page,size,search,status) + GET detail; rich row chips.
       Imports: GET list, POST multipart → 202, GET detail (poll while active).
       Preview/download fetch the `file` URL on the job (S3), parse CSV in browser.
+  ai_presets:
+    files:
+      - src/features/AiPresets/api/aiPresetsApi.js
+      - src/features/AiPresets/domain/parseAiPresetError.js
+      - src/features/AiPresets/domain/presetPayload.js
+      - src/features/AiPresets/domain/normalizePresetList.js
+      - src/features/AiPresets/hooks/useAiPresetList.js
+      - src/features/AiPresets/hooks/useAiPresetEditor.js
+      - src/features/AiPresets/hooks/useDeleteAiPreset.js
+      - src/features/AiPresets/ui/AiPresetsPage.jsx
+      - src/features/AiPresets/ui/AiPresetTable.jsx
+      - src/features/AiPresets/ui/AiPresetEditorModal.jsx
+      - src/features/AiPresets/ui/AiPresetFormFields.jsx
+      - src/features/AiPresets/domain/previewQuery.js
+      - src/features/AiPresets/domain/parsePreviewCatalog.js
+      - src/features/AiPresets/hooks/useAiPresetPreview.js
+      - src/features/AiPresets/ui/AiPresetPreviewPage.jsx
+      - src/features/AiPresets/ui/AiPresetPreviewForm.jsx
+      - src/features/AiPresets/ui/AiPresetPreviewResult.jsx
+      - src/features/AiPresets/ui/AiPresetPreviewCatalog.jsx
+      - src/features/AiPresets/ui/AiPresetPreviewPromptPane.jsx
+      - src/pages/Ai.jsx
+      - src/pages/AiPreview.jsx
+      - src/layouts/EventLayout.jsx
+      - src/layouts/event-layout/eventNavConfig.js
+      - src/layouts/event-layout/EventSidebarNav.jsx
+      - src/App.jsx
+    routes:
+      - /event/:id/ai
+      - /event/:id/ai/preview
+    notes: >
+      Tenant-scoped /ai/presets/ (no event id). Organizer Token (ea.org_perms).
+      List/create; GET/PUT/PATCH by preset_key or numeric id; DELETE by id only.
+      mm_seeking_mapper must include {{QUESTION_OPTIONS}}. preset_key is immutable.
+      Preview GET /ai/presets/mm_seeking_mapper/preview/?event_id= fills that
+      event's seeking catalog (optional user_query + filters pill JSON); no LLM.
+      Preview lives at /event/:id/ai/preview (full page, not a modal): tabs
+      (catalog / system / user), searchable expandable catalog, and copy.
+      used_fallback when the DB preset is missing or has no {{QUESTION_OPTIONS}}.
+      Sidebar AI item uses Sparkles. EventLayout nav lives in event-layout/.
   matchmaking_form:
     files:
       - src/features/Matchmaking/api/matchmakingFormApi.js
@@ -903,6 +943,18 @@ features:
       GET /visiq/imports/; POST /visiq/imports/ (multipart 202);
       GET /visiq/imports/:id/;
       GET /visiq/imports/:id/preview/; GET /visiq/imports/:id/file/
+  AiPresets:
+    root: src/features/AiPresets/
+    entry: src/pages/Ai.jsx
+    preview_entry: src/pages/AiPreview.jsx
+    routes:
+      - /event/:id/ai
+      - /event/:id/ai/preview
+    list_api: GET /ai/presets/
+    create_api: POST /ai/presets/
+    detail_api: GET|PUT|PATCH /ai/presets/:preset_key_or_id/
+    delete_api: DELETE /ai/presets/:id/
+    preview_api: GET /ai/presets/mm_seeking_mapper/preview/?event_id=
   Matchmaking:
     root: src/features/Matchmaking/
     entry: src/features/Matchmaking/ui/Matchmaking.jsx
@@ -1031,6 +1083,11 @@ glossary:
   visiq: >
     Tenant CRM under /visiq/; subscribers list/detail + async CSV/Excel imports;
     preview JSON + file download; local CSV preview before upload
+  ai_presets: >
+    Tenant /ai/presets/; list/create; GET/PUT/PATCH by preset_key or id;
+    DELETE by numeric id; mm_seeking_mapper requires {{QUESTION_OPTIONS}};
+    preview GET .../mm_seeking_mapper/preview/?event_id= fills catalog (no LLM);
+    dashboard preview page is /event/:id/ai/preview
   event_uploads: >
     Sidebar /event/:id/uploads; Attendees tab GET attendee/upload/report/;
     Companies tab GET company/upload/ ({total, results[]}); shared table UI

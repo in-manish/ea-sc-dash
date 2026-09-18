@@ -34,6 +34,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Matchmaking | `src/features/Matchmaking/` | GET 404 = create/copy; 200 = editor only |
 | MeetingStats | `src/features/MeetingStats/` | Organizer meeting stats by event × attendee type (GET) + email CSV (POST) |
 | Visiq | `src/features/Visiq/` | Tenant subscriber CRM: list/detail + CSV/Excel import jobs |
+| AiPresets | `src/features/AiPresets/` | Organizer AI system prompt presets; matchmaking `mm_seeking_mapper` catalog preview at `/event/:id/ai/preview` |
 
 ## Common tasks → files
 
@@ -95,6 +96,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Matchmaking questions / copy | `src/features/Matchmaking/ui/MatchmakingQuestions.jsx` + `api/matchmakingFormApi.js` |
 | Meeting stats report | `src/features/MeetingStats/ui/MeetingStatsReportTab.jsx` + `api/meetingStatsReportApi.js` |
 | Visiq subscribers / imports | `src/features/Visiq/ui/VisiqPage.jsx` + `api/importApi.js` (preview/download) + `hooks/useImportFileActions.js` |
+| AI system prompt presets | `src/features/AiPresets/ui/AiPresetsPage.jsx` + `api/aiPresetsApi.js` + `ui/AiPresetPreviewPage.jsx` |
 
 ## Constraints
 

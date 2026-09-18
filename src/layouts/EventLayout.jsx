@@ -1,628 +1,136 @@
-import React, { useState, useEffect } from 'react';
-import { Outlet, NavLink, useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, Users, Calendar, Settings, ChevronLeft, Building2, ArrowLeft, LogOut, MessageSquare, BarChart2, UserCog, ShieldCheck, IdCard, ChevronDown, CreditCard, Wrench, Layout, Video, Tag, Radio, ArrowUpFromLine } from 'lucide-react';
-
+import React, { useEffect, useState } from 'react';
+import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeft, Menu } from 'lucide-react';
+import EventFloatingFileUploadTool from '../components/EventFloatingFileUploadTool';
 import { useAuth } from '../contexts/AuthContext';
 import { eventService } from '../services/eventService';
-import EventFloatingFileUploadTool from '../components/EventFloatingFileUploadTool';
+import EventSidebarAccount from './event-layout/EventSidebarAccount';
+import EventSidebarHeader from './event-layout/EventSidebarHeader';
+import EventSidebarNav from './event-layout/EventSidebarNav';
 
 const EventLayout = () => {
-    const { selectedEvent, selectEvent, clearEvent, logout, token, recentEvents, currentMode, switchMode } = useAuth();
-    const { id } = useParams();
-    const navigate = useNavigate();
-    const location = useLocation();
-    const [isCollapsed, setIsCollapsed] = useState(false);
-    const [isEventDropdownOpen, setIsEventDropdownOpen] = useState(false);
-    const [eventLoadError, setEventLoadError] = useState(null);
-    const [expandedItems, setExpandedItems] = useState({
-        'Companies': location.pathname.includes('/companies'),
-        'Communication': location.pathname.includes('/communication'),
-        'Reports': location.pathname.includes('/reports'),
-        'Meetings': location.pathname.includes('/meetings'),
-        'Visiq': location.pathname.includes('/visiq'),
-        'Staff Management': location.pathname.includes('/staff'),
-        'Utils Config': location.pathname.includes('/utils-config')
-    });
+  const { selectedEvent, selectEvent, clearEvent, logout, token, recentEvents, currentMode, switchMode } = useAuth();
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isEventDropdownOpen, setIsEventDropdownOpen] = useState(false);
+  const [eventLoadError, setEventLoadError] = useState(null);
+  const [expandedItems, setExpandedItems] = useState({
+    Companies: location.pathname.includes('/companies'),
+    Communication: location.pathname.includes('/communication'),
+    Reports: location.pathname.includes('/reports'),
+    Meetings: location.pathname.includes('/meetings'),
+    Visiq: location.pathname.includes('/visiq'),
+    'Staff Management': location.pathname.includes('/staff'),
+    'Utils Config': location.pathname.includes('/utils-config'),
+  });
 
-    // Handle body class for CSS variable shifting
-    useEffect(() => {
-        if (isCollapsed) {
-            document.body.classList.add('sidebar-collapsed');
-        } else {
-            document.body.classList.remove('sidebar-collapsed');
-        }
-    }, [isCollapsed]);
+  useEffect(() => {
+    document.body.classList.toggle('sidebar-collapsed', isCollapsed);
+  }, [isCollapsed]);
 
-    // Auto-fetch event details when navigating directly via URL
-    useEffect(() => {
-        if ((!selectedEvent || selectedEvent.id.toString() !== id) && token && id) {
-            setEventLoadError(null);
-            eventService.getEventDetails(id, token)
-                .then(eventData => {
-                    selectEvent(eventData);
-                })
-                .catch(err => {
-                    console.error('Failed to load event:', err);
-                    setEventLoadError('Failed to load event. It may not exist or you may not have access.');
-                });
-        }
-    }, [id, token, selectedEvent]);
-
-    const toggleExpand = (title) => {
-        setExpandedItems(prev => ({
-            ...prev,
-            [title]: !prev[title]
-        }));
-    };
-
-    const formatDate = (dateString) => {
-        if (!dateString) return '';
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
+  useEffect(() => {
+    if ((!selectedEvent || selectedEvent.id.toString() !== id) && token && id) {
+      eventService.getEventDetails(id, token)
+        .then((eventData) => {
+          setEventLoadError(null);
+          selectEvent(eventData);
+        })
+        .catch((err) => {
+          console.error('Failed to load event:', err);
+          setEventLoadError('Failed to load event. It may not exist or you may not have access.');
         });
-    };
-
-    if (eventLoadError) {
-        return (
-            <div className="p-8 flex flex-col items-center gap-4">
-                <div className="text-danger text-sm">{eventLoadError}</div>
-                <button
-                    onClick={() => navigate('/')}
-                    className="px-4 py-2 bg-accent text-white rounded-md text-sm font-medium cursor-pointer border-none hover:opacity-90 transition-opacity"
-                >
-                    Back to Events
-                </button>
-            </div>
-        );
     }
+  }, [id, token, selectedEvent, selectEvent]);
 
-    if (!selectedEvent || selectedEvent.id.toString() !== id) {
-        return <div className="p-4 text-text-secondary">Loading Event Context...</div>;
-    }
+  const toggleExpand = (title) => {
+    setExpandedItems((prev) => ({ ...prev, [title]: !prev[title] }));
+  };
 
-    const navLinkClass = ({ isActive }) =>
-        `flex items-center gap-3 text-sm transition-all duration-200 whitespace-nowrap rounded-md ${isActive ? 'text-accent bg-accent/10 font-semibold' : 'text-text-secondary font-medium hover:text-text-primary hover:bg-bg-secondary'
-        } ${isCollapsed ? 'justify-center p-[10px]' : 'py-2.5 px-3'}`;
-
+  if (eventLoadError) {
     return (
-        <div className="flex min-h-screen bg-bg-secondary">
-            <aside className={`bg-bg-primary border-r border-border flex flex-col h-screen fixed left-0 top-0 z-50 transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${isCollapsed ? 'w-[72px]' : 'w-[260px]'}`}>
-                <div className={`border-b border-border transition-all duration-300 ${isCollapsed ? 'p-4 px-3' : 'py-5 px-4'}`}>
-                    <div className={`flex items-center ${isCollapsed ? 'flex-col gap-4 mb-0' : 'justify-between mb-4'}`}>
-                        <button
-                            onClick={() => {
-                                clearEvent();
-                                navigate('/');
-                            }}
-                            className={`bg-transparent border-none text-text-tertiary cursor-pointer rounded-md flex items-center justify-center transition-all duration-200 hover:text-text-primary hover:bg-bg-secondary ${isCollapsed ? 'p-2 w-full' : 'p-2'}`}
-                            title="Back to Events"
-                        >
-                            <ArrowLeft size={20} />
-                        </button>
-                        <button onClick={() => setIsCollapsed(!isCollapsed)} className={`bg-transparent border-none text-text-tertiary cursor-pointer rounded-md flex items-center justify-center transition-all duration-200 hover:text-text-primary hover:bg-bg-secondary ${isCollapsed ? 'p-2 w-full' : 'p-2'}`} title="Toggle Sidebar">
-                            <Menu size={20} />
-                        </button>
-                    </div>
-
-                    {!isCollapsed && (
-                        <div className="px-2 mb-4 animate-[fadeIn_0.5s_ease-out]">
-                            <div className="flex items-center bg-bg-secondary border border-border rounded-full p-0.5 shadow-sm">
-                                <button
-                                    onClick={() => switchMode('EA')}
-                                    className={`flex-1 text-center py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer border-none ${
-                                        currentMode === 'EA'
-                                            ? 'bg-accent text-white shadow-sm'
-                                            : 'bg-transparent text-text-secondary hover:text-text-primary'
-                                    }`}
-                                >
-                                    EA
-                                </button>
-                                <button
-                                    onClick={() => switchMode('SC')}
-                                    className={`flex-1 text-center py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer border-none ${
-                                        currentMode === 'SC'
-                                            ? 'bg-accent text-white shadow-sm'
-                                            : 'bg-transparent text-text-secondary hover:text-text-primary'
-                                    }`}
-                                >
-                                    SC
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {!isCollapsed && (
-                        <div className="px-2 animate-[fadeIn_0.5s_ease-out] relative">
-                            <button
-                                onClick={() => setIsEventDropdownOpen(!isEventDropdownOpen)}
-                                className="w-full text-left bg-bg-primary border border-border rounded-lg p-2.5 flex items-center justify-between transition-all hover:border-border-hover hover:bg-bg-secondary cursor-pointer relative z-20 group"
-                            >
-                                <div className="flex flex-col overflow-hidden mr-2">
-                                    <span className="text-[10px] font-bold text-text-tertiary uppercase tracking-wider mb-0.5 group-hover:text-accent transition-colors">Current Event</span>
-                                    <h2 className="text-sm font-semibold text-text-primary leading-snug break-words pr-2">{selectedEvent.name}</h2>
-                                    <div className="flex flex-wrap text-[11px] text-text-secondary gap-x-1 gap-y-0.5 mt-1">
-                                        <span className="font-medium text-text-primary whitespace-nowrap">#{selectedEvent.id}</span>
-                                        <span className="whitespace-nowrap">•</span>
-                                        <span className="whitespace-nowrap">{formatDate(selectedEvent.start_date)} - {formatDate(selectedEvent.end_date)}</span>
-                                    </div>
-                                </div>
-                                <ChevronDown size={16} className={`text-text-tertiary transition-transform duration-200 shrink-0 ${isEventDropdownOpen ? 'rotate-180 text-text-primary' : ''}`} />
-                            </button>
-
-                            {/* Recent Events Dropdown */}
-                            {isEventDropdownOpen && (
-                                <>
-                                    <div
-                                        className="fixed inset-0 z-10"
-                                        onClick={() => setIsEventDropdownOpen(false)}
-                                    ></div>
-                                    <div className="absolute top-[calc(100%+4px)] left-2 right-2 bg-bg-primary border border-border rounded-lg shadow-lg z-30 py-1.5 animate-fade-in overflow-hidden">
-                                        <div className="px-3 py-1.5 text-xs font-semibold text-text-tertiary uppercase tracking-wider bg-bg-secondary/50 border-b border-border">
-                                            Recent Events
-                                        </div>
-                                        <div className="max-h-[200px] overflow-y-auto">
-                                            {recentEvents && recentEvents.length > 0 ? (
-                                                recentEvents.map(event => (
-                                                    <button
-                                                        key={`recent-${event.id}`}
-                                                        onClick={() => {
-                                                            selectEvent(event);
-                                                            setIsEventDropdownOpen(false);
-                                                            navigate(`/event/${event.id}/attendees`);
-                                                        }}
-                                                        className={`w-full text-left px-3 py-2 text-sm border-none bg-transparent cursor-pointer transition-colors hover:bg-bg-secondary flex flex-col ${event.id === selectedEvent.id ? 'bg-accent/5' : ''}`}
-                                                    >
-                                                        <span className={`font-medium ${event.id === selectedEvent.id ? 'text-accent' : 'text-text-primary'} whitespace-nowrap overflow-hidden text-ellipsis w-full`}>
-                                                            {event.name}
-                                                        </span>
-                                                        <span className="text-[11px] text-text-secondary">#{event.id}</span>
-                                                    </button>
-                                                ))
-                                            ) : (
-                                                <div className="px-3 py-3 text-sm text-text-tertiary text-center">
-                                                    No recent events
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="border-t border-border mt-1">
-                                            <button
-                                                onClick={() => {
-                                                    clearEvent();
-                                                    setIsEventDropdownOpen(false);
-                                                    navigate('/');
-                                                }}
-                                                className="w-full text-center px-3 py-2 text-[13px] font-medium text-accent border-none bg-transparent cursor-pointer hover:bg-accent/5 transition-colors"
-                                            >
-                                                View all events
-                                            </button>
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                    )}
-                </div>
-
-                <nav className={`flex-1 flex flex-col gap-1 overflow-y-auto ${isCollapsed ? 'py-4 px-2' : 'py-4 px-3'}`}>
-                    <NavLink
-                        to={`/event/${selectedEvent.id}/attendees`}
-                        className={navLinkClass}
-                        title={isCollapsed ? "Attendees" : ""}
-                    >
-                        <Users size={20} className="shrink-0" />
-                        {!isCollapsed && <span className="flex-1">Attendees</span>}
-                    </NavLink>
-
-                    <NavLink
-                        to={`/event/${selectedEvent.id}/uploads`}
-                        className={navLinkClass}
-                        title={isCollapsed ? "Uploads" : ""}
-                    >
-                        <ArrowUpFromLine size={20} className="shrink-0" />
-                        {!isCollapsed && <span className="flex-1">Uploads</span>}
-                    </NavLink>
-
-                    <NavLink
-                        to={`/event/${selectedEvent.id}/agenda`}
-                        className={navLinkClass}
-                        title={isCollapsed ? "Agenda" : ""}
-                    >
-                        <Calendar size={20} className="shrink-0" />
-                        {!isCollapsed && <span className="flex-1">Agenda</span>}
-                    </NavLink>
-
-                    {/* Companies with Submenu */}
-                    <div className="flex flex-col gap-1">
-                        <div
-                            className={navLinkClass({ isActive: location.pathname.includes('/companies') })}
-                            onClick={() => {
-                                toggleExpand('Companies');
-                                if (!location.pathname.includes('/companies')) {
-                                    navigate(`/event/${selectedEvent.id}/companies?tab=exhibitors`);
-                                }
-                            }}
-                            style={{ cursor: 'pointer' }}
-                            title={isCollapsed ? "Companies" : ""}
-                        >
-                            <Building2 size={20} className="shrink-0" />
-                            {!isCollapsed && (
-                                <>
-                                    <span className="flex-1">Companies</span>
-                                    <ChevronDown size={14} className={`transition-transform duration-200 ${expandedItems['Companies'] ? 'rotate-180' : ''}`} />
-                                </>
-                            )}
-                        </div>
-                        {!isCollapsed && expandedItems['Companies'] && (
-                            <div className="ml-9 flex flex-col gap-1 border-l border-border pl-2 my-1 animate-fade-in">
-                                <NavLink
-                                    to={`/event/${selectedEvent.id}/companies?tab=exhibitors`}
-                                    className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/companies') && (new URLSearchParams(location.search).get('tab') === 'exhibitors' || !new URLSearchParams(location.search).get('tab')) ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
-                                >
-                                    Exhibitors
-                                </NavLink>
-                                <NavLink
-                                    to={`/event/${selectedEvent.id}/companies?tab=product_matchmaking`}
-                                    className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/companies') && ['product_matchmaking', 'company_products'].includes(new URLSearchParams(location.search).get('tab')) ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
-                                >
-                                    Product Matchmaking
-                                </NavLink>
-                                <NavLink
-                                    to={`/event/${selectedEvent.id}/companies?tab=additional_requirements`}
-                                    className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/companies') && new URLSearchParams(location.search).get('tab') === 'additional_requirements' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
-                                >
-                                    Additional Requirements
-                                </NavLink>
-                                <NavLink
-                                    to={`/event/${selectedEvent.id}/companies?tab=exhibitor_engagement`}
-                                    className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/companies') && new URLSearchParams(location.search).get('tab') === 'exhibitor_engagement' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
-                                >
-                                    Exhibitor Engagement
-                                </NavLink>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Communication with Submenu */}
-                    <div className="flex flex-col gap-1">
-                        <div
-                            className={navLinkClass({ isActive: location.pathname.includes('/communication') })}
-                            onClick={() => {
-                                toggleExpand('Communication');
-                                if (!location.pathname.includes('/communication')) {
-                                    navigate(`/event/${selectedEvent.id}/communication?tab=whatsapp`);
-                                }
-                            }}
-                            style={{ cursor: 'pointer' }}
-                            title={isCollapsed ? "Communication" : ""}
-                        >
-                            <MessageSquare size={20} className="shrink-0" />
-                            {!isCollapsed && (
-                                <>
-                                    <span className="flex-1">Communication</span>
-                                    <ChevronDown size={14} className={`transition-transform duration-200 ${expandedItems['Communication'] ? 'rotate-180' : ''}`} />
-                                </>
-                            )}
-                        </div>
-                        {!isCollapsed && expandedItems['Communication'] && (
-                            <div className="ml-9 flex flex-col gap-1 border-l border-border pl-2 my-1 animate-fade-in">
-                                <NavLink
-                                    to={`/event/${selectedEvent.id}/communication?tab=whatsapp`}
-                                    className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/communication') && (new URLSearchParams(location.search).get('tab') === 'whatsapp' || !new URLSearchParams(location.search).get('tab')) ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
-                                >
-                                    WhatsApp
-                                </NavLink>
-                                <NavLink
-                                    to={`/event/${selectedEvent.id}/communication?tab=email`}
-                                    className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/communication') && new URLSearchParams(location.search).get('tab') === 'email' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
-                                >
-                                    Email
-                                </NavLink>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Reports with Submenu */}
-                    <div className="flex flex-col gap-1">
-                        <div
-                            className={navLinkClass({ isActive: location.pathname.includes('/reports') })}
-                            onClick={() => {
-                                toggleExpand('Reports');
-                                if (!location.pathname.includes('/reports')) {
-                                    navigate(`/event/${selectedEvent.id}/reports?tab=scan`);
-                                }
-                            }}
-                            style={{ cursor: 'pointer' }}
-                            title={isCollapsed ? "Reports" : ""}
-                        >
-                            <BarChart2 size={20} className="shrink-0" />
-                            {!isCollapsed && (
-                                <>
-                                    <span className="flex-1">Reports</span>
-                                    <ChevronDown size={14} className={`transition-transform duration-200 ${expandedItems['Reports'] ? 'rotate-180' : ''}`} />
-                                </>
-                            )}
-                        </div>
-                        {!isCollapsed && expandedItems['Reports'] && (
-                            <div className="ml-9 flex flex-col gap-1 border-l border-border pl-2 my-1 animate-fade-in">
-                                <NavLink
-                                    to={`/event/${selectedEvent.id}/reports?tab=scan`}
-                                    className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/reports') && (new URLSearchParams(location.search).get('tab') === 'scan' || !new URLSearchParams(location.search).get('tab')) ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
-                                >
-                                    Scan Reports
-                                </NavLink>
-                                <NavLink
-                                    to={`/event/${selectedEvent.id}/reports?tab=print`}
-                                    className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/reports') && new URLSearchParams(location.search).get('tab') === 'print' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
-                                >
-                                    Print Reports
-                                </NavLink>
-                                <NavLink
-                                    to={`/event/${selectedEvent.id}/reports?tab=meeting`}
-                                    className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/reports') && new URLSearchParams(location.search).get('tab') === 'meeting' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
-                                >
-                                    Meeting Reports
-                                </NavLink>
-                            </div>
-                        )}
-                    </div>
-
-                    <NavLink
-                        to={`/event/${selectedEvent.id}/matchmaking`}
-                        className={navLinkClass}
-                        title={isCollapsed ? "Matchmaking" : ""}
-                    >
-                        <Layout size={20} className="shrink-0" />
-                        {!isCollapsed && <span className="flex-1">Matchmaking</span>}
-                    </NavLink>
-
-                    {/* Meetings with Submenu */}
-                    <div className="flex flex-col gap-1">
-                        <div
-                            className={navLinkClass({ isActive: location.pathname.includes('/meetings') })}
-                            onClick={() => {
-                                toggleExpand('Meetings');
-                                if (!location.pathname.includes('/meetings')) {
-                                    navigate(`/event/${selectedEvent.id}/meetings`);
-                                }
-                            }}
-                            style={{ cursor: 'pointer' }}
-                            title={isCollapsed ? "Meetings" : ""}
-                        >
-                            <Video size={20} className="shrink-0" />
-                            {!isCollapsed && (
-                                <>
-                                    <span className="flex-1">Meetings</span>
-                                    <ChevronDown size={14} className={`transition-transform duration-200 ${expandedItems['Meetings'] ? 'rotate-180' : ''}`} />
-                                </>
-                            )}
-                        </div>
-                        {!isCollapsed && expandedItems['Meetings'] && (
-                            <div className="ml-9 flex flex-col gap-1 border-l border-border pl-2 my-1 animate-fade-in">
-                                <NavLink
-                                    to={`/event/${selectedEvent.id}/meetings?tab=list`}
-                                    className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/meetings') && (new URLSearchParams(location.search).get('tab') === 'list' || !new URLSearchParams(location.search).get('tab')) ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
-                                >
-                                    List Meetings
-                                </NavLink>
-                                <NavLink
-                                    to={`/event/${selectedEvent.id}/meetings?tab=restore`}
-                                    className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/meetings') && new URLSearchParams(location.search).get('tab') === 'restore' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
-                                >
-                                    Restore Meeting
-                                </NavLink>
-                                <NavLink
-                                    to={`/event/${selectedEvent.id}/meetings?tab=stats`}
-                                    className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/meetings') && new URLSearchParams(location.search).get('tab') === 'stats' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
-                                >
-                                    Meeting Stats Report
-                                </NavLink>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Visiq with Submenu — subscribers vs import jobs */}
-                    <div className="flex flex-col gap-1">
-                        <div
-                            className={navLinkClass({ isActive: location.pathname.includes('/visiq') })}
-                            onClick={() => {
-                                toggleExpand('Visiq');
-                                if (!location.pathname.includes('/visiq')) {
-                                    navigate(`/event/${selectedEvent.id}/visiq?tab=subscribers`);
-                                }
-                            }}
-                            style={{ cursor: 'pointer' }}
-                            title={isCollapsed ? 'Visiq' : ''}
-                        >
-                            <Radio size={20} className="shrink-0" />
-                            {!isCollapsed && (
-                                <>
-                                    <span className="flex-1">Visiq</span>
-                                    <ChevronDown size={14} className={`transition-transform duration-200 ${expandedItems['Visiq'] ? 'rotate-180' : ''}`} />
-                                </>
-                            )}
-                        </div>
-                        {!isCollapsed && expandedItems['Visiq'] && (
-                            <div className="ml-9 flex flex-col gap-1 border-l border-border pl-2 my-1 animate-fade-in">
-                                <NavLink
-                                    to={`/event/${selectedEvent.id}/visiq?tab=subscribers`}
-                                    className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/visiq') && (new URLSearchParams(location.search).get('tab') === 'subscribers' || !new URLSearchParams(location.search).get('tab')) ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
-                                >
-                                    Subscribers
-                                </NavLink>
-                                <NavLink
-                                    to={`/event/${selectedEvent.id}/visiq?tab=imports`}
-                                    className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/visiq') && new URLSearchParams(location.search).get('tab') === 'imports' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
-                                >
-                                    Imports
-                                </NavLink>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="mt-auto flex flex-col gap-1">
-                        <div className={`h-px bg-border my-2 ${isCollapsed ? 'mx-1' : ''}`}></div>
-
-                        {/* Utils Config with Submenu */}
-                        <div className="flex flex-col gap-1">
-                            <div
-                                className={navLinkClass({ isActive: location.pathname.includes('/utils-config') })}
-                                onClick={() => {
-                                    toggleExpand('Utils Config');
-                                    if (!location.pathname.includes('/utils-config')) {
-                                        navigate(`/event/${selectedEvent.id}/utils-config?tab=exhibitor_portal`);
-                                    }
-                                }}
-                                style={{ cursor: 'pointer' }}
-                                title={isCollapsed ? "Utils Config" : ""}
-                            >
-                                <Wrench size={20} className="shrink-0" />
-                                {!isCollapsed && (
-                                    <>
-                                        <span className="flex-1">Utils Config</span>
-                                        <ChevronDown size={14} className={`transition-transform duration-200 ${expandedItems['Utils Config'] ? 'rotate-180' : ''}`} />
-                                    </>
-                                )}
-                            </div>
-                            {!isCollapsed && expandedItems['Utils Config'] && (
-                                <div className="ml-9 flex flex-col gap-1 border-l border-border pl-2 my-1 animate-fade-in">
-                                    <NavLink
-                                        to={`/event/${selectedEvent.id}/utils-config?tab=exhibitor_portal`}
-                                        className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/utils-config') && (new URLSearchParams(location.search).get('tab') === 'exhibitor_portal' || !new URLSearchParams(location.search).get('tab')) ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
-                                    >
-                                        Exhibitor Portal Setup
-                                    </NavLink>
-                                    <NavLink
-                                        to={`/event/${selectedEvent.id}/utils-config?tab=exhibitor_certificate`}
-                                        className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/utils-config') && new URLSearchParams(location.search).get('tab') === 'exhibitor_certificate' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
-                                    >
-                                        Exhibitor Certificate
-                                    </NavLink>
-                                    <NavLink
-                                        to={`/event/${selectedEvent.id}/utils-config?tab=celery`}
-                                        className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/utils-config') && new URLSearchParams(location.search).get('tab') === 'celery' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
-                                    >
-                                        Celery Manage
-                                    </NavLink>
-                                    <NavLink
-                                        to={`/event/${selectedEvent.id}/utils-config?tab=email_kill_switch`}
-                                        className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/utils-config') && new URLSearchParams(location.search).get('tab') === 'email_kill_switch' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
-                                    >
-                                        Email Kill Switch
-                                    </NavLink>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Staff Management with Submenu */}
-                        <div className="flex flex-col gap-1">
-                            <div
-                                className={navLinkClass({ isActive: location.pathname.includes('/staff') })}
-                                onClick={() => {
-                                    toggleExpand('Staff Management');
-                                    if (!location.pathname.includes('/staff')) {
-                                        navigate(`/event/${selectedEvent.id}/staff?tab=print`);
-                                    }
-                                }}
-                                style={{ cursor: 'pointer' }}
-                                title={isCollapsed ? "Staff Management" : ""}
-                            >
-                                <ShieldCheck size={20} className="shrink-0" />
-                                {!isCollapsed && (
-                                    <>
-                                        <span className="flex-1">Staff Management</span>
-                                        <ChevronDown size={14} className={`transition-transform duration-200 ${expandedItems['Staff Management'] ? 'rotate-180' : ''}`} />
-                                    </>
-                                )}
-                            </div>
-                            {!isCollapsed && expandedItems['Staff Management'] && (
-                                <div className="ml-9 flex flex-col gap-1 border-l border-border pl-2 my-1 animate-fade-in">
-                                    <NavLink
-                                        to={`/event/${selectedEvent.id}/staff?tab=print`}
-                                        className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/staff') && (new URLSearchParams(location.search).get('tab') === 'print' || !new URLSearchParams(location.search).get('tab')) ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
-                                    >
-                                        Printing
-                                    </NavLink>
-                                    <NavLink
-                                        to={`/event/${selectedEvent.id}/staff?tab=scan`}
-                                        className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/staff') && new URLSearchParams(location.search).get('tab') === 'scan' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
-                                    >
-                                        Scanning
-                                    </NavLink>
-                                    <NavLink
-                                        to={`/event/${selectedEvent.id}/staff?tab=kiosk`}
-                                        className={() => `text-[13px] py-1.5 px-2 rounded-md transition-all duration-200 ${location.pathname.includes('/staff') && new URLSearchParams(location.search).get('tab') === 'kiosk' ? 'text-accent font-semibold bg-accent/5' : 'text-text-tertiary hover:text-text-primary hover:bg-bg-secondary'}`}
-                                    >
-                                        Kiosk
-                                    </NavLink>
-                                </div>
-                            )}
-                        </div>
-
-                        <NavLink
-                            to={`/event/${selectedEvent.id}/manage-users`}
-                            className={navLinkClass}
-                            title={isCollapsed ? "Manage Users" : ""}
-                        >
-                            <UserCog size={20} className="shrink-0" />
-                            {!isCollapsed && <span className="flex-1">Manage Users</span>}
-                        </NavLink>
-
-                        <NavLink
-                            to={`/event/${selectedEvent.id}/brand-manage`}
-                            className={navLinkClass}
-                            title={isCollapsed ? "Brand Manage" : ""}
-                        >
-                            <Tag size={20} className="shrink-0" />
-                            {!isCollapsed && <span className="flex-1">Brand Manage</span>}
-                        </NavLink>
-
-                        <NavLink
-                            to={`/event/${selectedEvent.id}/payments`}
-                            className={navLinkClass}
-                            title={isCollapsed ? "Payments" : ""}
-                        >
-                            <CreditCard size={20} className="shrink-0" />
-                            {!isCollapsed && <span className="flex-1">Payments</span>}
-                        </NavLink>
-                    </div>
-                </nav>
-
-                <div className={`border-t border-border flex flex-col gap-1 ${isCollapsed ? 'py-4 px-2' : 'py-4 px-3'}`}>
-                    <NavLink
-                        to={`/event/${selectedEvent.id}/attendee-types`}
-                        className={navLinkClass}
-                        title={isCollapsed ? "Attendee Types" : ""}
-                    >
-                        <IdCard size={20} className="shrink-0" />
-                        {!isCollapsed && <span className="flex-1">Attendee Types</span>}
-                    </NavLink>
-
-                    <button
-                        className={`flex items-center gap-3 w-full border-none bg-transparent text-text-secondary rounded-md text-sm font-medium cursor-pointer transition-all duration-200 hover:bg-bg-secondary hover:text-text-primary whitespace-nowrap ${isCollapsed ? 'justify-center p-[10px]' : 'py-2.5 px-3'}`}
-                        title={isCollapsed ? "Settings" : ""}
-                        onClick={() => navigate(`/event/${selectedEvent.id}/settings`)}
-                    >
-                        <Settings size={20} className="shrink-0" />
-                        <span className={isCollapsed ? 'hidden' : 'block'}>Settings</span>
-                    </button>
-
-                    <div className={`h-px bg-border my-2 ${isCollapsed ? 'hidden' : 'block'}`}></div>
-
-                    <button onClick={logout} className={`flex items-center gap-3 w-full border-none bg-transparent text-text-secondary rounded-md text-sm font-medium cursor-pointer transition-all duration-200 hover:bg-red-50 hover:text-danger whitespace-nowrap ${isCollapsed ? 'justify-center p-[10px]' : 'py-2.5 px-3'}`} title={isCollapsed ? "Logout" : ""}>
-                        <LogOut size={20} className="shrink-0" />
-                        <span className={isCollapsed ? 'hidden' : 'block'}>Logout</span>
-                    </button>
-                </div>
-            </aside>
-
-            <main className={`flex-1 bg-bg-secondary p-8 min-h-screen overflow-hidden min-w-0 transition-[margin-left] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${isCollapsed ? 'ml-[72px]' : 'ml-[260px]'}`}>
-                <Outlet />
-            </main>
-            <EventFloatingFileUploadTool />
-        </div>
+      <div className="p-8 flex flex-col items-center gap-4">
+        <div className="text-danger text-sm">{eventLoadError}</div>
+        <button
+          onClick={() => navigate('/')}
+          className="px-4 py-2 bg-accent text-white rounded-md text-sm font-medium cursor-pointer border-none hover:opacity-90 transition-opacity"
+        >
+          Back to Events
+        </button>
+      </div>
     );
+  }
+
+  if (!selectedEvent || selectedEvent.id.toString() !== id) {
+    return <div className="p-4 text-text-secondary">Loading Event Context...</div>;
+  }
+
+  const chromeBtn = `bg-transparent border-none text-text-tertiary cursor-pointer rounded-md flex items-center justify-center transition-all duration-200 hover:text-text-primary hover:bg-bg-secondary ${isCollapsed ? 'p-2 w-full' : 'p-2'}`;
+
+  return (
+    <div className="flex min-h-screen bg-bg-secondary">
+      <aside className={`bg-bg-primary border-r border-border flex flex-col h-screen fixed left-0 top-0 z-50 transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${isCollapsed ? 'w-[72px]' : 'w-[260px]'}`}>
+        <div className={`border-b border-border transition-all duration-300 ${isCollapsed ? 'p-4 px-3' : 'py-5 px-4'}`}>
+          <div className={`flex items-center ${isCollapsed ? 'flex-col gap-4 mb-0' : 'justify-between mb-4'}`}>
+            <button
+              onClick={() => {
+                clearEvent();
+                navigate('/');
+              }}
+              className={chromeBtn}
+              title="Back to Events"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <button
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className={chromeBtn}
+              title="Toggle Sidebar"
+            >
+              <Menu size={20} />
+            </button>
+          </div>
+          {!isCollapsed && (
+            <EventSidebarHeader
+              selectedEvent={selectedEvent}
+              recentEvents={recentEvents}
+              currentMode={currentMode}
+              switchMode={switchMode}
+              isEventDropdownOpen={isEventDropdownOpen}
+              setIsEventDropdownOpen={setIsEventDropdownOpen}
+              selectEvent={selectEvent}
+              clearEvent={clearEvent}
+              navigate={navigate}
+            />
+          )}
+        </div>
+
+        <nav className={`flex-1 flex flex-col gap-1 overflow-y-auto ${isCollapsed ? 'py-4 px-2' : 'py-4 px-3'}`}>
+          <EventSidebarNav
+            eventId={selectedEvent.id}
+            isCollapsed={isCollapsed}
+            location={location}
+            navigate={navigate}
+            expandedItems={expandedItems}
+            toggleExpand={toggleExpand}
+          />
+        </nav>
+
+        <EventSidebarAccount
+          eventId={selectedEvent.id}
+          isCollapsed={isCollapsed}
+          onLogout={logout}
+          onSettings={() => navigate(`/event/${selectedEvent.id}/settings`)}
+        />
+      </aside>
+
+      <main className={`flex-1 bg-bg-secondary p-8 min-h-screen overflow-hidden min-w-0 transition-[margin-left] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${isCollapsed ? 'ml-[72px]' : 'ml-[260px]'}`}>
+        <Outlet />
+      </main>
+      <EventFloatingFileUploadTool />
+    </div>
+  );
 };
 
 export default EventLayout;

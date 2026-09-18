@@ -38,6 +38,8 @@ import UserManagement from './pages/UserManagement';
 import Payments from './pages/payments/Payments';
 import Matchmaking from './features/Matchmaking/ui/Matchmaking';
 import Meetings from './pages/meetings/Meetings';
+import Ai from './pages/Ai';
+import AiPreview from './pages/AiPreview';
 import Visiq from './pages/Visiq';
 import UtilsConfig from './pages/utils-config/UtilsConfig';
 import RedirectToUtilsTab from './pages/utils-config/RedirectToUtilsTab';
@@ -106,6 +108,8 @@ const AppRoutes = ({ currentMode }) => {
         <Route path="utils-config" element={<UtilsConfig />} />
         <Route path="exhibitor-portal-setup" element={<RedirectToUtilsTab tab="exhibitor_portal" />} />
         <Route path="matchmaking" element={<Matchmaking />} />
+        <Route path="ai" element={<Ai />} />
+        <Route path="ai/preview" element={<AiPreview />} />
         <Route path="celery-manage" element={<RedirectToUtilsTab tab="celery" />} />
         <Route path="email-kill-switch" element={<RedirectToUtilsTab tab="email_kill_switch" />} />
         <Route path="meetings" element={<Meetings />} />
