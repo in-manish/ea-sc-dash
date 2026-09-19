@@ -20,6 +20,7 @@ const SurveyMapping = () => {
         matchmakingData,
         surveyQuestions, filteredSurveyQuestions,
         formValue, setFormValue,
+        forms, formsLoading, formsError,
         loading, fetchingForm, saving, error, setError,
         selectedSurveyQuestion, setSelectedSurveyQuestion,
         showJsonPreview, setShowJsonPreview,
@@ -39,14 +40,17 @@ const SurveyMapping = () => {
         );
     }
 
-    const mappedCount = Object.keys(mappings).length;
-    const totalCount = surveyQuestions.length;
+    const mappedCount = Object.keys(mappings || {}).length;
+    const totalCount = (surveyQuestions || []).length;
 
     return (
         <div className="flex flex-col h-[calc(100vh-140px)] gap-4 animate-fade-in pb-4">
             <ConfigBar 
                 formValue={formValue}
                 setFormValue={setFormValue}
+                forms={forms}
+                formsLoading={formsLoading}
+                formsError={formsError}
                 fetchSurveyForm={fetchSurveyForm}
                 fetchingForm={fetchingForm}
                 error={error}

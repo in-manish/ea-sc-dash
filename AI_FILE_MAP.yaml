@@ -728,15 +728,41 @@ tasks:
       - src/features/Matchmaking/api/matchmakingFormApi.js
       - src/features/Matchmaking/hooks/useMatchmakingForm.js
       - src/features/Matchmaking/hooks/useCopyMatchmaking.js
+      - src/features/Matchmaking/ui/Matchmaking.jsx
       - src/features/Matchmaking/ui/MatchmakingQuestions.jsx
       - src/features/Matchmaking/ui/MatchmakingEmptySetup.jsx
       - src/features/Matchmaking/ui/CopyMatchmakingModal.jsx
       - src/features/Matchmaking/domain/buildCopyMatchmakingPayload.js
       - src/features/Matchmaking/domain/buildSaveMatchmakingPayload.js
+    routes:
+      - /event/:id/matchmaking
+      - /event/:id/matchmaking?tab=questions
     notes: >
       GET /events/:id/questions/matchmaking/ — 404 empty (create or copy),
       200 editor only. Copy POST /evc/matchmaking/make_copy/ only on 404.
       Create omits form_id. Never copy into an event that already has a form.
+  matchmaking_survey_mapping:
+    files:
+      - src/features/Matchmaking/api/matchmakingSurveyApi.js
+      - src/features/Matchmaking/ui/SurveyMapping/hooks/useSurveyMapping.js
+      - src/features/Matchmaking/ui/SurveyMapping/hooks/useSurveyFormList.js
+      - src/features/Matchmaking/ui/SurveyMapping/components/ConfigBar.jsx
+      - src/features/Matchmaking/ui/SurveyMapping/components/SuggestDropdown.jsx
+      - src/features/Matchmaking/ui/SurveyMapping/components/ChoicesOverview.jsx
+      - src/features/Matchmaking/ui/SurveyMapping/components/ChoiceMappingSection.jsx
+      - src/features/Matchmaking/domain/otmEventCode.js
+      - src/features/Matchmaking/domain/parseOtmFormList.js
+      - src/features/Matchmaking/domain/buildChoiceMatchLookup.js
+      - src/features/Matchmaking/domain/flattenMatchmakingOptions.js
+    routes:
+      - /event/:id/matchmaking?tab=mapping
+    notes: >
+      OTM host STAGE/LOCAL api-stage.otm.co.in, PROD api-prod.otm.co.in.
+      GET /api/get-form-list?eventCode=reconnect_{eventId} fills Source Form
+      dropdown. POST /api/get-form-json { form_value, eventCode,
+      showAfterSubmit: true } loads the selected form. Mapping CRUD
+      stays on dashboard getApiUrl(). Mapped SurveyJS values use type-to-suggest.
+      Choices overview colors paired source/target with the same letter badge.
   app_alert:
     files:
       - src/components/alert/AlertModal.jsx
@@ -958,8 +984,16 @@ features:
   Matchmaking:
     root: src/features/Matchmaking/
     entry: src/features/Matchmaking/ui/Matchmaking.jsx
+    routes:
+      - /event/:id/matchmaking
+      - /event/:id/matchmaking?tab=questions
+      - /event/:id/matchmaking?tab=exhibitor
+      - /event/:id/matchmaking?tab=mapping
     form_api: GET|POST /events/:eventId/questions/matchmaking/
     copy_api: POST /evc/matchmaking/make_copy/
+    survey_form_list_api: GET {api-stage|api-prod}.otm.co.in/api/get-form-list?eventCode=reconnect_{eventId}
+    survey_form_api: POST {api-stage|api-prod}.otm.co.in/api/get-form-json (showAfterSubmit: true)
+    survey_mapping_api: GET|POST /events/:eventId/matchmaking/surveyjs-question-mapping/
   Agenda:
     root: src/features/Agenda/
     entry: src/pages/event-agenda/index.jsx
@@ -1016,6 +1050,7 @@ glossary:
   theme_color_code: Top-level event hex brand color (#RRGGBB); General settings picker + live preview; PATCH with event save
   dashboard_datetime: Display timestamps with en-IN + Asia/Kolkata; empty/invalid → em dash
   auth_landing_resume: Bare host URL must restore an existing EA/SC token instead of forcing /login
+  screen_url: Every tab/view is path or ?tab= (and nested query keys); refresh and paste must reopen the same screen
   cross_tab_logout: Other tabs keep a sessionStorage copy after logout; drop it when localStorage token is gone
 
   attendee_edit_full_patch: PATCH must mirror GET then change fields; not sparse. Send attendee_type as name string.
@@ -1028,6 +1063,7 @@ glossary:
     contact badges without an active badge; else uuids/ids; item status
     created|already_active|skipped|failed; null evc_id syncs SnapCard first
   speaker_default_alpha_sort: When true, speakers sorted A-Z by name; when false, by speaker_sort_order
+  otm_survey_form_host: SurveyJS OTM host is api-stage.otm.co.in on STAGE/LOCAL and api-prod.otm.co.in on PROD; form list uses eventCode reconnect_{eventId}
   force_attendance: Agenda session flag; block slot so meetings cannot be set during this time
   speaker_image_N: Multipart file field index aligned with speaker array
   moderator_image_N: Multipart file field index aligned with moderator array

@@ -1,18 +1,26 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Info } from 'lucide-react';
+import ChoiceMatchCard from './ChoiceMatchCard';
+import { flattenMatchmakingOptions, matchmakingQuestionList } from '../../../domain/flattenMatchmakingOptions';
+import { buildChoiceMatchLookup } from '../../../domain/buildChoiceMatchLookup';
 
 const ChoicesOverview = ({ selectedSurveyQuestion, matchmakingData, mappings }) => {
-    const mmQ = (matchmakingData?.questions || (Array.isArray(matchmakingData) ? matchmakingData : []))
-        .find(q => q.id === parseInt(mappings[selectedSurveyQuestion.name]?.mmQuestionId));
-    
-    const mmOptions = [];
-    if (mmQ?.type === 'grouped_array') {
-        mmQ.options?.forEach(group => {
-            group.values?.forEach(val => mmOptions.push({ name: val.name, group: group.name }));
-        });
-    } else {
-        mmQ?.options?.forEach(opt => mmOptions.push({ name: opt.name }));
-    }
+    const mapping = mappings?.[selectedSurveyQuestion.name];
+    const mmQ = matchmakingQuestionList(matchmakingData)
+        .find((q) => q.id === parseInt(mapping?.mmQuestionId, 10));
+    const mmOptions = flattenMatchmakingOptions(mmQ);
+    const surveyChoices = selectedSurveyQuestion.choices || [];
+
+    const { byMmId, bySurveyValue } = useMemo(
+        () => buildChoiceMatchLookup({
+            choiceMappings: mapping?.choiceMappings || {},
+            mmOptions,
+            surveyChoices,
+        }),
+        [mapping?.choiceMappings, mmOptions, surveyChoices],
+    );
+
+    const matchedCount = Object.keys(bySurveyValue).length;
 
     return (
         <div className="bg-white rounded-2xl border border-border shadow-sm overflow-hidden animate-slide-up">
@@ -22,7 +30,8 @@ const ChoicesOverview = ({ selectedSurveyQuestion, matchmakingData, mappings }) 
                     <span className="text-[10px] font-black text-text-primary uppercase tracking-widest">Choices Overview</span>
                 </div>
                 <span className="text-[10px] text-text-tertiary font-bold px-2 py-0.5 bg-white border border-border/60 rounded-full">
-                    {selectedSurveyQuestion.choices.length} source → {mmOptions.length} target
+                    {surveyChoices.length} source → {mmOptions.length} target
+                    {matchedCount ? ` · ${matchedCount} matched` : ''}
                 </span>
             </div>
             <div className="grid grid-cols-2 gap-0 divide-x divide-border">
@@ -32,11 +41,14 @@ const ChoicesOverview = ({ selectedSurveyQuestion, matchmakingData, mappings }) 
                         SurveyJS Source
                     </div>
                     <div className="space-y-1.5 max-h-[250px] overflow-y-auto custom-scrollbar pr-1">
-                        {selectedSurveyQuestion.choices.map((c, i) => (
-                            <div key={i} className="text-[11px] font-semibold text-text-primary bg-white px-3 py-2 rounded-xl border border-border/60 shadow-sm hover:border-accent/30 transition-colors">
-                                {c.text}
-                                <span className="block text-[9px] font-mono text-text-tertiary mt-0.5 opacity-60">Value: {c.value}</span>
-                            </div>
+                        {surveyChoices.map((c, i) => (
+                            <ChoiceMatchCard
+                                key={i}
+                                title={c.text}
+                                subtitle={`Value: ${c.value}`}
+                                match={bySurveyValue[String(c.value)]}
+                                unmatchedHint="Unmatched"
+                            />
                         ))}
                     </div>
                 </div>
@@ -46,11 +58,14 @@ const ChoicesOverview = ({ selectedSurveyQuestion, matchmakingData, mappings }) 
                         Matchmaking Target
                     </div>
                     <div className="space-y-1.5 max-h-[250px] overflow-y-auto custom-scrollbar pr-1">
-                        {mmOptions.map((opt, i) => (
-                            <div key={i} className="text-[11px] font-semibold text-text-primary bg-white px-3 py-2 rounded-xl border border-border/60 shadow-sm hover:border-emerald-300/30 transition-colors">
-                                {opt.name}
-                                {opt.group && <span className="block text-[9px] font-bold text-emerald-500/60 uppercase mt-0.5 tracking-tighter">{opt.group}</span>}
-                            </div>
+                        {mmOptions.map((opt) => (
+                            <ChoiceMatchCard
+                                key={opt.id}
+                                title={opt.name}
+                                subtitle={opt.group}
+                                match={byMmId[String(opt.id)]}
+                                unmatchedHint="Unmatched"
+                            />
                         ))}
                         {mmOptions.length === 0 && (
                             <div className="flex flex-col items-center justify-center py-8 text-text-tertiary opacity-40">

@@ -7,9 +7,12 @@ Matchmaking questions, exhibitor portal Q&A, and SurveyJS mapping.
 ```text
 api/matchmakingFormApi.js     GET/POST questions/matchmaking + make_copy
 api/matchmakingApi.js         exhibitor answers, survey mapping, delete
-domain/                       form-exists, copy payload, save payload, 404
+api/matchmakingSurveyApi.js   SurveyJS mapping + OTM form list / get-form-json
+domain/                       form-exists, copy payload, save payload, 404, OTM list
 hooks/useMatchmakingForm.js   load current event (404 = empty setup)
 hooks/useCopyMatchmaking.js   copy wizard (source GET, all/selected, map)
+ui/SurveyMapping/             form-value dropdown; type-to-suggest choice mapping + colored pair overview
+ui/Matchmaking.jsx            tabs via ?tab=questions|exhibitor|mapping (survives refresh)
 ui/MatchmakingQuestions.jsx   questions tab orchestrator
 ui/MatchmakingEmptySetup.jsx  404: create new form + copy from another event
 ui/CopyMatchmakingModal.jsx   copy wizard (empty state only)
@@ -29,3 +32,23 @@ ui/CopyMatchmakingModal.jsx   copy wizard (empty state only)
 5. After copy: GET current event and edit with dest IDs only.
 
 Do not use `/registration/forms/` for create/copy/edit.
+
+Tabs (URL, required):
+
+- `/event/:id/matchmaking` or `?tab=questions` — Matchmaking Questions
+- `?tab=exhibitor` — Exhibitor Portal Questions
+- `?tab=mapping` — SurveyJS Mapping
+
+Deep links `?create=product` and `?question=` open the questions tab.
+
+## SurveyJS mapping (OTM form JSON)
+
+Host follows dashboard env:
+
+- STAGE / LOCAL → `https://api-stage.otm.co.in`
+- PROD → `https://api-prod.otm.co.in`
+
+`GET {host}/api/get-form-list?eventCode=reconnect_{eventId}` fills the Source Form dropdown.
+Selecting a value POSTs `{host}/api/get-form-json` with `showAfterSubmit: true`.
+Mapping GET/POST stays on dashboard
+`getApiUrl()` (`/events/:id/matchmaking/surveyjs-question-mapping/`).

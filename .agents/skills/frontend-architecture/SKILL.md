@@ -40,7 +40,7 @@ Implement UI elements systematically rather than directly applying raw style val
 
 UX must feel state-of-the-art and robust under all conditions:
 
-- **Feedback & States:**
+- **Screen URLs:** Every tab/view must live in the path or query (`?tab=`) so refresh and shared links reopen it. Skill: `.agents/skills/screen-urls/SKILL.md`. Never keep the active screen only in `useState`.
   - Always provide loading states (skeletons or spinners) for asynchronous operations.
   - Show clear error messages or toast notifications for failed actions, rather than silent console errors.
   - Handle empty states gracefully with explanatory text or illustrations, encouraging user action.
@@ -84,3 +84,4 @@ Before completing tasks involving frontend changes, verify:
 - [ ] Are files kept under the hard limit (≤200 lines)?
 - [ ] Are dynamic states (loading, error, empty) intentionally handled and presented?
 - [ ] Has responsiveness been maintained across basic breakpoints?
+- [ ] Does every new/changed screen have a URL that survives refresh (`?tab=` or path)?

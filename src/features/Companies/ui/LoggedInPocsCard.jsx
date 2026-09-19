@@ -1,23 +1,34 @@
-import { formatCount } from '../domain/exhibitorEngagement';
+import { formatCount, formatLoggedInPocBreakdown } from '../domain/exhibitorEngagement';
 
-export default function ActivationFunnelStep({ step, totalExhibitors }) {
-  const fill = Math.max(0, Math.min(100, step.percentage));
+export default function LoggedInPocsCard({
+  loggedInPocs,
+  loggedInExhibitorPocs,
+  loggedInCoexhibitorPocs,
+  totalExhibitors,
+}) {
+  const fill = totalExhibitors
+    ? Math.max(0, Math.min(100, Math.round((loggedInPocs * 100) / totalExhibitors)))
+    : 0;
   const labelInFill = fill >= 22;
-  const ratio = `${formatCount(step.count)}/${formatCount(totalExhibitors)}`;
 
   return (
     <article className="min-w-0 flex flex-col">
       <p className="m-0 text-[11px] font-semibold uppercase tracking-wider text-text-tertiary">
-        Step {step.step}
+        POC Activity
       </p>
       <h3 className="m-0 mt-1 text-base font-bold text-text-primary leading-snug">
-        {step.label}
+        Logged In
       </h3>
       <p className="m-0 mt-3">
-        <span className="text-2xl font-bold tabular-nums text-text-primary">{ratio}</span>
-        <span className="ml-1.5 text-sm text-text-secondary">
-          {step.count === 1 ? 'exhibitor' : 'exhibitors'}
+        <span className="text-2xl font-bold tabular-nums text-text-primary">
+          {formatCount(loggedInPocs)}
         </span>
+        <span className="ml-1.5 text-sm text-text-secondary">
+          {loggedInPocs === 1 ? 'POC' : 'POCs'}
+        </span>
+      </p>
+      <p className="m-0 mt-1 text-xs leading-snug text-text-tertiary">
+        {formatLoggedInPocBreakdown(loggedInExhibitorPocs, loggedInCoexhibitorPocs)}
       </p>
 
       <div
@@ -26,7 +37,7 @@ export default function ActivationFunnelStep({ step, totalExhibitors }) {
         aria-valuenow={fill}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-label={`${step.label}: ${ratio} ${step.count === 1 ? 'exhibitor' : 'exhibitors'}, ${fill}%`}
+        aria-label={`POCs logged in: ${formatCount(loggedInPocs)} of ${formatCount(totalExhibitors)} exhibitors, ${fill}%`}
       >
         <div
           className="absolute inset-x-0 bottom-0 bg-accent transition-all duration-700 ease-out flex items-center justify-center"

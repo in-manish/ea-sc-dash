@@ -6,24 +6,32 @@ import SurveyMapping from './SurveyMapping/index';
 import { Layout, GitMerge, Building2 } from 'lucide-react';
 import { PRODUCT_QUESTION_CREATE_DEFAULTS } from '../constants/productQuestionDefaults';
 
+const TABS = [
+    { id: 'questions', label: 'Matchmaking Questions', icon: Layout },
+    { id: 'exhibitor', label: 'Exhibitor Portal Questions', icon: Building2 },
+    { id: 'mapping', label: 'SurveyJs Mapping', icon: GitMerge },
+];
+const TAB_IDS = TABS.map((tab) => tab.id);
+
 const Matchmaking = () => {
-    const [activeTab, setActiveTab] = useState('questions');
     const [pendingEdit, setPendingEdit] = useState(null);
     const [pendingCreate, setPendingCreate] = useState(null);
     const [searchParams, setSearchParams] = useSearchParams();
+    const requested = searchParams.get('tab');
+    const activeTab = TAB_IDS.includes(requested) ? requested : 'questions';
 
-    const tabs = [
-        { id: 'questions', label: 'Matchmaking Questions', icon: Layout },
-        { id: 'exhibitor', label: 'Exhibitor Portal Questions', icon: Building2 },
-        { id: 'mapping', label: 'SurveyJs Mapping', icon: GitMerge },
-    ];
+    const setTab = (tab) => {
+        const params = new URLSearchParams(searchParams);
+        params.set('tab', tab);
+        setSearchParams(params, { replace: true });
+    };
 
     useEffect(() => {
         if (searchParams.get('create') !== 'product') return;
         setPendingCreate(PRODUCT_QUESTION_CREATE_DEFAULTS);
-        setActiveTab('questions');
         const next = new URLSearchParams(searchParams);
         next.delete('create');
+        next.set('tab', 'questions');
         setSearchParams(next, { replace: true });
     }, [searchParams, setSearchParams]);
 
@@ -31,24 +39,24 @@ const Matchmaking = () => {
         const questionId = Number(searchParams.get('question'));
         if (!questionId) return;
         setPendingEdit({ questionId });
-        setActiveTab('questions');
         const next = new URLSearchParams(searchParams);
         next.delete('question');
+        next.set('tab', 'questions');
         setSearchParams(next, { replace: true });
     }, [searchParams, setSearchParams]);
 
     const handleEditFromExhibitor = (question, eventId) => {
         setPendingEdit({ questionId: question.id, eventId });
-        setActiveTab('questions');
+        setTab('questions');
     };
 
     return (
         <div className="flex flex-col h-full">
             <div className="flex items-center gap-6 mb-8 border-b border-border pb-4 overflow-x-auto">
-                {tabs.map(({ id, label, icon: Icon }) => (
+                {TABS.map(({ id, label, icon: Icon }) => (
                     <button
                         key={id}
-                        onClick={() => setActiveTab(id)}
+                        onClick={() => setTab(id)}
                         className={`flex items-center gap-2 pb-2 text-sm font-semibold transition-all relative whitespace-nowrap ${
                             activeTab === id
                                 ? 'text-accent border-b-2 border-accent'

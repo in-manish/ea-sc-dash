@@ -1,11 +1,16 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { matchmakingApi } from '../../../api/matchmakingApi';
+import { findMatchmakingQuestions } from '../../../domain/findMatchmakingQuestions';
+import { parseSurveyMappingResponse } from '../../../domain/parseSurveyMappingResponse';
+import { buildSurveyMappingPayload } from '../../../domain/buildSurveyMappingPayload';
+import { otmEventCode } from '../../../domain/otmEventCode';
+import { useSurveyFormList } from './useSurveyFormList';
 
 export const useSurveyMapping = (selectedEvent, token) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [matchmakingData, setMatchmakingData] = useState(null);
     const [surveyQuestions, setSurveyQuestions] = useState([]);
-    const [formValue, setFormValue] = useState('municipalika-trade_visitor');
+    const [formValue, setFormValue] = useState('');
     const [loading, setLoading] = useState(true);
     const [fetchingForm, setFetchingForm] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -14,32 +19,10 @@ export const useSurveyMapping = (selectedEvent, token) => {
     const [showJsonPreview, setShowJsonPreview] = useState(false);
     const [showGlobalJson, setShowGlobalJson] = useState(false);
     const [expandedQuestions, setExpandedQuestions] = useState({});
-    
-    // State: { surveyName: { mmQuestionId, mode: 'direct'|'mapped', choiceMappings: { choiceId: surveyValue } } }
     const [mappings, setMappings] = useState({});
 
-    // Recursive function to find questions with isMatchMaking: true
-    const findMatchmakingQuestions = useCallback((obj, results = []) => {
-        if (!obj || typeof obj !== 'object') return results;
-
-        if (obj.isMatchMaking === true) {
-            results.push({
-                title: obj.title || obj.name,
-                name: obj.name,
-                choices: obj.choices?.map(c => 
-                    typeof c === 'object' ? { text: c.text, value: c.value } : { text: c, value: c }
-                ) || []
-            });
-        }
-
-        Object.values(obj).forEach(val => {
-            if (typeof val === 'object') {
-                findMatchmakingQuestions(val, results);
-            }
-        });
-
-        return results;
-    }, []);
+    const eventCode = otmEventCode(selectedEvent?.id);
+    const { forms, loading: formsLoading, error: formsError } = useSurveyFormList(eventCode);
 
     const fetchMatchmakingQuestions = useCallback(async () => {
         if (!selectedEvent?.id) return;
@@ -52,117 +35,68 @@ export const useSurveyMapping = (selectedEvent, token) => {
     }, [selectedEvent?.id, token]);
 
     const fetchSurveyForm = useCallback(async () => {
-        if (!formValue) return;
+        if (!formValue || !eventCode) return;
         setFetchingForm(true);
         setError(null);
         try {
-            const eventCode = `reconnect_${selectedEvent?.id || 9}`;
             const formData = await matchmakingApi.getSurveyForm(formValue, eventCode);
-            
-            // Extract questions with isMatchMaking: true
             const questions = findMatchmakingQuestions(formData);
             setSurveyQuestions(questions);
-            if (questions.length > 0) {
-                if (!selectedSurveyQuestion) {
-                    setSelectedSurveyQuestion(questions[0]);
-                }
-            } else {
+            setSelectedSurveyQuestion(questions[0] || null);
+            if (questions.length === 0) {
                 setError('No matchmaking questions found in this form.');
             }
         } catch (err) {
+            setSurveyQuestions([]);
+            setSelectedSurveyQuestion(null);
             setError('SurveyJS: ' + err.message);
         } finally {
             setFetchingForm(false);
         }
-    }, [formValue, selectedEvent, selectedSurveyQuestion, findMatchmakingQuestions]);
+    }, [formValue, eventCode]);
 
     const fetchExistingMapping = useCallback(async () => {
         if (!selectedEvent?.id || !formValue) return;
         try {
             const data = await matchmakingApi.getSurveyMapping(selectedEvent.id, formValue, token);
-            if (data && data.questions) {
-                const newMappings = {};
-                data.questions.forEach(q => {
-                    const isMappedMode = q.choices.length > 0 && typeof q.choices[0] === 'object' && q.choices[0].choice_id;
-                    
-                    if (isMappedMode) {
-                        const choiceMappings = {};
-                        q.choices.forEach(c => {
-                            choiceMappings[c.choice_id] = c.sj_value;
-                        });
-                        newMappings[q.surveyjs_name] = {
-                            mmQuestionId: q.question_id,
-                            mode: 'mapped',
-                            choiceMappings
-                        };
-                    } else {
-                        newMappings[q.surveyjs_name] = {
-                            mmQuestionId: q.question_id,
-                            mode: 'direct',
-                            choiceMappings: {}
-                        };
-                    }
-                });
-                setMappings(newMappings);
-            }
+            setMappings(parseSurveyMappingResponse(data));
         } catch (err) {
             console.error('Failed to fetch existing mapping:', err);
+            setMappings({});
         }
     }, [selectedEvent?.id, formValue, token]);
 
-    const fetchAllData = useCallback(async () => {
+    useEffect(() => {
+        if (!selectedEvent?.id || !token) return;
         setLoading(true);
-        setError(null);
-        try {
-            await fetchMatchmakingQuestions();
-            await fetchSurveyForm();
-            await fetchExistingMapping();
-        } finally {
-            setLoading(false);
-        }
-    }, [fetchMatchmakingQuestions, fetchSurveyForm, fetchExistingMapping]);
+        fetchMatchmakingQuestions().finally(() => setLoading(false));
+    }, [selectedEvent?.id, token, fetchMatchmakingQuestions]);
 
     useEffect(() => {
-        if (selectedEvent?.id && token) {
-            fetchAllData();
+        if (!formValue) {
+            setSurveyQuestions([]);
+            setSelectedSurveyQuestion(null);
+            setMappings({});
+            return;
         }
-    }, [selectedEvent?.id, token, fetchAllData]);
+        let cancelled = false;
+        (async () => {
+            await fetchSurveyForm();
+            if (!cancelled) await fetchExistingMapping();
+        })();
+        return () => { cancelled = true; };
+    }, [formValue, fetchSurveyForm, fetchExistingMapping]);
 
-    const generatePayload = useCallback(() => {
-        return {
-            form_value: formValue,
-            questions: Object.entries(mappings).map(([surveyName, mapping]) => {
-                if (!mapping.mmQuestionId) return null;
-                const sq = surveyQuestions.find(q => q.name === surveyName);
-
-                if (mapping.mode === 'mapped') {
-                    const choices = Object.entries(mapping.choiceMappings || {}).map(([choiceId, surveyValue]) => ({
-                        choice_id: parseInt(choiceId),
-                        surveyjs_value: surveyValue
-                    }));
-                    return {
-                        surveyjs_name: surveyName,
-                        question_id: parseInt(mapping.mmQuestionId),
-                        choices
-                    };
-                } else {
-                    const choices = (sq?.choices || []).map(c => c.value);
-                    return {
-                        surveyjs_name: surveyName,
-                        question_id: parseInt(mapping.mmQuestionId),
-                        choices
-                    };
-                }
-            }).filter(Boolean)
-        };
-    }, [formValue, mappings, surveyQuestions]);
+    const generatePayload = useCallback(
+        () => buildSurveyMappingPayload(formValue, mappings, surveyQuestions),
+        [formValue, mappings, surveyQuestions],
+    );
 
     const handleSaveMapping = async () => {
         setSaving(true);
         setError(null);
         try {
-            const payload = generatePayload();
-            await matchmakingApi.saveSurveyMapping(selectedEvent.id, payload, token);
+            await matchmakingApi.saveSurveyMapping(selectedEvent.id, generatePayload(), token);
             alert('Mapping saved successfully!');
         } catch (err) {
             setError(err.message);
@@ -171,54 +105,43 @@ export const useSurveyMapping = (selectedEvent, token) => {
         }
     };
 
-    const filteredSurveyQuestions = useMemo(() => {
-        return surveyQuestions.filter(q => 
+    const filteredSurveyQuestions = useMemo(() => (
+        surveyQuestions.filter((q) =>
             q.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            q.name?.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-    }, [surveyQuestions, searchQuery]);
+            q.name?.toLowerCase().includes(searchQuery.toLowerCase()),
+        )
+    ), [surveyQuestions, searchQuery]);
 
     const handleMapQuestion = (surveyName, mmQuestionId) => {
-        setMappings(prev => ({
+        setMappings((prev) => ({
             ...prev,
             [surveyName]: {
                 ...prev[surveyName],
                 mmQuestionId,
                 mode: prev[surveyName]?.mode || 'direct',
-                choiceMappings: prev[surveyName]?.choiceMappings || {}
-            }
+                choiceMappings: prev[surveyName]?.choiceMappings || {},
+            },
         }));
     };
 
     const handleModeToggle = (surveyName) => {
-        setMappings(prev => ({
+        setMappings((prev) => ({
             ...prev,
             [surveyName]: {
                 ...prev[surveyName],
                 mode: prev[surveyName]?.mode === 'mapped' ? 'direct' : 'mapped',
-                choiceMappings: {} 
-            }
+                choiceMappings: {},
+            },
         }));
     };
 
     const handleMapChoice = (surveyName, choiceId, surveyValue) => {
-        setMappings(prev => {
-            const currentQuestionMappings = prev[surveyName] || {};
-            const currentChoiceMappings = { ...(currentQuestionMappings.choiceMappings || {}) };
-            
-            if (surveyValue === '') {
-                delete currentChoiceMappings[choiceId];
-            } else {
-                currentChoiceMappings[choiceId] = surveyValue;
-            }
-
-            return {
-                ...prev,
-                [surveyName]: {
-                    ...currentQuestionMappings,
-                    choiceMappings: currentChoiceMappings
-                }
-            };
+        setMappings((prev) => {
+            const current = prev[surveyName] || {};
+            const choiceMappings = { ...(current.choiceMappings || {}) };
+            if (surveyValue === '') delete choiceMappings[choiceId];
+            else choiceMappings[choiceId] = surveyValue;
+            return { ...prev, [surveyName]: { ...current, choiceMappings } };
         });
     };
 
@@ -227,6 +150,8 @@ export const useSurveyMapping = (selectedEvent, token) => {
         matchmakingData,
         surveyQuestions, filteredSurveyQuestions,
         formValue, setFormValue,
+        forms: Array.isArray(forms) ? forms : [],
+        formsLoading, formsError,
         loading, fetchingForm, saving, error, setError,
         selectedSurveyQuestion, setSelectedSurveyQuestion,
         showJsonPreview, setShowJsonPreview,
@@ -234,6 +159,6 @@ export const useSurveyMapping = (selectedEvent, token) => {
         expandedQuestions, setExpandedQuestions,
         mappings, setMappings,
         handleMapQuestion, handleModeToggle, handleMapChoice,
-        handleSaveMapping, generatePayload, fetchSurveyForm
+        handleSaveMapping, generatePayload, fetchSurveyForm,
     };
 };

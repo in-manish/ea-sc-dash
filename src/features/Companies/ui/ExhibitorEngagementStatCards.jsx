@@ -1,7 +1,4 @@
-import {
-  formatCount,
-  formatLoggedInPocBreakdown,
-} from '../domain/exhibitorEngagement';
+import { formatCount } from '../domain/exhibitorEngagement';
 
 function StatCard({ label, value, hint }) {
   return (
@@ -20,17 +17,5 @@ function StatCard({ label, value, hint }) {
 }
 
 export default function ExhibitorEngagementStatCards({ data }) {
-  return (
-    <>
-      <StatCard label="Total exhibitors" value={formatCount(data.totalExhibitors)} />
-      <StatCard
-        label="Logged-in POCs"
-        value={formatCount(data.totalLoggedInPocs)}
-        hint={formatLoggedInPocBreakdown(
-          data.loggedInExhibitorPocs,
-          data.loggedInCoexhibitorPocs,
-        )}
-      />
-    </>
-  );
+  return <StatCard label="Total exhibitors" value={formatCount(data.totalExhibitors)} />;
 }

@@ -1,0 +1,19 @@
+---
+description: Every visible screen/tab/view must have a URL that opens it and survives refresh
+alwaysApply: true
+---
+
+# Screen URLs (mandatory)
+
+Every user-visible screen, tab, or in-page view must be reachable from the address bar and must restore on refresh. Do not keep the active screen only in React state.
+
+Follow `.agents/skills/screen-urls/SKILL.md` when adding or changing screens.
+
+```text
+❌ BAD: const [tab, setTab] = useState('questions')  // refresh resets
+✅ GOOD: searchParams.get('tab') || 'questions'     // /event/:id/matchmaking?tab=mapping
+```
+
+- Prefer `?tab=` (and extra query keys for nested views). Path segments are fine for distinct pages.
+- Changing the screen must `setSearchParams` (keep other params). `LastPathTracker` already persists `pathname + search`.
+- After this work: add the URL to `AI_FILE_MAP.yaml` `routes` and the feature README.

@@ -52,6 +52,9 @@ export default function ExhibitorEngagementTab({ eventId, token }) {
         title={data.funnelTitle}
         steps={data.steps}
         totalExhibitors={data.totalExhibitors}
+        loggedInPocs={data.totalLoggedInPocs}
+        loggedInExhibitorPocs={data.loggedInExhibitorPocs}
+        loggedInCoexhibitorPocs={data.loggedInCoexhibitorPocs}
       />
       <InviteTypeBreakdown types={data.inviteTypes} />
     </div>

@@ -1,4 +1,14 @@
-import { getApiUrl } from '../../../config';
+import { APP_ENVS, getApiUrl, getEnv } from '../../../config';
+
+const OTM_SURVEY_API = {
+    [APP_ENVS.PROD]: 'https://api-prod.otm.co.in',
+    [APP_ENVS.STAGE]: 'https://api-stage.otm.co.in',
+    [APP_ENVS.LOCAL]: 'https://api-stage.otm.co.in',
+};
+
+function getOtmSurveyApiUrl() {
+    return OTM_SURVEY_API[getEnv()] || OTM_SURVEY_API[APP_ENVS.STAGE];
+}
 
 function headers(token, json = false) {
     return {
@@ -21,11 +31,20 @@ export const matchmakingSurveyApi = {
         return response.json();
     },
 
+    getSurveyFormList: async (eventCode) => {
+        const response = await fetch(
+            `${getOtmSurveyApiUrl()}/api/get-form-list?eventCode=${encodeURIComponent(eventCode)}`,
+            { headers: { accept: 'application/json, text/plain, */*' } },
+        );
+        if (!response.ok) throw new Error(`Failed to fetch form list: ${response.statusText}`);
+        return response.json();
+    },
+
     getSurveyForm: async (formValue, eventCode) => {
-        const response = await fetch('https://api-stage.otm.co.in/api/get-form-json', {
+        const response = await fetch(`${getOtmSurveyApiUrl()}/api/get-form-json`, {
             method: 'POST',
             headers: { accept: 'application/json, text/plain, */*', 'content-type': 'application/json' },
-            body: JSON.stringify({ form_value: formValue, eventCode }),
+            body: JSON.stringify({ form_value: formValue, eventCode, showAfterSubmit: true }),
         });
         if (!response.ok) throw new Error(`Failed to fetch survey form: ${response.statusText}`);
         return response.json();
