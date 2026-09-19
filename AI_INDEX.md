@@ -31,7 +31,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | WhatsApp | `src/features/WhatsApp/` | Communication WhatsApp templates: archive (not delete), Active/Archived list |
 | EaEmail | `src/components/email/` | Communication Email: category + templates; browse HTML into body |
 | EmailCampaigns | `src/features/EmailCampaigns/` | History/Scheduled tab; row click or hover View details; hover View recipients; recipient hover View attendee |
-| Matchmaking | `src/features/Matchmaking/` | GET 404 = create/copy; 200 = editor only |
+| Matchmaking | `src/features/Matchmaking/` | GET 404 = create/copy; 200 = editor only; SurveyJS mapping uses stage vs prod OTM host |
 | MeetingStats | `src/features/MeetingStats/` | Organizer meeting stats by event × attendee type (GET) + email CSV (POST) |
 | Visiq | `src/features/Visiq/` | Tenant subscriber CRM: list/detail + CSV/Excel import jobs |
 | AiPresets | `src/features/AiPresets/` | Organizer AI system prompt presets; matchmaking `mm_seeking_mapper` catalog preview at `/event/:id/ai/preview` |
@@ -94,6 +94,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Event settings / exhibitor meeting diary | `src/pages/event-settings/CompanyAccessControlsSection.jsx` + `exhibitorPortalDefaults.js` (`exhibitor_portal_data.meeting_diary.is_meeting_option_active`) |
 | Event settings / complimentary invitee links | `src/pages/event-settings/ComplimentaryInviteeLinkItem.jsx` (`is_active` enable/disable, `is_complementary`) |
 | Matchmaking questions / copy | `src/features/Matchmaking/ui/MatchmakingQuestions.jsx` + `api/matchmakingFormApi.js` |
+| SurveyJS mapping form JSON host | `src/features/Matchmaking/domain/surveyJsApiUrl.js` + `api/matchmakingSurveyApi.js` (STAGE/LOCAL `api-stage.otm.co.in`, PROD `api-prod.otm.co.in`) |
 | Meeting stats report | `src/features/MeetingStats/ui/MeetingStatsReportTab.jsx` + `api/meetingStatsReportApi.js` |
 | Visiq subscribers / imports | `src/features/Visiq/ui/VisiqPage.jsx` + `api/importApi.js` (preview/download) + `hooks/useImportFileActions.js` |
 | AI system prompt presets | `src/features/AiPresets/ui/AiPresetsPage.jsx` + `api/aiPresetsApi.js` + `ui/AiPresetPreviewPage.jsx` |

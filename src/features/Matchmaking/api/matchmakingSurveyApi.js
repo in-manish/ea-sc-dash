@@ -1,4 +1,5 @@
-import { getApiUrl } from '../../../config';
+import { getApiUrl, getEnv } from '../../../config';
+import { getSurveyJsFormJsonUrl } from '../domain/surveyJsApiUrl';
 
 function headers(token, json = false) {
     return {
@@ -22,7 +23,7 @@ export const matchmakingSurveyApi = {
     },
 
     getSurveyForm: async (formValue, eventCode) => {
-        const response = await fetch('https://api-stage.otm.co.in/api/get-form-json', {
+        const response = await fetch(getSurveyJsFormJsonUrl(getEnv()), {
             method: 'POST',
             headers: { accept: 'application/json, text/plain, */*', 'content-type': 'application/json' },
             body: JSON.stringify({ form_value: formValue, eventCode }),
