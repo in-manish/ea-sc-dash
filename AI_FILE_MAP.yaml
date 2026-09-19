@@ -737,6 +737,19 @@ tasks:
       GET /events/:id/questions/matchmaking/ — 404 empty (create or copy),
       200 editor only. Copy POST /evc/matchmaking/make_copy/ only on 404.
       Create omits form_id. Never copy into an event that already has a form.
+  surveyjs_mapping:
+    files:
+      - src/features/Matchmaking/api/matchmakingSurveyApi.js
+      - src/features/Matchmaking/domain/surveyJsApiUrl.js
+      - src/features/Matchmaking/ui/SurveyMapping/hooks/useSurveyMapping.js
+      - src/features/Matchmaking/ui/SurveyMapping/index.jsx
+    routes:
+      - /event/:id/matchmaking
+    notes: >
+      POST {host}/api/get-form-json for SurveyJS form JSON. STAGE and LOCAL
+      use https://api-stage.otm.co.in; PROD uses https://api-prod.otm.co.in.
+      Mapping GET/POST stays on dashboard getApiUrl()
+      /events/:id/matchmaking/surveyjs-question-mapping/.
   app_alert:
     files:
       - src/components/alert/AlertModal.jsx
@@ -960,6 +973,7 @@ features:
     entry: src/features/Matchmaking/ui/Matchmaking.jsx
     form_api: GET|POST /events/:eventId/questions/matchmaking/
     copy_api: POST /evc/matchmaking/make_copy/
+    surveyjs_form_api: POST {api-stage|api-prod}.otm.co.in/api/get-form-json
   Agenda:
     root: src/features/Agenda/
     entry: src/pages/event-agenda/index.jsx
@@ -1091,3 +1105,6 @@ glossary:
   event_uploads: >
     Sidebar /event/:id/uploads; Attendees tab GET attendee/upload/report/;
     Companies tab GET company/upload/ ({total, results[]}); shared table UI
+  surveyjs_form_json_host: >
+    SurveyJS mapping POST /api/get-form-json on OTM: STAGE/LOCAL
+    https://api-stage.otm.co.in, PROD https://api-prod.otm.co.in
