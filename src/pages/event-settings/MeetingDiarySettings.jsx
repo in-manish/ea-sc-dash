@@ -1,5 +1,6 @@
 import React from 'react';
 import { Calendar, Users, Settings, ExternalLink } from 'lucide-react';
+import { ChatReminderSettings } from '../../features/ChatReminder';
 import { SectionHeader, FormField, ToggleSwitch, getInputClass, LimitStatField } from './components/SharedComponents';
 import SenderDefaultProfilePicField from './SenderDefaultProfilePicField';
 
@@ -119,6 +120,8 @@ const MeetingDiarySettings = ({
                     </div>
                 </div>
             </div>
+
+            <ChatReminderSettings />
 
             {/* Section 3: Allocation */}
             <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">

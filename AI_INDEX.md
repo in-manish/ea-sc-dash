@@ -35,6 +35,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | MeetingStats | `src/features/MeetingStats/` | Organizer meeting stats by event × attendee type (GET) + email CSV (POST) |
 | Visiq | `src/features/Visiq/` | Tenant subscriber CRM: list/detail + CSV/Excel import jobs |
 | AiPresets | `src/features/AiPresets/` | Organizer AI system prompt presets; matchmaking `mm_seeking_mapper` catalog preview at `/event/:id/ai/preview` |
+| ChatReminder | `src/features/ChatReminder/` | Tenant unread meeting-chat reminder config on Settings → Meeting Diary |
 
 ## Common tasks → files
 
@@ -92,6 +93,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | EA invitee type placeholders | `InviteeTypePlaceholderForm.jsx` + `inviteeLinkPlaceholder.js` + `useInviteeLinkPlaceholders.js` |
 | Event settings AR tax list | `src/pages/event-settings/exhibitorPortalDefaults.js` + `ArTaxList.jsx` + `useAdditionalRequirement.js` |
 | Event settings / exhibitor meeting diary | `src/pages/event-settings/CompanyAccessControlsSection.jsx` + `exhibitorPortalDefaults.js` (`exhibitor_portal_data.meeting_diary.is_meeting_option_active`) |
+| Event settings / chat reminder | `src/features/ChatReminder/ui/ChatReminderSettings.jsx` + `api/unreadReminderApi.js` (`/event/:id/settings?tab=meeting_diary`) |
 | Event settings / complimentary invitee links | `src/pages/event-settings/ComplimentaryInviteeLinkItem.jsx` (`is_active` enable/disable, `is_complementary`) |
 | Matchmaking questions / copy | `src/features/Matchmaking/ui/MatchmakingQuestions.jsx` + `api/matchmakingFormApi.js` (`/event/:id/matchmaking?tab=questions`) |
 | SurveyJS mapping / OTM form JSON | `src/features/Matchmaking/api/matchmakingSurveyApi.js` + `ui/SurveyMapping/` (`/event/:id/matchmaking?tab=mapping`) |

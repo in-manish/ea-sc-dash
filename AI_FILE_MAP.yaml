@@ -28,6 +28,23 @@ tasks:
     notes: >
       sender_default_profile_pic is a public image URL. Preview is a round
       avatar (click to enlarge). Copyable + editable; PATCH with event save.
+  event_settings_chat_reminder:
+    files:
+      - src/features/ChatReminder/ui/ChatReminderSettings.jsx
+      - src/features/ChatReminder/hooks/useUnreadReminderConfig.js
+      - src/features/ChatReminder/api/unreadReminderApi.js
+      - src/features/ChatReminder/domain/unreadReminderConfig.js
+      - src/features/ChatReminder/domain/parseUnreadReminderError.js
+      - src/features/ChatReminder/domain/chatReminderSaveBridge.js
+      - src/pages/event-settings/MeetingDiarySettings.jsx
+      - src/pages/event-settings/index.jsx
+    routes:
+      - /event/:id/settings?tab=meeting_diary
+    notes: >
+      Tenant GET|POST /meeting/unread-reminder/config/ with organizer token.
+      Fields: activate, cooldown_minutes, cutoff_minutes, days_window.
+      Defaults (never saved): false / 20 / 90 / 200. Saves via the card button
+      or page Save Changes (Meeting Diary tab must be open).
   event_settings_branding_images:
     files:
       - src/pages/event-settings/EventBrandingImages.jsx
@@ -981,6 +998,14 @@ features:
     detail_api: GET|PUT|PATCH /ai/presets/:preset_key_or_id/
     delete_api: DELETE /ai/presets/:id/
     preview_api: GET /ai/presets/mm_seeking_mapper/preview/?event_id=
+  ChatReminder:
+    root: src/features/ChatReminder/
+    entry: src/pages/event-settings/MeetingDiarySettings.jsx
+    routes:
+      - /event/:id/settings?tab=meeting_diary
+    config_api: >
+      GET|POST /meeting/unread-reminder/config/ (organizer token; tenant-wide;
+      activate, cooldown_minutes, cutoff_minutes, days_window)
   Matchmaking:
     root: src/features/Matchmaking/
     entry: src/features/Matchmaking/ui/Matchmaking.jsx
@@ -1124,6 +1149,9 @@ glossary:
     DELETE by numeric id; mm_seeking_mapper requires {{QUESTION_OPTIONS}};
     preview GET .../mm_seeking_mapper/preview/?event_id= fills catalog (no LLM);
     dashboard preview page is /event/:id/ai/preview
+  chat_unread_reminder: >
+    Tenant GET|POST /meeting/unread-reminder/config/; activate + cooldown_minutes
+    + cutoff_minutes + days_window; defaults false/20/90/200; Settings Meeting Diary
   event_uploads: >
     Sidebar /event/:id/uploads; Attendees tab GET attendee/upload/report/;
     Companies tab GET company/upload/ ({total, results[]}); shared table UI

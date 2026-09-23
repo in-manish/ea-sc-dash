@@ -14,6 +14,7 @@ import CommunicationSettings from './CommunicationSettings';
 import IntegrationSettings from './IntegrationSettings';
 import LocalizationSettings from './LocalizationSettings';
 import MeetingDiarySettings from './MeetingDiarySettings';
+import { saveChatReminderIfNeeded } from '../../features/ChatReminder';
 import AgendaSettings from './AgendaSettings';
 import JsonTree from './components/JsonTree';
 import { DEFAULT_STALL_SCHEMA_TYPES } from './CompanySettings';
@@ -595,13 +596,14 @@ const EventSettings = () => {
 
             // console.log('Final Payload:', Object.fromEntries(formData.entries()));
 
+            await saveChatReminderIfNeeded();
             await eventService.updateEvent(id, token, formData);
             setMessage({ type: 'success', text: 'Settings updated successfully!' });
             setOriginalEventData(JSON.parse(JSON.stringify(eventData)));
             fetchEventDetails();
         } catch (err) {
             console.error(err);
-            setMessage({ type: 'error', text: 'Failed to update settings.' });
+            setMessage({ type: 'error', text: err.message || 'Failed to update settings.' });
         } finally {
             setIsSaving(false);
         }
