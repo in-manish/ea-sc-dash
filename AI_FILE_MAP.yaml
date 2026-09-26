@@ -45,6 +45,30 @@ tasks:
       Fields: activate, cooldown_minutes, cutoff_minutes, days_window.
       Defaults (never saved): false / 20 / 90 / 200. Saves via the card button
       or page Save Changes (Meeting Diary tab must be open).
+  event_settings_permission1:
+    files:
+      - src/features/Permission1/ui/Permission1CodesEditor.jsx
+      - src/features/Permission1/domain/permission1Codes.js
+      - src/pages/event-settings/AttendeeSettings.jsx
+      - src/pages/event-settings/index.jsx
+    routes:
+      - /event/:id/settings?tab=attendees
+    notes: >
+      permission1_codes is an object on the event JSON (multipart PATCH).
+      Each key is one letter or digit; each value is a label. Example {"A":"Lunch"}.
+  attendee_permission1:
+    files:
+      - src/features/Permission1/ui/Permission1CodePicker.jsx
+      - src/features/Permission1/hooks/useEventPermission1Codes.js
+      - src/features/Permission1/domain/permission1Codes.js
+      - src/components/attendees/CreateAttendeeModal.jsx
+      - src/features/Attendees/ui/EditAttendeeFormFields.jsx
+      - src/features/Attendees/domain/editAttendeeForm.js
+    routes:
+      - /event/:id/attendees
+    notes: >
+      Create POST and edit PATCH send permission1 as "A|B" on the attendee.
+      Empty create omits the field. Edit sends "|" to clear when the event has codes.
   event_settings_branding_images:
     files:
       - src/pages/event-settings/EventBrandingImages.jsx
@@ -149,7 +173,7 @@ tasks:
     notes: >
       GET then full-body PATCH /events/:eventId/attendees/:uuid/.
       Request attendee_type is name string; response is {name,id}.
-      Exhibitor type requires exhibitor_id.
+      Exhibitor type requires exhibitor_id. permission1 is "A|B" (or "|" to clear).
   attendee_csv_upload:
     files:
       - src/features/Attendees/api/attendeeUploadApi.js
@@ -998,6 +1022,16 @@ features:
     detail_api: GET|PUT|PATCH /ai/presets/:preset_key_or_id/
     delete_api: DELETE /ai/presets/:id/
     preview_api: GET /ai/presets/mm_seeking_mapper/preview/?event_id=
+  Permission1:
+    root: src/features/Permission1/
+    entry: src/pages/event-settings/AttendeeSettings.jsx
+    routes:
+      - /event/:id/settings?tab=attendees
+      - /event/:id/attendees
+    event_api: PATCH /events/:id/ field permission1_codes (object, multipart JSON)
+    attendee_api: >
+      POST /events/:eventId/attendees/ and PATCH /events/:eventId/attendees/:uuid/
+      field permission1 string "A|B"
   ChatReminder:
     root: src/features/ChatReminder/
     entry: src/pages/event-settings/MeetingDiarySettings.jsx
@@ -1149,6 +1183,9 @@ glossary:
     DELETE by numeric id; mm_seeking_mapper requires {{QUESTION_OPTIONS}};
     preview GET .../mm_seeking_mapper/preview/?event_id= fills catalog (no LLM);
     dashboard preview page is /event/:id/ai/preview
+  permission1: >
+    Event permission1_codes map (one letter or digit → label) on Settings Attendees.
+    Attendee create/update permission1 is "A|B"; "|" clears on update.
   chat_unread_reminder: >
     Tenant GET|POST /meeting/unread-reminder/config/; activate + cooldown_minutes
     + cutoff_minutes + days_window; defaults false/20/90/200; Settings Meeting Diary

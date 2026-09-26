@@ -1,6 +1,7 @@
 import { X, Loader2, Save } from 'lucide-react';
 import useEditAttendee from '../hooks/useEditAttendee';
 import EditAttendeeFormFields from './EditAttendeeFormFields';
+import useEventPermission1Codes from '../../Permission1/hooks/useEventPermission1Codes';
 
 const EditAttendeeModal = ({
   eventId,
@@ -11,6 +12,7 @@ const EditAttendeeModal = ({
   onClose,
   onSaved,
 }) => {
+  const { codeMap, ready: permission1Ready } = useEventPermission1Codes(eventId, token);
   const {
     form,
     setField,
@@ -24,6 +26,7 @@ const EditAttendeeModal = ({
     eventId,
     uuid,
     token,
+    codeMap,
     onSaved: (updated) => {
       onSaved?.(updated);
       onClose?.();
@@ -87,6 +90,8 @@ const EditAttendeeModal = ({
                 fieldErrors={fieldErrors || {}}
                 attendeeTypes={attendeeTypes}
                 typesLoading={attendeeTypesLoading}
+                permission1Codes={codeMap}
+                permission1Ready={permission1Ready}
               />
             </form>
           )}

@@ -39,6 +39,7 @@ Event attendee list, filters, WhatsApp send, attendee-type email drafts, e-badge
 - Active badge status / create → `ui/ActiveBadgeToolbar.jsx` (preview/create all eligible) + `ui/AttendeeSelectionBar.jsx` (Check/Set selected) + `hooks/useActiveBadgeActions.js` + `api/activeBadgeApi.js` + `ui/ActiveBadgeResultModal.jsx`
 - Attendees report → `ui/AttendeesReportPanel.jsx` + `ui/AttendeesReportCharts.jsx` + `hooks/useAttendeesReport.js` + `api/attendeesReportApi.js`
 - Edit attendee / badge → `ui/EditAttendeeModal.jsx` + `hooks/useEditAttendee.js` + `api/attendeeApi.js` + `domain/editAttendeeForm.js`
+- Permission 1 codes on create/edit → `src/features/Permission1/` (event map from Settings → Attendees)
 - Exhibitor portal password reset (POC) → `ui/AttendeeSelectionBar.jsx` (single selected POC) + `ui/AttendeeDetailModal.jsx` + `domain/exhibitorPoc.js`
 - Table row actions → `ui/AttendeeTableRowMenu.jsx` (⋯ menu: Matchmaking, Re-create E-badge, Sync SC)
 - WhatsApp send → `hooks/useWhatsAppSend.js` + `ui/WhatsAppSendModal.jsx`

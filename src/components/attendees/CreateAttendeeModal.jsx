@@ -7,6 +7,9 @@ import {
     mergeSharedPrefill,
     resolveAttendeeTypeName,
 } from '../../features/Attendees/domain/createAttendeeFormDefaults';
+import Permission1CodePicker from '../../features/Permission1/ui/Permission1CodePicker';
+import useEventPermission1Codes from '../../features/Permission1/hooks/useEventPermission1Codes';
+import { permission1WireValue } from '../../features/Permission1/domain/permission1Codes';
 
 /** Quick-pick shortcuts for the two attendee types used in most on-the-spot registrations. */
 const QUICK_ATTENDEE_TYPES = [
@@ -38,6 +41,7 @@ const CreateAttendeeModal = ({ eventId, token, onClose, onCreated, initialValues
     const [companySuggestions, setCompanySuggestions] = useState([]);
     const [companyLoading, setCompanyLoading] = useState(false);
     const [showCompanySuggestions, setShowCompanySuggestions] = useState(false);
+    const { codeMap: permission1Codes, ready: permission1Ready } = useEventPermission1Codes(eventId, token);
 
     useEffect(() => {
         let active = true;
@@ -125,14 +129,19 @@ const CreateAttendeeModal = ({ eventId, token, onClose, onCreated, initialValues
             reg_type: shared.reg_type,
             created_at: now,
             source_metadata: { source_type: 'DASHBOARD' },
-            attendees: attendees.map((a) => ({
-                name: a.name.trim(),
-                uuid: a.uuid,
-                country_code: nullIfEmpty(a.country_code),
-                phone_number: nullIfEmpty(a.phone_number),
-                email: nullIfEmpty(a.email),
-                designation: nullIfEmpty(a.designation),
-            })),
+            attendees: attendees.map((a) => {
+                const row = {
+                    name: a.name.trim(),
+                    uuid: a.uuid,
+                    country_code: nullIfEmpty(a.country_code),
+                    phone_number: nullIfEmpty(a.phone_number),
+                    email: nullIfEmpty(a.email),
+                    designation: nullIfEmpty(a.designation),
+                };
+                const permission1 = permission1WireValue(a.permission1);
+                if (permission1) row.permission1 = permission1;
+                return row;
+            }),
         };
 
         if (nullIfEmpty(shared.state)) payload.state = shared.state.trim();
@@ -501,6 +510,17 @@ const CreateAttendeeModal = ({ eventId, token, onClose, onCreated, initialValues
                                         />
                                     </div>
                                 </div>
+                                <Permission1CodePicker
+                                    codeMap={permission1Codes}
+                                    selected={a.permission1}
+                                    onChange={(codes) => updateAttendee(index, 'permission1', codes)}
+                                    error={fieldErrors?.permission1
+                                        ? (Array.isArray(fieldErrors.permission1)
+                                            ? fieldErrors.permission1.join(', ')
+                                            : String(fieldErrors.permission1))
+                                        : ''}
+                                    ready={permission1Ready}
+                                />
                             </div>
                         ))}
                     </div>

@@ -26,6 +26,11 @@ import {
 import { useAdditionalRequirement } from './useAdditionalRequirement';
 import { useExhibitorPortalMeetingDiary } from './useExhibitorPortalMeetingDiary';
 import { EVENT_MEDIA_FIELD_NAMES } from './domain/eventImageFields';
+import {
+    codeMapToRows,
+    permission1CodeMap,
+    validatePermission1Rows,
+} from '../../features/Permission1/domain/permission1Codes';
 
 const EventSettings = () => {
     const { id } = useParams();
@@ -81,6 +86,8 @@ const EventSettings = () => {
                 data.currencies = [data.currencies[0]];
             }
             data.exhibitor_portal_data = normalizeExhibitorPortalData(data.exhibitor_portal_data);
+            data.permission1_codes = permission1CodeMap(data.permission1_codes);
+            data.permission1_code_rows = codeMapToRows(data.permission1_codes);
             setEventData(data);
             setOriginalEventData(JSON.parse(JSON.stringify(data)));
         } catch (err) {
@@ -117,6 +124,10 @@ const EventSettings = () => {
         if (!originalEventData) return false;
         if (fieldName === 'show_hours') {
             return JSON.stringify(eventData.show_hours || {}) !== JSON.stringify(originalEventData.show_hours || {});
+        }
+        if (fieldName === 'permission1_code_rows') {
+            return JSON.stringify(eventData.permission1_code_rows || [])
+                !== JSON.stringify(originalEventData.permission1_code_rows || []);
         }
         if (typeof eventData[fieldName] === 'boolean' || typeof originalEventData[fieldName] === 'boolean') {
             return !!eventData[fieldName] !== !!originalEventData[fieldName];
@@ -477,6 +488,13 @@ const EventSettings = () => {
             return;
         }
 
+        const permission1Error = validatePermission1Rows(eventData.permission1_code_rows);
+        if (permission1Error) {
+            setIsSaving(false);
+            setMessage({ type: 'error', text: permission1Error });
+            return;
+        }
+
         try {
             const formData = new FormData();
             
@@ -499,6 +517,7 @@ const EventSettings = () => {
                 'stall_schem_types',
                 'currencies',
                 'exhibitor_portal_data',
+                'permission1_code_rows',
             ];
             
             const imageFields = EVENT_MEDIA_FIELD_NAMES;
