@@ -1,12 +1,19 @@
 import React from 'react';
-import { Users, FileText } from 'lucide-react';
+import { Users, FileText, KeyRound } from 'lucide-react';
 import { SectionHeader, ToggleSwitch } from './components/SharedComponents';
 import EBadgeEditor from '../../components/common/EBadgeEditor';
 import EBadgeTemplateInfo from '../../components/common/EBadgeTemplateInfo';
+import Permission1CodesEditor from '../../features/Permission1/ui/Permission1CodesEditor';
+import { rowsToCodeMap } from '../../features/Permission1/domain/permission1Codes';
 
 const AttendeeSettings = ({ eventData, handleInputChange, isFieldModified }) => {
     const handleEBadgeChange = (name, value) => {
         handleInputChange({ target: { name, value, type: 'text' } });
+    };
+
+    const handlePermission1Rows = (rows) => {
+        handleInputChange({ target: { name: 'permission1_code_rows', value: rows, type: 'text' } });
+        handleInputChange({ target: { name: 'permission1_codes', value: rowsToCodeMap(rows), type: 'text' } });
     };
 
     return (
@@ -52,6 +59,15 @@ const AttendeeSettings = ({ eventData, handleInputChange, isFieldModified }) => 
                         />
                     </div>
                 </div>
+            </div>
+
+            <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
+                <SectionHeader icon={KeyRound} title="Permission 1 codes" colorClass="text-amber-600" borderClass="bg-amber-500" />
+                <Permission1CodesEditor
+                    rows={eventData.permission1_code_rows || []}
+                    onChange={handlePermission1Rows}
+                    isModified={isFieldModified('permission1_code_rows')}
+                />
             </div>
 
             {/* Section 2: Global E-Badge Content */}

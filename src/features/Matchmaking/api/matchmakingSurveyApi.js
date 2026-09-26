@@ -44,7 +44,7 @@ export const matchmakingSurveyApi = {
         const response = await fetch(`${getOtmSurveyApiUrl()}/api/get-form-json`, {
             method: 'POST',
             headers: { accept: 'application/json, text/plain, */*', 'content-type': 'application/json' },
-            body: JSON.stringify({ form_value: formValue, eventCode, showAfterSubmit: true }),
+            body: JSON.stringify({ form_value: formValue, eventCode, matchMakingOnly: true }),
         });
         if (!response.ok) throw new Error(`Failed to fetch survey form: ${response.statusText}`);
         return response.json();

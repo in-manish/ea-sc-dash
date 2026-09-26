@@ -35,6 +35,8 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | MeetingStats | `src/features/MeetingStats/` | Organizer meeting stats by event × attendee type (GET) + email CSV (POST) |
 | Visiq | `src/features/Visiq/` | Tenant subscriber CRM: list/detail + CSV/Excel import jobs |
 | AiPresets | `src/features/AiPresets/` | Organizer AI system prompt presets; matchmaking `mm_seeking_mapper` catalog preview at `/event/:id/ai/preview` |
+| ChatReminder | `src/features/ChatReminder/` | Tenant unread meeting-chat reminder config on Settings → Meeting Diary |
+| Permission1 | `src/features/Permission1/` | Event permission 1 code map on Settings → Attendees; same codes on create and edit attendee |
 
 ## Common tasks → files
 
@@ -46,6 +48,8 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Event settings / branding images | `src/pages/event-settings/EventBrandingImages.jsx` + `EventImageUploadField.jsx` (`/event/:id/settings?tab=images`); size/dimensions + green **Web optimized** chip; **Edit image** opens the crop modal on the current file/URL; `domain/eventImageFields.js` (`meta_logo` first, then `logo`, `logo2`, …) `editorConfig` |
 | Reusable crop/resize/web-optimize image upload | `src/components/imageEditor/` (`useImageEditor` + `ImageEditorModal`) — independent crop, compression slider, target KB, dimensions, web/mobile hints, live preview |
 | Edit attendee / badge | `src/features/Attendees/ui/EditAttendeeModal.jsx` + `api/attendeeApi.js` + `domain/editAttendeeForm.js` |
+| Event settings / permission 1 codes | `src/features/Permission1/ui/Permission1CodesEditor.jsx` (`/event/:id/settings?tab=attendees`) |
+| Attendee permission 1 | `src/features/Permission1/ui/Permission1CodePicker.jsx` (create + edit; wire `A\|B`) |
 | Attendee list row actions | `src/features/Attendees/ui/AttendeeTableRowMenu.jsx` + `AttendeeTableRow.jsx` |
 | Attendee type email / SMS drafts | `src/pages/AttendeeTypes.jsx` + `EmailInvitationDraft.jsx` + `BadgeEmailVariablesRail.jsx` (badge tokens, `tv_referral_link` / `{title_slug}_referral_link`, calendar hrefs) |
 | List attendee type email drafts | `ui/AttendeeSelectionBar.jsx` + `hooks/useAttendeeTypeEmails.js` + `api/attendeeTypeEmailsApi.js` |
@@ -92,6 +96,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | EA invitee type placeholders | `InviteeTypePlaceholderForm.jsx` + `inviteeLinkPlaceholder.js` + `useInviteeLinkPlaceholders.js` |
 | Event settings AR tax list | `src/pages/event-settings/exhibitorPortalDefaults.js` + `ArTaxList.jsx` + `useAdditionalRequirement.js` |
 | Event settings / exhibitor meeting diary | `src/pages/event-settings/CompanyAccessControlsSection.jsx` + `exhibitorPortalDefaults.js` (`exhibitor_portal_data.meeting_diary.is_meeting_option_active`) |
+| Event settings / chat reminder | `src/features/ChatReminder/ui/ChatReminderSettings.jsx` + `api/unreadReminderApi.js` (`/event/:id/settings?tab=meeting_diary`) |
 | Event settings / complimentary invitee links | `src/pages/event-settings/ComplimentaryInviteeLinkItem.jsx` (`is_active` enable/disable, `is_complementary`) |
 | Matchmaking questions / copy | `src/features/Matchmaking/ui/MatchmakingQuestions.jsx` + `api/matchmakingFormApi.js` (`/event/:id/matchmaking?tab=questions`) |
 | SurveyJS mapping / OTM form JSON | `src/features/Matchmaking/api/matchmakingSurveyApi.js` + `ui/SurveyMapping/` (`/event/:id/matchmaking?tab=mapping`) |

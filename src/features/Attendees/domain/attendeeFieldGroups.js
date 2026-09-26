@@ -29,6 +29,12 @@ export const getGroupedFields = (attendee) => {
         { label: 'Attendee Type ID', value: attendee.attendee_type_id },
         { label: 'Attendee Type Sort', value: attendee.attendee_type_sort },
         { label: 'Login Code', value: attendee.event_login_code },
+        {
+            label: 'Permission 1',
+            value: Array.isArray(attendee.permission1)
+                ? attendee.permission1.join(', ')
+                : attendee.permission1,
+        },
     ];
 
     if (isExhibitor) {
