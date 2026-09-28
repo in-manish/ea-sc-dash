@@ -1,5 +1,5 @@
 import { X, HeartHandshake, IdCard, Loader2, RefreshCw, Pencil } from 'lucide-react';
-import { getGroupedFields, needsScSync } from '../domain/attendeeFieldGroups';
+import { formatDetailValue, getGroupedFields, needsScSync } from '../domain/attendeeFieldGroups';
 import {
   canResetExhibitorPortalPassword,
   isExhibitorAttendee,
@@ -82,11 +82,7 @@ const AttendeeDetailModal = ({
                                             {field.label}
                                         </label>
                                         <div className="text-[0.925rem] text-text-primary break-words">
-                                            {field.value !== null &&
-                                            field.value !== undefined &&
-                                            field.value !== ''
-                                                ? field.value
-                                                : '-'}
+                                            {formatDetailValue(field.value) ?? '-'}
                                         </div>
                                     </div>
                                 ))}

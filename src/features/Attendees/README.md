@@ -20,6 +20,7 @@ Event attendee list, filters, WhatsApp send, attendee-type email drafts, e-badge
 - `AttendeesPage.jsx` — composes hooks + tabs / list / tasks / modals
 - `AttendeeTableRow.jsx` — name / contact / company / type / status cells
 - `AttendeeTableRowMenu.jsx` — row ⋯ menu: Matchmaking, Re-create E-badge, Sync SC
+- Matchmaking answers modal lives in `src/features/Matchmaking/ui/AttendeeMatchmakingAnswers.jsx` (Seeking and Offering each request their own `answer_for`)
 - `AttendeesListView.jsx` — report panel, search, filter pills, selection bar, table, email drafts modal
 - `AttendeeEmailDraftsModal.jsx` — Send Mail: Badge Email + category email toggles; View attendee-type drafts
 - `AttendeesReportPanel.jsx` — collapsible badge counts by attendee type (ES/DB)
@@ -28,7 +29,7 @@ Event attendee list, filters, WhatsApp send, attendee-type email drafts, e-badge
 - `AttendeeUploadModal.jsx` — pick CSV, dry-run validate (per-row errors/warnings, no attendees created), then upload for real; results rendered via shared `components/common/CsvUploadResultPanel.jsx`
 - `UploadsTabs.jsx` / `AttendeeUploadHistoryPanel.jsx` — event Uploads page Attendees tab
 - `EditAttendeeModal.jsx` — GET then full-body PATCH edit form
-- `AttendeeDetailModal.jsx` — exhibitor portal password reset enabled when `is_poc`
+- `AttendeeDetailModal.jsx` — exhibitor portal password reset enabled when `is_poc`; field values go through `formatDetailValue` so objects never render as React children
 - `WhatsAppTemplatePreviewPane.jsx` — raw/preview pane (split from picker)
 
 ## Common edits

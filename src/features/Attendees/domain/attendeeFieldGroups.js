@@ -1,84 +1,99 @@
+/** Primitives only. Objects and arrays must not be rendered as React children. */
+export const formatDetailValue = (value) => {
+    if (value == null || value === '') return null;
+    const kind = typeof value;
+    if (kind === 'string' || kind === 'number' || kind === 'boolean') return value;
+    if (Array.isArray(value)) {
+        const parts = value
+            .map((item) => formatDetailValue(item))
+            .filter((item) => item != null && item !== '');
+        return parts.length ? parts.join(', ') : null;
+    }
+    if (kind === 'object') {
+        const label = value.name ?? value.title ?? value.label;
+        if (label != null && typeof label !== 'object') return String(label);
+        const parts = Object.entries(value)
+            .map(([key, item]) => {
+                const shown = formatDetailValue(item);
+                return shown == null || shown === '' ? '' : `${key}: ${shown}`;
+            })
+            .filter(Boolean);
+        return parts.length ? parts.join(', ') : null;
+    }
+    return String(value);
+};
+
+const field = (label, value) => ({ label, value: formatDetailValue(value) });
+
 export const getGroupedFields = (attendee) => {
     if (!attendee) return {};
 
-    const isExhibitor =
-        attendee.attendee_type === 'Exhibitor' || attendee.attendee_type_sort === 'exhibitor';
+    const typeName = typeof attendee.attendee_type === 'string'
+        ? attendee.attendee_type
+        : attendee.attendee_type?.name || '';
+    const isExhibitor = typeName === 'Exhibitor' || attendee.attendee_type_sort === 'exhibitor';
 
     const professionalFields = [
-        { label: 'Company', value: attendee.company },
-        { label: 'Designation', value: attendee.designation },
-        { label: 'Website', value: attendee.website },
-        { label: 'Company Address', value: attendee.company_address },
-        { label: 'City', value: attendee.city },
-        { label: 'State', value: attendee.state },
-        { label: 'Country', value: attendee.country },
+        field('Company', attendee.company),
+        field('Designation', attendee.designation),
+        field('Website', attendee.website),
+        field('Company Address', attendee.company_address),
+        field('City', attendee.city),
+        field('State', attendee.state),
+        field('Country', attendee.country),
     ];
 
     if (isExhibitor) {
         professionalFields.push(
-            { label: 'Exhibitor ID', value: attendee.exhibitor_id },
-            { label: 'Parent Exhibitor ID', value: attendee.parent_exhibitor_id },
-            { label: 'Is POC', value: attendee.is_poc ? 'Yes' : 'No' }
+            field('Exhibitor ID', attendee.exhibitor_id),
+            field('Parent Exhibitor ID', attendee.parent_exhibitor_id),
+            field('Is POC', attendee.is_poc ? 'Yes' : 'No')
         );
     }
 
     const registrationFields = [
-        { label: 'Reg ID', value: attendee.reg_id },
-        { label: 'Reg Type', value: attendee.reg_type },
-        { label: 'Attendee Type', value: attendee.attendee_type },
-        { label: 'Attendee Type ID', value: attendee.attendee_type_id },
-        { label: 'Attendee Type Sort', value: attendee.attendee_type_sort },
-        { label: 'Login Code', value: attendee.event_login_code },
-        {
-            label: 'Permission 1',
-            value: Array.isArray(attendee.permission1)
-                ? attendee.permission1.join(', ')
-                : attendee.permission1,
-        },
+        field('Reg ID', attendee.reg_id),
+        field('Reg Type', attendee.reg_type),
+        field('Attendee Type', attendee.attendee_type),
+        field('Attendee Type ID', attendee.attendee_type_id),
+        field('Attendee Type Sort', attendee.attendee_type_sort),
+        field('Login Code', attendee.event_login_code),
+        field('Permission 1', attendee.permission1),
     ];
 
     if (isExhibitor) {
-        registrationFields.push({ label: 'OBF Number', value: attendee.obf_number });
+        registrationFields.push(field('OBF Number', attendee.obf_number));
     }
 
     registrationFields.push(
-        { label: 'Upload ID', value: attendee.upload_id },
-        { label: 'EVC ID', value: attendee.evc_id }
+        field('Upload ID', attendee.upload_id),
+        field('EVC ID', attendee.evc_id)
     );
 
     return {
         Identity: [
-            { label: 'Full Name', value: attendee.name },
-            { label: 'Email', value: attendee.email },
-            {
-                label: 'Phone',
-                value: `+${attendee.country_code || ''} ${attendee.phone_number || ''}`,
-            },
-            { label: 'ID', value: attendee.id },
-            { label: 'UUID', value: attendee.uuid },
-            { label: 'Tracking UUID', value: attendee.tracking_uuid },
+            field('Full Name', attendee.name),
+            field('Email', attendee.email),
+            field('Phone', `+${attendee.country_code || ''} ${attendee.phone_number || ''}`),
+            field('ID', attendee.id),
+            field('UUID', attendee.uuid),
+            field('Tracking UUID', attendee.tracking_uuid),
         ],
         Professional: professionalFields,
         Registration: registrationFields,
         Status: [
-            { label: 'Email Sent', value: attendee.email_sent ? 'Yes' : 'No' },
-            { label: 'SMS Sent', value: attendee.sms_sent ? 'Yes' : 'No' },
-            { label: 'WhatsApp Sent', value: attendee.wa_sent ? 'Yes' : 'No' },
-            { label: 'Checked In', value: attendee.check_in ? 'Yes' : 'No' },
-            { label: 'Meeting Enabled', value: attendee.is_meeting_enabled ? 'Yes' : 'No' },
+            field('Email Sent', attendee.email_sent ? 'Yes' : 'No'),
+            field('SMS Sent', attendee.sms_sent ? 'Yes' : 'No'),
+            field('WhatsApp Sent', attendee.wa_sent ? 'Yes' : 'No'),
+            field('Checked In', attendee.check_in ? 'Yes' : 'No'),
+            field('Meeting Enabled', attendee.is_meeting_enabled ? 'Yes' : 'No'),
         ],
         System: [
-            { label: 'Event ID', value: attendee.event_id },
-            { label: 'Event Name', value: attendee.event_name },
-            { label: 'Schema', value: attendee.schema },
-            {
-                label: 'Created At',
-                value: attendee.created_at ? new Date(attendee.created_at).toLocaleString() : '-',
-            },
-            {
-                label: 'Modified At',
-                value: attendee.modified_at ? new Date(attendee.modified_at).toLocaleString() : '-',
-            },
+            field('Event ID', attendee.event_id),
+            field('Event Name', attendee.event_name),
+            field('Schema', attendee.schema),
+            field('Created At', attendee.created_at ? new Date(attendee.created_at).toLocaleString() : '-'),
+            field('Modified At', attendee.modified_at ? new Date(attendee.modified_at).toLocaleString() : '-'),
         ],
     };
 };

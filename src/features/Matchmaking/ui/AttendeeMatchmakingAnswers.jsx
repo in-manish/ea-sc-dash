@@ -3,9 +3,14 @@ import { matchmakingApi } from '../api/matchmakingApi';
 import { Loader2, RefreshCw, AlertCircle, X, HeartHandshake, Search } from 'lucide-react';
 
 const TABS = [
-    { key: 'seeking', label: 'Seeking', icon: Search, answerFor: undefined },
+    { key: 'seeking', label: 'Seeking', icon: Search, answerFor: 'seeking' },
     { key: 'offering', label: 'Offering', icon: HeartHandshake, answerFor: 'offering' },
 ];
+
+const answersForSide = (answers, answerFor) => {
+    const side = String(answerFor || '').toLowerCase();
+    return answers.filter((item) => String(item.answer_for || '').toLowerCase() === side);
+};
 
 const optionLabel = (opt) => {
     if (opt === null || opt === undefined) return '';
@@ -45,7 +50,7 @@ const AttendeeMatchmakingAnswers = ({ eventId, badgeUid, attendeeName, token, on
         setError(null);
         try {
             const data = await matchmakingApi.getAttendeeMatchmakingAnswers(eventId, badgeUid, token, tab.answerFor);
-            const answers = data?.results?.[0]?.answers || [];
+            const answers = answersForSide(data?.results?.[0]?.answers || [], tab.answerFor);
             setDataByTab((prev) => ({ ...prev, [tabKey]: { answers, stats: data?.stats || null } }));
         } catch (err) {
             setError(err.message || 'Failed to load matchmaking answers.');

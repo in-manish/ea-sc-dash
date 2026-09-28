@@ -174,6 +174,8 @@ tasks:
       GET then full-body PATCH /events/:eventId/attendees/:uuid/.
       Request attendee_type is name string; response is {name,id}.
       Exhibitor type requires exhibitor_id. permission1 is "A|B" (or "|" to clear).
+      Detail modal formats every field with formatDetailValue so objects
+      (schema, permission1, attendee_type) render as text instead of crashing.
   attendee_csv_upload:
     files:
       - src/features/Attendees/api/attendeeUploadApi.js
@@ -764,6 +766,18 @@ tasks:
       (catalog / system / user), searchable expandable catalog, and copy.
       used_fallback when the DB preset is missing or has no {{QUESTION_OPTIONS}}.
       Sidebar AI item uses Sparkles. EventLayout nav lives in event-layout/.
+  attendee_matchmaking_answers:
+    files:
+      - src/features/Matchmaking/ui/AttendeeMatchmakingAnswers.jsx
+      - src/features/Matchmaking/api/matchmakingExhibitorApi.js
+      - src/features/Attendees/ui/AttendeesModals.jsx
+      - src/features/Attendees/ui/AttendeeTableRowMenu.jsx
+    notes: >
+      Attendee row Matchmaking opens GET
+      /evc/events/:id/matchmaking/admin-match-qa/?badge_uid=&answer_for=
+      Seeking sends answer_for=seeking; Offering sends answer_for=offering.
+      The list is also filtered by answer_for so a mixed payload cannot
+      show offering answers on the Seeking tab.
   matchmaking_form:
     files:
       - src/features/Matchmaking/api/matchmakingFormApi.js
@@ -1053,6 +1067,7 @@ features:
     survey_form_list_api: GET {api-stage|api-prod}.otm.co.in/api/get-form-list?eventCode=reconnect_{eventId}
     survey_form_api: POST {api-stage|api-prod}.otm.co.in/api/get-form-json (showAfterSubmit: true)
     survey_mapping_api: GET|POST /events/:eventId/matchmaking/surveyjs-question-mapping/
+    attendee_answers_api: GET /evc/events/:eventId/matchmaking/admin-match-qa/?badge_uid=&answer_for=seeking|offering
   Agenda:
     root: src/features/Agenda/
     entry: src/pages/event-agenda/index.jsx

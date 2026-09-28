@@ -7,6 +7,7 @@ Matchmaking questions, exhibitor portal Q&A, and SurveyJS mapping.
 ```text
 api/matchmakingFormApi.js     GET/POST questions/matchmaking + make_copy
 api/matchmakingApi.js         exhibitor answers, survey mapping, delete
+ui/AttendeeMatchmakingAnswers.jsx  attendee Seeking/Offering answers (answer_for filter)
 api/matchmakingSurveyApi.js   SurveyJS mapping + OTM form list / get-form-json
 domain/                       form-exists, copy payload, save payload, 404, OTM list
 hooks/useMatchmakingForm.js   load current event (404 = empty setup)

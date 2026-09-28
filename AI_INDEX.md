@@ -48,6 +48,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Event settings / branding images | `src/pages/event-settings/EventBrandingImages.jsx` + `EventImageUploadField.jsx` (`/event/:id/settings?tab=images`); size/dimensions + green **Web optimized** chip; **Edit image** opens the crop modal on the current file/URL; `domain/eventImageFields.js` (`meta_logo` first, then `logo`, `logo2`, …) `editorConfig` |
 | Reusable crop/resize/web-optimize image upload | `src/components/imageEditor/` (`useImageEditor` + `ImageEditorModal`) — independent crop, compression slider, target KB, dimensions, web/mobile hints, live preview |
 | Edit attendee / badge | `src/features/Attendees/ui/EditAttendeeModal.jsx` + `api/attendeeApi.js` + `domain/editAttendeeForm.js` |
+| Attendee detail modal | `ui/AttendeeDetailModal.jsx` + `domain/attendeeFieldGroups.js` (`formatDetailValue` — objects never as React children) |
 | Event settings / permission 1 codes | `src/features/Permission1/ui/Permission1CodesEditor.jsx` (`/event/:id/settings?tab=attendees`) |
 | Attendee permission 1 | `src/features/Permission1/ui/Permission1CodePicker.jsx` (create + edit; wire `A\|B`) |
 | Attendee list row actions | `src/features/Attendees/ui/AttendeeTableRowMenu.jsx` + `AttendeeTableRow.jsx` |
@@ -99,6 +100,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Event settings / chat reminder | `src/features/ChatReminder/ui/ChatReminderSettings.jsx` + `api/unreadReminderApi.js` (`/event/:id/settings?tab=meeting_diary`) |
 | Event settings / complimentary invitee links | `src/pages/event-settings/ComplimentaryInviteeLinkItem.jsx` (`is_active` enable/disable, `is_complementary`) |
 | Matchmaking questions / copy | `src/features/Matchmaking/ui/MatchmakingQuestions.jsx` + `api/matchmakingFormApi.js` (`/event/:id/matchmaking?tab=questions`) |
+| Attendee matchmaking answers | `src/features/Matchmaking/ui/AttendeeMatchmakingAnswers.jsx` (Seeking/Offering each send `answer_for`) |
 | SurveyJS mapping / OTM form JSON | `src/features/Matchmaking/api/matchmakingSurveyApi.js` + `ui/SurveyMapping/` (`/event/:id/matchmaking?tab=mapping`) |
 | Meeting stats report | `src/features/MeetingStats/ui/MeetingStatsReportTab.jsx` + `api/meetingStatsReportApi.js` |
 | Visiq subscribers / imports | `src/features/Visiq/ui/VisiqPage.jsx` + `api/importApi.js` (preview/download) + `hooks/useImportFileActions.js` |
