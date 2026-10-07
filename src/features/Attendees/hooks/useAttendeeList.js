@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { eventService } from '../../../services/eventService';
-import { FILTER_PARAM_KEYS } from '../constants';
 
 export default function useAttendeeList({
     selectedEvent,
@@ -37,18 +36,10 @@ export default function useAttendeeList({
             if (searchType && searchType !== 'local') params.set('search_type', searchType);
             else params.delete('search_type');
 
-            FILTER_PARAM_KEYS.forEach((key) => {
-                const value = filters[key];
-                if (value && (!Array.isArray(value) || value.length > 0)) {
-                    params.set(key, Array.isArray(value) ? value.join(',') : value);
-                } else {
-                    params.delete(key);
-                }
-            });
-
-            return params;
+            // Filter keys are owned by useAttendeeFilters (URL is source of truth).
+            return params.toString() === prev.toString() ? prev : params;
         }, { replace: true });
-    }, [page, debouncedSearch, searchType, filters, setSearchParams]);
+    }, [page, debouncedSearch, searchType, setSearchParams]);
 
     useEffect(() => {
         const fetchAttendees = async () => {

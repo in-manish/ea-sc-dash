@@ -7,7 +7,7 @@ import {
   normalizeAttendeeForUi,
 } from '../domain/editAttendeeForm';
 
-export default function useEditAttendee({ eventId, uuid, token, codeMap, onSaved }) {
+export default function useEditAttendee({ eventId, uuid, token, onSaved }) {
   const [form, setForm] = useState(null);
   const [baseline, setBaseline] = useState(null);
   const [loading, setLoading] = useState(Boolean(uuid));
@@ -70,7 +70,7 @@ export default function useEditAttendee({ eventId, uuid, token, codeMap, onSaved
         eventId,
         uuid,
         token,
-        buildAttendeePatchPayload(form, baseline, codeMap),
+        buildAttendeePatchPayload(form, baseline),
       );
       const normalized = normalizeAttendeeForUi(updated);
       onSaved?.(normalized);
@@ -82,7 +82,7 @@ export default function useEditAttendee({ eventId, uuid, token, codeMap, onSaved
     } finally {
       setSaving(false);
     }
-  }, [eventId, uuid, token, form, baseline, codeMap, onSaved]);
+  }, [eventId, uuid, token, form, baseline, onSaved]);
 
   return {
     form,

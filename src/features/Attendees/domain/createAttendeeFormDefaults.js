@@ -13,7 +13,7 @@ export const emptyAttendee = () => ({
   country_code: '',
   phone_number: '',
   designation: '',
-  permission1: [],
+  permissions: [],
   uuid: generateUuid(),
 });
 

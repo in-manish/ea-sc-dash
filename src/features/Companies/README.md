@@ -53,6 +53,7 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `domain/formatStallDetail.js` | Format stall_detail / contractor / requirements |
 | `domain/parseHandoverDetails.js` | Normalize handover JSON (object or string) |
 | `domain/companyFormDefaults.js` | Empty form + validation |
+| `domain/sponsorRank.js` | Positive integer `sponsor_rank` (edit + list highlight) |
 | `domain/setupChecklistHelpers.js` | Step sort, urgency chips, portal_route → organizer path |
 | `hooks/useCreateCompany.js` | Create form submit |
 | `hooks/useEditCompany.js` | Load + patch submit |
@@ -123,6 +124,7 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `ui/CompanyCategoryProductsSection.jsx` | Edit: category then products |
 | `ui/CompanyProductSelectFields.jsx` | Edit: multi-select + setup Product question CTA |
 | `ui/ProductMatchmakingPanel.jsx` | Exhibitors → Product Matchmaking (grouped listing / create) |
+| `ui/SponsorRankField.jsx` | Sponsored company rank at the top of edit |
 | `ui/EditCompanyLimitsFields.jsx` | Limits / status (edit only) |
 | `ui/ParentCompanySearch.jsx` | Parent exhibitor typeahead |
 
@@ -168,6 +170,7 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 - Nested `product` / `link` sent as `JSON.stringify(...)`.
 - Booleans as `"true"` / `"false"`.
 - Logo: new file → upload; remove checkbox → empty `company_logo`; unchanged → omit field.
+- `sponsor_rank`: optional positive whole number at the top of edit (Sponsored company). Blank clears it. `0`, negatives, and decimals are rejected.
 
 ## Exhibitor list sort
 
@@ -180,6 +183,7 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 - Operational actions live in **Actions** (grouped Checklist / Selected / All parent exhibitors) with confirmation; **N selected · Clear selection** on the same row as Actions when rows are checked
 - Row **⋯** menu: view, edit, reset POC password, lock/unlock parent, feature/rank
 - Details column shows OBF, space (number), and sales person
+- A positive integer `sponsor_rank` paints the row yellow and shows a Sponsor #N chip. `0`, blank, and non-integers stay the usual exhibitor / co-exhibitor colors
 
 ## Exhibitor Engagement
 

@@ -1,5 +1,6 @@
 import { Building2, ExternalLink, IdCard, Lock, Printer, Star } from 'lucide-react';
 import { isParentExhibitor } from '../domain/companyBulkActionPayload';
+import { positiveSponsorRank } from '../domain/sponsorRank';
 import ExhibitorListRowMenu from './ExhibitorListRowMenu';
 
 export default function ExhibitorListRow({
@@ -15,14 +16,18 @@ export default function ExhibitorListRow({
   const isCoExhibitor = Boolean(parentExhibitor?.id || parentExhibitor);
   const parentId = parentExhibitor?.id;
   const parentName = parentExhibitor?.company_name;
+  const sponsorRank = positiveSponsorRank(company.sponsor_rank);
+  const rowTone = sponsorRank
+    ? 'bg-yellow-100 hover:bg-yellow-200'
+    : isCoExhibitor
+      ? 'bg-indigo-50/70 hover:bg-indigo-100/80'
+      : 'bg-emerald-50/40 hover:bg-emerald-50';
 
   return (
     <tr
-      className={`cursor-pointer transition-colors duration-200 [&>td]:border-b [&>td]:border-border group ${
-        isCoExhibitor
-          ? 'bg-indigo-50/70 hover:bg-indigo-100/80'
-          : 'bg-emerald-50/40 hover:bg-emerald-50'
-      } ${selected ? 'ring-1 ring-inset ring-accent/30' : ''}`}
+      className={`cursor-pointer transition-colors duration-200 [&>td]:border-b [&>td]:border-border group ${rowTone} ${
+        selected ? 'ring-1 ring-inset ring-accent/30' : ''
+      }`}
       onClick={() => onCompanyClick(company.id)}
     >
       <td
@@ -67,6 +72,14 @@ export default function ExhibitorListRow({
               </span>
               {company.is_badge_printed && (
                 <Printer size={14} className="text-green-600" title="Badge Printed" />
+              )}
+              {sponsorRank != null && (
+                <span
+                  className="inline-flex py-0.5 px-1.5 rounded text-[10px] font-semibold tracking-wide bg-yellow-200 text-yellow-900"
+                  title="Sponsor rank"
+                >
+                  Sponsor #{sponsorRank}
+                </span>
               )}
               {company.is_featured && (
                 <span className="inline-flex items-center gap-0.5" title="Featured Company">

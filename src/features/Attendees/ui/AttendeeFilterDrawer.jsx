@@ -1,5 +1,6 @@
 import { X } from 'lucide-react';
 import AttendeeTypeFilterChips from './AttendeeTypeFilterChips';
+import AttendeePermissionFilter from './AttendeePermissionFilter';
 
 const AttendeeFilterDrawer = ({
     isOpen,
@@ -12,6 +13,8 @@ const AttendeeFilterDrawer = ({
     clearFilters,
     attendeeTypes = [],
     attendeeTypesLoading = false,
+    eventId,
+    token,
 }) => (
     <div
         className={`fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[1100] transition-opacity duration-300 ${isOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
@@ -107,6 +110,13 @@ const AttendeeFilterDrawer = ({
                         />
                     </div>
                 </div>
+
+                <AttendeePermissionFilter
+                    eventId={eventId}
+                    token={token}
+                    filters={filters}
+                    updateFilter={updateFilter}
+                />
 
                 <div className="flex flex-col gap-2">
                     <h4 className="text-xs font-bold text-text-tertiary uppercase tracking-wider m-0">

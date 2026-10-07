@@ -10,6 +10,7 @@ import CreateCompanyProfileFields from './CreateCompanyProfileFields';
 import CompanyLogoFields from './CompanyLogoFields';
 import CompanyCategoryProductsSection from './CompanyCategoryProductsSection';
 import EditCompanyLimitsFields from './EditCompanyLimitsFields';
+import SponsorRankField from './SponsorRankField';
 
 const EditCompanyPage = () => {
   const { selectedEvent, token } = useAuth();
@@ -119,6 +120,8 @@ const EditCompanyPage = () => {
             {error}
           </div>
         )}
+
+        <SponsorRankField form={form} setField={setField} />
 
         <CompanyLogoFields form={form} setField={setField} isEdit />
 

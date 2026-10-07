@@ -16,6 +16,8 @@ import LocalizationSettings from './LocalizationSettings';
 import MeetingDiarySettings from './MeetingDiarySettings';
 import { saveChatReminderIfNeeded } from '../../features/ChatReminder';
 import AgendaSettings from './AgendaSettings';
+import ScanLocationsPage from '../../features/ScanLocations/ui/ScanLocationsPage';
+import { SCAN_LOCATION_TAB } from '../../features/ScanLocations/domain/scanLocationTab';
 import JsonTree from './components/JsonTree';
 import { DEFAULT_STALL_SCHEMA_TYPES } from './CompanySettings';
 import {
@@ -26,11 +28,6 @@ import {
 import { useAdditionalRequirement } from './useAdditionalRequirement';
 import { useExhibitorPortalMeetingDiary } from './useExhibitorPortalMeetingDiary';
 import { EVENT_MEDIA_FIELD_NAMES } from './domain/eventImageFields';
-import {
-    codeMapToRows,
-    permission1CodeMap,
-    validatePermission1Rows,
-} from '../../features/Permission1/domain/permission1Codes';
 
 const EventSettings = () => {
     const { id } = useParams();
@@ -86,8 +83,8 @@ const EventSettings = () => {
                 data.currencies = [data.currencies[0]];
             }
             data.exhibitor_portal_data = normalizeExhibitorPortalData(data.exhibitor_portal_data);
-            data.permission1_codes = permission1CodeMap(data.permission1_codes);
-            data.permission1_code_rows = codeMapToRows(data.permission1_codes);
+            delete data.permission1_codes;
+            delete data.permission1_code_rows;
             setEventData(data);
             setOriginalEventData(JSON.parse(JSON.stringify(data)));
         } catch (err) {
@@ -124,10 +121,6 @@ const EventSettings = () => {
         if (!originalEventData) return false;
         if (fieldName === 'show_hours') {
             return JSON.stringify(eventData.show_hours || {}) !== JSON.stringify(originalEventData.show_hours || {});
-        }
-        if (fieldName === 'permission1_code_rows') {
-            return JSON.stringify(eventData.permission1_code_rows || [])
-                !== JSON.stringify(originalEventData.permission1_code_rows || []);
         }
         if (typeof eventData[fieldName] === 'boolean' || typeof originalEventData[fieldName] === 'boolean') {
             return !!eventData[fieldName] !== !!originalEventData[fieldName];
@@ -488,13 +481,6 @@ const EventSettings = () => {
             return;
         }
 
-        const permission1Error = validatePermission1Rows(eventData.permission1_code_rows);
-        if (permission1Error) {
-            setIsSaving(false);
-            setMessage({ type: 'error', text: permission1Error });
-            return;
-        }
-
         try {
             const formData = new FormData();
             
@@ -517,6 +503,7 @@ const EventSettings = () => {
                 'stall_schem_types',
                 'currencies',
                 'exhibitor_portal_data',
+                'permission1_codes',
                 'permission1_code_rows',
             ];
             
@@ -650,6 +637,7 @@ const EventSettings = () => {
         { id: 'localization', label: 'Localization' },
         { id: 'meeting_diary', label: 'Meeting Diary' },
         { id: 'agenda', label: 'Agenda' },
+        { id: SCAN_LOCATION_TAB, label: 'Scan Location Permission' },
         { id: 'payload', label: 'Payload' },
     ];
 
@@ -660,10 +648,12 @@ const EventSettings = () => {
                     <h1 className="text-2xl font-bold text-text-primary mb-1">Event Settings</h1>
                     <p className="text-sm text-text-secondary">Manage configuration for {eventData.name}</p>
                 </div>
-                <button className="btn btn-primary" onClick={handleSubmit} disabled={isSaving}>
-                    {isSaving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} className="mr-2" />}
-                    {isSaving ? 'Saving...' : 'Save Changes'}
-                </button>
+                {activeTab !== SCAN_LOCATION_TAB && (
+                    <button className="btn btn-primary" onClick={handleSubmit} disabled={isSaving}>
+                        {isSaving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} className="mr-2" />}
+                        {isSaving ? 'Saving...' : 'Save Changes'}
+                    </button>
+                )}
             </div>
 
             {message.text && (
@@ -689,6 +679,8 @@ const EventSettings = () => {
                     ))}
                 </div>
             </div>
+
+            {activeTab === SCAN_LOCATION_TAB && <ScanLocationsPage />}
 
             <div className="max-w-[800px]">
                 {activeTab === 'general' && (

@@ -18,7 +18,8 @@ Event attendee list, filters, WhatsApp send, attendee-type email drafts, e-badge
 ## Key UI files
 
 - `AttendeesPage.jsx` — composes hooks + tabs / list / tasks / modals
-- `AttendeeTableRow.jsx` — name / contact / company / type / status cells
+- `AttendeeTableRow.jsx` — name / contact / company / permissions / type / status cells
+- `AttendeePermissionChips.jsx` — list chips; click opens that code on Event Settings → Scan Location Permission (`?tab=scan-location&panel=codes&permission=<id>`)
 - `AttendeeTableRowMenu.jsx` — row ⋯ menu: Matchmaking, Re-create E-badge, Sync SC
 - Matchmaking answers modal lives in `src/features/Matchmaking/ui/AttendeeMatchmakingAnswers.jsx` (Seeking and Offering each request their own `answer_for`)
 - `AttendeesListView.jsx` — report panel, search, filter pills, selection bar, table, email drafts modal
@@ -34,13 +35,12 @@ Event attendee list, filters, WhatsApp send, attendee-type email drafts, e-badge
 
 ## Common edits
 
-- Filters UI → `ui/AttendeeFilterDrawer.jsx` + `hooks/useAttendeeFilters.js` + `hooks/useAttendeeTypes.js`
+- Filters UI → `ui/AttendeeFilterDrawer.jsx` + `ui/AttendeePermissionFilter.jsx` + `hooks/useAttendeeFilters.js` + `hooks/useAttendeeTypes.js`. Filter state is the list URL. `permission_ids` and `permission_codes` are sent on `/attendees/search` with the same names.
 - List attendee email drafts → `ui/AttendeeSelectionBar.jsx` + `hooks/useAttendeeTypeEmails.js` + `api/attendeeTypeEmailsApi.js`
 - Send attendee emails → `ui/AttendeeEmailDraftsModal.jsx` (Badge Email + Categories Email) + `hooks/useCategoryTypeEmails.js` + `api/categoryTypeEmailsApi.js`
 - Active badge status / create → `ui/ActiveBadgeToolbar.jsx` (preview/create all eligible) + `ui/AttendeeSelectionBar.jsx` (Check/Set selected) + `hooks/useActiveBadgeActions.js` + `api/activeBadgeApi.js` + `ui/ActiveBadgeResultModal.jsx`
 - Attendees report → `ui/AttendeesReportPanel.jsx` + `ui/AttendeesReportCharts.jsx` + `hooks/useAttendeesReport.js` + `api/attendeesReportApi.js`
 - Edit attendee / badge → `ui/EditAttendeeModal.jsx` + `hooks/useEditAttendee.js` + `api/attendeeApi.js` + `domain/editAttendeeForm.js`
-- Permission 1 codes on create/edit → `src/features/Permission1/` (event map from Settings → Attendees)
 - Exhibitor portal password reset (POC) → `ui/AttendeeSelectionBar.jsx` (single selected POC) + `ui/AttendeeDetailModal.jsx` + `domain/exhibitorPoc.js`
 - Table row actions → `ui/AttendeeTableRowMenu.jsx` (⋯ menu: Matchmaking, Re-create E-badge, Sync SC)
 - WhatsApp send → `hooks/useWhatsAppSend.js` + `ui/WhatsAppSendModal.jsx`

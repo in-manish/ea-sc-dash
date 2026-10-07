@@ -1,10 +1,11 @@
 import React from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Navigate, useParams, useSearchParams } from 'react-router-dom';
 import { LayoutGrid, Award, Clock, Power } from 'lucide-react';
 import ExhibitorPortalSetup from '../exhibitor-portal-setup/ExhibitorPortalSetup';
 import ExhibitorCertificate from '../exhibitor-certificate/ExhibitorCertificate';
 import CeleryManage from '../celery-manage/CeleryManage';
 import EmailKillSwitch from '../email-kill-switch/EmailKillSwitch';
+import { SCAN_LOCATION_TAB } from '../../features/ScanLocations/domain/scanLocationTab';
 
 const TABS = [
     { id: 'exhibitor_portal', label: 'Exhibitor Portal Setup', icon: LayoutGrid },
@@ -14,8 +15,13 @@ const TABS = [
 ];
 
 const UtilsConfig = () => {
+    const { id } = useParams();
     const [searchParams, setSearchParams] = useSearchParams();
     const activeTab = searchParams.get('tab') || 'exhibitor_portal';
+
+    if (activeTab === SCAN_LOCATION_TAB) {
+        return <Navigate to={`/event/${id}/settings?${searchParams.toString()}`} replace />;
+    }
 
     const handleTabChange = (tab) => {
         const params = new URLSearchParams(searchParams);

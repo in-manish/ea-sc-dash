@@ -7,9 +7,9 @@ import {
     mergeSharedPrefill,
     resolveAttendeeTypeName,
 } from '../../features/Attendees/domain/createAttendeeFormDefaults';
-import Permission1CodePicker from '../../features/Permission1/ui/Permission1CodePicker';
-import useEventPermission1Codes from '../../features/Permission1/hooks/useEventPermission1Codes';
-import { permission1WireValue } from '../../features/Permission1/domain/permission1Codes';
+import usePermissionCodes from '../../features/ScanLocations/hooks/usePermissionCodes';
+import PermissionIdPicker from '../../features/ScanLocations/ui/PermissionIdPicker';
+import { permissionIdList } from '../../features/ScanLocations/domain/permissionIds';
 
 /** Quick-pick shortcuts for the two attendee types used in most on-the-spot registrations. */
 const QUICK_ATTENDEE_TYPES = [
@@ -41,7 +41,7 @@ const CreateAttendeeModal = ({ eventId, token, onClose, onCreated, initialValues
     const [companySuggestions, setCompanySuggestions] = useState([]);
     const [companyLoading, setCompanyLoading] = useState(false);
     const [showCompanySuggestions, setShowCompanySuggestions] = useState(false);
-    const { codeMap: permission1Codes, ready: permission1Ready } = useEventPermission1Codes(eventId, token);
+    const eventPermissions = usePermissionCodes(eventId, token);
 
     useEffect(() => {
         let active = true;
@@ -138,8 +138,7 @@ const CreateAttendeeModal = ({ eventId, token, onClose, onCreated, initialValues
                     email: nullIfEmpty(a.email),
                     designation: nullIfEmpty(a.designation),
                 };
-                const permission1 = permission1WireValue(a.permission1);
-                if (permission1) row.permission1 = permission1;
+                row.permissions = permissionIdList(a.permissions);
                 return row;
             }),
         };
@@ -510,16 +509,14 @@ const CreateAttendeeModal = ({ eventId, token, onClose, onCreated, initialValues
                                         />
                                     </div>
                                 </div>
-                                <Permission1CodePicker
-                                    codeMap={permission1Codes}
-                                    selected={a.permission1}
-                                    onChange={(codes) => updateAttendee(index, 'permission1', codes)}
-                                    error={fieldErrors?.permission1
-                                        ? (Array.isArray(fieldErrors.permission1)
-                                            ? fieldErrors.permission1.join(', ')
-                                            : String(fieldErrors.permission1))
-                                        : ''}
-                                    ready={permission1Ready}
+                                <PermissionIdPicker
+                                    codes={eventPermissions.codes}
+                                    selected={a.permissions}
+                                    onChange={(ids) => updateAttendee(index, 'permissions', ids)}
+                                    error={fieldErrors?.permissions}
+                                    ready={!eventPermissions.loading}
+                                    label="Scan permissions"
+                                    emptyHint="No permission codes yet. Add them under Event Settings → Scan Location Permission."
                                 />
                             </div>
                         ))}

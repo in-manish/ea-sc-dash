@@ -1,3 +1,5 @@
+import { positiveSponsorRank } from './sponsorRank';
+
 export const COMPANY_KINDS = {
   PARENT: 'parent',
   CO_EXHIBITOR: 'co_exhibitor',
@@ -32,6 +34,7 @@ export function emptyCompanyForm(overrides = {}) {
     is_badge_printed: false,
     is_payment_made: false,
     apply_title_case: false,
+    sponsor_rank: '',
     parent_exhibitor_obf: '',
     ...overrides,
   };
@@ -52,6 +55,10 @@ export function validateEditCompanyForm(form) {
   if (!form.company_name.trim()) return 'Company name is required.';
   if (form.kind === COMPANY_KINDS.CO_EXHIBITOR && !form.parent_exhibitor) {
     return 'Parent exhibitor is required for co-exhibitors.';
+  }
+  const rank = String(form.sponsor_rank ?? '').trim();
+  if (rank && positiveSponsorRank(rank) == null) {
+    return 'Sponsor rank must be a positive whole number.';
   }
   return '';
 }

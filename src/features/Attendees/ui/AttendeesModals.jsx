@@ -55,6 +55,8 @@ const AttendeesModals = ({
             clearFilters={filtersApi.clearFilters}
             attendeeTypes={attendeeTypes}
             attendeeTypesLoading={attendeeTypesLoading}
+            eventId={selectedEvent?.id}
+            token={token}
         />
 
         <WhatsAppSendModal

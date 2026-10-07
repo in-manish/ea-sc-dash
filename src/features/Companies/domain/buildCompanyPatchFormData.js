@@ -44,7 +44,7 @@ export function buildCompanyPatchFormData(form, initial) {
     appendIfChanged(data, 'parent_exhibitor', form.parent_exhibitor, initial.parent_exhibitor);
   }
 
-  ['space', 'badge_limit', 'meeting_diary_limit'].forEach((key) => {
+  ['space', 'badge_limit', 'meeting_diary_limit', 'sponsor_rank'].forEach((key) => {
     const cur = String(form[key] ?? '').trim();
     const orig = String(initial[key] ?? '').trim();
     if (cur !== orig && (cur !== '' || orig !== '')) {

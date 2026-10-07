@@ -2,11 +2,15 @@ import { getApiUrl } from '../../../config';
 import { matchmakingFormApi } from './matchmakingFormApi';
 import { matchmakingExhibitorApi } from './matchmakingExhibitorApi';
 import { matchmakingSurveyApi } from './matchmakingSurveyApi';
+import { matchmakingSurveyBackfillApi } from './matchmakingSurveyBackfillApi';
+import { matchmakingSurveyBackfillUploadsApi } from './matchmakingSurveyBackfillUploadsApi';
 
 export const matchmakingApi = {
     ...matchmakingFormApi,
     ...matchmakingExhibitorApi,
     ...matchmakingSurveyApi,
+    ...matchmakingSurveyBackfillApi,
+    ...matchmakingSurveyBackfillUploadsApi,
 
     deleteMatchmakingForm: async (eventId, formId, token) => {
         const response = await fetch(`${getApiUrl()}/events/${eventId}/registration/forms/${formId}/`, {

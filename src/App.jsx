@@ -34,7 +34,7 @@ import Settings from './pages/Settings';
 import Communication from './pages/Communication';
 import Reports from './pages/Reports';
 import AttendeeTypes from './pages/AttendeeTypes';
-import UserManagement from './pages/UserManagement';
+import StaffPage from './pages/Staff';
 import Payments from './pages/payments/Payments';
 import Matchmaking from './features/Matchmaking/ui/Matchmaking';
 import Meetings from './pages/meetings/Meetings';
@@ -102,7 +102,7 @@ const AppRoutes = ({ currentMode }) => {
         <Route path="communication" element={<Communication />} />
         <Route path="reports" element={<Reports />} />
         <Route path="attendee-types" element={<AttendeeTypes />} />
-        <Route path="staff" element={<UserManagement />} />
+        <Route path="staff" element={<StaffPage />} />
         <Route path="settings" element={<Settings />} />
         <Route path="payments" element={<Payments />} />
         <Route path="utils-config" element={<UtilsConfig />} />

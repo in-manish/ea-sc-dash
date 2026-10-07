@@ -55,7 +55,7 @@ export default function AttendeeUploadModal({ eventId, token, onClose, onUploade
                                 <p className="text-sm font-semibold text-text-primary">CSV file</p>
                                 <p className="text-xs text-text-tertiary mt-1 leading-relaxed">
                                     Columns: name, country code, phone number, email, designation, company, address,
-                                    city, state, country, website, attendee type, permission1, permission2.
+                                    city, state, country, website, attendee type, permission2.
                                     Processing runs in the background.
                                 </p>
                             </div>

@@ -120,6 +120,7 @@ const AttendeesListView = ({
             updateFilter={filtersApi.updateFilter}
             attendeeTypes={attendeeTypes}
             attendeeTypesLoading={attendeeTypesLoading}
+            token={token}
             selectionMode={selection.selectionMode}
             selectedAttendeeUuids={selection.selectedAttendeeUuids}
             isGlobalSelectionMode={selection.isGlobalSelectionMode}

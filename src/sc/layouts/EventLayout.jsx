@@ -20,7 +20,7 @@ const EventLayout = () => {
         'Reports': location.pathname.includes('/reports'),
         'Meetings': location.pathname.includes('/meetings'),
         'Staff Management': location.pathname.includes('/staff'),
-        'Utils Config': location.pathname.includes('/attendee-types') || location.pathname.includes('/exhibitor-portal-setup') || location.pathname.includes('/celery-manage') || location.pathname.includes('/email-kill-switch')
+        'Utils Config': location.pathname.includes('/utils-config') || location.pathname.includes('/attendee-types') || location.pathname.includes('/exhibitor-portal-setup') || location.pathname.includes('/celery-manage') || location.pathname.includes('/email-kill-switch')
     });
 
     // Handle body class for CSS variable shifting
@@ -421,7 +421,7 @@ const EventLayout = () => {
                         {/* Utils Config with Submenu */}
                         <div className="flex flex-col gap-1">
                             <div
-                                className={navLinkClass({ isActive: location.pathname.includes('/attendee-types') || location.pathname.includes('/exhibitor-portal-setup') || location.pathname.includes('/celery-manage') || location.pathname.includes('/email-kill-switch') })}
+                                className={navLinkClass({ isActive: location.pathname.includes('/utils-config') || location.pathname.includes('/attendee-types') || location.pathname.includes('/exhibitor-portal-setup') || location.pathname.includes('/celery-manage') || location.pathname.includes('/email-kill-switch') })}
                                 onClick={() => {
                                     toggleExpand('Utils Config');
                                 }}

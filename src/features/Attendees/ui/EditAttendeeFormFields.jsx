@@ -1,5 +1,5 @@
 import EditAttendeeRegFields from './EditAttendeeRegFields';
-import Permission1CodePicker from '../../Permission1/ui/Permission1CodePicker';
+import PermissionIdPicker from '../../ScanLocations/ui/PermissionIdPicker';
 
 const inputClass = (hasError) =>
   `w-full px-3 py-2 border rounded-md text-sm outline-none transition-colors bg-transparent ${
@@ -17,8 +17,8 @@ const EditAttendeeFormFields = ({
   fieldErrors = {},
   attendeeTypes = [],
   typesLoading = false,
-  permission1Codes = {},
-  permission1Ready = true,
+  eventPermissions = [],
+  eventPermissionsReady = true,
 }) => (
   <div className="space-y-6">
     <section className="space-y-4">
@@ -149,12 +149,14 @@ const EditAttendeeFormFields = ({
       </div>
     </section>
 
-    <Permission1CodePicker
-      codeMap={permission1Codes}
-      selected={form.permission1}
-      onChange={(codes) => setField('permission1', codes)}
-      error={fieldErrors.permission1}
-      ready={permission1Ready}
+    <PermissionIdPicker
+      codes={eventPermissions}
+      selected={form.permissions}
+      onChange={(ids) => setField('permissions', ids)}
+      error={fieldErrors.permissions}
+      ready={eventPermissionsReady}
+      label="Scan permissions"
+      emptyHint="No permission codes yet. Add them under Event Settings → Scan Location Permission."
     />
 
     <EditAttendeeRegFields

@@ -45,30 +45,54 @@ tasks:
       Fields: activate, cooldown_minutes, cutoff_minutes, days_window.
       Defaults (never saved): false / 20 / 90 / 200. Saves via the card button
       or page Save Changes (Meeting Diary tab must be open).
-  event_settings_permission1:
+  scan_location_permissions:
     files:
-      - src/features/Permission1/ui/Permission1CodesEditor.jsx
-      - src/features/Permission1/domain/permission1Codes.js
-      - src/pages/event-settings/AttendeeSettings.jsx
+      - src/features/ScanLocations/ui/ScanLocationsPage.jsx
+      - src/features/ScanLocations/api/scanLocationsApi.js
+      - src/features/ScanLocations/api/permissionCodesApi.js
+      - src/features/ScanLocations/ui/PermissionCodesPanel.jsx
+      - src/features/ScanLocations/ui/PermissionCodeTable.jsx
+      - src/features/ScanLocations/ui/ServiceMappingPanel.jsx
+      - src/features/ScanLocations/hooks/useServiceOptions.js
+      - src/features/ScanLocations/api/permissionSourcesApi.js
+      - src/features/ScanLocations/api/otmPermissionsApi.js
+      - src/features/ScanLocations/ui/PermissionMetricsPanel.jsx
+      - src/features/ScanLocations/hooks/usePermissionMetrics.js
+      - src/features/ScanLocations/api/permissionMetricsApi.js
+      - src/features/ScanLocations/domain/parsePermissionMetrics.js
+      - src/features/ScanLocations/domain/scanMetricsFilters.js
+      - src/features/ScanLocations/domain/parseScanLocations.js
       - src/pages/event-settings/index.jsx
+      - src/pages/utils-config/UtilsConfig.jsx
     routes:
-      - /event/:id/settings?tab=attendees
+      - /event/:id/settings?tab=scan-location
+      - /event/:id/settings?tab=scan-location&panel=locations
+      - /event/:id/settings?tab=scan-location&panel=codes
+      - /event/:id/settings?tab=scan-location&panel=codes&permission=:id
+      - /event/:id/settings?tab=scan-location&panel=metrics
+      - /event/:id/settings?tab=scan-location&panel=service
     notes: >
-      permission1_codes is an object on the event JSON (multipart PATCH).
-      Each key is one letter or digit; each value is a label. Example {"A":"Lunch"}.
-  attendee_permission1:
-    files:
-      - src/features/Permission1/ui/Permission1CodePicker.jsx
-      - src/features/Permission1/hooks/useEventPermission1Codes.js
-      - src/features/Permission1/domain/permission1Codes.js
-      - src/components/attendees/CreateAttendeeModal.jsx
-      - src/features/Attendees/ui/EditAttendeeFormFields.jsx
-      - src/features/Attendees/domain/editAttendeeForm.js
-    routes:
-      - /event/:id/attendees
-    notes: >
-      Create POST and edit PATCH send permission1 as "A|B" on the attendee.
-      Empty create omits the field. Edit sends "|" to clear when the event has codes.
+      SurveyJS mapping sub-tab (organizer only): GET|POST /events/:eventId/permission-sources/options/,
+      PUT /permission-sources/mapping/ (one option to many permission ids), POST /permission-sources/backfill/
+      (records {uuid, badge_permission}, 500 per call, EA matches by price), GET /permission-sources/ledger/.
+      Options and purchases come from the SurveyJS API (get-form-question, badge-permissions) with the EA token.
+      Metrics sub-tab (organizer only): GET /events/:eventId/permission-codes/metrics/ (group_by=attendee_type)
+      and GET /permission-codes/scan-metrics/ (date or from/to, scanned_in, group_by=date). Both cached 10 minutes
+      on the server; refresh_cache=true rebuilds. The codes table also shows Badges and Required at.
+      Sub-tabs are ?panel=locations (default), ?panel=codes and ?panel=metrics.
+      Event Settings tab. Old /utils-config?tab=scan-location and /staff?tab=scan-location redirect here.
+      Sub-tabs are ?panel=locations (default) and ?panel=codes.
+      GET|PATCH /events/:eventId/locations/scan/ and /locations/scan/:id/.
+      GET|POST /events/:eventId/permission-codes/; PATCH|DELETE /permission-codes/:id/.
+      Code is one letter or digit. PATCH sends changed fields only (name, dates, times, is_active).
+      Dates are YYYY-MM-DD and times HH:MM with no timezone conversion. null clears a side.
+      Edit controls are organizer-only; 403 hides them. 404 refreshes the code list.
+      DELETE 204, refused while in use.
+      Location POST/PATCH permissions are ids. [] is open entry. Soft-deleted rows are hidden.
+      PATCH always sends special_permission. DELETE location is a soft delete (204).
+      Badge create/update send permissions ids on the attendee; [] clears on update.
+      ?permission=<id> highlights that code. Attendees link opens /attendees?permission_ids=<id>.
+      400 field text, 403, and 404 show on the active sub-tab. 401 signs out.
   event_settings_branding_images:
     files:
       - src/pages/event-settings/EventBrandingImages.jsx
@@ -173,9 +197,10 @@ tasks:
     notes: >
       GET then full-body PATCH /events/:eventId/attendees/:uuid/.
       Request attendee_type is name string; response is {name,id}.
-      Exhibitor type requires exhibitor_id. permission1 is "A|B" (or "|" to clear).
+      Exhibitor type requires exhibitor_id.
       Detail modal formats every field with formatDetailValue so objects
-      (schema, permission1, attendee_type) render as text instead of crashing.
+      (schema, attendee_type) render as text.
+      Scan permissions are an id list on the attendee. [] clears them on update.
   attendee_csv_upload:
     files:
       - src/features/Attendees/api/attendeeUploadApi.js
@@ -224,10 +249,15 @@ tasks:
     files:
       - src/features/Attendees/ui/AttendeeTable.jsx
       - src/features/Attendees/ui/AttendeeTableRow.jsx
+      - src/features/Attendees/ui/AttendeePermissionChips.jsx
+      - src/features/Attendees/ui/AttendeePermissionFilter.jsx
+      - src/features/Attendees/domain/attendeePermissionLink.js
       - src/features/Attendees/ui/AttendeeTableRowMenu.jsx
     routes:
       - /event/:id/attendees
     notes: >
+      Permissions column chips open ?panel=codes&permission=<id>. Header filters permission_ids.
+      Drawer also filters permission_codes. Search query keys match those names.
       List Actions column is a ⋯ overflow menu (Matchmaking, Re-create
       E-badge, Sync SC when needed). Detail modal buttons are unchanged.
   attendee_type_drafts:
@@ -333,13 +363,20 @@ tasks:
       - src/features/Companies/api/companyApi.js
       - src/features/Companies/domain/buildCompanyPatchFormData.js
       - src/features/Companies/domain/companyFromApi.js
+      - src/features/Companies/domain/sponsorRank.js
+      - src/features/Companies/domain/companyFormDefaults.js
       - src/features/Companies/hooks/useEditCompany.js
       - src/features/Companies/ui/EditCompanyPage.jsx
       - src/features/Companies/ui/EditCompanyLimitsFields.jsx
+      - src/features/Companies/ui/SponsorRankField.jsx
       - src/pages/EditCompany.jsx
       - src/pages/CompanyDetails.jsx
     routes:
       - /event/:id/companies/:companyId/edit
+    notes: >
+      PATCH changed fields only; company_name always sent.
+      sponsor_rank is an optional positive integer (blank clears it).
+      Company list rows with a positive sponsor_rank use a yellow background.
   company_detail_setup_progress:
     files:
       - src/features/Companies/ui/CompanyDetailsPage.jsx
@@ -645,6 +682,7 @@ tasks:
       - src/features/Companies/ui/CompaniesReportsMenu.jsx
       - src/features/Companies/ui/ExhibitorListTable.jsx
       - src/features/Companies/ui/ExhibitorListRow.jsx
+      - src/features/Companies/domain/sponsorRank.js
       - src/features/Companies/ui/ExhibitorsListPanel.jsx
       - src/features/Companies/ui/CompaniesPagePanels.jsx
       - src/features/Companies/ui/CompaniesPage.jsx
@@ -659,6 +697,7 @@ tasks:
       obf_number_alphabet sorts as company_slug. Invalid sort_by → 404.
       sort params ignored when q is set (_score desc) or is_featured=true
       with no q (featured_rank then company_slug). Empty q is omitted.
+      A positive integer sponsor_rank highlights that row yellow.
   meeting_stats_report:
     files:
       - src/features/MeetingStats/api/meetingStatsReportApi.js
@@ -818,6 +857,39 @@ tasks:
       showAfterSubmit: true } loads the selected form. Mapping CRUD
       stays on dashboard getApiUrl(). Mapped SurveyJS values use type-to-suggest.
       Choices overview colors paired source/target with the same letter badge.
+  matchmaking_survey_backfill:
+    files:
+      - src/features/Matchmaking/api/matchmakingSurveyBackfillApi.js
+      - src/features/Matchmaking/api/matchmakingSurveyBackfillUploadsApi.js
+      - src/features/Matchmaking/domain/parseBackfillMappingResult.js
+      - src/features/Matchmaking/domain/parseBackfillMappingList.js
+      - src/features/Matchmaking/domain/parseBackfillMappingUploads.js
+      - src/features/Matchmaking/hooks/useSurveyBackfillMappingCsv.js
+      - src/features/Matchmaking/hooks/useSurveyBackfillMappingList.js
+      - src/features/Matchmaking/hooks/useSurveyBackfillMappingUploads.js
+      - src/features/Matchmaking/hooks/useSurveyBackfillRun.js
+      - src/features/Matchmaking/hooks/useSurveyBackfillLogs.js
+      - src/features/Matchmaking/ui/SurveyBackfill/SurveyBackfillPage.jsx
+      - src/features/Matchmaking/ui/SurveyBackfill/MappingCsvPanel.jsx
+      - src/features/Matchmaking/ui/SurveyBackfill/MappingUploadsPanel.jsx
+      - src/features/Matchmaking/ui/SurveyBackfill/MappingUploadDetailModal.jsx
+      - src/features/Matchmaking/ui/SurveyBackfill/MappingListPanel.jsx
+      - src/features/Matchmaking/ui/SurveyBackfill/MappingGroupCard.jsx
+      - src/features/Matchmaking/ui/SurveyBackfill/BackfillRunPanel.jsx
+      - src/features/Matchmaking/ui/SurveyBackfill/BackfillLogsPanel.jsx
+      - src/features/Matchmaking/ui/Matchmaking.jsx
+    routes:
+      - /event/:id/matchmaking?tab=backfill
+      - /event/:id/matchmaking?tab=backfill&upload_id=2&upload_page=1&upload_page_size=20
+    notes: >
+      Tab label shows highlighted New + "surveyjs mapping & backfill".
+      POST .../mapping-csv/ (multipart file + dry_run); save returns upload_id
+      (null on dry_run). GET .../mapping-uploads/ lists history; GET
+      .../mapping-uploads/{id|latest}/ returns content + report; ?download=true
+      returns CSV blob (fetch + Content-Disposition; no plain link). GET
+      .../mapping/ groups by EA question. POST .../run/ queues Celery. GET
+      .../logs/ polled after queue. URL keeps status/form/map_search/page and
+      upload_id/upload_page. Badge UUID → /event/:id/attendees?q=.
   app_alert:
     files:
       - src/components/alert/AlertModal.jsx
@@ -1036,16 +1108,22 @@ features:
     detail_api: GET|PUT|PATCH /ai/presets/:preset_key_or_id/
     delete_api: DELETE /ai/presets/:id/
     preview_api: GET /ai/presets/mm_seeking_mapper/preview/?event_id=
-  Permission1:
-    root: src/features/Permission1/
-    entry: src/pages/event-settings/AttendeeSettings.jsx
+  ScanLocations:
+    root: src/features/ScanLocations/
+    entry: src/pages/event-settings/index.jsx
     routes:
-      - /event/:id/settings?tab=attendees
-      - /event/:id/attendees
-    event_api: PATCH /events/:id/ field permission1_codes (object, multipart JSON)
-    attendee_api: >
-      POST /events/:eventId/attendees/ and PATCH /events/:eventId/attendees/:uuid/
-      field permission1 string "A|B"
+      - /event/:id/settings?tab=scan-location
+      - /event/:id/settings?tab=scan-location&panel=locations
+      - /event/:id/settings?tab=scan-location&panel=codes
+      - /event/:id/settings?tab=scan-location&panel=metrics
+    list_api: GET /events/:eventId/locations/scan/
+    create_api: POST /events/:eventId/locations/scan/
+    update_api: PATCH /events/:eventId/locations/scan/:id/
+    delete_api: DELETE /events/:eventId/locations/scan/:id/
+    codes_api: GET|POST /events/:eventId/permission-codes/
+    code_api: PATCH|DELETE /events/:eventId/permission-codes/:id/
+    metrics_api: GET /events/:eventId/permission-codes/metrics/ and /scan-metrics/ (?refresh_cache=true)
+    service_api: GET|POST /events/:eventId/permission-sources/options/, PUT .../mapping/, POST .../backfill/, GET .../ledger/
   ChatReminder:
     root: src/features/ChatReminder/
     entry: src/pages/event-settings/MeetingDiarySettings.jsx
@@ -1062,11 +1140,18 @@ features:
       - /event/:id/matchmaking?tab=questions
       - /event/:id/matchmaking?tab=exhibitor
       - /event/:id/matchmaking?tab=mapping
+      - /event/:id/matchmaking?tab=backfill
     form_api: GET|POST /events/:eventId/questions/matchmaking/
     copy_api: POST /evc/matchmaking/make_copy/
     survey_form_list_api: GET {api-stage|api-prod}.otm.co.in/api/get-form-list?eventCode=reconnect_{eventId}
     survey_form_api: POST {api-stage|api-prod}.otm.co.in/api/get-form-json (showAfterSubmit: true)
     survey_mapping_api: GET|POST /events/:eventId/matchmaking/surveyjs-question-mapping/
+    survey_backfill_mapping_csv: POST /events/:eventId/matchmaking/surveyjs-backfill/mapping-csv/
+    survey_backfill_mapping_list: GET /events/:eventId/matchmaking/surveyjs-backfill/mapping/
+    survey_backfill_mapping_uploads: GET /events/:eventId/matchmaking/surveyjs-backfill/mapping-uploads/
+    survey_backfill_mapping_upload: GET /events/:eventId/matchmaking/surveyjs-backfill/mapping-uploads/{id|latest}/
+    survey_backfill_run: POST /events/:eventId/matchmaking/surveyjs-backfill/run/
+    survey_backfill_logs: GET /events/:eventId/matchmaking/surveyjs-backfill/logs/
     attendee_answers_api: GET /evc/events/:eventId/matchmaking/admin-match-qa/?badge_uid=&answer_for=seeking|offering
   Agenda:
     root: src/features/Agenda/
@@ -1142,7 +1227,7 @@ glossary:
   speaker_image_N: Multipart file field index aligned with speaker array
   moderator_image_N: Multipart file field index aligned with moderator array
   company_create_multipart: Must use FormData; nested product/link/media as JSON strings; always send company_name, company_detail, website
-  company_edit_patch: PATCH multipart; always send company_name; only changed fields; booleans as true/false strings; logo empty string removes
+  company_edit_patch: PATCH multipart; always send company_name; only changed fields; booleans as true/false strings; logo empty string removes; sponsor_rank optional positive integer
   company_list_sort: company_list sort_by/sort_order; defaults space/desc; ignored when q is set or is_featured=true with no q
   company_setup_progress: Overview API only; organizer must pass company_id; hide when setup_checklist.visible=false; soft-fail
   sc_card_id: Use CONTACT_SAVED card_id for admin restore/delete — not the contact user id
@@ -1198,9 +1283,11 @@ glossary:
     DELETE by numeric id; mm_seeking_mapper requires {{QUESTION_OPTIONS}};
     preview GET .../mm_seeking_mapper/preview/?event_id= fills catalog (no LLM);
     dashboard preview page is /event/:id/ai/preview
-  permission1: >
-    Event permission1_codes map (one letter or digit → label) on Settings Attendees.
-    Attendee create/update permission1 is "A|B"; "|" clears on update.
+  scan_location_permissions: >
+    Event Settings tab ?panel=locations|codes. Location and badge permissions are ids.
+    Permission codes include a date/time window and is_active. Organizers edit that window.
+    Attendee list chips open ?permission=<id>. Attendees link filters permission_ids.
+    Soft-deleted locations are hidden. [] clears codes. Badge create/edit sends permissions.
   chat_unread_reminder: >
     Tenant GET|POST /meeting/unread-reminder/config/; activate + cooldown_minutes
     + cutoff_minutes + days_window; defaults false/20/90/200; Settings Meeting Diary

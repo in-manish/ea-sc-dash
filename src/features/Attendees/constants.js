@@ -11,6 +11,8 @@ export const pillColors = {
     created_at_end: 'bg-slate-50 text-slate-700 border-slate-200',
     exhibitor_id: 'bg-indigo-50 text-indigo-800 border-indigo-200',
     parent_exhibitor_id: 'bg-indigo-50 text-indigo-800 border-indigo-200',
+    permission_ids: 'bg-accent/10 text-accent border-accent/20',
+    permission_codes: 'bg-accent/10 text-accent border-accent/20',
 };
 
 /** Shared size for Create Attendee + Filter so they always match. */
@@ -40,4 +42,6 @@ export const FILTER_PARAM_KEYS = [
     'modified_at_end',
     'exhibitor_id',
     'parent_exhibitor_id',
+    'permission_ids',
+    'permission_codes',
 ];

@@ -31,12 +31,12 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | WhatsApp | `src/features/WhatsApp/` | Communication WhatsApp templates: archive (not delete), Active/Archived list |
 | EaEmail | `src/components/email/` | Communication Email: category + templates; browse HTML into body |
 | EmailCampaigns | `src/features/EmailCampaigns/` | History/Scheduled tab; row click or hover View details; hover View recipients; recipient hover View attendee |
-| Matchmaking | `src/features/Matchmaking/` | GET 404 = create/copy; 200 = editor only; tabs `?tab=questions\|exhibitor\|mapping` |
+| Matchmaking | `src/features/Matchmaking/` | GET 404 = create/copy; 200 = editor only; tabs `?tab=questions|exhibitor|mapping|backfill` |
 | MeetingStats | `src/features/MeetingStats/` | Organizer meeting stats by event × attendee type (GET) + email CSV (POST) |
 | Visiq | `src/features/Visiq/` | Tenant subscriber CRM: list/detail + CSV/Excel import jobs |
 | AiPresets | `src/features/AiPresets/` | Organizer AI system prompt presets; matchmaking `mm_seeking_mapper` catalog preview at `/event/:id/ai/preview` |
 | ChatReminder | `src/features/ChatReminder/` | Tenant unread meeting-chat reminder config on Settings → Meeting Diary |
-| Permission1 | `src/features/Permission1/` | Event permission 1 code map on Settings → Attendees; same codes on create and edit attendee |
+| ScanLocations | `src/features/ScanLocations/` | Event Settings tab: scan locations, permission codes, a SurveyJS mapping sub-tab (SurveyJS options to permissions, backfill, ledger) and a Metrics sub-tab (holders per permission, scans per location, 10 min server cache + Refresh data); list chips open `?permission=` |
 
 ## Common tasks → files
 
@@ -49,8 +49,9 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Reusable crop/resize/web-optimize image upload | `src/components/imageEditor/` (`useImageEditor` + `ImageEditorModal`) — independent crop, compression slider, target KB, dimensions, web/mobile hints, live preview |
 | Edit attendee / badge | `src/features/Attendees/ui/EditAttendeeModal.jsx` + `api/attendeeApi.js` + `domain/editAttendeeForm.js` |
 | Attendee detail modal | `ui/AttendeeDetailModal.jsx` + `domain/attendeeFieldGroups.js` (`formatDetailValue` — objects never as React children) |
-| Event settings / permission 1 codes | `src/features/Permission1/ui/Permission1CodesEditor.jsx` (`/event/:id/settings?tab=attendees`) |
-| Attendee permission 1 | `src/features/Permission1/ui/Permission1CodePicker.jsx` (create + edit; wire `A\|B`) |
+| Scan location permissions | `src/features/ScanLocations/ui/ScanLocationsPage.jsx` (`/event/:id/settings?tab=scan-location&panel=locations`, `panel=codes` or `panel=metrics`) |
+| SurveyJS option mapping / backfill / ledger | `src/features/ScanLocations/ui/ServiceMappingPanel.jsx` + `ui/ServiceMappingBoard.jsx` + `hooks/useServiceOptions.js` + `api/permissionSourcesApi.js` + `api/otmPermissionsApi.js` (`?panel=service`) |
+| Permission / scan metrics | `src/features/ScanLocations/ui/PermissionMetricsPanel.jsx` + `hooks/usePermissionMetrics.js` + `api/permissionMetricsApi.js` (`refresh_cache=true` rebuilds the server cache) |
 | Attendee list row actions | `src/features/Attendees/ui/AttendeeTableRowMenu.jsx` + `AttendeeTableRow.jsx` |
 | Attendee type email / SMS drafts | `src/pages/AttendeeTypes.jsx` + `EmailInvitationDraft.jsx` + `BadgeEmailVariablesRail.jsx` (badge tokens, `tv_referral_link` / `{title_slug}_referral_link`, calendar hrefs) |
 | List attendee type email drafts | `ui/AttendeeSelectionBar.jsx` + `hooks/useAttendeeTypeEmails.js` + `api/attendeeTypeEmailsApi.js` |
@@ -59,7 +60,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Bulk attendee CSV upload + dry-run validate | `ui/AttendeeUploadModal.jsx` + `ui/AttendeeUploadRowIssues.jsx` + `hooks/useAttendeeUpload.js` + `api/attendeeUploadApi.js` (create-flow only, no replicate/update by Reg ID) |
 | Event upload history (attendee + company tabs) | `src/pages/AttendeeUploads.jsx` + `ui/UploadsTabs.jsx` + `ui/AttendeeUploadHistoryPanel.jsx` + `ui/CompanyUploadHistoryPanel.jsx` + `src/components/uploadHistory/` |
 | Create EA company / co-exhibitor | `src/features/Companies/ui/CreateCompanyPage.jsx` + `api/companyApi.js` |
-| Edit EA company | `src/features/Companies/ui/EditCompanyPage.jsx` + `domain/buildCompanyPatchFormData.js` |
+| Edit EA company | `src/features/Companies/ui/EditCompanyPage.jsx` + `domain/buildCompanyPatchFormData.js` (`sponsor_rank`; list rows with a positive rank are yellow) |
 | Company Detail + Setup Progress | `src/features/Companies/ui/CompanyDetailsPage.jsx` + `SetupProgressSection.jsx` |
 | Exhibitor overview / checklist | `api/companyApi.js` (`getExhibitorOverview`) + `hooks/useExhibitorOverview.js` |
 | Checklist Reminder tab | `src/features/Companies/ui/ChecklistReminderTab.jsx` + `api/checklistReminderApi.js` |
@@ -102,6 +103,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Matchmaking questions / copy | `src/features/Matchmaking/ui/MatchmakingQuestions.jsx` + `api/matchmakingFormApi.js` (`/event/:id/matchmaking?tab=questions`) |
 | Attendee matchmaking answers | `src/features/Matchmaking/ui/AttendeeMatchmakingAnswers.jsx` (Seeking/Offering each send `answer_for`) |
 | SurveyJS mapping / OTM form JSON | `src/features/Matchmaking/api/matchmakingSurveyApi.js` + `ui/SurveyMapping/` (`/event/:id/matchmaking?tab=mapping`) |
+| SurveyJS mapping CSV & backfill | `ui/SurveyBackfill/` + `api/matchmakingSurveyBackfillApi.js` + `api/matchmakingSurveyBackfillUploadsApi.js` (`?tab=backfill`; mapping list + upload history) |
 | Meeting stats report | `src/features/MeetingStats/ui/MeetingStatsReportTab.jsx` + `api/meetingStatsReportApi.js` |
 | Visiq subscribers / imports | `src/features/Visiq/ui/VisiqPage.jsx` + `api/importApi.js` (preview/download) + `hooks/useImportFileActions.js` |
 | AI system prompt presets | `src/features/AiPresets/ui/AiPresetsPage.jsx` + `api/aiPresetsApi.js` + `ui/AiPresetPreviewPage.jsx` |

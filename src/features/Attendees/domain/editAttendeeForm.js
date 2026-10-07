@@ -1,8 +1,5 @@
 import { nullIfEmpty } from './createAttendeeFormDefaults';
-import {
-  permission1PatchValue,
-  permission1Selection,
-} from '../../Permission1/domain/permission1Codes';
+import { permissionIdList } from '../../ScanLocations/domain/permissionIds';
 
 export function attendeeTypeName(value) {
   if (!value) return '';
@@ -43,7 +40,7 @@ export function attendeeToForm(api) {
     attendee_type: attendeeTypeName(api.attendee_type),
     exhibitor_id: api.exhibitor_id != null ? String(api.exhibitor_id) : '',
     is_meeting_enabled: api.is_meeting_enabled !== false,
-    permission1: permission1Selection(api.permission1),
+    permissions: permissionIdList(api.permissions),
   };
 }
 
@@ -68,11 +65,10 @@ export function validateEditAttendeeForm(form) {
  * Full PATCH body: mirror GET baseline, overlay form edits.
  * Request attendee_type is the type name string.
  */
-export function buildAttendeePatchPayload(form, baseline, codeMap) {
+export function buildAttendeePatchPayload(form, baseline) {
   const phone = blankPhone(form.phone_number);
   const email = nullIfEmpty(form.email);
   const exhibitorId = nullIfEmpty(form.exhibitor_id);
-  const permission1 = permission1PatchValue(form.permission1, codeMap);
 
   return {
     id: baseline.id,
@@ -100,6 +96,6 @@ export function buildAttendeePatchPayload(form, baseline, codeMap) {
     source_metadata: baseline.source_metadata || {},
     created_at: baseline.created_at,
     modified_at: baseline.modified_at,
-    ...(permission1 != null ? { permission1 } : {}),
+    permissions: permissionIdList(form.permissions),
   };
 }

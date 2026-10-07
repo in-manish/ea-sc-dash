@@ -32,7 +32,7 @@ const AttendeesPage = () => {
         selectedAttendeeUuids: [],
     }));
 
-    const filtersApi = useAttendeeFilters(searchParams);
+    const filtersApi = useAttendeeFilters(searchParams, setSearchParams);
     const { attendeeTypes, loading: attendeeTypesLoading } = useAttendeeTypes(
         selectedEvent?.id,
         token,

@@ -9,6 +9,7 @@ import {
 import CopyableValue from './CopyableValue';
 import ObfCopyChip from './ObfCopyChip';
 import AttendeeTableRowMenu from './AttendeeTableRowMenu';
+import AttendeePermissionChips from './AttendeePermissionChips';
 
 const AttendeeTableRow = ({
     attendee,
@@ -138,6 +139,9 @@ const AttendeeTableRow = ({
                         </div>
                     )}
                 </div>
+            </td>
+            <td className="py-4 px-6 align-top group-last:border-b-0" onClick={(e) => e.stopPropagation()}>
+                <AttendeePermissionChips attendee={attendee} eventId={selectedEvent?.id} />
             </td>
             <td className="py-4 px-6 align-top group-last:border-b-0">
                 <span className="inline-flex py-1 px-2.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 tracking-wide">

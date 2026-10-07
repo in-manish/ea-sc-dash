@@ -1,4 +1,6 @@
 import { Loader2, CheckSquare, Square } from 'lucide-react';
+import usePermissionCodes from '../../ScanLocations/hooks/usePermissionCodes';
+import { PERMISSION_ID_FILTER } from '../domain/attendeePermissionLink';
 import AttendeeTableRow from './AttendeeTableRow';
 import TableHeaderFilterDropdown from './TableHeaderFilterDropdown';
 
@@ -28,8 +30,18 @@ const AttendeeTable = ({
     onSyncSc,
     onMatchmaking,
     onCreateEBadge,
+    token,
 }) => {
     const attendeeTypeOptions = attendeeTypes.map((t) => ({ value: t.name, label: t.name }));
+    const permissionCodes = usePermissionCodes(selectedEvent?.id, token);
+    const permissionOptions = permissionCodes.codes.map((code) => ({
+        value: String(code.id),
+        label: `${code.code} ${code.name}`.trim(),
+    }));
+    const rawPermissionIds = filters[PERMISSION_ID_FILTER];
+    const selectedPermissionIds = (
+        Array.isArray(rawPermissionIds) ? rawPermissionIds : rawPermissionIds ? [rawPermissionIds] : []
+    ).map(String);
 
     return (
     <div className="bg-bg-primary border border-border rounded-lg overflow-x-auto shadow-sm">
@@ -63,6 +75,16 @@ const AttendeeTable = ({
                     </th>
                     <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">
                         <TableHeaderFilterDropdown
+                            label="Permissions"
+                            options={permissionOptions}
+                            selected={selectedPermissionIds}
+                            onChange={(next) => updateFilter?.(PERMISSION_ID_FILTER, next)}
+                            multiSelect
+                            loading={permissionCodes.loading}
+                        />
+                    </th>
+                    <th className="bg-bg-secondary py-3 px-6 text-xs font-semibold uppercase text-text-secondary tracking-wider border-b border-border">
+                        <TableHeaderFilterDropdown
                             label="Attendee Type"
                             options={attendeeTypeOptions}
                             selected={filters.attendee_type || []}
@@ -88,13 +110,13 @@ const AttendeeTable = ({
             <tbody>
                 {loading ? (
                     <tr>
-                        <td colSpan="7" className="text-center p-12 text-text-secondary">
+                        <td colSpan="8" className="text-center p-12 text-text-secondary">
                             <Loader2 className="animate-spin text-accent mx-auto" size={24} />
                         </td>
                     </tr>
                 ) : attendees.length === 0 ? (
                     <tr>
-                        <td colSpan="7" className="text-center p-12 text-text-secondary">
+                        <td colSpan="8" className="text-center p-12 text-text-secondary">
                             No attendees found.
                         </td>
                     </tr>

@@ -155,8 +155,8 @@ export const eventService = {
                 if (value !== '' && value !== null && value !== undefined) {
                     if (key === 'whatsapp_sent') {
                         queryParams.append('wa_sent', value);
-                    } else if (key === 'attendee_type' && Array.isArray(value)) {
-                        queryParams.append(key, value.join(','));
+                    } else if (Array.isArray(value)) {
+                        if (value.length > 0) queryParams.append(key, value.join(','));
                     } else {
                         queryParams.append(key, value);
                     }

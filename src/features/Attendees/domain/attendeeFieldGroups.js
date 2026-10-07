@@ -1,3 +1,5 @@
+import { formatPermissionSummary } from '../../ScanLocations/domain/permissionIds';
+
 /** Primitives only. Objects and arrays must not be rendered as React children. */
 export const formatDetailValue = (value) => {
     if (value == null || value === '') return null;
@@ -58,7 +60,7 @@ export const getGroupedFields = (attendee) => {
         field('Attendee Type ID', attendee.attendee_type_id),
         field('Attendee Type Sort', attendee.attendee_type_sort),
         field('Login Code', attendee.event_login_code),
-        field('Permission 1', attendee.permission1),
+        field('Permissions', formatPermissionSummary(attendee.permissions)),
     ];
 
     if (isExhibitor) {
