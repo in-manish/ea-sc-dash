@@ -6,7 +6,7 @@ import PanelMessage from './PanelMessage';
 const BUTTON = 'inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50';
 
 /** Bring the SurveyJS options into EA: fetch them from SurveyJS, or paste or upload JSON. */
-export default function ServiceOptionsImport({ formValue, otm, saving, onPush }) {
+export default function ServiceOptionsImport({ formValue, extraQuery, otm, saving, onPush }) {
   const [text, setText] = useState('');
   const [open, setOpen] = useState(false);
   const [info, setInfo] = useState('');
@@ -18,7 +18,7 @@ export default function ServiceOptionsImport({ formValue, otm, saving, onPush })
   const fetchAndPush = async () => {
     setInfo('');
     setInputError('');
-    const fetched = await otm.fetchOptions(formValue);
+    const fetched = await otm.fetchOptions(formValue, extraQuery);
     if (!fetched) return;
     if (fetched.options.length === 0) {
       setInfo(`No choice with a badge permission was found${fetched.questionName ? ` in "${fetched.questionName}"` : ''}.`);

@@ -50,7 +50,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Edit attendee / badge | `src/features/Attendees/ui/EditAttendeeModal.jsx` + `api/attendeeApi.js` + `domain/editAttendeeForm.js` |
 | Attendee detail modal | `ui/AttendeeDetailModal.jsx` + `domain/attendeeFieldGroups.js` (`formatDetailValue` — objects never as React children) |
 | Scan location permissions | `src/features/ScanLocations/ui/ScanLocationsPage.jsx` (`/event/:id/settings?tab=scan-location&panel=locations`, `panel=codes` or `panel=metrics`) |
-| SurveyJS option mapping / backfill / ledger | `src/features/ScanLocations/ui/ServiceMappingPanel.jsx` + `ui/ServiceMappingBoard.jsx` + `hooks/useServiceOptions.js` + `api/permissionSourcesApi.js` + `api/otmPermissionsApi.js` (`?panel=service`) |
+| SurveyJS option mapping / backfill / ledger | `src/features/ScanLocations/ui/ServiceMappingPanel.jsx` + `ui/ServiceMappingBoard.jsx` + `hooks/useServiceOptions.js` + `api/permissionSourcesApi.js` + `api/otmPermissionsApi.js` (`?panel=service`; extra query; purchases walk `page`/`size`) |
 | Permission / scan metrics | `src/features/ScanLocations/ui/PermissionMetricsPanel.jsx` + `hooks/usePermissionMetrics.js` + `api/permissionMetricsApi.js` (`refresh_cache=true` rebuilds the server cache) |
 | Attendee list row actions | `src/features/Attendees/ui/AttendeeTableRowMenu.jsx` + `AttendeeTableRow.jsx` |
 | Attendee type email / SMS drafts | `src/pages/AttendeeTypes.jsx` + `EmailInvitationDraft.jsx` + `BadgeEmailVariablesRail.jsx` (badge tokens, `tv_referral_link` / `{title_slug}_referral_link`, calendar hrefs) |

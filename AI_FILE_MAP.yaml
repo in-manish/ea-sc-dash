@@ -56,6 +56,11 @@ tasks:
       - src/features/ScanLocations/hooks/useServiceOptions.js
       - src/features/ScanLocations/api/permissionSourcesApi.js
       - src/features/ScanLocations/api/otmPermissionsApi.js
+      - src/features/ScanLocations/domain/extraQueryParams.js
+      - src/features/ScanLocations/domain/purchasePage.js
+      - src/features/ScanLocations/domain/collectPurchaseRows.js
+      - src/features/ScanLocations/ui/BackfillRecords.jsx
+      - src/features/ScanLocations/ui/PurchaseFetchProgress.jsx
       - src/features/ScanLocations/ui/PermissionMetricsPanel.jsx
       - src/features/ScanLocations/hooks/usePermissionMetrics.js
       - src/features/ScanLocations/api/permissionMetricsApi.js
@@ -76,6 +81,8 @@ tasks:
       PUT /permission-sources/mapping/ (one option to many permission ids), POST /permission-sources/backfill/
       (records {uuid, badge_permission}, 500 per call, EA matches by price), GET /permission-sources/ledger/.
       Options and purchases come from the SurveyJS API (get-form-question, badge-permissions) with the EA token.
+      Both calls append the optional extra query (`key=value&other=1`). Fetch purchases sends page and size
+      and walks every page (total / totalPages) before the same backfill summary.
       Metrics sub-tab (organizer only): GET /events/:eventId/permission-codes/metrics/ (group_by=attendee_type)
       and GET /permission-codes/scan-metrics/ (date or from/to, scanned_in, group_by=date). Both cached 10 minutes
       on the server; refresh_cache=true rebuilds. The codes table also shows Badges and Required at.

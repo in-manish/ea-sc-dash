@@ -23,6 +23,7 @@ export default function ServiceMappingPanel({ eventId, token, onUnauthorized }) 
   // kept in the browser per event, so leaving this screen and coming back finds the same form and section
   const [section, setSection] = usePersistedState(`ea_service_mapping:${eventId}:section`, 'map');
   const [formValue, setFormValue] = usePersistedState(`ea_service_mapping:${eventId}:form`, '');
+  const [extraQuery, setExtraQuery] = usePersistedState(`ea_service_mapping:${eventId}:query`, '');
   const eventCode = otmEventCode(eventId);
   const forms = useSurveyFormList(eventCode);
   const codes = usePermissionCodes(eventId, token, onUnauthorized);
@@ -42,7 +43,7 @@ export default function ServiceMappingPanel({ eventId, token, onUnauthorized }) 
   return (
     <div className="flex flex-col gap-5">
       <ServiceFormPicker forms={forms.forms} loading={forms.loading} error={forms.error} value={formValue}
-        onChange={setFormValue} />
+        onChange={setFormValue} extraQuery={extraQuery} onExtraQueryChange={setExtraQuery} />
       <div className="flex gap-1.5" role="tablist" aria-label="SurveyJS mapping">
         {SECTIONS.map(([id, text]) => (
           <button key={id} type="button" role="tab" aria-selected={section === id} onClick={() => setSection(id)}
@@ -57,12 +58,15 @@ export default function ServiceMappingPanel({ eventId, token, onUnauthorized }) 
 
       {section === 'map' ? (
         <>
-          <ServiceOptionsImport formValue={formValue} otm={otm} saving={options.saving} onPush={options.push} />
+          <ServiceOptionsImport formValue={formValue} extraQuery={extraQuery} otm={otm} saving={options.saving} onPush={options.push} />
           <ServiceMappingBoard eventId={eventId} options={options.options} codes={codes.codes} codesReady={!codes.loading}
             saving={options.saving} onSave={options.saveMapping} />
         </>
       ) : null}
-      {section === 'backfill' ? <ServiceBackfillSection eventId={eventId} codes={codes.codes} formValue={formValue} otm={otm} backfill={backfill} /> : null}
+      {section === 'backfill' ? (
+        <ServiceBackfillSection eventId={eventId} codes={codes.codes} formValue={formValue} extraQuery={extraQuery}
+          otm={otm} backfill={backfill} />
+      ) : null}
       {section === 'ledger' ? <ServiceLedgerSection eventId={eventId} ledger={ledger} /> : null}
     </div>
   );

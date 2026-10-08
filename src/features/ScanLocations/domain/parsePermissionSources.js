@@ -4,6 +4,16 @@ function list(value) {
   return Array.isArray(value) ? value : [];
 }
 
+function text(value) {
+  if (value == null || typeof value === 'object') return '';
+  return String(value);
+}
+
+function permissionIds(value) {
+  return list(value).map((item) => (item && typeof item === 'object' ? item.id ?? item.permission_id ?? '' : item))
+    .filter((id) => id !== '' && id != null);
+}
+
 function count(value) {
   const number = Number(value);
   return Number.isFinite(number) ? number : 0;
@@ -93,8 +103,11 @@ export function parseBackfillResult(data) {
       error: count(totals.error),
     },
     results: list(data?.results).map((row) => ({
-      uuid: String(row?.uuid || ''),
-      permissions: list(row?.permissions),
+      uuid: String(row?.uuid || row?.badge_uuid || ''),
+      optionId: String(row?.option_id ?? row?.source_option_id ?? ''),
+      status: String(row?.status || row?.action || '').toLowerCase(),
+      permissions: permissionIds(row?.permissions),
+      message: text(row?.message) || text(row?.error) || text(row?.detail) || text(row?.detail?.error) || text(row?.detail?.reason),
     })),
     retry: data?.retry ? { checked: count(data.retry.checked), resolved: count(data.retry.resolved) } : null,
   };
