@@ -1,4 +1,5 @@
 import { toggleId } from '../domain/attendeeFilters';
+import AttendeeSearchFilters from './AttendeeSearchFilters';
 import MeetingCountFilters from './MeetingCountFilters';
 
 function TypeChips({ types, loading, selected, onToggle }) {
@@ -52,6 +53,8 @@ export default function MeetingAttendeesFilters({
           onToggle={(id) => onPatch({ attendeeTypeIds: toggleId(draft.attendeeTypeIds, id) })}
         />
       </div>
+
+      <AttendeeSearchFilters draft={draft} onPatch={onPatch} />
 
       <MeetingCountFilters draft={draft} onPatch={onPatch} />
 

@@ -5,8 +5,8 @@ import { EMPTY_FILTERS } from '../constants';
 
 /** Draft filters are edited freely; Apply copies them to `applied` and loads page 1. */
 export function useMeetingAttendees({ eventId, token, onUnauthorized, initialFilters = null }) {
-  const [draft, setDraft] = useState(initialFilters || EMPTY_FILTERS);
-  const [applied, setApplied] = useState(initialFilters);
+  const [draft, setDraft] = useState(initialFilters ? { ...EMPTY_FILTERS, ...initialFilters } : EMPTY_FILTERS);
+  const [applied, setApplied] = useState(initialFilters ? { ...EMPTY_FILTERS, ...initialFilters } : null);
   const [page, setPage] = useState(1);
   const [formError, setFormError] = useState('');
   const [loaded, setLoaded] = useState({ key: '', result: null, error: '' });

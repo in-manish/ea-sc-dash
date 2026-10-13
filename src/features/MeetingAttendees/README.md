@@ -37,6 +37,7 @@ Specific people (`uuids`) win over `send_to_all`; the API returns 400 if neither
 | `hooks/useSendMeetingAttendeeEmail.js` | POST send, in-flight guard |
 | `ui/MeetingAttendeesTab.jsx` | Page compose |
 | `ui/MeetingAttendeesFilters.jsx` | Type chips, email-only |
+| `ui/AttendeeSearchFilters.jsx` | Search box plus exact fields (attendee ID, UID, reg ID, email, company name, company ID) |
 | `ui/MeetingCountFilters.jsx` | At least / at most for each meeting count |
 | `ui/MeetingAttendeesTable.jsx` / `MeetingAttendeesPager.jsx` | Rows with checkboxes, paging |
 | `ui/MeetingAttendeesSelectionBar.jsx` | Selected count, select all matching, Send email |

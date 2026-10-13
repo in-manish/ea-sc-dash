@@ -1,4 +1,6 @@
-import { COUNT_FILTERS, PAGE_SIZE } from '../constants';
+import { COUNT_FILTERS, LOOKUP_FILTERS, PAGE_SIZE, SEARCH_KEY } from '../constants';
+
+const ID_LIST = /^\d+(\s*,\s*\d+)*$/;
 
 function countOrNull(value) {
   if (value === '' || value == null) return null;
@@ -16,6 +18,12 @@ export function buildFilterBody(filters) {
     if (max !== null) body[`${apiPrefix}_max`] = max;
   });
   if (filters.hasEmail) body.has_email = true;
+  const search = (filters[SEARCH_KEY] || '').trim();
+  if (search) body.search = search;
+  LOOKUP_FILTERS.forEach(({ key, param, numbers }) => {
+    const text = (filters[key] || '').trim();
+    if (text) body[param] = numbers ? text.replace(/\s+/g, '') : text;
+  });
   return body;
 }
 
@@ -31,6 +39,10 @@ export function buildListQuery(filters, page) {
 
 export function validateFilters(filters) {
   if (filters.attendeeTypeIds.length === 0) return 'Select at least one attendee type.';
+  for (const { key, label, numbers } of LOOKUP_FILTERS) {
+    const text = (filters[key] || '').trim();
+    if (numbers && text && !ID_LIST.test(text)) return `${label} must be a number (or numbers separated by commas).`;
+  }
   for (const { key, label } of COUNT_FILTERS) {
     const min = countOrNull(filters[`${key}Min`]);
     const max = countOrNull(filters[`${key}Max`]);

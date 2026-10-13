@@ -11,7 +11,26 @@ export const COUNT_FILTERS = [
   { key: 'declined', apiPrefix: 'declined', field: 'declined_meetings_count', label: 'Declined' },
 ];
 
+// Search box plus exact lookups. `key` is the filter name, `param` the API param. `numbers` fields take one id or a comma list.
+export const SEARCH_KEY = 'search';
+export const LOOKUP_FILTERS = [
+  { key: 'badgeId', param: 'badge_id', label: 'Attendee ID', placeholder: 'e.g. 1042 or 1042, 1043', numbers: true },
+  { key: 'uuid', param: 'uuid', label: 'Attendee UID', placeholder: 'Full UID' },
+  { key: 'regId', param: 'reg_id', label: 'Reg ID', placeholder: 'Full reg ID' },
+  { key: 'email', param: 'email', label: 'Email', placeholder: 'Part of the email' },
+  { key: 'company', param: 'company', label: 'Company name', placeholder: 'Part of the name' },
+  {
+    key: 'companyId',
+    param: 'company_id',
+    label: 'Company ID',
+    placeholder: 'Exhibitors only',
+    numbers: true,
+  },
+];
+
+const EMPTY_TEXT = LOOKUP_FILTERS.reduce((all, { key }) => ({ ...all, [key]: '' }), { [SEARCH_KEY]: '' });
+
 export const EMPTY_FILTERS = COUNT_FILTERS.reduce(
   (filters, { key }) => ({ ...filters, [`${key}Min`]: '', [`${key}Max`]: '' }),
-  { attendeeTypeIds: [], hasEmail: false },
+  { attendeeTypeIds: [], hasEmail: false, ...EMPTY_TEXT },
 );

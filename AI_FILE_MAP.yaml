@@ -725,6 +725,7 @@ tasks:
       - src/features/MeetingAttendees/hooks/useAttendeeSelection.js
       - src/features/MeetingAttendees/hooks/useEmailTemplateOptions.js
       - src/features/MeetingAttendees/hooks/useSendMeetingAttendeeEmail.js
+      - src/features/MeetingAttendees/ui/AttendeeSearchFilters.jsx
       - src/features/MeetingAttendees/ui/MeetingAttendeesTab.jsx
       - src/features/MeetingAttendees/ui/SendEmailModal.jsx
       - src/features/MeetingAttendees/ui/TemplatePicker.jsx
