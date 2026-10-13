@@ -30,6 +30,16 @@ const EVENT_INFO = {
     calc: 'Count of meetings with a known receiver.',
     example: '5 requests to 3 people → 5.',
   },
+  meeting_requests_pending_sent: {
+    meaning: 'Requests at this event still waiting for an answer.',
+    calc: 'Meetings with status Requested or Rescheduled that have a known sender.',
+    example: '4 requests, 1 accepted → 3.',
+  },
+  meeting_requests_pending_received: {
+    meaning: 'Requests at this event still waiting for an answer.',
+    calc: 'Meetings with status Requested or Rescheduled that have a known receiver.',
+    example: '4 requests, 1 declined → 3.',
+  },
   confirmed_meetings: {
     meaning: 'Meetings that were accepted.',
     calc: 'Distinct meetings with status Accepted, counted once per event.',
@@ -63,6 +73,16 @@ const TYPE_INFO = {
     calc: 'Count of meetings where the receiver is this attendee type.',
     example: '',
   },
+  meeting_requests_pending_sent: {
+    meaning: 'Requests sent by this type that are still waiting for a reply.',
+    calc: 'Status Requested or Rescheduled, by the latest sender. Accepted, declined and cancelled are not counted.',
+    example: 'Exhibitor sends 3 requests, 1 accepted → 2.',
+  },
+  meeting_requests_pending_received: {
+    meaning: 'Requests this type still has to answer.',
+    calc: 'Status Requested or Rescheduled, by the latest receiver. Once accepted, declined or cancelled it is not counted.',
+    example: '10 requests to an exhibitor, 4 answered → 6.',
+  },
   confirmed_meetings: {
     meaning: 'Accepted meetings involving this type.',
     calc: 'Counted once per type touching the meeting (same type on both sides → once).',
@@ -82,6 +102,8 @@ const COLUMNS = [
   { key: 'active_users', label: 'Active Users', numeric: true },
   { key: 'meeting_requests_sent', label: 'Meeting Requests Sent', numeric: true },
   { key: 'meeting_requests_received', label: 'Meeting Requests Received', numeric: true },
+  { key: 'meeting_requests_pending_sent', label: 'Pending Sent', numeric: true },
+  { key: 'meeting_requests_pending_received', label: 'Pending Received', numeric: true },
   { key: 'confirmed_meetings', label: 'Confirmed Meetings', numeric: true },
 ];
 
@@ -91,6 +113,8 @@ const ATTENDEE_TYPE_COLUMNS = [
   { key: 'active_users', label: 'Active Users', numeric: true },
   { key: 'meeting_requests_sent', label: 'Meeting Requests Sent', numeric: true },
   { key: 'meeting_requests_received', label: 'Meeting Requests Received', numeric: true },
+  { key: 'meeting_requests_pending_sent', label: 'Pending Sent', numeric: true },
+  { key: 'meeting_requests_pending_received', label: 'Pending Received', numeric: true },
   { key: 'confirmed_meetings', label: 'Confirmed Meetings', numeric: true },
 ];
 

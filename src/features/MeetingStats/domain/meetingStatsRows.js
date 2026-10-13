@@ -41,6 +41,8 @@ export function normalizeMeetingStats(payload) {
       active_users: group.active_users,
       meeting_requests_sent: group.meeting_requests_sent,
       meeting_requests_received: group.meeting_requests_received,
+      meeting_requests_pending_sent: group.meeting_requests_pending_sent,
+      meeting_requests_pending_received: group.meeting_requests_pending_received,
       confirmed_meetings: group.confirmed_meetings,
       ...(Object.prototype.hasOwnProperty.call(group, 'unique_confirmed_participants')
         ? { unique_confirmed_participants: group.unique_confirmed_participants }

@@ -36,7 +36,7 @@ Organizer report of meeting stats grouped by event × attendee type.
 - `event_ids` is required (≥1); picker defaults to the current event; Select all / This event only
 - Contractor events, attendee types, and report rows are hidden
 - Sender/receiver type name filters (case-insensitive); both sides set uses AND; same-side names union with IDs
-- Bind `attendee_type` (not `attendee_category`); show `meeting_requests_sent` and `meeting_requests_received`
+- Bind `attendee_type` (not `attendee_category`); show `meeting_requests_sent` and `meeting_requests_received`, plus `meeting_requests_pending_sent` / `meeting_requests_pending_received` (requests still waiting: status Requested or Rescheduled; shown as '—' when the API does not send them)
 - `unique_participants` defaults true; when false the unique column is omitted
 - Cache is per filter set (10 min); `refresh=true` forces a recompute
 - Email report: 5s cooldown after send; success uses themed alert (`msg` or “Email sent”)
