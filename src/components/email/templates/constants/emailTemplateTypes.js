@@ -17,12 +17,45 @@ function badgeType(value, label) {
   };
 }
 
+const MEETING_PLACEHOLDERS = [
+  'user_name',
+  'name',
+  'company_name',
+  'event_name',
+  'pending_requests_count',
+  'pending_sent_count',
+  'confirmed_meetings_count',
+  'declined_meetings_count',
+  'pending_company_names_text',
+  'pending_company_names_more',
+];
+
+// Starter for emails sent from Meetings → Meeting Attendees. Any type slug that starts with
+// `meeting_` gets this starter, so each attendee type can have its own template.
+export const MEETING_TEMPLATE_TYPE = {
+  value: 'meeting_pending_requests',
+  label: 'Meeting requests reminder',
+  group: 'Meeting',
+  description:
+    'Not automatic. Sent when an organizer emails attendees from Meetings → Meeting Attendees. Only one template per type per event: for another attendee type, create a custom type that starts with meeting_ (for example meeting_pending_requests_exhibitor).',
+  email_name: 'Meeting requests reminder',
+  subject: '{{user_name}}, you have {{pending_requests_count}} meeting request(s) on {{event_name}}',
+  placeholders: MEETING_PLACEHOLDERS,
+  body: [
+    '<p>Hi {{user_name}},</p>',
+    '<p>You have {{pending_requests_count}} meeting request(s) waiting for your reply at {{event_name}}.</p>',
+    '{% if pending_company_names_text %}<p>Requests from: {{pending_company_names_text}}',
+    '{% if pending_company_names_more %} and {{pending_company_names_more}} more{% endif %}.</p>{% endif %}',
+    '<p>Confirmed meetings so far: {{confirmed_meetings_count}}.</p>',
+  ].join(''),
+};
+
 export const EMAIL_TEMPLATE_TYPES = [
   {
     value: 'exhibitor_attendee_added_welcome',
     label: 'Exhibitor attendee added welcome',
     group: 'Exhibitor',
-    description: 'Sent when a non-POC exhibitor attendee is created with an email.',
+    description: 'Automatic. Sent when a non-POC exhibitor attendee is added with an email. Used by the live welcome flow, so avoid reusing it for other mailings.',
     email_name: 'Exhibitor attendee added welcome',
     subject: "You've been added to {{event_name}}",
     placeholders: [
@@ -37,6 +70,16 @@ export const EMAIL_TEMPLATE_TYPES = [
       '<p>You have been added as an exhibitor attendee for {{event_name}} representing {{company_name}}.</p>',
       '<p>Complimentary trade visitor invite: {{invitee_trade_visitor_link}}</p>',
     ].join(''),
+  },
+  {
+    value: 'exhibitor_action_email',
+    label: 'Exhibitor action email',
+    group: 'Exhibitor',
+    description:
+      'Not automatic. Sent only when triggered (per exhibitor attendee), e.g. to ask exhibitors to share their invite link and promote their participation. Use {{company_id}} for the exh_id in links.',
+    email_name: 'Exhibitor action email',
+    subject: '{{event_name}}: invite your contacts and promote your participation',
+    placeholders: ['name', 'email', 'event_name', 'company_name', 'company_id'],
   },
   {
     value: 'password_msg_for_exhibitor_poc',
@@ -56,6 +99,7 @@ export const EMAIL_TEMPLATE_TYPES = [
     subject: '{{event_name}} co-exhibitor portal login',
     placeholders: [...POC_PLACEHOLDERS, 'parent_exhibitor_name'],
   },
+  MEETING_TEMPLATE_TYPE,
   badgeType('badge_msg_for_visitor', 'Visitor badge'),
   badgeType('badge_msg_for_non_visitor', 'Non-visitor badge'),
   badgeType('badge_msg_for_vip', 'VIP badge'),
@@ -66,7 +110,7 @@ export const EMAIL_TEMPLATE_TYPES = [
   badgeType('badge_msg_for_vip_buyer', 'VIP buyer badge'),
 ];
 
-export const EMAIL_TEMPLATE_TYPE_GROUPS = ['Exhibitor', 'Badge'];
+export const EMAIL_TEMPLATE_TYPE_GROUPS = ['Exhibitor', 'Meeting', 'Badge'];
 
 export function getEmailTemplateType(value) {
   return EMAIL_TEMPLATE_TYPES.find((item) => item.value === value) || null;

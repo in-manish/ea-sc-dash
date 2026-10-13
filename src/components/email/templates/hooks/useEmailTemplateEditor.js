@@ -14,8 +14,11 @@ export default function useEmailTemplateEditor({ eventId, token, refetch }) {
   const [isSaving, setIsSaving] = useState(false);
   const [typePickerOpen, setTypePickerOpen] = useState(false);
 
+  // A new template created for a known type, or for a meeting_ type, keeps its type slug.
   const typeLocked = Boolean(
-    previewTemplate?.isNew && isKnownEmailTemplateType(editFormData.template_type),
+    previewTemplate?.isNew
+      && (isKnownEmailTemplateType(editFormData.template_type)
+        || String(editFormData.template_type || '').startsWith('meeting_')),
   );
 
   const handleViewTemplate = async (template) => {
