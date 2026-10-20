@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import WhatsAppConfig from '../features/WhatsApp';
 import EmailConfig from '../components/EmailConfig';
-import { MessageSquare, Mail } from 'lucide-react';
+import { SponsorPromoPage } from '../features/SponsorPromo';
+import { MessageSquare, Mail, Ticket } from 'lucide-react';
 
 const Communication = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -42,10 +43,21 @@ const Communication = () => {
                     <Mail size={16} />
                     Email
                 </button>
+                <button
+                    className={`px-4 py-2 font-bold text-sm flex items-center gap-2 border-b-2 transition-all ${activeTab === 'promo'
+                        ? 'border-accent text-accent bg-bg-primary rounded-t-lg shadow-sm'
+                        : 'border-transparent text-text-tertiary hover:text-text-secondary hover:bg-bg-tertiary rounded-t-lg'
+                        }`}
+                    onClick={() => handleTabChange('promo')}
+                >
+                    <Ticket size={16} />
+                    Promo Codes
+                </button>
             </div>
 
             {activeTab === 'whatsapp' && <WhatsAppConfig />}
             {activeTab === 'email' && <EmailConfig />}
+            {activeTab === 'promo' && <SponsorPromoPage />}
         </div>
     );
 };

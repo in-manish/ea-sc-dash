@@ -1,4 +1,5 @@
 import { COMPANY_KINDS } from './companyFormDefaults';
+import { boostScopeList } from './companyBoost';
 
 function linkFromForm(form) {
   return {
@@ -44,13 +45,20 @@ export function buildCompanyPatchFormData(form, initial) {
     appendIfChanged(data, 'parent_exhibitor', form.parent_exhibitor, initial.parent_exhibitor);
   }
 
-  ['space', 'badge_limit', 'meeting_diary_limit', 'sponsor_rank'].forEach((key) => {
+  ['space', 'badge_limit', 'meeting_diary_limit', 'sponsor_rank', 'boost_rank'].forEach((key) => {
     const cur = String(form[key] ?? '').trim();
     const orig = String(initial[key] ?? '').trim();
     if (cur !== orig && (cur !== '' || orig !== '')) {
       data.append(key, cur);
     }
   });
+
+  // send boost_scope only when it changed
+  // sent as a JSON list because product names can contain commas
+  const curScope = boostScopeList(form.boost_scope);
+  if (JSON.stringify(curScope) !== JSON.stringify(boostScopeList(initial.boost_scope))) {
+    data.append('boost_scope', JSON.stringify(curScope));
+  }
 
   if (form.is_badge_printed !== initial.is_badge_printed) {
     data.append('is_badge_printed', form.is_badge_printed ? 'true' : 'false');

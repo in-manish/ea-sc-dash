@@ -54,6 +54,7 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `domain/parseHandoverDetails.js` | Normalize handover JSON (object or string) |
 | `domain/companyFormDefaults.js` | Empty form + validation |
 | `domain/sponsorRank.js` | Positive integer `sponsor_rank` (edit + list highlight) |
+| `domain/companyBoost.js` | `boost_scope` text <-> list helpers and the list chip label |
 | `domain/setupChecklistHelpers.js` | Step sort, urgency chips, portal_route → organizer path |
 | `hooks/useCreateCompany.js` | Create form submit |
 | `hooks/useEditCompany.js` | Load + patch submit |
@@ -125,6 +126,7 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `ui/CompanyProductSelectFields.jsx` | Edit: multi-select + setup Product question CTA |
 | `ui/ProductMatchmakingPanel.jsx` | Exhibitors → Product Matchmaking (grouped listing / create) |
 | `ui/SponsorRankField.jsx` | Sponsored company rank at the top of edit |
+| `ui/BoostRankField.jsx` | Boost rank + boost scope: selected pills (removable), product chips, category chips (NTO/STB/INTL/NTL) and add-your-own |
 | `ui/EditCompanyLimitsFields.jsx` | Limits / status (edit only) |
 | `ui/ParentCompanySearch.jsx` | Parent exhibitor typeahead |
 
@@ -171,6 +173,7 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 - Booleans as `"true"` / `"false"`.
 - Logo: new file → upload; remove checkbox → empty `company_logo`; unchanged → omit field.
 - `sponsor_rank`: optional positive whole number at the top of edit (Sponsored company). Blank clears it. `0`, negatives, and decimals are rejected.
+- `boost_rank` / `boost_scope`: boost a company to the top of the exhibitor list API. Rank is a positive whole number (blank clears). Scope is a list of products/categories shown as pills (empty = every listing); sent as a JSON list because product names can contain commas. Both are sent only when changed.
 
 ## Exhibitor list sort
 
@@ -179,11 +182,14 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 - Defaults: `space` / `desc`. Invalid `sort_by` → 404
 - Ignored when `q` is set (relevance) or `is_featured=true` with no `q` (rank then name)
 - Find bar (search + Filter + Sort) sits immediately above the table; Sort is one control (`Sort: Stall ↓`); column headers still sort Company / Details / Stall with an indicator only on the active column
+- Product filter: multi-select chips in the Filter drawer (options = event's matchmaking Product question). Sent as one `product=` param per value (names can contain commas); a company matches if it has any selected product. Kept in the URL as repeated `product=`.
+- Boosted filter: `boosted=true` lists only companies with a `boost_rank` (ordered by rank); `false` lists the rest.
 - Applied filters show as dismissible chips; Filter (N) opens the existing drawer
 - Operational actions live in **Actions** (grouped Checklist / Selected / All parent exhibitors) with confirmation; **N selected · Clear selection** on the same row as Actions when rows are checked
 - Row **⋯** menu: view, edit, reset POC password, lock/unlock parent, feature/rank
 - Details column shows OBF, space (number), and sales person
-- A positive integer `sponsor_rank` paints the row yellow and shows a Sponsor #N chip. `0`, blank, and non-integers stay the usual exhibitor / co-exhibitor colors
+- Products column (after Category) shows the company's products as small pills (first 3, then "+N more"; hover for all)
+- A positive integer `sponsor_rank` paints the row yellow and shows a Sponsor #N chip. A positive `boost_rank` shows a blue Boost #N chip (with the scope when set). `0`, blank, and non-integers stay the usual exhibitor / co-exhibitor colors
 
 ## Exhibitor Engagement
 

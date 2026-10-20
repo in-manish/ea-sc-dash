@@ -3,6 +3,7 @@ import TemplateVariablePlaceholders from './TemplateVariablePlaceholders';
 import TemplateSupportingVariables from './TemplateSupportingVariables';
 import TemplateTypeField from './TemplateTypeField';
 import InviteeTypePlaceholderForm from './InviteeTypePlaceholderForm';
+import MagicLinkFields from './MagicLinkFields';
 import useInviteeLinkPlaceholders from '../hooks/useInviteeLinkPlaceholders';
 import {
     extractPlaceholderNames,
@@ -154,6 +155,13 @@ const TemplateEditorSidebar = ({
                     </div>
                 </div>
             </div>
+
+            <MagicLinkFields
+                isEditing={isEditing}
+                editFormData={editFormData}
+                previewTemplate={previewTemplate}
+                handleEditChange={handleEditChange}
+            />
 
             <div className="mt-auto">
                 {isEditing ? (

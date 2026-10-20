@@ -3,6 +3,7 @@ import { Users, FileText } from 'lucide-react';
 import { SectionHeader, ToggleSwitch } from './components/SharedComponents';
 import EBadgeEditor from '../../components/common/EBadgeEditor';
 import EBadgeTemplateInfo from '../../components/common/EBadgeTemplateInfo';
+import AttendeePageSponsorSection from './AttendeePageSponsorSection';
 
 const AttendeeSettings = ({ eventData, handleInputChange, isFieldModified }) => {
     const handleEBadgeChange = (name, value) => {
@@ -75,7 +76,14 @@ const AttendeeSettings = ({ eventData, handleInputChange, isFieldModified }) => 
                 <EBadgeTemplateInfo />
             </div>
 
-            {/* Section 3: Registration Policy */}
+            {/* Section 3: Attendee page sponsor */}
+            <AttendeePageSponsorSection
+                eventData={eventData}
+                handleInputChange={handleInputChange}
+                isFieldModified={isFieldModified}
+            />
+
+            {/* Section 4: Registration Policy */}
             <div className="bg-bg-primary border border-border rounded-lg p-6 shadow-sm">
                 <SectionHeader icon={Users} title="Attendee Categories" colorClass="text-teal-500" borderClass="bg-teal-500" />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

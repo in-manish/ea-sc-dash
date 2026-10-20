@@ -122,6 +122,9 @@ const EventSettings = () => {
         if (fieldName === 'show_hours') {
             return JSON.stringify(eventData.show_hours || {}) !== JSON.stringify(originalEventData.show_hours || {});
         }
+        if (fieldName === 'attendee_page_sponsor_detail') {
+            return JSON.stringify(eventData.attendee_page_sponsor_detail || {}) !== JSON.stringify(originalEventData.attendee_page_sponsor_detail || {});
+        }
         if (typeof eventData[fieldName] === 'boolean' || typeof originalEventData[fieldName] === 'boolean') {
             return !!eventData[fieldName] !== !!originalEventData[fieldName];
         }

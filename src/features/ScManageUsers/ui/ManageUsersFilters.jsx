@@ -55,6 +55,18 @@ export default function ManageUsersFilters({
         {showAdvancedFilters && (
           <div className="mt-6 pt-6 border-t border-border grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in">
             <div className="input-group">
+              <label className="input-label">User ID</label>
+              <input
+                type="text"
+                inputMode="numeric"
+                name="id"
+                value={filters.id}
+                onChange={onChange}
+                className="input-field"
+                placeholder="Exact user id..."
+              />
+            </div>
+            <div className="input-group">
               <label className="input-label">Name Filter</label>
               <input type="text" name="name" value={filters.name} onChange={onChange} className="input-field" placeholder="Case-insensitive name..." />
             </div>

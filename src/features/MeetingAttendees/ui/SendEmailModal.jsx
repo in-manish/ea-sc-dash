@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Loader2, Mail, X } from 'lucide-react';
 import { DEFAULT_MAX_COMPANIES } from '../constants';
-import { defaultTemplateChoices } from '../domain/meetingTemplates';
+import { defaultTemplateChoices, templatesByAttendeeType } from '../domain/meetingTemplates';
 import { missingTemplateTypeIds } from '../domain/sendPayload';
 import SendEmailPickStep from './SendEmailPickStep';
 import SendEmailReviewStep from './SendEmailReviewStep';
@@ -10,9 +10,17 @@ import SendEmailReviewStep from './SendEmailReviewStep';
 export default function SendEmailModal({ types, templateState, recipientCount, selectAll, sending, error, onSend, onClose, onCreateTemplate }) {
   const [step, setStep] = useState('pick');
   const [picked, setPicked] = useState({});
+  const [modeChoice, setModeChoice] = useState(null);
+  const [commonId, setCommonId] = useState('');
   const [maxCompanies, setMaxCompanies] = useState(DEFAULT_MAX_COMPANIES);
   const defaults = useMemo(() => defaultTemplateChoices(types, templateState.templates), [types, templateState.templates]);
-  const templateByType = { ...defaults, ...picked };
+  // Until the admin chooses, start with one shared template when some type has none of its own.
+  const ownTemplates = useMemo(() => templatesByAttendeeType(types, templateState.templates), [types, templateState.templates]);
+  const someTypeHasNone = types.some((type) => !ownTemplates[type.id]);
+  const mode = types.length < 2 ? 'perType' : modeChoice || (someTypeHasNone ? 'common' : 'perType');
+  const templateByType = mode === 'common'
+    ? (commonId ? Object.fromEntries(types.map((type) => [type.id, commonId])) : {})
+    : { ...defaults, ...picked };
   const missing = missingTemplateTypeIds(types.map((type) => type.id), templateByType);
 
   return (
@@ -35,7 +43,9 @@ export default function SendEmailModal({ types, templateState, recipientCount, s
               loadError={templateState.error}
               choices={templateByType}
               onPickTemplate={(typeId, id) => setPicked((prev) => ({ ...prev, [typeId]: id }))}
-              onPickForAll={(id) => setPicked(Object.fromEntries(types.map((type) => [type.id, id])))}
+              mode={mode}
+              onMode={setModeChoice}
+              onPickCommon={setCommonId}
               onCreateTemplate={onCreateTemplate}
               maxCompanies={maxCompanies}
               onMaxCompanies={setMaxCompanies}

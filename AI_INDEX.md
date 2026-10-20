@@ -34,6 +34,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Matchmaking | `src/features/Matchmaking/` | GET 404 = create/copy; 200 = editor only; tabs `?tab=questions|exhibitor|mapping|backfill` |
 | MeetingStats | `src/features/MeetingStats/` | Organizer meeting stats by event × attendee type (GET) + email CSV (POST) |
 | MeetingAttendees | `src/features/MeetingAttendees/` | Meetings → Meeting Attendees tab (`?tab=attendees`): attendees with pending / confirmed meeting counts, select people or all matching, send email from templates (one per attendee type) |
+| SponsorPromo | `src/features/SponsorPromo/` | Communication → Promo Codes tab (`?tab=promo`): sponsor pools, CSV code import, `{{slug.promotional_code}}` email token |
 | Visiq | `src/features/Visiq/` | Tenant subscriber CRM: list/detail + CSV/Excel import jobs |
 | AiPresets | `src/features/AiPresets/` | Organizer AI system prompt presets; matchmaking `mm_seeking_mapper` catalog preview at `/event/:id/ai/preview` |
 | ChatReminder | `src/features/ChatReminder/` | Tenant unread meeting-chat reminder config on Settings → Meeting Diary |
@@ -44,6 +45,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Task | Start here |
 |------|------------|
 | Event settings / theme color | `src/pages/event-settings/ThemeColorCodeField.jsx` (`theme_color_code`) |
+| Event settings / attendee page sponsor | `src/pages/event-settings/AttendeePageSponsorSection.jsx` + `domain/attendeePageSponsorDetail.js` (`attendee_page_sponsor_detail`: title, background_image, website + any other keys as JSON; Attendees tab) |
 | Event settings / support email | `src/pages/event-settings/CommunicationSettings.jsx` (`support_email`) |
 | Event settings / sender profile pic | `src/pages/event-settings/SenderDefaultProfilePicField.jsx` (`sender_default_profile_pic`) |
 | Event settings / branding images | `src/pages/event-settings/EventBrandingImages.jsx` + `EventImageUploadField.jsx` (`/event/:id/settings?tab=images`); size/dimensions + green **Web optimized** chip; **Edit image** opens the crop modal on the current file/URL; `domain/eventImageFields.js` (`meta_logo` first, then `logo`, `logo2`, …) `editorConfig` |

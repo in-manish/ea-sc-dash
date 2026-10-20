@@ -84,6 +84,11 @@ export const companyApi = {
     if (search) params.set('q', search);
     Object.entries(filters).forEach(([key, value]) => {
       if (value === '' || value == null) return;
+      if (key === 'product' && Array.isArray(value)) {
+        // one param per product: names can contain commas
+        value.forEach((v) => params.append(key, v));
+        return;
+      }
       params.set(key, Array.isArray(value) ? value.join(',') : String(value));
     });
     const response = await fetch(
@@ -177,6 +182,23 @@ export const companyApi = {
   async resetExhibitorPassword(eventId, token, payload) {
     const response = await fetch(
       `${getApiUrl()}/events/${eventId}/exhibitor/password/reset/`,
+      {
+        method: 'POST',
+        headers: { ...authHeaders(token), 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      },
+    );
+    if (!response.ok) await throwParsed(response);
+    return response.json().catch(() => ({}));
+  },
+
+  /**
+   * POST /events/:eventId/exhibitor/poc/
+   * Makes the given exhibitor badge the company POC (previous POC is unlinked).
+   */
+  async changeExhibitorPoc(eventId, token, payload) {
+    const response = await fetch(
+      `${getApiUrl()}/events/${eventId}/exhibitor/poc/`,
       {
         method: 'POST',
         headers: { ...authHeaders(token), 'Content-Type': 'application/json' },

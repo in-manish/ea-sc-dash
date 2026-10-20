@@ -1,5 +1,6 @@
 import { X } from 'lucide-react';
 import ExhibitorFilterFields from './ExhibitorFilterFields';
+import { useMatchmakingProductOptions } from '../hooks/useMatchmakingProductOptions';
 
 export default function ExhibitorFilterDrawer({
   isOpen,
@@ -8,7 +9,12 @@ export default function ExhibitorFilterDrawer({
   setFilters,
   onReset,
   onPageReset,
+  eventId,
+  token,
 }) {
+  const { options: productOptions, loading: productOptionsLoading } =
+    useMatchmakingProductOptions(eventId, token, Boolean(isOpen && eventId && token));
+
   return (
     <div
       className={`fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[1100] transition-opacity duration-300 ${
@@ -38,6 +44,8 @@ export default function ExhibitorFilterDrawer({
             filters={filters}
             setFilters={setFilters}
             onPageReset={onPageReset}
+            productOptions={productOptions}
+            productOptionsLoading={productOptionsLoading}
           />
         </div>
 

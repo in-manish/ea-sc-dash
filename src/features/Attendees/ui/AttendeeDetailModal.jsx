@@ -3,9 +3,11 @@ import { formatDetailValue, getGroupedFields, needsScSync } from '../domain/atte
 import {
   canResetExhibitorPortalPassword,
   isExhibitorAttendee,
+  singleSelectedChangePocCandidate,
 } from '../domain/exhibitorPoc';
 import { exhibitorPasswordResetPayload } from '../../Companies/domain/exhibitorPasswordResetPayload';
 import ExhibitorPasswordResetControl from '../../Companies/ui/ExhibitorPasswordResetControl';
+import ChangeExhibitorPocControl from './ChangeExhibitorPocControl';
 
 const AttendeeDetailModal = ({
     attendee,
@@ -21,6 +23,7 @@ const AttendeeDetailModal = ({
     onEdit,
     eventId,
     token,
+    onPocChanged,
 }) => {
     if (!attendee) return null;
 
@@ -125,6 +128,14 @@ const AttendeeDetailModal = ({
                             description="Resets the exhibitor portal password for this POC."
                             buttonClassName="btn btn-secondary flex items-center gap-2 disabled:opacity-50"
                             disabledTitle="Only an exhibitor or co-exhibitor POC can reset the portal password"
+                        />
+                    )}
+                    {singleSelectedChangePocCandidate([attendee], 'selected') && eventId && token && (
+                        <ChangeExhibitorPocControl
+                            eventId={eventId}
+                            token={token}
+                            attendee={attendee}
+                            onChanged={onPocChanged}
                         />
                     )}
                     {needsScSync(attendee) && (

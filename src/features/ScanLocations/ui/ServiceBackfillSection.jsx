@@ -67,6 +67,9 @@ export default function ServiceBackfillSection({ eventId, codes, formValue, extr
             {otm.loading === 'purchases' ? <Loader2 size={14} className="animate-spin" /> : null}
             Fetch purchases from SurveyJS
           </button>
+          {String(extraQuery || '').trim() ? (
+            <span className="text-xs text-text-secondary break-all">Sends {String(extraQuery).trim()}</span>
+          ) : null}
           {otm.loading === 'purchases' ? <PurchaseFetchProgress progress={otm.purchaseProgress} /> : null}
           {otm.loading !== 'purchases' && fetched ? (
             <>

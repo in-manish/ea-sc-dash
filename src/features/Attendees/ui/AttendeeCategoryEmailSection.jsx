@@ -10,16 +10,19 @@ export default function AttendeeCategoryEmailSection({
     onToggle,
     onToggleExpand,
     disabled,
+    title = 'Categories Email',
+    loadingText = 'Loading category emails...',
+    emptyText = 'No category emails saved for this event.',
 }) {
     return (
         <div className="pt-3">
             <h3 className="text-[11px] font-semibold uppercase tracking-wide text-text-tertiary px-1 mb-1">
-                Categories Email
+                {title}
             </h3>
             {loading && (
                 <div className="flex items-center gap-2 py-6 px-1 text-text-tertiary text-sm">
                     <Loader2 className="animate-spin text-accent" size={18} />
-                    Loading category emails...
+                    {loadingText}
                 </div>
             )}
             {error && (
@@ -33,7 +36,7 @@ export default function AttendeeCategoryEmailSection({
             {!loading && !error && emails.length === 0 && (
                 <div className="text-sm text-text-secondary py-4 px-1 flex items-start gap-2">
                     <Mail size={16} className="text-text-tertiary mt-0.5 shrink-0" />
-                    <span>No category emails saved for this event.</span>
+                    <span>{emptyText}</span>
                 </div>
             )}
             {!loading && !error && emails.map((email) => (

@@ -11,7 +11,7 @@ SC admin Manage Users.
 | `ui/UserDetailsCardsSection.jsx` | Lower Saved / Pending / Activity tabs |
 | `ui/UserProfileEditForm.jsx` | Edit mode on detail page |
 | `ui/UserCardsSection.jsx` | Cards tab bodies + delete confirm |
-| `ui/ManageUsersFilters.jsx` | Search + filters |
+| `ui/ManageUsersFilters.jsx` | Search + filters (name, email, phone, role, user id) |
 | `ui/ManageUsersResultsTable.jsx` | List table → navigates to detail |
 | `ui/SavedCardsTab.jsx` | Active / Archived saved contacts |
 | `ui/SavedCardsScopeToggle.jsx` | Active ↔ Archived switch |
@@ -26,6 +26,10 @@ SC admin Manage Users.
 | `hooks/*` | List + cards data hooks |
 | `api/userCardsApi.js` | Admin cards / pending / activity APIs |
 | `domain/savedCardHelpers.js` | card_id, delete reason labels, dates (en-IN/IST) |
+
+## Users list API
+
+`GET /evc/admin/users/` — `search`, `id` (exact), `name`, `email`, `phone_number`, `role`, verification flags, `limit`, `offset`.
 
 ## Saved cards API
 

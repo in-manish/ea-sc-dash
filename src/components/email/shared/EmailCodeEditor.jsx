@@ -1,9 +1,14 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { AlertTriangle, Sparkles } from 'lucide-react';
 import {
   highlightEscapedHtml,
   placeholderAtIndex,
   PLACEHOLDER_HIGHLIGHT_CSS,
 } from './placeholderHighlight';
+import {
+  highlightTemplateCode,
+  TEMPLATE_CODE_HIGHLIGHT_CSS,
+} from './highlightTemplateCode';
 
 export default function EmailCodeEditor({
   value,
@@ -20,8 +25,25 @@ export default function EmailCodeEditor({
   const caretRef = useRef({ start: 0, end: 0 });
   const valueRef = useRef(value);
   valueRef.current = value;
-  const html = highlightEscapedHtml(value, highlightName, tokenRe);
+  const [syntaxHighlight, setSyntaxHighlight] = useState(true);
   const interactive = Boolean(onHover || onToggle);
+  // Display-only: this never touches `value`/`onChange`, so a bug here can at
+  // worst mis-paint the preview — it can never corrupt the saved content.
+  const { html, issues } = useMemo(() => {
+    if (!syntaxHighlight)
+      return {
+        html: highlightEscapedHtml(value, highlightName, tokenRe),
+        issues: [],
+      };
+    try {
+      return highlightTemplateCode(value, { highlightName, tokenRe });
+    } catch {
+      return {
+        html: highlightEscapedHtml(value, highlightName, tokenRe),
+        issues: [],
+      };
+    }
+  }, [value, highlightName, tokenRe, syntaxHighlight]);
 
   useEffect(() => {
     if (!insertRef) return undefined;
@@ -98,12 +120,37 @@ export default function EmailCodeEditor({
   }
 
   return (
-    <div className="flex-1 p-4 bg-gray-50">
+    <div className="flex-1 p-4 bg-gray-50 flex flex-col gap-2 overflow-hidden">
       <style>{PLACEHOLDER_HIGHLIGHT_CSS}</style>
-      <div className="relative h-full min-h-[500px]">
+      <style>{TEMPLATE_CODE_HIGHLIGHT_CSS}</style>
+      <div className="flex items-center gap-2 shrink-0">
+        <button
+          type="button"
+          onClick={() => setSyntaxHighlight((on) => !on)}
+          title="Toggle HTML/Jinja syntax highlighting"
+          className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border inline-flex items-center gap-1.5 ${
+            syntaxHighlight
+              ? 'bg-accent/10 border-accent/30 text-accent'
+              : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-100'
+          }`}
+        >
+          <Sparkles size={12} />
+          Highlight
+        </button>
+        {syntaxHighlight && issues.length > 0 ? (
+          <span
+            className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-red-50 border border-red-200 text-red-600 inline-flex items-center gap-1.5"
+            title={issues.map((issue) => issue.message).join('\n')}
+          >
+            <AlertTriangle size={12} />
+            {issues.length} Jinja {issues.length === 1 ? 'issue' : 'issues'}
+          </span>
+        ) : null}
+      </div>
+      <div className="relative flex-1 min-h-[500px]">
         <pre
           ref={preRef}
-          className="absolute inset-0 m-0 p-6 overflow-auto whitespace-pre-wrap break-words text-sm font-mono text-gray-800 bg-white border border-gray-200 rounded-xl"
+          className="ea-code-pre absolute inset-0 m-0 p-6 overflow-auto whitespace-pre-wrap break-words text-sm font-mono text-gray-800 bg-white border border-gray-200 rounded-xl"
           aria-hidden
           dangerouslySetInnerHTML={{ __html: html || ' ' }}
         />

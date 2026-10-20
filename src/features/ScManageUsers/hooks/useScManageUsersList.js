@@ -3,6 +3,7 @@ import { userService } from '../../../services/userService';
 
 const EMPTY_FILTERS = {
   search: '',
+  id: '',
   name: '',
   email: '',
   phone_number: '',
@@ -28,6 +29,7 @@ export default function useScManageUsersList(token) {
     try {
       const queryParams = { limit: pagination.limit, offset: pagination.offset };
       if (filters.search) queryParams.search = filters.search;
+      if (String(filters.id).trim()) queryParams.id = String(filters.id).trim();
       if (filters.name) queryParams.name = filters.name;
       if (filters.email) queryParams.email = filters.email;
       if (filters.phone_number) queryParams.phone_number = filters.phone_number;

@@ -5,7 +5,6 @@ export const JODIT_EMAIL_CONFIG = {
   toolbarAdaptive: false,
   enter: 'BR',
   iframe: true,
-  editHTMLDocumentMode: true,
   cleanHTML: {
     fillEmptyParagraph: false,
     replaceNBSP: false,

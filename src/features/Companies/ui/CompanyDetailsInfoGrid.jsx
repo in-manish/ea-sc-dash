@@ -4,6 +4,7 @@ import CompanyHandoverDetails from './CompanyHandoverDetails';
 import { hasHandoverSignature } from '../domain/parseHandoverDetails';
 import { buildAttendeePrefillFromCompany } from '../domain/buildAttendeePrefillFromCompany';
 import { positiveSponsorRank } from '../domain/sponsorRank';
+import { boostScopeToText } from '../domain/companyBoost';
 
 /** Existing 4 cards — company detail API only (not Overview API). */
 export default function CompanyDetailsInfoGrid({ company, eventId }) {
@@ -149,6 +150,11 @@ export default function CompanyDetailsInfoGrid({ company, eventId }) {
           <Field
             label="Sponsor rank"
             value={positiveSponsorRank(company.sponsor_rank) ?? '—'}
+          />
+          <Field label="Boost rank" value={positiveSponsorRank(company.boost_rank) ?? '—'} />
+          <Field
+            label="Boost scope"
+            value={boostScopeToText(company.boost_scope) || (company.boost_rank != null ? 'All listings' : '—')}
           />
         </div>
       </div>

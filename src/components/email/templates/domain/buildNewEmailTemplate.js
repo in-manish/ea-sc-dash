@@ -27,6 +27,8 @@ export function buildNewEmailTemplate(typeValue) {
     description: spec?.description || '',
     template_type: slug,
     is_active: true,
+    magic_link_enabled: false,
+    magic_link_single_use: 1,
     email_content: spec?.body || starterBody(placeholders),
   };
 }

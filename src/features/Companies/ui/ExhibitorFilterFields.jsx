@@ -12,12 +12,64 @@ function FilterField({ title, children }) {
 
 function setOrDelete(filters, key, value) {
   const next = { ...filters };
-  if (value) next[key] = value;
+  if (Array.isArray(value) ? value.length : value) next[key] = value;
   else delete next[key];
   return next;
 }
 
-export default function ExhibitorFilterFields({ filters, setFilters, onPageReset }) {
+function ProductFilter({ filters, setFilters, options, loading }) {
+  const selected = filters.product || [];
+  const selectedKeys = new Set(selected.map((p) => p.toLowerCase()));
+  // keep selected values that are not in the current options (e.g. from a shared link)
+  const extra = selected.filter((p) => !options.some((o) => o.toLowerCase() === p.toLowerCase()));
+  const toggle = (name) => {
+    const next = selectedKeys.has(name.toLowerCase())
+      ? selected.filter((p) => p.toLowerCase() !== name.toLowerCase())
+      : [...selected, name];
+    setFilters(setOrDelete(filters, 'product', next));
+  };
+  const all = [...options, ...extra];
+
+  return (
+    <FilterField title="Product">
+      {loading ? (
+        <p className="text-xs text-text-tertiary m-0">Loading products…</p>
+      ) : all.length === 0 ? (
+        <p className="text-xs text-text-tertiary m-0">No product options for this event.</p>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {all.map((name) => (
+            <button
+              key={name}
+              type="button"
+              onClick={() => toggle(name)}
+              className={`py-1.5 px-3 border rounded-full text-xs font-medium transition-all duration-200 ${
+                selectedKeys.has(name.toLowerCase())
+                  ? 'bg-accent text-white border-accent'
+                  : 'bg-bg-primary border-border text-text-secondary hover:border-accent hover:text-text-primary hover:bg-bg-secondary'
+              }`}
+            >
+              {name}
+            </button>
+          ))}
+        </div>
+      )}
+      {selected.length > 0 && (
+        <p className="text-xs text-text-tertiary m-0">
+          {selected.length} selected · shows companies with any of them
+        </p>
+      )}
+    </FilterField>
+  );
+}
+
+export default function ExhibitorFilterFields({
+  filters,
+  setFilters,
+  onPageReset,
+  productOptions = [],
+  productOptionsLoading = false,
+}) {
   return (
     <>
       <FilterField title="Locations">
@@ -49,6 +101,13 @@ export default function ExhibitorFilterFields({ filters, setFilters, onPageReset
           onChange={(e) => setFilters({ ...filters, category: e.target.value })}
         />
       </FilterField>
+
+      <ProductFilter
+        filters={filters}
+        setFilters={setFilters}
+        options={productOptions}
+        loading={productOptionsLoading}
+      />
 
       <FilterField title="Parent Exhibitor ID">
         <input
@@ -112,6 +171,18 @@ export default function ExhibitorFilterFields({ filters, setFilters, onPageReset
           <option value="">All</option>
           <option value="true">Featured</option>
           <option value="false">Not Featured</option>
+        </select>
+      </FilterField>
+
+      <FilterField title="Boosted">
+        <select
+          className={inputClass}
+          value={filters.boosted || ''}
+          onChange={(e) => setFilters(setOrDelete(filters, 'boosted', e.target.value))}
+        >
+          <option value="">All</option>
+          <option value="true">Boosted only</option>
+          <option value="false">Not boosted</option>
         </select>
       </FilterField>
 

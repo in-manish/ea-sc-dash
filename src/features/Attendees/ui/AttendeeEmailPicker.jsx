@@ -16,6 +16,7 @@ export default function AttendeeEmailPicker({
     onToggleBadgeEmail,
     onViewDrafts,
     categoryEmails = EMPTY_CATEGORY,
+    templateEmails = EMPTY_CATEGORY,
     sending,
 }) {
     return (
@@ -35,6 +36,20 @@ export default function AttendeeEmailPicker({
                 expandedId={categoryEmails.expandedId}
                 onToggle={categoryEmails.toggle}
                 onToggleExpand={categoryEmails.toggleExpand}
+                disabled={sending}
+            />
+            <div className="border-t border-border mt-2" />
+            <AttendeeCategoryEmailSection
+                title="Email Templates"
+                loadingText="Loading email templates..."
+                emptyText="No email templates for this event. Create one in Communication, Email, Templates."
+                emails={templateEmails.emails}
+                loading={templateEmails.loading}
+                error={templateEmails.error}
+                selectedIds={templateEmails.selectedIds}
+                expandedId={templateEmails.expandedId}
+                onToggle={templateEmails.toggle}
+                onToggleExpand={templateEmails.toggleExpand}
                 disabled={sending}
             />
         </div>

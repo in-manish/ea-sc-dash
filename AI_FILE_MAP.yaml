@@ -1189,6 +1189,14 @@ features:
     config_api: >
       GET|POST /meeting/unread-reminder/config/ (organizer token; tenant-wide;
       activate, cooldown_minutes, cutoff_minutes, days_window)
+  SponsorPromo:
+    root: src/features/SponsorPromo/
+    entry: src/pages/Communication.jsx
+    routes:
+      - /event/:id/communication?tab=promo
+    api: >
+      GET|POST /events/:id/sponsor-promo-pool/, PATCH .../:slug/,
+      GET|POST (CSV) .../:slug/sponsor-promo-codes/, DELETE .../:codeId/
   Matchmaking:
     root: src/features/Matchmaking/
     entry: src/features/Matchmaking/ui/Matchmaking.jsx

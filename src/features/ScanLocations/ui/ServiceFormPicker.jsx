@@ -19,8 +19,10 @@ export default function ServiceFormPicker({ forms, loading, error, value, onChan
       </label>
       <label className="flex flex-col gap-1 text-xs font-medium text-text-secondary">
         extra query
-        <input className={`${FIELD} min-w-64`} value={extraQuery || ''} placeholder="key=value&other=1"
+        <input className={`${FIELD} min-w-64`} value={extraQuery || ''} placeholder="question_id=name"
+          title="Sent with Fetch options and Fetch purchases"
           onChange={(event) => onExtraQueryChange(event.target.value)} />
+        <span className="font-normal text-text-tertiary">Sent with fetch options and fetch purchases</span>
       </label>
       {error ? <span className="text-xs text-danger pb-2">{error}</span> : null}
     </div>
