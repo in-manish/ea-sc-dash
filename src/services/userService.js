@@ -214,7 +214,7 @@ export const userService = {
 
     /**
      * Admin Get Users list with advanced filtering and pagination.
-     * @param {Object} queryParams { search, email, name, phone_number, role, is_verified_email, is_verified_phone_number, limit, offset }
+     * @param {Object} queryParams { search, id, email, name, phone_number, role, is_verified_email, is_verified_phone_number, limit, offset }
      * @param {string} token
      */
     async adminGetUsers(queryParams, token) {

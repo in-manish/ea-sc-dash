@@ -5,9 +5,11 @@ import {
     sendAttendeeEmails,
 } from '../api/attendeeTypeEmailsApi';
 import { sendCategoryTypeEmails } from '../api/categoryTypeEmailsApi';
+import { sendEmailTemplate } from '../api/emailTemplateSendApi';
 import { parseAttendeeTypeEmails } from '../domain/parseAttendeeTypeEmails';
 import { attendeeEmailSendMessage } from '../domain/parseCategoryTypeEmails';
 import useCategoryTypeEmails from './useCategoryTypeEmails';
+import useSendableEmailTemplates from './useSendableEmailTemplates';
 
 export default function useAttendeeTypeEmails({
     eventId,
@@ -42,6 +44,13 @@ export default function useAttendeeTypeEmails({
     });
     const categorySelectedRef = useRef(categoryEmails.selectedIds);
     categorySelectedRef.current = categoryEmails.selectedIds;
+    const templateEmails = useSendableEmailTemplates({
+        eventId,
+        token,
+        enabled: isOpen,
+    });
+    const templateSelectedRef = useRef(templateEmails.selectedIds);
+    templateSelectedRef.current = templateEmails.selectedIds;
 
     useEffect(() => {
         if (!isOpen || !viewingDrafts || !eventId || !token) return;
@@ -106,7 +115,8 @@ export default function useAttendeeTypeEmails({
 
     const send = async () => {
         const categoryIds = categorySelectedRef.current;
-        if (!badgeEmailSelected && categoryIds.length === 0) return;
+        const templateIds = templateSelectedRef.current;
+        if (!badgeEmailSelected && categoryIds.length === 0 && templateIds.length === 0) return;
         const { selectionMode, selectedAttendeeUuids } = getSelectionRef.current?.() || {};
         if (!eventId || !token || selectionMode === 'none') return;
 
@@ -133,10 +143,14 @@ export default function useAttendeeTypeEmails({
                     email_ids: categoryIds,
                 });
             }
+            for (const templateId of templateIds) {
+                await sendEmailTemplate(eventId, token, { ...built.payload, template_id: templateId });
+            }
             setSendSuccess(
                 attendeeEmailSendMessage({
                     badge: badgeEmailSelected,
                     categoryCount: categoryIds.length,
+                    templateCount: templateIds.length,
                 }),
             );
             clearSelectionRef.current?.();
@@ -156,6 +170,7 @@ export default function useAttendeeTypeEmails({
         badgeEmailSelected,
         toggleBadgeEmail,
         categoryEmails,
+        templateEmails,
         drafts,
         loading,
         error,

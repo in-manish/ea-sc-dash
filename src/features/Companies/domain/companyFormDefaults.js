@@ -35,6 +35,8 @@ export function emptyCompanyForm(overrides = {}) {
     is_payment_made: false,
     apply_title_case: false,
     sponsor_rank: '',
+    boost_rank: '',
+    boost_scope: [],
     parent_exhibitor_obf: '',
     ...overrides,
   };
@@ -59,6 +61,10 @@ export function validateEditCompanyForm(form) {
   const rank = String(form.sponsor_rank ?? '').trim();
   if (rank && positiveSponsorRank(rank) == null) {
     return 'Sponsor rank must be a positive whole number.';
+  }
+  const boost = String(form.boost_rank ?? '').trim();
+  if (boost && positiveSponsorRank(boost) == null) {
+    return 'Boost rank must be a positive whole number.';
   }
   return '';
 }

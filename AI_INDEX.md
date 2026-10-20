@@ -33,6 +33,8 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | EmailCampaigns | `src/features/EmailCampaigns/` | History/Scheduled tab; row click or hover View details; hover View recipients; recipient hover View attendee |
 | Matchmaking | `src/features/Matchmaking/` | GET 404 = create/copy; 200 = editor only; tabs `?tab=questions|exhibitor|mapping|backfill` |
 | MeetingStats | `src/features/MeetingStats/` | Organizer meeting stats by event × attendee type (GET) + email CSV (POST) |
+| MeetingAttendees | `src/features/MeetingAttendees/` | Meetings → Meeting Attendees tab (`?tab=attendees`): attendees with pending / confirmed meeting counts, select people or all matching, send email from templates (one per attendee type) |
+| SponsorPromo | `src/features/SponsorPromo/` | Communication → Promo Codes tab (`?tab=promo`): sponsor pools, CSV code import, `{{slug.promotional_code}}` email token |
 | Visiq | `src/features/Visiq/` | Tenant subscriber CRM: list/detail + CSV/Excel import jobs |
 | AiPresets | `src/features/AiPresets/` | Organizer AI system prompt presets; matchmaking `mm_seeking_mapper` catalog preview at `/event/:id/ai/preview` |
 | ChatReminder | `src/features/ChatReminder/` | Tenant unread meeting-chat reminder config on Settings → Meeting Diary |
@@ -43,6 +45,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Task | Start here |
 |------|------------|
 | Event settings / theme color | `src/pages/event-settings/ThemeColorCodeField.jsx` (`theme_color_code`) |
+| Event settings / attendee page sponsor | `src/pages/event-settings/AttendeePageSponsorSection.jsx` + `domain/attendeePageSponsorDetail.js` (`attendee_page_sponsor_detail`: title, background_image, website + any other keys as JSON; Attendees tab) |
 | Event settings / support email | `src/pages/event-settings/CommunicationSettings.jsx` (`support_email`) |
 | Event settings / sender profile pic | `src/pages/event-settings/SenderDefaultProfilePicField.jsx` (`sender_default_profile_pic`) |
 | Event settings / branding images | `src/pages/event-settings/EventBrandingImages.jsx` + `EventImageUploadField.jsx` (`/event/:id/settings?tab=images`); size/dimensions + green **Web optimized** chip; **Edit image** opens the crop modal on the current file/URL; `domain/eventImageFields.js` (`meta_logo` first, then `logo`, `logo2`, …) `editorConfig` |
@@ -59,6 +62,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Active badge status / create | `ui/ActiveBadgeToolbar.jsx` + `hooks/useActiveBadgeActions.js` + `api/activeBadgeApi.js` |
 | Bulk attendee CSV upload + dry-run validate | `ui/AttendeeUploadModal.jsx` + `ui/AttendeeUploadRowIssues.jsx` + `hooks/useAttendeeUpload.js` + `api/attendeeUploadApi.js` (create-flow only, no replicate/update by Reg ID) |
 | Event upload history (attendee + company tabs) | `src/pages/AttendeeUploads.jsx` + `ui/UploadsTabs.jsx` + `ui/AttendeeUploadHistoryPanel.jsx` + `ui/CompanyUploadHistoryPanel.jsx` + `src/components/uploadHistory/` |
+| Email page: Category Emails vs Templates guide, meeting template starter | `src/components/email/EmailTabGuide.jsx` + `emailConfigTabs.js` (`EMAIL_TAB_GUIDE`) + `templates/constants/emailTemplateTypes.js` (`MEETING_TEMPLATE_TYPE`, `meeting_` slugs) + `templates/domain/buildNewEmailTemplate.js` |
 | Create EA company / co-exhibitor | `src/features/Companies/ui/CreateCompanyPage.jsx` + `api/companyApi.js` |
 | Edit EA company | `src/features/Companies/ui/EditCompanyPage.jsx` + `domain/buildCompanyPatchFormData.js` (`sponsor_rank`; list rows with a positive rank are yellow) |
 | Company Detail + Setup Progress | `src/features/Companies/ui/CompanyDetailsPage.jsx` + `SetupProgressSection.jsx` |
@@ -66,6 +70,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Checklist Reminder tab | `src/features/Companies/ui/ChecklistReminderTab.jsx` + `api/checklistReminderApi.js` |
 | Checklist remind + progress poll | `hooks/useSetupChecklistRemind.js` + `ui/RemindSendProgress.jsx` |
 | Reset exhibitor POC password | `src/features/Companies/ui/ExhibitorPasswordResetControl.jsx` + attendee bar: `ui/AttendeeSelectionBar.jsx` (single POC) |
+| Change exhibitor POC to another attendee | `src/features/Attendees/ui/ChangeExhibitorPocControl.jsx` + `hooks/useChangeExhibitorPoc.js` + attendee bar `ui/AttendeeSelectionBar.jsx` (single selected exhibitor; disabled when already POC) + `domain/exhibitorPoc.js` + `Companies/api/companyApi.js` (`changeExhibitorPoc`, POST `/events/:id/exhibitor/poc/`); distinct from password reset, which only resends mail |
 | Bulk lock / feature companies | `src/features/Companies/ui/ExhibitorListActionsBar.jsx` + `ExhibitorListRowMenu.jsx` + `api/companyApi.js` (`bulkAction`) |
 | Download / email exhibitor CSV report | `ui/CompaniesReportsMenu.jsx` + `ui/ExhibitorReportModal.jsx` + `hooks/useExhibitorReport.js` + `api/exhibitorReportApi.js` |
 | Company Report metrics modal | `ui/CompanyReportModal.jsx` + `src/components/companies/CompanyComprehensiveReportPanel.jsx` + `CompanyReportMetricRow.jsx` |
@@ -77,6 +82,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Agenda API create/update | `src/services/agendaService.js` + `domain/buildAgendaFormData.js` |
 | Speaker/moderator payload shape | `src/features/Agenda/domain/normalizePeople.js` |
 | SC manage users / detail page | `src/features/ScManageUsers/ui/UserDetailsPage.jsx`, `ManageUsersPage.jsx` |
+| SC users list filter by id | `ui/ManageUsersFilters.jsx` + `hooks/useScManageUsersList.js` (`GET /evc/admin/users/?id=`) |
 | SC ADMIN login / profile | `src/features/ScAuth/domain/scLoginUser.js`, `src/features/ScProfile/ui/ScProfilePage.jsx` |
 | Auth restore / host URL | `src/contexts/authSession.js`, `src/storage/webStorage.js`, `src/App.jsx`, `src/components/ProtectedRoute.jsx` |
 | Auth logout / other tabs | `src/contexts/useCrossTabAuthSync.js` + `AuthContext.jsx` + `webStorage.js` (`discardTabSessionIfLoggedOut`) |

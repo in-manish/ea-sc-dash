@@ -15,6 +15,7 @@ Event organizer email templates under Communication → Email. Category Emails a
 | `templates/components/TemplateRowActions.jsx` | ⋯ opens actions modal |
 | `templates/components/TemplateActionsModal.jsx` | View template, Delete |
 | `EmailConfigTabs.jsx` | Category / Templates / History/Scheduled |
+| `EmailTabGuide.jsx` | Two plain-words cards above the tabs: Category Emails (one-time group mailing) vs Templates (saved email with `{{variables}}` filled per person); copy in `emailConfigTabs.js` `EMAIL_TAB_GUIDE` |
 | `emailConfigTabs.js` | Email tab ids, copy, URL parse |
 | `EmailCampaigns.jsx` | Re-export of `src/features/EmailCampaigns` |
 | `category/components/PreviewCanvas.jsx` | Category preview / edit canvas |
@@ -34,6 +35,12 @@ Event organizer email templates under Communication → Email. Category Emails a
 | `shared/EmailBodyEditor.jsx` | Visual / Code body editor |
 | `shared/EmailFileImport.jsx` | Browse HTML/txt and insert into body |
 | `shared/readHtmlFile.js` | Read file, extract `<body>` + `<style>` |
+
+## Meeting emails
+
+Group `Meeting` in Create Template: **Meeting requests reminder** (`meeting_pending_requests`). Any custom type slug starting with `meeting_` gets the same starter, so each attendee type can have its own template (one template per type per event). Used by Meetings → Meeting Attendees → Send email.
+
+Link support (`hooks/useCreateTemplateFromLink.js`): `/event/:id/communication?tab=email&email_tab=templates&create_type=<slug>&return_to=<path>` opens the creator for that slug and returns to `return_to` (only `/event/<id>/...` paths) after save or close. New `meeting_` templates keep their slug (type locked) and get the name "Meeting requests reminder - <type>".
 
 ## File import
 

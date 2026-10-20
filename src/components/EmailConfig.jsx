@@ -9,6 +9,7 @@ import {
     isCampaignEmailTab,
     parseEmailTab,
 } from './email/emailConfigTabs.js';
+import EmailTabGuide from './email/EmailTabGuide.jsx';
 import EmailTemplates from './email/EmailTemplates';
 
 const EmailConfig = () => {
@@ -73,6 +74,7 @@ const EmailConfig = () => {
                 <EmailConfigTabs activeTab={activeTab} onChange={handleTabChange} />
             </div>
             <div className="flex-1 p-6 bg-bg-secondary/20 overflow-hidden min-w-0">
+                {!isCampaignEmailTab(activeTab) && <EmailTabGuide activeTab={activeTab} />}
                 {activeTab === 'categories' && <EmailCategoryTypes viewMode={viewMode} onAddSignal={createSignal} />}
                 {activeTab === 'templates' && <EmailTemplates viewMode={viewMode} onAddSignal={createSignal} />}
                 {isCampaignEmailTab(activeTab) && <EmailCampaigns />}

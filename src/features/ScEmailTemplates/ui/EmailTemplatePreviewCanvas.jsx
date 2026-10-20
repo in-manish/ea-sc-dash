@@ -1,8 +1,13 @@
 import { useState } from 'react';
-import { Code, Layout, Mail } from 'lucide-react';
+import { Braces, Code, Layout, Mail } from 'lucide-react';
 import { EMAIL_TEMPLATE_DEVICE_PRESETS } from '../constants/devicePreview';
 import EmailTemplateFileImport from './EmailTemplateFileImport';
 import EmailTemplateVisualEditor from './EmailTemplateVisualEditor';
+import { formatHtml } from '../../../components/email/shared/formatHtml';
+
+// Visual mode parses content through the browser's HTML parser, which mangles
+// {% %} Jinja tags sitting inside table structure or tag attribute lists.
+const JINJA_TAG_RE = /\{%[\s\S]*?%\}/;
 
 export default function EmailTemplatePreviewCanvas({
   form,
@@ -13,6 +18,10 @@ export default function EmailTemplatePreviewCanvas({
   const [editorMode, setEditorMode] = useState('visual');
   const width = EMAIL_TEMPLATE_DEVICE_PRESETS[previewDevice]?.width || '1440px';
   const html = form?.content || '';
+  const jinjaLocked = JINJA_TAG_RE.test(html);
+  // Jinja tags get mangled the moment Visual mode parses them, so force Code
+  // mode for as long as they're present, regardless of the last chosen mode.
+  const effectiveMode = jinjaLocked ? 'code' : editorMode;
 
   return (
     <div className="flex-1 overflow-auto bg-bg-secondary p-4 sm:p-8 flex justify-center items-start min-w-0">
@@ -22,7 +31,12 @@ export default function EmailTemplatePreviewCanvas({
           style={{ width, maxWidth: '100%', minHeight: '600px' }}
         >
           {isEditing ? (
-            <EditorToolbar editorMode={editorMode} setEditorMode={setEditorMode} />
+            <EditorToolbar
+              effectiveMode={effectiveMode}
+              jinjaLocked={jinjaLocked}
+              setEditorMode={setEditorMode}
+              onFormat={() => onPatch({ content: formatHtml(html) })}
+            />
           ) : (
             <div className="px-6 py-5 border-b border-border flex items-center gap-3">
               <div className="text-lg font-medium text-text-primary truncate">{form.subject || '(Subject)'}</div>
@@ -34,7 +48,7 @@ export default function EmailTemplatePreviewCanvas({
           <div className="flex-1 w-full min-h-[500px] flex flex-col border-t border-border">
             {isEditing ? (
               <div className="flex-1 flex flex-col overflow-hidden p-3 gap-2">
-                {editorMode === 'code' ? (
+                {effectiveMode === 'code' ? (
                   <>
                     <EmailTemplateFileImport content={html} onChange={(content) => onPatch({ content })} />
                     <textarea
@@ -63,31 +77,52 @@ export default function EmailTemplatePreviewCanvas({
   );
 }
 
-function EditorToolbar({ editorMode, setEditorMode }) {
+function EditorToolbar({ effectiveMode, jinjaLocked, setEditorMode, onFormat }) {
   return (
-    <div className="px-4 py-2 border-b border-border bg-bg-secondary/50 flex justify-between items-center">
+    <div className="px-4 py-2 border-b border-border bg-bg-secondary/50 flex flex-wrap justify-between items-center gap-2">
       <div className="flex p-1 bg-bg-primary border border-border rounded-lg">
-        <ModeBtn active={editorMode === 'visual'} onClick={() => setEditorMode('visual')}>
+        <ModeBtn
+          active={effectiveMode === 'visual'}
+          disabled={jinjaLocked}
+          title={
+            jinjaLocked
+              ? 'Visual mode can corrupt Jinja tags ({% %}) — edit this template in Code mode'
+              : undefined
+          }
+          onClick={() => setEditorMode('visual')}
+        >
           <Layout size={14} /> Visual
         </ModeBtn>
-        <ModeBtn active={editorMode === 'code'} onClick={() => setEditorMode('code')}>
+        <ModeBtn active={effectiveMode === 'code'} onClick={() => setEditorMode('code')}>
           <Code size={14} /> Code
         </ModeBtn>
       </div>
-      <span className="text-[10px] font-bold text-text-tertiary uppercase tracking-widest">
-        {editorMode === 'visual' ? 'Rich text editor' : 'HTML source'}
-      </span>
+      {effectiveMode === 'code' ? (
+        <button type="button" className="btn btn-secondary btn-sm" onClick={onFormat}>
+          <Braces size={14} /> Format
+        </button>
+      ) : (
+        <span className="text-[10px] font-bold text-text-tertiary uppercase tracking-widest">
+          Rich text editor
+        </span>
+      )}
     </div>
   );
 }
 
-function ModeBtn({ active, onClick, children }) {
+function ModeBtn({ active, disabled, title, onClick, children }) {
   return (
     <button
       type="button"
-      onClick={onClick}
-      className={`px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider border-none cursor-pointer inline-flex items-center gap-2 ${
-        active ? 'bg-accent text-white' : 'bg-transparent text-text-secondary hover:bg-bg-secondary'
+      disabled={disabled}
+      title={title}
+      onClick={disabled ? undefined : onClick}
+      className={`px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider border-none inline-flex items-center gap-2 ${
+        disabled
+          ? 'text-text-tertiary opacity-50 cursor-not-allowed'
+          : active
+            ? 'bg-accent text-white cursor-pointer'
+            : 'bg-transparent text-text-secondary hover:bg-bg-secondary cursor-pointer'
       }`}
     >
       {children}

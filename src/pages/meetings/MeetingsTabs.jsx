@@ -1,9 +1,10 @@
-import { BarChart2, List, RefreshCw } from 'lucide-react';
+import { BarChart2, List, RefreshCw, Users } from 'lucide-react';
 
 const TABS = [
   { id: 'list', label: 'List Meetings', icon: List },
   { id: 'restore', label: 'Restore Meeting', icon: RefreshCw },
   { id: 'stats', label: 'Meeting Stats Report', icon: BarChart2 },
+  { id: 'attendees', label: 'Meeting Attendees', icon: Users },
 ];
 
 export default function MeetingsTabs({ activeTab, onChange }) {

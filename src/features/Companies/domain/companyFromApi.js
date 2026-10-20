@@ -1,5 +1,6 @@
 import { COMPANY_KINDS, emptyCompanyForm } from './companyFormDefaults';
 import { positiveSponsorRank } from './sponsorRank';
+import { boostScopeList } from './companyBoost';
 import { formatCompanySearchLabel } from './formatCompanySearchLabel';
 
 /** Map GET company response → form state for edit. */
@@ -9,6 +10,7 @@ export function companyToForm(company) {
   const link = company?.link || {};
   const products = Array.isArray(company?.product) ? company.product : [];
   const sponsorRank = positiveSponsorRank(company?.sponsor_rank);
+  const boostRank = positiveSponsorRank(company?.boost_rank);
 
   return emptyCompanyForm({
     kind: isCo ? COMPANY_KINDS.CO_EXHIBITOR : COMPANY_KINDS.PARENT,
@@ -38,6 +40,8 @@ export function companyToForm(company) {
     is_payment_made: Boolean(company?.is_payment_made),
     apply_title_case: Boolean(company?.apply_title_case),
     sponsor_rank: sponsorRank != null ? String(sponsorRank) : '',
+    boost_rank: boostRank != null ? String(boostRank) : '',
+    boost_scope: boostScopeList(company?.boost_scope),
     products,
     productsText: products.join(', '),
     facebook: link.facebook || '',

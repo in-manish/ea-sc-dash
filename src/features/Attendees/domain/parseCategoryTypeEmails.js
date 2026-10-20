@@ -16,14 +16,12 @@ export function parseCategoryTypeEmails(data) {
         }));
 }
 
-export function attendeeEmailSendMessage({ badge, categoryCount }) {
-    if (badge && categoryCount) {
-        const noun = categoryCount === 1 ? 'category email' : 'category emails';
-        return `Badge email and ${categoryCount} ${noun} sent to the selected attendees.`;
-    }
-    if (categoryCount) {
-        const noun = categoryCount === 1 ? 'Category email' : 'Category emails';
-        return `${noun} sent to the selected attendees.`;
-    }
-    return 'Badge email sent to the selected attendees.';
+export function attendeeEmailSendMessage({ badge, categoryCount, templateCount = 0 }) {
+    const parts = [];
+    if (badge) parts.push('Badge email');
+    if (categoryCount) parts.push(`${categoryCount} category ${categoryCount === 1 ? 'email' : 'emails'}`);
+    if (templateCount) parts.push(`${templateCount} email ${templateCount === 1 ? 'template' : 'templates'}`);
+    if (parts.length === 0) return 'Badge email sent to the selected attendees.';
+    const text = parts.join(' and ');
+    return `${text.charAt(0).toUpperCase()}${text.slice(1)} sent to the selected attendees.`;
 }

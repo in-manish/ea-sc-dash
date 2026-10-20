@@ -3,6 +3,7 @@ import { AlertTriangle, Loader2, X } from 'lucide-react';
 export default function ConfirmExhibitorPasswordResetModal({
   title = 'Reset exhibitor POC password',
   description = 'Resets the exhibitor portal password for this POC.',
+  confirmLabel = 'Reset password',
   loading = false,
   error = '',
   onConfirm,
@@ -73,7 +74,7 @@ export default function ConfirmExhibitorPasswordResetModal({
             disabled={loading}
           >
             {loading && <Loader2 size={14} className="animate-spin" />}
-            Reset password
+            {confirmLabel}
           </button>
         </div>
       </div>

@@ -19,3 +19,16 @@ export function singleSelectedPocAttendee(selectedAttendees, selectionMode) {
   const attendee = selectedAttendees[0];
   return canResetExhibitorPortalPassword(attendee) ? attendee : null;
 }
+
+/** Selection-bar change POC: exactly one selected exhibitor attendee (the control is disabled when already POC). */
+export function singleSelectedChangePocCandidate(selectedAttendees, selectionMode) {
+  if (selectionMode !== 'selected') return null;
+  if (!Array.isArray(selectedAttendees) || selectedAttendees.length !== 1) {
+    return null;
+  }
+  const attendee = selectedAttendees[0];
+  const isExhibitorType =
+    String(attendee?.attendee_type || '').toLowerCase() === 'exhibitor';
+  if (!isExhibitorType || !attendee.exhibitor_id) return null;
+  return attendee;
+}

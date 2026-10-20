@@ -9,6 +9,7 @@ import TemplateActionsModal from './templates/components/TemplateActionsModal';
 import CreateTemplateTypePicker from './templates/components/CreateTemplateTypePicker';
 import useEmailTemplatesList from './templates/hooks/useEmailTemplatesList';
 import useEmailTemplateEditor from './templates/hooks/useEmailTemplateEditor';
+import useCreateTemplateFromLink from './templates/hooks/useCreateTemplateFromLink';
 
 const deviceDimensions = {
     mobile: { width: '375px', icon: Smartphone, label: 'Mobile' },
@@ -25,6 +26,8 @@ const EmailTemplates = ({ viewMode = 'list', onAddSignal = 0 }) => {
 
     const list = useEmailTemplatesList({ eventId, token });
     const editor = useEmailTemplateEditor({ eventId, token, refetch: list.refetch });
+
+    useCreateTemplateFromLink(editor);
 
     useEffect(() => {
         if (onAddSignal > 0) editor.openTypePicker();

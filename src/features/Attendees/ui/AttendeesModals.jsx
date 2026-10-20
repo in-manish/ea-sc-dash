@@ -42,6 +42,10 @@ const AttendeesModals = ({
             onEdit={(attendee) => list.openEditAttendee(attendee)}
             eventId={selectedEvent?.id}
             token={token}
+            onPocChanged={() => {
+                list.closeAttendeeDetail();
+                list.reload();
+            }}
         />
 
         <AttendeeFilterDrawer

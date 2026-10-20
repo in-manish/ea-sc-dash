@@ -109,6 +109,7 @@ const AttendeesListView = ({
             canUseActiveBadgeSelection={activeBadge.canUseSelection}
             eventId={selectedEvent?.id}
             token={token}
+            onPocChanged={list.reload}
         />
 
         <AttendeeTable
@@ -156,6 +157,7 @@ const AttendeesListView = ({
             badgeEmailSelected={emailDrafts.badgeEmailSelected}
             onToggleBadgeEmail={emailDrafts.toggleBadgeEmail}
             categoryEmails={emailDrafts.categoryEmails}
+            templateEmails={emailDrafts.templateEmails}
             drafts={emailDrafts.drafts}
             loading={emailDrafts.loading}
             error={emailDrafts.error}

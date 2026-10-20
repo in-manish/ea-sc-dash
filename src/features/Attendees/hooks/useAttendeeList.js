@@ -22,6 +22,7 @@ export default function useAttendeeList({
     const [createPrefill, setCreatePrefill] = useState(null);
     const [editingUuid, setEditingUuid] = useState(null);
     const [isModalMaximized, setIsModalMaximized] = useState(false);
+    const [reloadKey, setReloadKey] = useState(0);
 
     useEffect(() => {
         setSearchParams((prev) => {
@@ -70,7 +71,7 @@ export default function useAttendeeList({
         if (selectedEvent && token) {
             fetchAttendees();
         }
-    }, [selectedEvent, page, debouncedSearch, searchType, filters, token]);
+    }, [selectedEvent, page, debouncedSearch, searchType, filters, token, reloadKey]);
 
     const openAttendeeDetail = (attendee) => {
         setSelectedAttendee(attendee);
@@ -79,6 +80,8 @@ export default function useAttendeeList({
     const closeAttendeeDetail = () => {
         setSelectedAttendee(null);
     };
+
+    const reload = () => setReloadKey((key) => key + 1);
 
     const handleCreated = () => {
         setPage(1);
@@ -128,5 +131,6 @@ export default function useAttendeeList({
         openAttendeeDetail,
         closeAttendeeDetail,
         handleCreated,
+        reload,
     };
 }

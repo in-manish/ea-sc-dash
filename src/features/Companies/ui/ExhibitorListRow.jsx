@@ -1,7 +1,10 @@
 import { Building2, ExternalLink, IdCard, Lock, Printer, Star } from 'lucide-react';
 import { isParentExhibitor } from '../domain/companyBulkActionPayload';
 import { positiveSponsorRank } from '../domain/sponsorRank';
+import { boostLabel } from '../domain/companyBoost';
 import ExhibitorListRowMenu from './ExhibitorListRowMenu';
+
+const MAX_PRODUCT_PILLS = 3;
 
 export default function ExhibitorListRow({
   company,
@@ -17,6 +20,8 @@ export default function ExhibitorListRow({
   const parentId = parentExhibitor?.id;
   const parentName = parentExhibitor?.company_name;
   const sponsorRank = positiveSponsorRank(company.sponsor_rank);
+  const products = Array.isArray(company.product) ? company.product.filter(Boolean) : [];
+  const boostText = boostLabel(company, positiveSponsorRank(company.boost_rank));
   const rowTone = sponsorRank
     ? 'bg-yellow-100 hover:bg-yellow-200'
     : isCoExhibitor
@@ -81,6 +86,14 @@ export default function ExhibitorListRow({
                   Sponsor #{sponsorRank}
                 </span>
               )}
+              {boostText && (
+                <span
+                  className="inline-flex py-0.5 px-1.5 rounded text-[10px] font-semibold tracking-wide bg-blue-100 text-blue-800"
+                  title="Boosted to the top of the exhibitor list"
+                >
+                  {boostText}
+                </span>
+              )}
               {company.is_featured && (
                 <span className="inline-flex items-center gap-0.5" title="Featured Company">
                   <Star
@@ -138,6 +151,27 @@ export default function ExhibitorListRow({
         <span className="inline-flex py-1 px-2.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 tracking-wide">
           {company.category}
         </span>
+      </td>
+      <td className="py-4 px-6 align-middle group-last:border-b-0">
+        {products.length > 0 ? (
+          <div className="flex flex-wrap gap-1 max-w-[16rem]" title={products.join(', ')}>
+            {products.slice(0, MAX_PRODUCT_PILLS).map((name) => (
+              <span
+                key={name}
+                className="inline-flex py-0.5 px-2 rounded-full text-[11px] font-medium bg-bg-tertiary text-text-secondary border border-border"
+              >
+                {name}
+              </span>
+            ))}
+            {products.length > MAX_PRODUCT_PILLS && (
+              <span className="inline-flex py-0.5 px-2 rounded-full text-[11px] font-medium text-text-tertiary">
+                +{products.length - MAX_PRODUCT_PILLS} more
+              </span>
+            )}
+          </div>
+        ) : (
+          <span className="text-text-tertiary">-</span>
+        )}
       </td>
       <td
         className="py-4 px-6 align-middle group-last:border-b-0"

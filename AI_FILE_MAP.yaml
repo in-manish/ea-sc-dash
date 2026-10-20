@@ -452,6 +452,17 @@ tasks:
       - /event/:id/agenda
       - /event/:id/agenda/new
       - /event/:id/agenda/:agendaId/edit
+  sc_manage_users_list:
+    files:
+      - src/features/ScManageUsers/ui/ManageUsersPage.jsx
+      - src/features/ScManageUsers/ui/ManageUsersFilters.jsx
+      - src/features/ScManageUsers/hooks/useScManageUsersList.js
+      - src/services/userService.js
+    routes:
+      - /users/manage
+    notes: >
+      GET /evc/admin/users/ forwards search, id (exact), name, email,
+      phone_number, role, verification flags, limit, offset.
   sc_manage_users_detail:
     files:
       - src/features/ScManageUsers/ui/ManageUsersPage.jsx
@@ -705,6 +716,35 @@ tasks:
       sort params ignored when q is set (_score desc) or is_featured=true
       with no q (featured_rank then company_slug). Empty q is omitted.
       A positive integer sponsor_rank highlights that row yellow.
+  meeting_attendees_email:
+    files:
+      - src/features/MeetingAttendees/api/meetingAttendeesApi.js
+      - src/features/MeetingAttendees/domain/attendeeFilters.js
+      - src/features/MeetingAttendees/domain/sendPayload.js
+      - src/features/MeetingAttendees/hooks/useMeetingAttendees.js
+      - src/features/MeetingAttendees/hooks/useAttendeeSelection.js
+      - src/features/MeetingAttendees/hooks/useEmailTemplateOptions.js
+      - src/features/MeetingAttendees/hooks/useSendMeetingAttendeeEmail.js
+      - src/features/MeetingAttendees/ui/AttendeeSearchFilters.jsx
+      - src/features/MeetingAttendees/ui/MeetingAttendeesTab.jsx
+      - src/features/MeetingAttendees/ui/SendEmailModal.jsx
+      - src/features/MeetingAttendees/ui/TemplatePicker.jsx
+      - src/features/MeetingAttendees/ui/TypeTemplateStatus.jsx
+      - src/features/MeetingAttendees/domain/meetingTemplates.js
+      - src/features/MeetingAttendees/domain/resumeState.js
+      - src/components/email/templates/hooks/useCreateTemplateFromLink.js
+      - src/features/MeetingAttendees/ui/TemplatePreview.jsx
+      - src/features/MeetingAttendees/domain/templateText.js
+      - src/pages/meetings/Meetings.jsx
+      - src/pages/meetings/MeetingsTabs.jsx
+      - src/layouts/event-layout/eventNavConfig.js
+      - src/sc/layouts/EventLayout.jsx
+    routes:
+      - /event/:id/meetings?tab=attendees
+    notes: >
+      List and send share the same filters, so the people emailed are the people
+      listed. uuids win over send_to_all; neither is a 400. Every selected attendee
+      type needs one active template. max_companies is 3 or 5 (email body only).
   meeting_stats_report:
     files:
       - src/features/MeetingStats/api/meetingStatsReportApi.js
@@ -1084,6 +1124,16 @@ features:
       POST /events/:eventId/exhibitor/setup-checklist/remind/;
       GET .../reminders/ + GET .../reminders/:logId/;
       GET|PATCH /events/:eventId/exhibitor-setup-checklist/
+  MeetingAttendees:
+    root: src/features/MeetingAttendees/
+    entry: src/pages/meetings/Meetings.jsx
+    routes:
+      - /event/:id/meetings?tab=attendees
+    api: >
+      GET /events/:id/meetings/attendees/ (attendee_type_ids required, pending_min,
+      pending_max, pending_sent_min/max, confirmed_min/max, declined_min/max, has_email, page, page_size); POST /events/:id/meetings/attendees/email/
+      (same filters + templates [{attendee_type_ids, template_id}] + max_companies +
+      uuids or send_to_all; 202). Templates from GET /templates/email/.
   MeetingStats:
     root: src/features/MeetingStats/
     entry: src/pages/meetings/Meetings.jsx
@@ -1139,6 +1189,14 @@ features:
     config_api: >
       GET|POST /meeting/unread-reminder/config/ (organizer token; tenant-wide;
       activate, cooldown_minutes, cutoff_minutes, days_window)
+  SponsorPromo:
+    root: src/features/SponsorPromo/
+    entry: src/pages/Communication.jsx
+    routes:
+      - /event/:id/communication?tab=promo
+    api: >
+      GET|POST /events/:id/sponsor-promo-pool/, PATCH .../:slug/,
+      GET|POST (CSV) .../:slug/sponsor-promo-codes/, DELETE .../:codeId/
   Matchmaking:
     root: src/features/Matchmaking/
     entry: src/features/Matchmaking/ui/Matchmaking.jsx
@@ -1172,6 +1230,7 @@ features:
     routes:
       - /users/manage
       - /users/manage/:userId
+    users_list_api: GET /evc/admin/users/?id=&search=&name=&email=&phone_number=&role=&limit=&offset=
     cards_api: /evc/admin/users/{userId}/cards/
   WhatsApp:
     root: src/features/WhatsApp/

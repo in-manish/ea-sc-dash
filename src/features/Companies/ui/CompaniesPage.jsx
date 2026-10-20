@@ -121,6 +121,8 @@ export default function CompaniesPage() {
         setFilters={list.setFilters}
         onReset={() => list.setFilters({})}
         onPageReset={() => list.setPage(1)}
+        eventId={eventId}
+        token={token}
       />
 
       {isUploadModalOpen && eventId && (

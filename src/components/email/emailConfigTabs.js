@@ -15,12 +15,12 @@ export const EMAIL_TAB_ITEMS = [
 const TAB_COPY = {
   [EMAIL_TABS.CATEGORIES]: {
     title: 'Category Type Emails',
-    desc: 'Target emails based on attendee categories.',
+    desc: 'One-time mailings for a group of attendees, written and sent by you.',
     button: 'Create Draft',
   },
   [EMAIL_TABS.TEMPLATES]: {
     title: 'Email Templates',
-    desc: 'Reusable email designs for standard communications.',
+    desc: 'Saved emails with {{variables}} that EA fills in for each person.',
     button: 'Create Template',
   },
   [EMAIL_TABS.HISTORY_SCHEDULED]: {
@@ -29,6 +29,22 @@ const TAB_COPY = {
     button: null,
   },
 };
+
+// Plain-words guide shown above the Category Emails and Templates tabs.
+export const EMAIL_TAB_GUIDE = [
+  {
+    id: EMAIL_TABS.CATEGORIES,
+    title: 'Category Emails: a message you send to a group',
+    use: 'You write the message, choose an attendee category (for example Trade Visitors) and send it as a bulk mailing.',
+    example: 'Example: "Gates open at 9 AM" to all Trade Visitors.',
+  },
+  {
+    id: EMAIL_TABS.TEMPLATES,
+    title: 'Templates: a saved email EA fills in for each person',
+    use: 'Has {{variables}} such as {{user_name}} and {{company_name}}. EA or an action (like Meetings → Meeting Attendees) picks it and fills the values for every attendee. One template per type for each event.',
+    example: 'Example: "Hi {{user_name}}, you have {{pending_requests_count}} meeting requests."',
+  },
+];
 
 const CAMPAIGN_TAB_ALIASES = new Set(['history', 'scheduled', 'campaigns', 'history_scheduled']);
 

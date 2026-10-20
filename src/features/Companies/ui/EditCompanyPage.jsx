@@ -11,6 +11,7 @@ import CompanyLogoFields from './CompanyLogoFields';
 import CompanyCategoryProductsSection from './CompanyCategoryProductsSection';
 import EditCompanyLimitsFields from './EditCompanyLimitsFields';
 import SponsorRankField from './SponsorRankField';
+import BoostRankField from './BoostRankField';
 
 const EditCompanyPage = () => {
   const { selectedEvent, token } = useAuth();
@@ -122,6 +123,8 @@ const EditCompanyPage = () => {
         )}
 
         <SponsorRankField form={form} setField={setField} />
+
+        <BoostRankField form={form} setField={setField} productOptions={productOptions} />
 
         <CompanyLogoFields form={form} setField={setField} isEdit />
 

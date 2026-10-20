@@ -12,6 +12,7 @@ export default function AttendeeEmailDraftsModal({
     badgeEmailSelected,
     onToggleBadgeEmail,
     categoryEmails,
+    templateEmails,
     drafts,
     loading,
     error,
@@ -25,7 +26,8 @@ export default function AttendeeEmailDraftsModal({
 
     const countLabel = `${selectedCount} attendee${selectedCount === 1 ? '' : 's'} selected`;
     const hasCategory = (categoryEmails?.selectedIds?.length || 0) > 0;
-    const canSend = !sending && (badgeEmailSelected || hasCategory) && !viewingDrafts;
+    const hasTemplate = (templateEmails?.selectedIds?.length || 0) > 0;
+    const canSend = !sending && (badgeEmailSelected || hasCategory || hasTemplate) && !viewingDrafts;
 
     return (
         <div
@@ -62,6 +64,7 @@ export default function AttendeeEmailDraftsModal({
                             onToggleBadgeEmail={onToggleBadgeEmail}
                             onViewDrafts={onViewDrafts}
                             categoryEmails={categoryEmails}
+                            templateEmails={templateEmails}
                             sending={sending}
                         />
                     )}

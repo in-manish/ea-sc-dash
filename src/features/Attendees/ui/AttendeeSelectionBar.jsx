@@ -1,7 +1,11 @@
 import { MessageCircle, IdCard, Mail, BadgeCheck, BadgePlus } from 'lucide-react';
-import { singleSelectedPocAttendee } from '../domain/exhibitorPoc';
+import {
+    singleSelectedPocAttendee,
+    singleSelectedChangePocCandidate,
+} from '../domain/exhibitorPoc';
 import { exhibitorPasswordResetPayload } from '../../Companies/domain/exhibitorPasswordResetPayload';
 import ExhibitorPasswordResetControl from '../../Companies/ui/ExhibitorPasswordResetControl';
+import ChangeExhibitorPocControl from './ChangeExhibitorPocControl';
 
 const AttendeeSelectionBar = ({
     selectionMode,
@@ -22,10 +26,16 @@ const AttendeeSelectionBar = ({
     canUseActiveBadgeSelection = true,
     eventId,
     token,
+    onPocChanged,
 }) => {
     if (selectionMode === 'none') return null;
 
     const pocAttendee = singleSelectedPocAttendee(
+        selectedAttendees,
+        selectionMode,
+    );
+
+    const changePocCandidate = singleSelectedChangePocCandidate(
         selectedAttendees,
         selectionMode,
     );
@@ -109,6 +119,14 @@ const AttendeeSelectionBar = ({
                             <BadgePlus size={16} style={{ marginRight: '0.5rem' }} />
                             Active Badge Set selected
                         </button>
+                    )}
+                    {changePocCandidate && eventId && token && (
+                        <ChangeExhibitorPocControl
+                            eventId={eventId}
+                            token={token}
+                            attendee={changePocCandidate}
+                            onChanged={onPocChanged}
+                        />
                     )}
                     {pocAttendee && eventId && token && (
                         <ExhibitorPasswordResetControl
