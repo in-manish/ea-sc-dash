@@ -1,4 +1,5 @@
 import useAttendeeTypeEmails from '../hooks/useAttendeeTypeEmails';
+import useDeleteAttendees from '../hooks/useDeleteAttendees';
 import AttendeeSearchToolbar from './AttendeeSearchToolbar';
 import ActiveFilterPills from './ActiveFilterPills';
 import AttendeeStatusBanners from './AttendeeStatusBanners';
@@ -9,6 +10,7 @@ import AttendeesReportPanel from './AttendeesReportPanel';
 import AttendeeEmailDraftsModal from './AttendeeEmailDraftsModal';
 import ActiveBadgeToolbar from './ActiveBadgeToolbar';
 import ActiveBadgeResultModal from './ActiveBadgeResultModal';
+import DeleteAttendeesModal from './DeleteAttendeesModal';
 
 const AttendeesListView = ({
     page,
@@ -38,6 +40,14 @@ const AttendeesListView = ({
         searchType: searchApi.searchType,
         filters: filtersApi.filters,
         clearSelection: selection.clearSelection,
+    });
+    const deleteApi = useDeleteAttendees({
+        eventId: selectedEvent?.id,
+        token,
+        selectionMode: selection.selectionMode,
+        selectedAttendeeUuids: selection.selectedAttendeeUuids,
+        clearSelection: selection.clearSelection,
+        onDeleted: list.reload,
     });
 
     return (
@@ -85,6 +95,7 @@ const AttendeesListView = ({
             whatsAppActionSuccess={whatsApp.whatsAppActionSuccess}
             whatsAppActionError={whatsApp.whatsAppActionError}
             emailActionSuccess={emailDrafts.sendSuccess}
+            deleteSuccess={deleteApi.success}
             selectedAttendee={list.selectedAttendee}
             scSyncSuccess={scSync.scSyncSuccess}
             scSyncError={scSync.scSyncError}
@@ -104,12 +115,16 @@ const AttendeesListView = ({
             onCreateEBadge={eBadge.handleCreateEBadge}
             onCheckActiveBadge={activeBadge.checkSelected}
             onSetActiveBadge={activeBadge.setSelected}
+            onDelete={deleteApi.open}
+            canDelete={deleteApi.canDelete}
             activeBadgeBusy={activeBadge.busy}
             canSetActiveBadge={activeBadge.canSetSelected}
             canUseActiveBadgeSelection={activeBadge.canUseSelection}
             eventId={selectedEvent?.id}
             token={token}
             onPocChanged={list.reload}
+            searchContext={{ search: searchApi.debouncedSearch, searchType: searchApi.searchType, filters: filtersApi.filters }}
+            onScInviteSent={selection.clearSelection}
         />
 
         <AttendeeTable
@@ -177,6 +192,12 @@ const AttendeesListView = ({
             creating={activeBadge.creating}
             onCreateFromPreview={activeBadge.createFromPreview}
             onClose={activeBadge.closeResult}
+        />
+
+        <DeleteAttendeesModal
+            {...deleteApi.modalProps}
+            attendees={selection.selectedAttendees}
+            count={selection.selectedAttendeeUuids.length}
         />
         </>
     );

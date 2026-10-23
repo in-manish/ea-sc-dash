@@ -3,6 +3,7 @@ const AttendeeStatusBanners = ({
     whatsAppActionSuccess,
     whatsAppActionError,
     emailActionSuccess,
+    deleteSuccess,
     selectedAttendee,
     scSyncSuccess,
     scSyncError,
@@ -26,6 +27,11 @@ const AttendeeStatusBanners = ({
         {emailActionSuccess && (
             <div className="bg-emerald-50 text-emerald-800 p-4 border border-emerald-200 rounded-md mb-6">
                 {emailActionSuccess}
+            </div>
+        )}
+        {deleteSuccess && (
+            <div className="bg-emerald-50 text-emerald-800 p-4 border border-emerald-200 rounded-md mb-6">
+                {deleteSuccess}
             </div>
         )}
         {!selectedAttendee && scSyncSuccess && (

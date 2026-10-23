@@ -505,7 +505,7 @@ const CreateAttendeeModal = ({ eventId, token, onClose, onCreated, initialValues
                                             className="w-full py-2.5 px-3 border border-border rounded-md text-sm bg-white outline-none focus:border-accent"
                                             value={a.phone_number}
                                             onChange={(e) => updateAttendee(index, 'phone_number', e.target.value.replace(/\D/g, ''))}
-                                            placeholder="10 digit number"
+                                            placeholder="Digits only"
                                         />
                                     </div>
                                 </div>

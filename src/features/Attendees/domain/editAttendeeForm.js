@@ -54,10 +54,6 @@ export function validateEditAttendeeForm(form) {
   if (isExhibitorType(form.attendee_type) && !nullIfEmpty(form.exhibitor_id)) {
     return 'Exhibitor ID is required for Exhibitors.';
   }
-  const phone = blankPhone(form.phone_number);
-  if (phone && !/^\d{10}$/.test(phone)) {
-    return 'Phone number must be a 10 digit numeric value or blank.';
-  }
   return null;
 }
 

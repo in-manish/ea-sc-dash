@@ -187,6 +187,43 @@ tasks:
       combo still has a token. Logout must drop the other tab's sessionStorage
       copy (localStorage is already empty) via BroadcastChannel + storage
       event + visibility resync; otherwise that tab stays signed in.
+  attendee_sc_invite:
+    files:
+      - src/features/Attendees/api/scInviteApi.js
+      - src/features/Attendees/hooks/useScInvite.js
+      - src/features/Attendees/ui/ScInviteControl.jsx
+      - src/features/Attendees/ui/ScInviteModal.jsx
+      - src/features/Attendees/ui/AttendeeSelectionBar.jsx
+      - src/services/attendeeSelectionService.js
+    routes:
+      - /event/:id/attendees
+    notes: >
+      POST /evc/events/:eventId/reset-password/ (EA
+      evc/views/ToSnapcardUserPasswordResetView → SC
+      /admin/:event_id/users/reset-password/). Body: attendee_uuids (page rows)
+      or search_queries (all / all matching), is_resend_pw (bool, required),
+      send_mode (non-empty list of email|whatsapp; EA ignores its own
+      validation result, so the UI must enforce it). is_resend_pw=false skips
+      users whose email_sent_for_event / wa_sent_for_event already equals this
+      event. Only email sets + sends a password; WhatsApp sends a hard-coded
+      BLTM 2026 template. Only badges with evc_id; 404 when none match.
+  attendee_delete:
+    files:
+      - src/features/Attendees/api/attendeeApi.js
+      - src/features/Attendees/hooks/useDeleteAttendees.js
+      - src/features/Attendees/ui/DeleteAttendeesModal.jsx
+      - src/features/Attendees/ui/AttendeeSelectionBar.jsx
+      - src/features/Attendees/ui/AttendeesListView.jsx
+      - src/features/Attendees/ui/AttendeeStatusBanners.jsx
+    routes:
+      - /event/:id/attendees
+    notes: >
+      DELETE /events/:eventId/attendees/ with { users: [badge uuids] } (EA
+      badge/views/AttendeeCreateView.delete). Only page-selected rows. Badges
+      with linked meetings are refused (400 { msg, meeting_count }) and the
+      whole request rolls back; the modal then shows a Force delete checkbox
+      that resends with force_delete: true (meetings kept, badge FKs SET_NULL).
+      Success reloads the list.
   attendee_edit:
     files:
       - src/features/Attendees/api/attendeeApi.js

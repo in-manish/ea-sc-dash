@@ -49,4 +49,24 @@ export const attendeeApi = {
     if (!response.ok) await throwParsed(response);
     return response.json();
   },
+
+  /**
+   * DELETE /events/:eventId/attendees/
+   * Body `users` = badge uuids. Without force_delete EA refuses badges that still
+   * have linked meetings; with it, those meetings lose that badge (SET_NULL).
+   * All-or-nothing transaction.
+   */
+  async deleteAttendees(eventId, uuids, token, { forceDelete = false } = {}) {
+    const response = await fetch(
+      `${getApiUrl()}/events/${eventId}/attendees/`,
+      {
+        method: 'DELETE',
+        headers: authHeaders(token),
+        body: JSON.stringify(
+          forceDelete ? { users: uuids, force_delete: true } : { users: uuids },
+        ),
+      },
+    );
+    if (!response.ok) await throwParsed(response);
+  },
 };

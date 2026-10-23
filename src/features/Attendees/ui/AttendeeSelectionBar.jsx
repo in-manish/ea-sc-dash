@@ -1,4 +1,4 @@
-import { MessageCircle, IdCard, Mail, BadgeCheck, BadgePlus } from 'lucide-react';
+import { MessageCircle, IdCard, Mail, BadgeCheck, BadgePlus, Trash2 } from 'lucide-react';
 import {
     singleSelectedPocAttendee,
     singleSelectedChangePocCandidate,
@@ -6,6 +6,7 @@ import {
 import { exhibitorPasswordResetPayload } from '../../Companies/domain/exhibitorPasswordResetPayload';
 import ExhibitorPasswordResetControl from '../../Companies/ui/ExhibitorPasswordResetControl';
 import ChangeExhibitorPocControl from './ChangeExhibitorPocControl';
+import ScInviteControl from './ScInviteControl';
 
 const AttendeeSelectionBar = ({
     selectionMode,
@@ -21,12 +22,16 @@ const AttendeeSelectionBar = ({
     onCreateEBadge,
     onCheckActiveBadge,
     onSetActiveBadge,
+    onDelete,
+    canDelete = false,
     activeBadgeBusy = false,
     canSetActiveBadge = true,
     canUseActiveBadgeSelection = true,
     eventId,
     token,
     onPocChanged,
+    searchContext,
+    onScInviteSent,
 }) => {
     if (selectionMode === 'none') return null;
 
@@ -79,6 +84,15 @@ const AttendeeSelectionBar = ({
                         <Mail size={16} style={{ marginRight: '0.5rem' }} />
                         Email
                     </button>
+                    {eventId && token && (
+                        <ScInviteControl
+                            eventId={eventId}
+                            token={token}
+                            selection={{ selectionMode, selectedAttendeeUuids, ...searchContext }}
+                            count={selectionMode === 'selected' ? selectedAttendeeUuids.length : total}
+                            onSent={onScInviteSent}
+                        />
+                    )}
                     <button
                         className="btn btn-primary flex items-center"
                         onClick={() => onCreateEBadge()}
@@ -118,6 +132,22 @@ const AttendeeSelectionBar = ({
                         >
                             <BadgePlus size={16} style={{ marginRight: '0.5rem' }} />
                             Active Badge Set selected
+                        </button>
+                    )}
+                    {onDelete && (
+                        <button
+                            type="button"
+                            className="btn bg-status-danger hover:opacity-90 text-white border-none flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={onDelete}
+                            disabled={!canDelete}
+                            title={
+                                canDelete
+                                    ? 'Delete the selected attendees'
+                                    : 'Delete works on rows selected on this page only'
+                            }
+                        >
+                            <Trash2 size={16} style={{ marginRight: '0.5rem' }} />
+                            Delete
                         </button>
                     )}
                     {changePocCandidate && eventId && token && (

@@ -69,7 +69,7 @@ const EditAttendeeFormFields = ({
             value={form.phone_number}
             onChange={(e) => setField('phone_number', e.target.value.replace(/\D/g, ''))}
             className={inputClass(fieldErrors.phone_number)}
-            placeholder="10 digits or blank"
+            placeholder="Digits only"
           />
           <FieldError message={fieldErrors.phone_number} />
         </div>
