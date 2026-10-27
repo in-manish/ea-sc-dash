@@ -1,10 +1,11 @@
 import React from 'react';
-import { ArrowLeft, UserCog, ImageIcon, Mail, ArrowRightLeft, Loader2, X, FileText } from 'lucide-react';
+import { ArrowLeft, UserCog, ImageIcon, Mail, ArrowRightLeft, Loader2, X, FileText, BookOpen } from 'lucide-react';
 import GeneralTab from './GeneralTab';
 import BadgeTab from './BadgeTab';
 import DraftsTab from './DraftsTab';
 import TransferTab from './TransferTab';
 import EBadgeContentTab from './EBadgeContentTab';
+import BadgeGuideTab from './BadgeGuideTab';
 import { BadgeEmailDraftProvider } from '../hooks/useBadgeEmailDraft.jsx';
 import BadgeEmailVariablesRail from './BadgeEmailVariablesRail';
 
@@ -35,6 +36,7 @@ const AttendeeTypeDetailView = ({
     handleSaveDrafts,
     handleTransferAttendees,
     handleSaveEBadgeContent,
+    handleSaveBadgeGuide,
     attendeeTypes,
     transferTargetId,
     setTransferTargetId,
@@ -46,6 +48,7 @@ const AttendeeTypeDetailView = ({
         { id: 'badge', label: 'Badge Design', icon: ImageIcon },
         { id: 'drafts', label: 'Email & SMS Drafts', icon: Mail },
         { id: 'ebadge', label: 'E-Badge Content', icon: FileText },
+        { id: 'guide', label: 'Badge Guide', icon: BookOpen },
         { id: 'transfer', label: 'Transfer Attendees', icon: ArrowRightLeft },
     ];
 
@@ -91,6 +94,15 @@ const AttendeeTypeDetailView = ({
                         setSelectedType={setSelectedType} 
                         attendeeTypes={attendeeTypes} 
                         handleSaveEBadgeContent={handleSaveEBadgeContent}
+                        isActionLoading={isActionLoading}
+                    />
+                );
+            case 'guide':
+                return (
+                    <BadgeGuideTab
+                        selectedType={selectedType}
+                        setSelectedType={setSelectedType}
+                        handleSaveBadgeGuide={handleSaveBadgeGuide}
                         isActionLoading={isActionLoading}
                     />
                 );

@@ -1,11 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ChevronDown, FileSpreadsheet, BarChart3 } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 import ExhibitorReportModal from './ExhibitorReportModal';
 import CompanyReportModal from './CompanyReportModal';
 
+const REPORT_PARAM = 'report';
+const REPORT_PARENT_PARAM = 'report_parent';
+
 /**
  * Page-header Reports menu: company metrics + CSV email/download.
+ * The Company Report modal is driven by the URL (`?report=company[&report_parent=<id>]`) so the
+ * link can be copied and opened by any logged-in organizer to see the same screen.
  */
 export default function CompaniesReportsMenu({
   eventId,
@@ -15,9 +21,31 @@ export default function CompaniesReportsMenu({
   parentExhibitorId = '',
 }) {
   const { logout } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [menuOpen, setMenuOpen] = useState(false);
   const [csvOpen, setCsvOpen] = useState(false);
-  const [metricsOpen, setMetricsOpen] = useState(false);
+  const metricsOpen = searchParams.get(REPORT_PARAM) === 'company';
+  const reportParent = searchParams.has(REPORT_PARENT_PARAM)
+    ? searchParams.get(REPORT_PARENT_PARAM)
+    : parentExhibitorId;
+
+  const updateParams = (mutate, options) => {
+    const next = new URLSearchParams(searchParams);
+    mutate(next);
+    setSearchParams(next, options);
+  };
+  const openMetrics = () =>
+    updateParams((p) => {
+      p.set(REPORT_PARAM, 'company');
+      if (parentExhibitorId) p.set(REPORT_PARENT_PARAM, String(parentExhibitorId));
+    });
+  const closeMetrics = () =>
+    updateParams((p) => {
+      p.delete(REPORT_PARAM);
+      p.delete(REPORT_PARENT_PARAM);
+    });
+  const changeReportParent = (id) =>
+    updateParams((p) => p.set(REPORT_PARENT_PARAM, id), { replace: true });
   const rootRef = useRef(null);
 
   useEffect(() => {
@@ -66,7 +94,7 @@ export default function CompaniesReportsMenu({
             type="button"
             role="menuitem"
             className="w-full flex items-start gap-2.5 px-3 py-2 text-left text-sm rounded-md hover:bg-bg-secondary text-text-primary"
-            onClick={() => pick(setMetricsOpen)}
+            onClick={() => pick(openMetrics)}
           >
             <BarChart3 size={14} className="mt-0.5 shrink-0 text-text-secondary" />
             <span>
@@ -97,8 +125,9 @@ export default function CompaniesReportsMenu({
         <CompanyReportModal
           eventId={eventId}
           token={token}
-          parentExhibitorId={parentExhibitorId}
-          onClose={() => setMetricsOpen(false)}
+          parentExhibitorId={reportParent}
+          onParentChange={changeReportParent}
+          onClose={closeMetrics}
         />
       )}
       {csvOpen && (

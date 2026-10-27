@@ -24,7 +24,7 @@ const AttendeeTypes = () => {
     // Modal & Action State
     const [isAttendeeModalOpen, setIsAttendeeModalOpen] = useState(false);
     const [editingAttendeeType, setEditingAttendeeType] = useState(null);
-    const [attendeeTypeForm, setAttendeeTypeForm] = useState({ name: '', is_special: false });
+    const [attendeeTypeForm, setAttendeeTypeForm] = useState({ name: '', is_special: false, is_badge_downloadable: false });
     const [isAttendeeSaving, setIsAttendeeSaving] = useState(false);
     const [isActionLoading, setIsActionLoading] = useState(false);
 
@@ -57,7 +57,7 @@ const AttendeeTypes = () => {
 
     const handleOpenAttendeeModal = (type = null) => {
         setEditingAttendeeType(type);
-        setAttendeeTypeForm(type ? { name: type.name, is_special: !!type.is_special } : { name: '', is_special: false });
+        setAttendeeTypeForm(type ? { name: type.name, is_special: !!type.is_special, is_badge_downloadable: !!type.is_badge_downloadable } : { name: '', is_special: false, is_badge_downloadable: false });
         setIsAttendeeModalOpen(true);
     };
 
@@ -88,6 +88,7 @@ const AttendeeTypes = () => {
                 id: selectedType.id,
                 name: selectedType.name,
                 is_special: !!selectedType.is_special,
+                is_badge_downloadable: !!selectedType.is_badge_downloadable,
                 ebadge_content: selectedType.ebadge_content
             }];
             await eventService.updateAttendeeTypes(id, token, payload);
@@ -102,6 +103,29 @@ const AttendeeTypes = () => {
             setIsActionLoading(false);
         }
     }
+
+    const handleSaveBadgeGuide = async () => {
+        setIsActionLoading(true);
+        try {
+            const payload = [{
+                id: selectedType.id,
+                name: selectedType.name,
+                is_special: !!selectedType.is_special,
+                is_badge_downloadable: !!selectedType.is_badge_downloadable,
+                badge_guide: selectedType.badge_guide || ''
+            }];
+            const response = await eventService.updateAttendeeTypes(id, token, payload);
+            const badgeGuide = response?.attendee_types?.[0]?.badge_guide ?? null;
+            setSelectedType(prev => ({ ...prev, badge_guide: badgeGuide }));
+            setAttendeeTypes(prev => prev.map(at => at.id === selectedType.id ? { ...at, badge_guide: badgeGuide } : at));
+            setMessage({ type: 'success', text: 'Badge Guide saved successfully.' });
+        } catch (error) {
+            console.error(error);
+            setMessage({ type: 'error', text: 'Failed to save Badge Guide.' });
+        } finally {
+            setIsActionLoading(false);
+        }
+    };
 
     const handleDeleteAttendeeType = async (typeId) => {
         if (!window.confirm('Are you sure you want to delete this attendee type?')) return;
@@ -226,7 +250,7 @@ const AttendeeTypes = () => {
                         message, setMessage, badgeDesign, setBadgeDesign, emailDraft, setEmailDraft,
                         smsDraft, setSmsDraft, isBadgeFlipped, setIsBadgeFlipped, setIsFullscreenPreviewOpen,
                         setFullscreenPreviewType, isPreviewMode, setIsPreviewMode, handleUploadBadgeImage,
-                        handleUploadEmailTemplate, handleUpdateDesign, handleSaveDrafts, handleTransferAttendees, handleSaveEBadgeContent,
+                        handleUploadEmailTemplate, handleUpdateDesign, handleSaveDrafts, handleTransferAttendees, handleSaveEBadgeContent, handleSaveBadgeGuide,
                         attendeeTypes, transferTargetId, setTransferTargetId, getFullUrl, handleSelectType
                     }}
                 />

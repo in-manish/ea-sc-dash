@@ -33,6 +33,19 @@ const GeneralTab = ({ selectedType }) => {
                         <CheckCircle2 className={selectedType.is_special ? 'text-amber-500' : 'text-text-tertiary'} size={24} />
                     </div>
                 </div>
+
+                <div className="space-y-4">
+                    <label className="text-xs font-bold text-text-tertiary uppercase tracking-wider block">Badge Downloadable</label>
+                    <div className="p-4 rounded-xl border flex items-center justify-between bg-bg-secondary border-border">
+                        <div className="flex flex-col">
+                            <span className="text-sm font-bold text-text-primary">
+                                {selectedType.is_badge_downloadable ? 'Enabled' : 'Disabled'}
+                            </span>
+                            <span className="text-[11px] text-text-tertiary mt-0.5">Attendees of this type can download their badge</span>
+                        </div>
+                        <CheckCircle2 className={selectedType.is_badge_downloadable ? 'text-green-500' : 'text-text-tertiary'} size={24} />
+                    </div>
+                </div>
             </div>
 
             <div className="bg-blue-50 border border-blue-100 rounded-xl p-5 flex gap-4">

@@ -1,7 +1,7 @@
 import { Upload, UserPlus } from 'lucide-react';
 import { ACTION_BTN_STYLE } from '../constants';
 
-const AttendeesPageHeader = ({ total, activeTab, onCreateClick, onUploadClick }) => (
+const AttendeesPageHeader = ({ total, activeTab, onCreateClick, onUploadClick, exportControl }) => (
     <div className="flex justify-between items-end mb-6">
         <div>
             <h1 className="text-2xl font-bold text-text-primary mb-1">Attendees</h1>
@@ -18,6 +18,7 @@ const AttendeesPageHeader = ({ total, activeTab, onCreateClick, onUploadClick })
                     <Upload size={16} />
                     Upload CSV
                 </button>
+                {exportControl}
                 <button
                     type="button"
                     data-testid="create-attendee-btn"

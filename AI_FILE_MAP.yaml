@@ -187,6 +187,13 @@ tasks:
       combo still has a token. Logout must drop the other tab's sessionStorage
       copy (localStorage is already empty) via BroadcastChannel + storage
       event + visibility resync; otherwise that tab stays signed in.
+  attendee_meeting_report:
+    files:
+      - src/features/Attendees/api/meetingReportApi.js
+      - src/features/Attendees/hooks/useMeetingReport.js
+      - src/features/Attendees/ui/MeetingReportControl.jsx
+      - src/features/Attendees/ui/MeetingReportModal.jsx
+      - src/features/Attendees/ui/AttendeeSelectionBar.jsx
   attendee_sc_invite:
     files:
       - src/features/Attendees/api/scInviteApi.js
@@ -267,6 +274,34 @@ tasks:
       while validation shows rows_with_errors > 0. UI only exposes the plain create flow -
       backend also supports replicate/update by Reg ID (?replicate=true/?update=true) but
       that mode isn't wired into this screen yet.
+  attendee_export:
+    files:
+      - src/features/Attendees/api/attendeeExportApi.js
+      - src/features/Attendees/domain/exportFields.js
+      - src/features/Attendees/hooks/useAttendeeExport.js
+      - src/features/Attendees/ui/AttendeeExportControl.jsx
+      - src/features/Attendees/ui/AttendeeExportModal.jsx
+      - src/features/Attendees/ui/AttendeeExportFieldPicker.jsx
+      - src/features/Attendees/ui/AttendeeSelectionBar.jsx
+      - src/features/Attendees/ui/AttendeeSelectionSummary.jsx
+      - src/features/Attendees/ui/AttendeeSelectionMoreMenu.jsx
+      - src/features/Attendees/ui/AttendeesPageHeader.jsx
+      - src/features/Attendees/ui/AttendeesPage.jsx
+    routes:
+      - /event/:id/attendees
+    notes: >
+      Header Export button (next to Upload CSV). POST /events/:eventId/user/export/ (organizer
+      only) with {fields, type: csv|xlsx|pdf} plus either {uuids} (ticked rows) or
+      {search_queries} (current search + filters, built by attendeeSelectionService; nothing
+      ticked = every match). Note the key is uuids, not attendee_uuids. EA returns
+      {message, download_link} for up to 50 rows; larger exports are emailed (response has
+      only message). The 18 field keys in domain/exportFields.js mirror
+      EA badge/views/ExportUserData.py - unknown keys are ignored there, and column order is
+      fixed by EA, not by the order picked. Field + format choice is remembered in
+      localStorage (ea_dash_attendee_export_prefs). Export also sits in the selection bar (exports the
+      ticked rows). Selection bar layout: summary pill + Clear (AttendeeSelectionSummary), solid Email +
+      WhatsApp, outlined Export / Send SC login / Create E-badge, a More menu for Active Badge
+      Check/Set (AttendeeSelectionMoreMenu), and an outlined Delete after a divider.
   event_uploads:
     files:
       - src/pages/AttendeeUploads.jsx
@@ -309,6 +344,7 @@ tasks:
       - src/pages/AttendeeTypes.jsx
       - src/pages/attendee-types/components/DraftsTab.jsx
       - src/pages/attendee-types/components/AttendeeTypeDetailView.jsx
+      - src/pages/attendee-types/components/BadgeGuideTab.jsx
       - src/pages/attendee-types/saveAttendeeTypeDrafts.js
       - src/pages/attendee-types/parseAttendeeTypeDrafts.js
       - src/pages/attendee-types/domain/badgeEmailVariables.js
@@ -753,6 +789,22 @@ tasks:
       sort params ignored when q is set (_score desc) or is_featured=true
       with no q (featured_rank then company_slug). Empty q is omitted.
       A positive integer sponsor_rank highlights that row yellow.
+  ratings_setup:
+    files:
+      - src/features/Ratings/ui/RatingsTab.jsx
+      - src/features/Ratings/ui/RatingTypeDetail.jsx
+      - src/features/Ratings/ui/ScaleCard.jsx
+      - src/features/Ratings/hooks/useRatingTypes.js
+      - src/features/Ratings/hooks/useRatingScale.js
+      - src/features/Ratings/api/ratingConfigApi.js
+      - src/features/Ratings/domain/ratingForms.js
+      - src/pages/meetings/Meetings.jsx
+    notes: >
+      Meetings -> Ratings (?tab=ratings&type=<id>). Organizer CRUD on EA
+      rating/types/, rating/applicable-ratings/, rating/options/. Options are
+      listed per scale (applicable_rating_id); the unfiltered list merges types.
+      Deleting a type deletes its ratings. rating/profile/summary|detail are not
+      wired: they need an EA-TOKEN (SnapCard JWT), not the organizer token.
   meeting_attendees_email:
     files:
       - src/features/MeetingAttendees/api/meetingAttendeesApi.js

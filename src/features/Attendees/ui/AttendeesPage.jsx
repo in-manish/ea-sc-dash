@@ -13,6 +13,7 @@ import useScBadgeSync from '../hooks/useScBadgeSync';
 import useEBadgeJobs from '../hooks/useEBadgeJobs';
 import useAttendeeTypes from '../hooks/useAttendeeTypes';
 import AttendeesPageHeader from './AttendeesPageHeader';
+import AttendeeExportControl from './AttendeeExportControl';
 import AttendeesTabs from './AttendeesTabs';
 import AttendeesListView from './AttendeesListView';
 import EBadgeTasksPanel from './EBadgeTasksPanel';
@@ -139,6 +140,22 @@ const AttendeesPage = () => {
                     list.setIsCreateModalOpen(true);
                 }}
                 onUploadClick={() => setIsUploadModalOpen(true)}
+                exportControl={
+                    <AttendeeExportControl
+                        eventId={selectedEvent?.id}
+                        token={token}
+                        disabled={list.total === 0}
+                        selection={{
+                            selectionMode: selection.selectionMode,
+                            selectedAttendeeUuids: selection.selectedAttendeeUuids,
+                            search: searchApi.debouncedSearch,
+                            searchType: searchApi.searchType,
+                            filters: filtersApi.filters,
+                            total: list.total,
+                            hasActiveSearchOrFilters,
+                        }}
+                    />
+                }
             />
             <AttendeesTabs activeTab={activeTab} onTabChange={setActiveTab} />
 

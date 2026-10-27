@@ -15,6 +15,7 @@ const CompanyComprehensiveReportPanel = ({
   eventId,
   token,
   parentExhibitorId: filterParentId = '',
+  onParentChange,
 }) => {
   const [parentExhibitorId, setParentExhibitorId] = useState(
     filterParentId ? String(filterParentId) : ''
@@ -64,11 +65,13 @@ const CompanyComprehensiveReportPanel = ({
       return;
     }
     setAppliedParentId(trimmed);
+    onParentChange?.(trimmed);
   };
 
   const handleClearParentFilter = () => {
     setParentExhibitorId('');
     setAppliedParentId('');
+    onParentChange?.('');
   };
 
   const isScoped = Boolean(appliedParentId);

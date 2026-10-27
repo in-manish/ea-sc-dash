@@ -1,4 +1,4 @@
-import { MessageCircle, IdCard, Mail, BadgeCheck, BadgePlus, Trash2 } from 'lucide-react';
+import { MessageCircle, IdCard, Mail, Trash2 } from 'lucide-react';
 import {
     singleSelectedPocAttendee,
     singleSelectedChangePocCandidate,
@@ -7,6 +7,12 @@ import { exhibitorPasswordResetPayload } from '../../Companies/domain/exhibitorP
 import ExhibitorPasswordResetControl from '../../Companies/ui/ExhibitorPasswordResetControl';
 import ChangeExhibitorPocControl from './ChangeExhibitorPocControl';
 import ScInviteControl from './ScInviteControl';
+import AttendeeExportControl from './AttendeeExportControl';
+import MeetingReportControl from './MeetingReportControl';
+import AttendeeSelectionSummary from './AttendeeSelectionSummary';
+import AttendeeSelectionMoreMenu from './AttendeeSelectionMoreMenu';
+
+const Divider = () => <span className="hidden md:block w-px h-6 bg-border mx-1" aria-hidden="true" />;
 
 const AttendeeSelectionBar = ({
     selectionMode,
@@ -35,122 +41,70 @@ const AttendeeSelectionBar = ({
 }) => {
     if (selectionMode === 'none') return null;
 
-    const pocAttendee = singleSelectedPocAttendee(
-        selectedAttendees,
-        selectionMode,
-    );
-
-    const changePocCandidate = singleSelectedChangePocCandidate(
-        selectedAttendees,
-        selectionMode,
-    );
+    const pocAttendee = singleSelectedPocAttendee(selectedAttendees, selectionMode);
+    const changePocCandidate = singleSelectedChangePocCandidate(selectedAttendees, selectionMode);
+    const selectedCount = selectionMode === 'selected' ? selectedAttendeeUuids.length : total;
+    const hasSession = Boolean(eventId && token);
 
     return (
-        <div className="mb-6 bg-bg-primary border border-border rounded-lg px-5 py-6 shadow-sm animate-fade-in">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div className="text-text-primary">
-                    <span className="text-sm font-semibold">
-                        {selectionMode === 'selected'
-                            ? `${selectedAttendeeUuids.length} attendee${selectedAttendeeUuids.length === 1 ? '' : 's'} selected on this page.`
-                            : selectionMode === 'filtered'
-                              ? `All ${total} attendees matching this search are selected.`
-                              : `All ${total} attendees are selected.`}
-                    </span>
-                    {selectionMode === 'selected' && allVisibleSelected && (
-                        <>
-                            {' '}
-                            <button
-                                type="button"
-                                className="bg-transparent border-none p-0 text-sm font-semibold text-text-primary underline underline-offset-2 cursor-pointer hover:text-accent"
-                                onClick={onSelectAllMatching}
-                            >
-                                {hasActiveSearchOrFilters
-                                    ? 'Select all attendees that match this search'
-                                    : `Select all ${total} attendees`}
-                            </button>
-                        </>
-                    )}
-                </div>
+        <div className="mb-6 bg-bg-primary border border-border rounded-lg px-4 py-3 shadow-sm animate-fade-in">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <AttendeeSelectionSummary
+                    selectionMode={selectionMode}
+                    selectedCount={selectedCount}
+                    total={total}
+                    allVisibleSelected={allVisibleSelected}
+                    hasActiveSearchOrFilters={hasActiveSearchOrFilters}
+                    onClearSelection={onClearSelection}
+                    onSelectAllMatching={onSelectAllMatching}
+                />
 
-                <div className="flex flex-wrap items-center justify-end gap-3">
-                    <button className="btn btn-secondary" onClick={onClearSelection}>
-                        Clear Selection
-                    </button>
-                    <button className="btn btn-primary" onClick={onOpenWhatsApp}>
-                        <MessageCircle size={16} style={{ marginRight: '0.5rem' }} />
-                        WhatsApp
-                    </button>
-                    <button className="btn btn-primary" onClick={onOpenEmail}>
-                        <Mail size={16} style={{ marginRight: '0.5rem' }} />
+                <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+                    <button type="button" className="btn btn-primary gap-2" onClick={onOpenEmail}>
+                        <Mail size={16} />
                         Email
                     </button>
-                    {eventId && token && (
+                    <button type="button" className="btn btn-primary gap-2" onClick={onOpenWhatsApp}>
+                        <MessageCircle size={16} />
+                        WhatsApp
+                    </button>
+
+                    <Divider />
+
+                    {hasSession && (
+                        <AttendeeExportControl
+                            eventId={eventId}
+                            token={token}
+                            selection={{
+                                selectionMode,
+                                selectedAttendeeUuids,
+                                ...searchContext,
+                                total,
+                                hasActiveSearchOrFilters,
+                            }}
+                        />
+                    )}
+                    {hasSession && (
+                        <MeetingReportControl
+                            eventId={eventId}
+                            token={token}
+                            selection={{ selectionMode, selectedAttendees, total }}
+                        />
+                    )}
+                    {hasSession && (
                         <ScInviteControl
                             eventId={eventId}
                             token={token}
                             selection={{ selectionMode, selectedAttendeeUuids, ...searchContext }}
-                            count={selectionMode === 'selected' ? selectedAttendeeUuids.length : total}
+                            count={selectedCount}
                             onSent={onScInviteSent}
                         />
                     )}
-                    <button
-                        className="btn btn-primary flex items-center"
-                        onClick={() => onCreateEBadge()}
-                    >
-                        <IdCard size={16} style={{ marginRight: '0.5rem' }} />
+                    <button type="button" className="btn btn-secondary gap-2" onClick={() => onCreateEBadge()}>
+                        <IdCard size={16} />
                         Create E-badge
                     </button>
-                    {onCheckActiveBadge && (
-                        <button
-                            type="button"
-                            className="btn btn-secondary flex items-center"
-                            onClick={onCheckActiveBadge}
-                            disabled={activeBadgeBusy || !canUseActiveBadgeSelection}
-                            title={
-                                canUseActiveBadgeSelection
-                                    ? 'Check active badge status for selected attendees'
-                                    : 'Use Preview eligible above for the whole event, or select rows on this page'
-                            }
-                        >
-                            <BadgeCheck size={16} style={{ marginRight: '0.5rem' }} />
-                            Active Badge Check selected
-                        </button>
-                    )}
-                    {onSetActiveBadge && (
-                        <button
-                            type="button"
-                            className="btn btn-secondary flex items-center"
-                            onClick={onSetActiveBadge}
-                            disabled={activeBadgeBusy || !canSetActiveBadge}
-                            title={
-                                !canUseActiveBadgeSelection
-                                    ? 'Use Create all eligible above, or select rows on this page'
-                                    : !canSetActiveBadge
-                                      ? 'Selected badges already have an active badge'
-                                      : 'Create active badges for eligible selected attendees'
-                            }
-                        >
-                            <BadgePlus size={16} style={{ marginRight: '0.5rem' }} />
-                            Active Badge Set selected
-                        </button>
-                    )}
-                    {onDelete && (
-                        <button
-                            type="button"
-                            className="btn bg-status-danger hover:opacity-90 text-white border-none flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
-                            onClick={onDelete}
-                            disabled={!canDelete}
-                            title={
-                                canDelete
-                                    ? 'Delete the selected attendees'
-                                    : 'Delete works on rows selected on this page only'
-                            }
-                        >
-                            <Trash2 size={16} style={{ marginRight: '0.5rem' }} />
-                            Delete
-                        </button>
-                    )}
-                    {changePocCandidate && eventId && token && (
+                    {changePocCandidate && hasSession && (
                         <ChangeExhibitorPocControl
                             eventId={eventId}
                             token={token}
@@ -158,7 +112,7 @@ const AttendeeSelectionBar = ({
                             onChanged={onPocChanged}
                         />
                     )}
-                    {pocAttendee && eventId && token && (
+                    {pocAttendee && hasSession && (
                         <ExhibitorPasswordResetControl
                             eventId={eventId}
                             token={token}
@@ -171,6 +125,34 @@ const AttendeeSelectionBar = ({
                             description="Resets the exhibitor portal password for this POC."
                             buttonClassName="btn btn-secondary flex items-center gap-2"
                         />
+                    )}
+                    <AttendeeSelectionMoreMenu
+                        onCheckActiveBadge={onCheckActiveBadge}
+                        onSetActiveBadge={onSetActiveBadge}
+                        busy={activeBadgeBusy}
+                        canUseSelection={canUseActiveBadgeSelection}
+                        canSet={canSetActiveBadge}
+                    />
+
+                    {onDelete && (
+                        <>
+                            <Divider />
+                            <button
+                                type="button"
+                                className="btn gap-2 border-status-danger text-status-danger bg-bg-primary hover:bg-red-50 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-bg-primary"
+                                onClick={onDelete}
+                                disabled={!canDelete}
+                                aria-label="Delete selected attendees"
+                                title={
+                                    canDelete
+                                        ? 'Delete the selected attendees'
+                                        : 'Delete works on rows selected on this page only'
+                                }
+                            >
+                                <Trash2 size={16} />
+                                Delete
+                            </button>
+                        </>
                     )}
                 </div>
             </div>

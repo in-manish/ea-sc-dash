@@ -59,6 +59,17 @@ const AddEditModal = ({
                             onChange={(e) => setAttendeeTypeForm({ ...attendeeTypeForm, is_special: e.target.checked })}
                         />
                     </div>
+                    <div className="flex items-center justify-between p-4 bg-bg-secondary rounded-xl border border-border">
+                        <div className="flex flex-col">
+                            <span className="text-[14px] font-bold text-text-primary font-mono">Badge Downloadable</span>
+                            <span className="text-[11px] text-text-tertiary mt-0.5 italic">Attendees of this type can download their badge</span>
+                        </div>
+                        <ToggleSwitch
+                            name="is_badge_downloadable"
+                            checked={attendeeTypeForm.is_badge_downloadable}
+                            onChange={(e) => setAttendeeTypeForm({ ...attendeeTypeForm, is_badge_downloadable: e.target.checked })}
+                        />
+                    </div>
                 </div>
                 <div className="p-6 border-t border-border flex justify-end gap-3 bg-bg-secondary/50">
                     <button

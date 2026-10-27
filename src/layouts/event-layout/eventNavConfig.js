@@ -73,6 +73,7 @@ export const EVENT_MAIN_NAV = [
       { title: 'Restore Meeting', tab: 'restore' },
       { title: 'Meeting Stats Report', tab: 'stats' },
       { title: 'Meeting Attendees', tab: 'attendees' },
+      { title: 'Ratings', tab: 'ratings' },
     ],
   },
   {

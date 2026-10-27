@@ -34,6 +34,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Matchmaking | `src/features/Matchmaking/` | GET 404 = create/copy; 200 = editor only; tabs `?tab=questions|exhibitor|mapping|backfill` |
 | MeetingStats | `src/features/MeetingStats/` | Organizer meeting stats by event × attendee type (GET) + email CSV (POST) |
 | MeetingAttendees | `src/features/MeetingAttendees/` | Meetings → Meeting Attendees tab (`?tab=attendees`): attendees with pending / confirmed meeting counts, select people or all matching, send email from templates (one per attendee type) |
+| Ratings | `src/features/Ratings/` | Meetings → Ratings tab (`?tab=ratings&type=`): rating types, scale values (label/colour), feedback options. Setup only; results endpoints need an SnapCard `EA-TOKEN` |
 | SponsorPromo | `src/features/SponsorPromo/` | Communication → Promo Codes tab (`?tab=promo`): sponsor pools, CSV code import, `{{slug.promotional_code}}` email token |
 | Visiq | `src/features/Visiq/` | Tenant subscriber CRM: list/detail + CSV/Excel import jobs |
 | AiPresets | `src/features/AiPresets/` | Organizer AI system prompt presets; matchmaking `mm_seeking_mapper` catalog preview at `/event/:id/ai/preview` |
@@ -52,6 +53,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Reusable crop/resize/web-optimize image upload | `src/components/imageEditor/` (`useImageEditor` + `ImageEditorModal`) — independent crop, compression slider, target KB, dimensions, web/mobile hints, live preview |
 | Edit attendee / badge | `src/features/Attendees/ui/EditAttendeeModal.jsx` + `api/attendeeApi.js` + `domain/editAttendeeForm.js` |
 | Send SnapCard login (SC invite / reset password) | `ui/ScInviteControl.jsx` + `ui/ScInviteModal.jsx` + `hooks/useScInvite.js` + `api/scInviteApi.js` (`POST /evc/events/:id/reset-password/`) |
+| Attendee meeting report PDF (selection bar) | `ui/MeetingReportControl.jsx` + `ui/MeetingReportModal.jsx` + `hooks/useMeetingReport.js` + `api/meetingReportApi.js` (`POST /events/:id/attendees/:reg_id/meetings/report/export/` download; `POST /events/:id/attendees/meetings/report/export/` email) |
 | Delete selected attendees | `ui/AttendeeSelectionBar.jsx` + `hooks/useDeleteAttendees.js` + `ui/DeleteAttendeesModal.jsx` + `api/attendeeApi.js` (`DELETE /events/:id/attendees/`, `users` = badge uuids) |
 | Attendee detail modal | `ui/AttendeeDetailModal.jsx` + `domain/attendeeFieldGroups.js` (`formatDetailValue` — objects never as React children) |
 | Scan location permissions | `src/features/ScanLocations/ui/ScanLocationsPage.jsx` (`/event/:id/settings?tab=scan-location&panel=locations`, `panel=codes` or `panel=metrics`) |
@@ -63,6 +65,8 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Send attendee emails | `ui/AttendeeEmailDraftsModal.jsx` (Badge Email + Categories Email toggles) + `hooks/useAttendeeTypeEmails.js` + `hooks/useCategoryTypeEmails.js` |
 | Active badge status / create | `ui/ActiveBadgeToolbar.jsx` + `hooks/useActiveBadgeActions.js` + `api/activeBadgeApi.js` |
 | Bulk attendee CSV upload + dry-run validate | `ui/AttendeeUploadModal.jsx` + `ui/AttendeeUploadRowIssues.jsx` + `hooks/useAttendeeUpload.js` + `api/attendeeUploadApi.js` (create-flow only, no replicate/update by Reg ID) |
+| Attendee export (field picker, CSV/XLSX/PDF) | `ui/AttendeeExportControl.jsx` + `ui/AttendeeExportModal.jsx` + `ui/AttendeeExportFieldPicker.jsx` + `hooks/useAttendeeExport.js` + `domain/exportFields.js` + `api/attendeeExportApi.js` (header Export button + selection-bar Export; ticked rows or all current matches) |
+| Attendee selection bar layout | `ui/AttendeeSelectionBar.jsx` + `ui/AttendeeSelectionSummary.jsx` (count pill, select-all-matching, Clear) + `ui/AttendeeSelectionMoreMenu.jsx` (Active Badge Check/Set overflow) |
 | Event upload history (attendee + company tabs) | `src/pages/AttendeeUploads.jsx` + `ui/UploadsTabs.jsx` + `ui/AttendeeUploadHistoryPanel.jsx` + `ui/CompanyUploadHistoryPanel.jsx` + `src/components/uploadHistory/` |
 | Email page: Category Emails vs Templates guide, meeting template starter | `src/components/email/EmailTabGuide.jsx` + `emailConfigTabs.js` (`EMAIL_TAB_GUIDE`) + `templates/constants/emailTemplateTypes.js` (`MEETING_TEMPLATE_TYPE`, `meeting_` slugs) + `templates/domain/buildNewEmailTemplate.js` |
 | Create EA company / co-exhibitor | `src/features/Companies/ui/CreateCompanyPage.jsx` + `api/companyApi.js` |

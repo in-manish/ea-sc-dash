@@ -4,6 +4,7 @@ import RestoreMeeting from '../../components/meetings/RestoreMeeting';
 import MeetingList from '../../components/meetings/MeetingList';
 import { MeetingStatsReportTab } from '../../features/MeetingStats';
 import { MeetingAttendeesTab } from '../../features/MeetingAttendees';
+import { RatingsTab } from '../../features/Ratings';
 import MeetingsTabs from './MeetingsTabs';
 
 const Meetings = () => {
@@ -22,7 +23,7 @@ const Meetings = () => {
       <div className="mb-6 flex flex-col gap-1">
         <h1 className="text-2xl font-bold text-text-primary tracking-tight">Meetings</h1>
         <p className="text-[0.925rem] text-text-secondary">
-          Manage event meetings, restoration, stats, and attendees.
+          Manage event meetings, restoration, stats, attendees, and ratings.
         </p>
       </div>
 
@@ -33,6 +34,7 @@ const Meetings = () => {
         {activeTab === 'restore' && <RestoreMeeting />}
         {activeTab === 'stats' && <MeetingStatsReportTab />}
         {activeTab === 'attendees' && <MeetingAttendeesTab />}
+        {activeTab === 'ratings' && <RatingsTab />}
       </div>
     </div>
   );
