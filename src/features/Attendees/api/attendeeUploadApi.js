@@ -48,13 +48,16 @@ export async function validateAttendeesCsv(eventId, token, file, options = {}) {
     return response.json();
 }
 
-/** GET /events/:eventId/attendee/upload/report/ - paginated history of past CSV uploads. */
+/** GET /events/:eventId/attendee/upload/report/ - paginated history of past CSV uploads.
+ * q prefix-matches upload_id. summary=true returns id fields only. */
 export async function getAttendeeUploads(eventId, token, {
-    page = 1, size = 20, sortBy = 'uploaded_on', sortOrder = 'desc', uploadType = '',
+    page = 1, size = 20, sortBy = 'uploaded_on', sortOrder = 'desc', uploadType = '', q = '', summary = false,
 } = {}) {
     const params = new URLSearchParams({
         sort_by: sortBy, sort_order: sortOrder, upload_type: uploadType, page, size,
     });
+    if (q) params.set('q', q);
+    if (summary) params.set('summary', 'true');
     const response = await fetch(
         `${getApiUrl()}/events/${eventId}/attendee/upload/report/?${params}`,
         { method: 'GET', headers: authHeaders(token) }

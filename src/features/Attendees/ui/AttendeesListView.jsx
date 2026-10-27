@@ -63,12 +63,16 @@ const AttendeesListView = ({
         <AttendeeSearchToolbar
             search={searchApi.search}
             onSearchChange={searchApi.setSearch}
+            onSubmitSearch={searchApi.submitSearch}
             searchType={searchApi.searchType}
             isSearchTypeOpen={searchApi.isSearchTypeOpen}
             setIsSearchTypeOpen={searchApi.setIsSearchTypeOpen}
             searchTypeRef={searchApi.searchTypeRef}
             onSelectSearchType={searchApi.selectSearchType}
             filters={filtersApi.filters}
+            onQuickFilter={filtersApi.updateFilter}
+            eventId={selectedEvent?.id}
+            token={token}
             onOpenFilters={() => filtersApi.setIsFilterDrawerOpen(true)}
             onClearAll={() => {
                 filtersApi.clearFilters();

@@ -1,9 +1,19 @@
-import { Upload, UserPlus } from 'lucide-react';
+import { ArrowLeft, Upload, UserPlus } from 'lucide-react';
 import { ACTION_BTN_STYLE } from '../constants';
 
-const AttendeesPageHeader = ({ total, activeTab, onCreateClick, onUploadClick, exportControl }) => (
+const AttendeesPageHeader = ({ total, activeTab, onCreateClick, onUploadClick, exportControl, onBackToUploads }) => (
     <div className="flex justify-between items-end mb-6">
         <div>
+            {onBackToUploads && (
+                <button
+                    type="button"
+                    onClick={onBackToUploads}
+                    className="inline-flex items-center gap-1.5 mb-2 p-0 bg-transparent border-none text-sm font-medium text-accent cursor-pointer hover:underline"
+                >
+                    <ArrowLeft size={14} />
+                    Back to uploads
+                </button>
+            )}
             <h1 className="text-2xl font-bold text-text-primary mb-1">Attendees</h1>
             <p className="text-sm text-text-secondary">Total: {total} registered</p>
         </div>

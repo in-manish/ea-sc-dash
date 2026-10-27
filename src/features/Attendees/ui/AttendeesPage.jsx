@@ -18,6 +18,7 @@ import AttendeesTabs from './AttendeesTabs';
 import AttendeesListView from './AttendeesListView';
 import EBadgeTasksPanel from './EBadgeTasksPanel';
 import AttendeesModals from './AttendeesModals';
+import { readUploadsReturn, uploadsReturnPath } from '../domain/uploadReturn';
 
 const AttendeesPage = () => {
     const { selectedEvent, token } = useAuth();
@@ -61,6 +62,13 @@ const AttendeesPage = () => {
 
     const hasActiveSearchOrFilters =
         Boolean(searchApi.debouncedSearch) || Object.keys(filtersApi.filters).length > 0;
+    const uploadsReturn = uploadsReturnPath(
+        selectedEvent?.id,
+        location.state?.returnTo || readUploadsReturn(selectedEvent?.id),
+    );
+    const backToUploads = filtersApi.filters.upload_id && uploadsReturn
+        ? () => navigate(uploadsReturn)
+        : null;
 
     const clearSelection = useCallback(() => clearSelectionRef.current(), []);
     const getSelection = useCallback(() => getSelectionRef.current(), []);
@@ -123,9 +131,20 @@ const AttendeesPage = () => {
 
     if (!list.hasLoaded && list.loading) {
         return (
-            <div className="flex flex-col items-center justify-center h-[50vh] text-text-tertiary gap-4">
-                <Loader2 className="animate-spin text-accent" size={32} />
-                <p>Loading Attendees...</p>
+            <div className="w-full animate-fade-in">
+                {backToUploads && (
+                    <button
+                        type="button"
+                        onClick={backToUploads}
+                        className="inline-flex items-center gap-1.5 mb-4 p-0 bg-transparent border-none text-sm font-medium text-accent cursor-pointer hover:underline"
+                    >
+                        Back to uploads
+                    </button>
+                )}
+                <div className="flex flex-col items-center justify-center h-[50vh] text-text-tertiary gap-4">
+                    <Loader2 className="animate-spin text-accent" size={32} />
+                    <p>Loading Attendees...</p>
+                </div>
             </div>
         );
     }
@@ -140,6 +159,7 @@ const AttendeesPage = () => {
                     list.setIsCreateModalOpen(true);
                 }}
                 onUploadClick={() => setIsUploadModalOpen(true)}
+                onBackToUploads={backToUploads}
                 exportControl={
                     <AttendeeExportControl
                         eventId={selectedEvent?.id}

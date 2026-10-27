@@ -34,7 +34,12 @@ const AttendeeUploads = () => {
             <UploadsTabs activeTab={tab} onTabChange={setTab} />
 
             {selectedEvent && !isCompanies && (
-                <AttendeeUploadHistoryPanel eventId={selectedEvent.id} token={token} />
+                <AttendeeUploadHistoryPanel
+                    eventId={selectedEvent.id}
+                    token={token}
+                    searchParams={searchParams}
+                    setSearchParams={setSearchParams}
+                />
             )}
             {selectedEvent && isCompanies && (
                 <CompanyUploadHistoryPanel eventId={selectedEvent.id} token={token} />

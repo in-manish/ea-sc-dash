@@ -5,6 +5,7 @@ import { eventService } from '../../services/eventService';
 import { Loader2, Download, Search, Filter, AlertCircle, RefreshCw, MapPin, Hash, User, Mail, Building, Clock, Map, Phone, Briefcase, X, AlignLeft, Calendar } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { formatApiDateTime } from '../../utils/formatApiDateTime';
+import GateScanPieChart from './GateScanPieChart';
 
 const ScanReports = () => {
     const { selectedEvent } = useAuth();
@@ -87,6 +88,7 @@ const ScanReports = () => {
     const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
     const [locations, setLocations] = useState([]); // Official list [{id, name, ...}]
     const [locationMap, setLocationMap] = useState({}); // Mapping id -> name
+    const [attendeeTypes, setAttendeeTypes] = useState([]); // [{id, name}] from attendee type API
 
     const { token } = useAuth();
 
@@ -109,6 +111,21 @@ const ScanReports = () => {
             }
         };
         fetchLocations();
+    }, [selectedEvent?.id, token]);
+
+    useEffect(() => {
+        const fetchAttendeeTypes = async () => {
+            if (!selectedEvent?.id || !token) return;
+            try {
+                const data = await eventService.getAttendeeTypes(selectedEvent.id, token);
+                const types = Array.isArray(data?.attendee_types) ? data.attendee_types : [];
+                setAttendeeTypes(types.map((type) => ({ id: String(type.id), name: type.name })));
+            } catch (err) {
+                console.error('Error fetching attendee types:', err);
+                setAttendeeTypes([]);
+            }
+        };
+        fetchAttendeeTypes();
     }, [selectedEvent?.id, token]);
 
     const fetchReports = useCallback(async () => {
@@ -231,7 +248,6 @@ const ScanReports = () => {
 
     // Calculate total pages
     const totalPages = Math.ceil((statistics.total || 0) / pageSize);
-    const maxBarCount = Math.max(...Object.values(statistics.location_statistics || {}), 1);
 
     return (
         <div className="flex flex-col gap-6 w-full max-w-[100vw]">
@@ -290,6 +306,9 @@ const ScanReports = () => {
                                 if (key === 'location_id' && locationMap[val]) {
                                     displayVal = locationMap[val];
                                 }
+                                if (key === 'att_id') {
+                                    displayVal = attendeeTypes.find((type) => type.id === String(val))?.name || val;
+                                }
 
                                 return (
                                     <div key={`${key}-${val}`} className="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-xs font-semibold bg-accent/10 text-accent border border-accent/20 transition-all hover:bg-accent/15">
@@ -321,30 +340,9 @@ const ScanReports = () => {
                     </div>
                 )}
 
-                {/* Location Statistics Bar Graph */}
                 {Object.keys(statistics.location_statistics || {}).length > 0 && (
                     <div className="bg-bg-primary border border-border rounded-xl p-5 shadow-sm">
-                        <h3 className="text-sm font-semibold text-text-primary mb-4 flex items-center gap-2 pb-3 border-b border-border/50">
-                            <AlignLeft size={16} className="text-accent" /> Gate-wise Scan Distribution
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4">
-                            {Object.entries(statistics.location_statistics).map(([location, count]) => (
-                                <div key={location} className="flex items-center gap-3 group">
-                                    <span className="w-24 text-xs font-semibold text-text-secondary truncate text-right group-hover:text-text-primary transition-colors" title={location}>
-                                        {location}
-                                    </span>
-                                    <div className="flex-1 h-3 bg-bg-secondary rounded-full overflow-hidden relative shadow-inner">
-                                        <div
-                                            className="absolute top-0 left-0 h-full bg-accent rounded-full transition-all duration-1000 ease-out"
-                                            style={{ width: `${(count / maxBarCount) * 100}%` }}
-                                        />
-                                    </div>
-                                    <span className="w-10 text-xs font-bold text-text-primary text-left">
-                                        {count}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
+                        <GateScanPieChart counts={statistics.location_statistics} />
                     </div>
                 )}
             </div>
@@ -631,22 +629,25 @@ const ScanReports = () => {
                                 <User size={14} className="text-accent" /> Attendee Category
                             </h4>
                             <div className="flex flex-wrap gap-2">
-                                {['Exhibitor', 'Visitor', 'VIP', 'Speaker', 'Media', 'Contractor'].map(type => (
+                                {attendeeTypes.map(type => (
                                     <button
-                                        key={type}
+                                        key={type.id}
                                         onClick={() => {
-                                            const current = filters.att_id;
-                                            const next = current.includes(type) ? current.filter(t => t !== type) : [...current, type];
+                                            const current = filters.att_id.map(String);
+                                            const next = current.includes(type.id) ? current.filter(id => id !== type.id) : [...current, type.id];
                                             setFilters({ ...filters, att_id: next });
                                         }}
                                         className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all duration-200 
-                                            ${filters.att_id.includes(type)
+                                            ${filters.att_id.map(String).includes(type.id)
                                                 ? 'bg-accent text-white border-accent shadow-sm'
                                                 : 'bg-bg-secondary border-border text-text-secondary hover:border-accent/40'}`}
                                     >
-                                        {type}
+                                        {type.name}
                                     </button>
                                 ))}
+                                {attendeeTypes.length === 0 && (
+                                    <p className="text-xs text-text-tertiary italic">No attendee types available</p>
+                                )}
                             </div>
                         </div>
                     </div>

@@ -81,6 +81,7 @@ const AttendeeFilterDrawer = ({
                         <option value="">All Types</option>
                         <option value="ONLINE">Online</option>
                         <option value="ON_SPOT">On Spot</option>
+                        <option value="PRE_REG">Pre-Registration</option>
                     </select>
                 </div>
 
@@ -94,7 +95,19 @@ const AttendeeFilterDrawer = ({
                             className="w-full py-2.5 px-3.5 border border-border rounded-md text-sm bg-bg-secondary outline-none"
                             placeholder="Enter city..."
                             value={filters.city || ''}
-                            onChange={(e) => setFilters({ ...filters, city: e.target.value })}
+                            onChange={(e) => updateFilter('city', e.target.value)}
+                        />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                        <h4 className="text-xs font-bold text-text-tertiary uppercase tracking-wider m-0">
+                            State
+                        </h4>
+                        <input
+                            type="text"
+                            className="w-full py-2.5 px-3.5 border border-border rounded-md text-sm bg-bg-secondary outline-none"
+                            placeholder="Enter state..."
+                            value={filters.state || ''}
+                            onChange={(e) => updateFilter('state', e.target.value)}
                         />
                     </div>
                     <div className="flex flex-col gap-2">
@@ -106,7 +119,7 @@ const AttendeeFilterDrawer = ({
                             className="w-full py-2.5 px-3.5 border border-border rounded-md text-sm bg-bg-secondary outline-none"
                             placeholder="Enter country..."
                             value={filters.country || ''}
-                            onChange={(e) => setFilters({ ...filters, country: e.target.value })}
+                            onChange={(e) => updateFilter('country', e.target.value)}
                         />
                     </div>
                 </div>
@@ -127,6 +140,7 @@ const AttendeeFilterDrawer = ({
                             { key: 'is_poc', label: 'Point of Contact' },
                             { key: 'check_in', label: 'Checked In' },
                             { key: 'email_sent', label: 'Email Sent' },
+                            { key: 'sms_sent', label: 'SMS Sent' },
                             { key: 'whatsapp_sent', label: 'WhatsApp Sent' },
                         ].map(({ key, label }) => (
                             <label
@@ -156,9 +170,7 @@ const AttendeeFilterDrawer = ({
                                 type="date"
                                 className="p-2 border border-border rounded-md text-sm outline-none"
                                 value={filters.created_at_start || ''}
-                                onChange={(e) =>
-                                    setFilters({ ...filters, created_at_start: e.target.value })
-                                }
+                                onChange={(e) => updateFilter('created_at_start', e.target.value)}
                             />
                         </div>
                         <div className="flex flex-col gap-1">
@@ -167,11 +179,78 @@ const AttendeeFilterDrawer = ({
                                 type="date"
                                 className="p-2 border border-border rounded-md text-sm outline-none"
                                 value={filters.created_at_end || ''}
-                                onChange={(e) =>
-                                    setFilters({ ...filters, created_at_end: e.target.value })
-                                }
+                                onChange={(e) => updateFilter('created_at_end', e.target.value)}
                             />
                         </div>
+                    </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                    <h4 className="text-xs font-bold text-text-tertiary uppercase tracking-wider m-0">
+                        Last Updated
+                    </h4>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs text-text-secondary">From</label>
+                            <input
+                                type="date"
+                                className="p-2 border border-border rounded-md text-sm outline-none"
+                                value={filters.modified_at_start || ''}
+                                onChange={(e) => updateFilter('modified_at_start', e.target.value)}
+                            />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs text-text-secondary">To</label>
+                            <input
+                                type="date"
+                                className="p-2 border border-border rounded-md text-sm outline-none"
+                                value={filters.modified_at_end || ''}
+                                onChange={(e) => updateFilter('modified_at_end', e.target.value)}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                    <div>
+                        <h4 className="text-xs font-bold text-text-tertiary uppercase tracking-wider m-0">
+                            Advanced search
+                        </h4>
+                        <p className="text-xs text-text-tertiary m-0 mt-1">
+                            Used when the search box is empty. The search API matches one of these at a time.
+                        </p>
+                    </div>
+                    <label className="flex flex-col gap-1">
+                        <span className="text-xs text-text-secondary">Reg IDs</span>
+                        <input
+                            type="text"
+                            className="w-full py-2.5 px-3.5 border border-border rounded-md text-sm bg-bg-secondary outline-none"
+                            placeholder="100-200 or 101,102"
+                            value={filters.reg_id_query || ''}
+                            onChange={(e) => updateFilter('reg_id_query', e.target.value)}
+                        />
+                    </label>
+                    <div className="grid grid-cols-2 gap-4">
+                        <label className="flex flex-col gap-1">
+                            <span className="text-xs text-text-secondary">Upload ID</span>
+                            <input
+                                type="text"
+                                className="w-full py-2.5 px-3.5 border border-border rounded-md text-sm bg-bg-secondary outline-none"
+                                placeholder="A123"
+                                value={filters.upload_id || ''}
+                                onChange={(e) => updateFilter('upload_id', e.target.value)}
+                            />
+                        </label>
+                        <label className="flex flex-col gap-1">
+                            <span className="text-xs text-text-secondary">Booth reference</span>
+                            <input
+                                type="text"
+                                className="w-full py-2.5 px-3.5 border border-border rounded-md text-sm bg-bg-secondary outline-none"
+                                placeholder="B12"
+                                value={filters.obf_number || ''}
+                                onChange={(e) => updateFilter('obf_number', e.target.value)}
+                            />
+                        </label>
                     </div>
                 </div>
             </div>

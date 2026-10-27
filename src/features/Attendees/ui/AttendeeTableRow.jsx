@@ -10,6 +10,8 @@ import CopyableValue from './CopyableValue';
 import ObfCopyChip from './ObfCopyChip';
 import AttendeeTableRowMenu from './AttendeeTableRowMenu';
 import AttendeePermissionChips from './AttendeePermissionChips';
+import AttendeeExtraCell from './AttendeeExtraCell';
+import { columnTone } from '../domain/tableColumns';
 
 const AttendeeTableRow = ({
     attendee,
@@ -24,6 +26,9 @@ const AttendeeTableRow = ({
     onSyncSc,
     onMatchmaking,
     onCreateEBadge,
+    extraColumns = [],
+    activeColumnKey = null,
+    pinIdentity = false,
 }) => {
     const navigate = useNavigate();
 
@@ -37,7 +42,7 @@ const AttendeeTableRow = ({
             title={isCrossEvent ? `Other event (ID: ${attendee.event_id})` : undefined}
             onClick={() => onOpenDetail(attendee)}
         >
-            <td className="py-4 px-4 align-top group-last:border-b-0" onClick={(e) => e.stopPropagation()}>
+            <td className={`py-4 px-4 align-top group-last:border-b-0 ${pinIdentity ? `sticky left-0 z-10 ${isCrossEvent ? 'bg-amber-50 group-hover:bg-amber-100' : 'bg-bg-primary group-hover:bg-bg-secondary'}` : ''}`} onClick={(e) => e.stopPropagation()}>
                 <input
                     type="checkbox"
                     className={`w-4 h-4 accent-accent ${isGlobalSelectionMode ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}
@@ -47,7 +52,7 @@ const AttendeeTableRow = ({
                     aria-label={`Select ${attendee.name}`}
                 />
             </td>
-            <td className="py-4 px-6 align-top group-last:border-b-0">
+            <td className={`py-4 px-6 align-top group-last:border-b-0 ${pinIdentity ? `sticky left-12 z-10 shadow-[4px_0_8px_-4px_rgba(0,0,0,0.12)] ${isCrossEvent ? 'bg-amber-50 group-hover:bg-amber-100' : 'bg-bg-primary group-hover:bg-bg-secondary'}` : ''}`}>
                 <div className="font-semibold text-text-primary text-sm flex items-center gap-2">
                     {attendee.name}
                     <CopyableValue
@@ -155,6 +160,19 @@ const AttendeeTableRow = ({
                     {attendee.reg_type}
                 </span>
             </td>
+            {extraColumns.map((column, index) => {
+                const tone = columnTone(index);
+                const active = column.key === activeColumnKey;
+                return (
+                    <td
+                        key={column.key}
+                        className={`py-4 px-4 align-top group-last:border-b-0 border-l-4 ${tone.cell} ${tone.edge} ${active ? 'ring-2 ring-inset ring-accent' : ''}`}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <AttendeeExtraCell column={column} attendee={attendee} eventId={selectedEvent?.id} />
+                    </td>
+                );
+            })}
             <td className="py-4 px-4 align-middle group-last:border-b-0 text-right" onClick={(e) => e.stopPropagation()}>
                 <AttendeeTableRowMenu
                     attendee={attendee}

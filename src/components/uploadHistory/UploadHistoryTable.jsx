@@ -19,7 +19,7 @@ function Toolbar({ total, loading, onRefresh }) {
     );
 }
 
-function TableBody({ loading, uploads, filenamePrefix, getRowId, getType, onView }) {
+function TableBody({ loading, uploads, filenamePrefix, getRowId, getType, onView, onOpenAttendees }) {
     if (loading) {
         return (
             <tr>
@@ -48,6 +48,7 @@ function TableBody({ loading, uploads, filenamePrefix, getRowId, getType, onView
                 typeLabel={getType(rec)}
                 filenamePrefix={filenamePrefix}
                 onView={onView}
+                onOpenAttendees={onOpenAttendees}
             />
         );
     });
@@ -70,6 +71,7 @@ export default function UploadHistoryTable({
     filenamePrefix,
     getRowId,
     getType,
+    onOpenAttendees,
 }) {
     const [viewing, setViewing] = useState(null);
 
@@ -112,6 +114,7 @@ export default function UploadHistoryTable({
                             getRowId={getRowId}
                             getType={getType}
                             onView={setViewing}
+                            onOpenAttendees={onOpenAttendees}
                         />
                     </tbody>
                 </table>

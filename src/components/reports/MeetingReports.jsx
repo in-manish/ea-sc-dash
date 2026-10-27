@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import ReportService from '../../services/reportService';
+import { eventService } from '../../services/eventService';
 import { Loader2, Download, Search, Filter, AlertCircle, RefreshCw, User, Building, Clock, Mail, Phone, Briefcase, X, AlignLeft, Calendar, CheckCircle2, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -65,6 +66,22 @@ const MeetingReports = () => {
     const pageSize = 20;
     const [exporting, setExporting] = useState(false);
     const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
+    const [attendeeTypes, setAttendeeTypes] = useState([]);
+
+    useEffect(() => {
+        const fetchAttendeeTypes = async () => {
+            if (!selectedEvent?.id || !token) return;
+            try {
+                const data = await eventService.getAttendeeTypes(selectedEvent.id, token);
+                const types = Array.isArray(data?.attendee_types) ? data.attendee_types : [];
+                setAttendeeTypes(types.map((type) => ({ id: String(type.id), name: type.name })));
+            } catch (err) {
+                console.error('Error fetching attendee types:', err);
+                setAttendeeTypes([]);
+            }
+        };
+        fetchAttendeeTypes();
+    }, [selectedEvent?.id, token]);
 
     const fetchReports = useCallback(async () => {
         if (!selectedEvent?.id || !token) return;
@@ -184,10 +201,14 @@ const MeetingReports = () => {
                     <div className="flex flex-wrap gap-2 py-1 animate-fade-in">
                         {Object.entries(filters).map(([key, value]) => {
                             if (Array.isArray(value)) {
-                                return value.map(val => (
+                                return value.map(val => {
+                                    const displayVal = key === 'attendee_type'
+                                        ? (attendeeTypes.find((type) => type.id === String(val))?.name || val)
+                                        : val;
+                                    return (
                                     <div key={`${key}-${val}`} className="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-xs font-semibold bg-accent/10 text-accent border border-accent/20 transition-all hover:bg-accent/15">
                                         <span className="opacity-70 uppercase text-[10px] font-bold tracking-wider">{key.replace('_', ' ')}:</span>
-                                        <span>{val}</span>
+                                        <span>{displayVal}</span>
                                         <button
                                             className="p-0.5 rounded-full hover:bg-accent/20 transition-colors"
                                             onClick={() => {
@@ -200,7 +221,8 @@ const MeetingReports = () => {
                                             <X size={12} />
                                         </button>
                                     </div>
-                                ));
+                                    );
+                                });
                             } else if (value) {
                                 return (
                                     <div key={`${key}-${value}`} className="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-xs font-semibold bg-accent/10 text-accent border border-accent/20 transition-all hover:bg-accent/15">
@@ -422,22 +444,25 @@ const MeetingReports = () => {
                                 <User size={14} className="text-accent" /> Attendee Category
                             </h4>
                             <div className="flex flex-wrap gap-2">
-                                {['Exhibitor', 'Visitor', 'VIP', 'Speaker', 'Media', 'Contractor'].map(type => (
+                                {attendeeTypes.map(type => (
                                     <button
-                                        key={type}
+                                        key={type.id}
                                         onClick={() => {
-                                            const current = filters.attendee_type;
-                                            const next = current.includes(type) ? current.filter(t => t !== type) : [...current, type];
+                                            const current = filters.attendee_type.map(String);
+                                            const next = current.includes(type.id) ? current.filter(id => id !== type.id) : [...current, type.id];
                                             setFilters({ ...filters, attendee_type: next });
                                         }}
                                         className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all duration-200 
-                                            ${filters.attendee_type.includes(type)
+                                            ${filters.attendee_type.map(String).includes(type.id)
                                                 ? 'bg-accent text-white border-accent shadow-sm'
                                                 : 'bg-bg-secondary border-border text-text-secondary hover:border-accent/40'}`}
                                     >
-                                        {type}
+                                        {type.name}
                                     </button>
                                 ))}
+                                {attendeeTypes.length === 0 && (
+                                    <p className="text-xs text-text-tertiary italic">No attendee types available</p>
+                                )}
                             </div>
                         </div>
 

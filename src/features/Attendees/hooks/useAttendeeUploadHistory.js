@@ -3,16 +3,45 @@ import { getAttendeeUploads } from '../api/attendeeUploadApi';
 
 const PAGE_SIZE = 20;
 
-/** Paginated attendee CSV upload history for an event. */
-export default function useAttendeeUploadHistory({ eventId, token, refreshKey = 0 }) {
+function readListState(searchParams) {
+    const page = Math.max(1, parseInt(searchParams?.get('page'), 10) || 1);
+    const sortOrder = searchParams?.get('sort') === 'asc' ? 'asc' : 'desc';
+    const uploadType = searchParams?.get('upload_type') || '';
+    return { page, sortOrder, uploadType };
+}
+
+/** Paginated attendee CSV upload history for an event. Page, sort, and type live in the URL. */
+export default function useAttendeeUploadHistory({ eventId, token, refreshKey = 0, searchParams, setSearchParams }) {
+    const { page, sortOrder, uploadType } = readListState(searchParams);
     const [uploads, setUploads] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
-    const [sortOrder, setSortOrder] = useState('desc');
-    const [uploadType, setUploadType] = useState('');
     const [knownUploadTypes, setKnownUploadTypes] = useState([]);
+
+    const patchListState = useCallback((updates) => {
+        if (!setSearchParams) return;
+        setSearchParams((prev) => {
+            const params = new URLSearchParams(prev);
+            Object.entries(updates).forEach(([key, value]) => {
+                const omit = value === '' || value == null
+                    || (key === 'page' && Number(value) <= 1)
+                    || (key === 'sort' && value === 'desc');
+                if (omit) params.delete(key);
+                else params.set(key, String(value));
+            });
+            return params.toString() === prev.toString() ? prev : params;
+        }, { replace: true });
+    }, [setSearchParams]);
+
+    const setPage = useCallback((next) => {
+        const value = typeof next === 'function' ? next(page) : next;
+        patchListState({ page: value });
+    }, [page, patchListState]);
+
+    const setUploadType = useCallback((next) => {
+        patchListState({ upload_type: next || '', page: 1 });
+    }, [patchListState]);
 
     const loadUploads = useCallback(async (targetPage) => {
         if (!eventId || !token) return;
@@ -55,8 +84,7 @@ export default function useAttendeeUploadHistory({ eventId, token, refreshKey = 
         knownUploadTypes,
         loadUploads,
         toggleSort: () => {
-            setSortOrder((order) => (order === 'desc' ? 'asc' : 'desc'));
-            setPage(1);
+            patchListState({ sort: sortOrder === 'desc' ? 'asc' : 'desc', page: 1 });
         },
     };
 }

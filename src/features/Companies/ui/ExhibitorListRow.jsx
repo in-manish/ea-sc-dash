@@ -2,6 +2,9 @@ import { Building2, ExternalLink, IdCard, Lock, Printer, Star } from 'lucide-rea
 import { isParentExhibitor } from '../domain/companyBulkActionPayload';
 import { positiveSponsorRank } from '../domain/sponsorRank';
 import { boostLabel } from '../domain/companyBoost';
+import { columnTone } from '../../Attendees/domain/tableColumns';
+import AttendeeExtraCell from '../../Attendees/ui/AttendeeExtraCell';
+import { formatCompanyColumn } from '../domain/companyTableColumns';
 import ExhibitorListRowMenu from './ExhibitorListRowMenu';
 
 const MAX_PRODUCT_PILLS = 3;
@@ -14,6 +17,9 @@ export default function ExhibitorListRow({
   onCompanyClick,
   onNavigate,
   onRowAction,
+  extraColumns = [],
+  activeColumnKey = null,
+  pinIdentity = false,
 }) {
   const parentExhibitor = company.parent_exhibitor;
   const isCoExhibitor = Boolean(parentExhibitor?.id || parentExhibitor);
@@ -27,6 +33,11 @@ export default function ExhibitorListRow({
     : isCoExhibitor
       ? 'bg-indigo-50/70 hover:bg-indigo-100/80'
       : 'bg-emerald-50/40 hover:bg-emerald-50';
+  const stickyBg = sponsorRank
+    ? 'bg-yellow-100 group-hover:bg-yellow-200'
+    : isCoExhibitor
+      ? 'bg-indigo-50 group-hover:bg-indigo-100'
+      : 'bg-emerald-50 group-hover:bg-emerald-50';
 
   return (
     <tr
@@ -36,7 +47,7 @@ export default function ExhibitorListRow({
       onClick={() => onCompanyClick(company.id)}
     >
       <td
-        className="py-4 pl-4 pr-2 align-middle group-last:border-b-0 w-10"
+        className={`py-4 pl-4 pr-2 align-middle group-last:border-b-0 w-10 ${pinIdentity ? `sticky left-0 z-10 ${stickyBg}` : ''}`}
         onClick={(e) => e.stopPropagation()}
       >
         <input
@@ -47,7 +58,7 @@ export default function ExhibitorListRow({
           aria-label={`Select ${company.company_name}`}
         />
       </td>
-      <td className="py-4 px-6 align-middle group-last:border-b-0">
+      <td className={`py-4 px-6 align-middle group-last:border-b-0 ${pinIdentity ? `sticky left-10 z-10 shadow-[4px_0_8px_-4px_rgba(0,0,0,0.12)] ${stickyBg}` : ''}`}>
         <div className="flex items-center gap-4">
           {company.company_logo ? (
             <img
@@ -195,6 +206,24 @@ export default function ExhibitorListRow({
           </span>
         </button>
       </td>
+      {extraColumns.map((column, index) => {
+        const tone = columnTone(index);
+        const active = column.key === activeColumnKey;
+        return (
+          <td
+            key={column.key}
+            className={`py-4 px-4 align-top group-last:border-b-0 border-l-4 ${tone.cell} ${tone.edge} ${active ? 'ring-2 ring-inset ring-accent' : ''}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <AttendeeExtraCell
+              column={column}
+              attendee={company}
+              eventId={eventId}
+              formatValue={formatCompanyColumn}
+            />
+          </td>
+        );
+      })}
       <td
         className="py-4 pr-4 pl-2 align-middle group-last:border-b-0 w-10"
         onClick={(e) => e.stopPropagation()}

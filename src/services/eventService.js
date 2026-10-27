@@ -141,21 +141,34 @@ export const eventService = {
                 sort_order: sortOrder
             });
 
-            if (searchQuery) {
-                queryParams.append('search_query', searchQuery);
+            const requestFilters = { ...filters };
+            // Search applies a date range only when both ends are present.
+            const fillDateRange = (startKey, endKey) => {
+                if (requestFilters[startKey] && !requestFilters[endKey]) requestFilters[endKey] = '2100-12-31';
+                else if (requestFilters[endKey] && !requestFilters[startKey]) requestFilters[startKey] = '1970-01-01';
+            };
+            fillDateRange('created_at_start', 'created_at_end');
+            fillDateRange('modified_at_start', 'modified_at_end');
+
+            // Reg range/list, upload id, and booth reference are search_query patterns, not filter params.
+            const advancedSearch = ['reg_id_query', 'upload_id', 'obf_number']
+                .map((key) => String(requestFilters[key] || '').trim())
+                .find(Boolean);
+            ['reg_id_query', 'upload_id', 'obf_number'].forEach((key) => delete requestFilters[key]);
+            const resolvedSearch = searchQuery || advancedSearch || '';
+
+            if (resolvedSearch) {
+                queryParams.append('search_query', resolvedSearch);
             }
 
             if (searchType) {
                 queryParams.append('search_type', searchType);
             }
 
-            // Process filters
-            Object.keys(filters).forEach(key => {
-                const value = filters[key];
+            Object.keys(requestFilters).forEach(key => {
+                const value = requestFilters[key];
                 if (value !== '' && value !== null && value !== undefined) {
-                    if (key === 'whatsapp_sent') {
-                        queryParams.append('wa_sent', value);
-                    } else if (Array.isArray(value)) {
+                    if (Array.isArray(value)) {
                         if (value.length > 0) queryParams.append(key, value.join(','));
                     } else {
                         queryParams.append(key, value);

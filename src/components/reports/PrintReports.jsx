@@ -2,9 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import ReportService from '../../services/reportService';
 import { eventService } from '../../services/eventService';
-import { Loader2, Download, Search, Filter, AlertCircle, RefreshCw, MapPin, Hash, User, Mail, Building, Clock, Map, Phone, Briefcase, X, AlignLeft, LayoutIcon, Info, Calendar } from 'lucide-react';
+import { Loader2, Download, Search, Filter, AlertCircle, RefreshCw, MapPin, Hash, User, Mail, Building, Clock, Map, Phone, Briefcase, X, AlignLeft, LayoutIcon, Info, Calendar, Printer } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { formatApiDateTime } from '../../utils/formatApiDateTime';
+import GateScanPieChart from './GateScanPieChart';
 
 
 const PrintReports = () => {
@@ -100,7 +101,7 @@ const PrintReports = () => {
 
     const { token } = useAuth();
 
-    // Fetch Metadata (Locations, Attendee Types)
+    // Fetch print and kiosk locations for the filter.
     useEffect(() => {
         const fetchFiltersMetadata = async () => {
             if (!selectedEvent?.id || !token) return;
@@ -117,14 +118,26 @@ const PrintReports = () => {
                     console.warn("Kiosk locations endpoint not found or failed:", e);
                 }
 
-                // Fetch Attendee Types from Event Details
-                const eventDetails = await eventService.getEventDetails(selectedEvent.id, token);
-                setAttendeeTypes(eventDetails?.attendee_types || []);
             } catch (err) {
                 console.error("Error fetching filters metadata:", err);
             }
         };
         fetchFiltersMetadata();
+    }, [selectedEvent?.id, token]);
+
+    useEffect(() => {
+        const fetchAttendeeTypes = async () => {
+            if (!selectedEvent?.id || !token) return;
+            try {
+                const data = await eventService.getAttendeeTypes(selectedEvent.id, token);
+                const types = Array.isArray(data?.attendee_types) ? data.attendee_types : [];
+                setAttendeeTypes(types.map((type) => ({ id: String(type.id), name: type.name })));
+            } catch (err) {
+                console.error('Error fetching attendee types:', err);
+                setAttendeeTypes([]);
+            }
+        };
+        fetchAttendeeTypes();
     }, [selectedEvent?.id, token]);
 
     const fetchReports = useCallback(async () => {
@@ -224,9 +237,13 @@ const PrintReports = () => {
 
     const totalPages = Math.ceil((statistics.total || 0) / pageSize);
 
-    // Combine stats for rendering
-    const combinedStats = { ...statistics.print_location, ...statistics.kiosk_location, ...statistics.other_location };
-    const maxBarCount = Math.max(...Object.values(combinedStats), 1);
+    const combinedStats = Object.fromEntries(
+        Object.entries({
+            ...statistics.print_location,
+            ...statistics.kiosk_location,
+            ...statistics.other_location,
+        }).filter(([, count]) => Number(count) > 0)
+    );
 
     return (
         <div className="flex flex-col gap-6 w-full max-w-[100vw]">
@@ -287,7 +304,7 @@ const PrintReports = () => {
                                 } else if (key === 'kiosk_location_id') {
                                     displayVal = kioskLocations.find(l => l.id === val)?.location || val;
                                 } else if (key === 'att_id') {
-                                    displayVal = attendeeTypes.find(t => t.id === val)?.name || val;
+                                    displayVal = attendeeTypes.find(t => t.id === String(val))?.name || val;
                                 }
 
                                 return (
@@ -321,30 +338,15 @@ const PrintReports = () => {
                 )}
 
 
-                {/* Location Statistics Bar Graph */}
                 {Object.keys(combinedStats).length > 0 && (
                     <div className="bg-bg-primary border border-border rounded-xl p-5 shadow-sm">
-                        <h3 className="text-sm font-semibold text-text-primary mb-4 flex items-center gap-2 pb-3 border-b border-border/50">
-                            <AlignLeft size={16} className="text-accent" /> Gate/Kiosk-wise Print Distribution
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4">
-                            {Object.entries(combinedStats).map(([location, count]) => (
-                                <div key={location} className="flex items-center gap-3 group">
-                                    <span className="w-24 text-xs font-semibold text-text-secondary truncate text-right group-hover:text-text-primary transition-colors" title={location}>
-                                        {location}
-                                    </span>
-                                    <div className="flex-1 h-3 bg-bg-secondary rounded-full overflow-hidden relative shadow-inner">
-                                        <div
-                                            className="absolute top-0 left-0 h-full bg-accent rounded-full transition-all duration-1000 ease-out"
-                                            style={{ width: `${(count / maxBarCount) * 100}%` }}
-                                        />
-                                    </div>
-                                    <span className="w-10 text-xs font-bold text-text-primary text-left">
-                                        {count}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
+                        <GateScanPieChart
+                            counts={combinedStats}
+                            title="Badges printed by location"
+                            nameHeader="Location"
+                            countHeader="Printed"
+                            icon={Printer}
+                        />
                     </div>
                 )}
             </div>
@@ -651,14 +653,14 @@ const PrintReports = () => {
                             <h4 className="text-[0.7rem] font-bold text-text-tertiary uppercase tracking-[0.15em] flex items-center gap-2">
                                 <User size={14} className="text-accent" /> Attendee Category
                             </h4>
-                            <div className="flex flex-col gap-1 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
+                            <div className="flex flex-col gap-1">
                                 {attendeeTypes.map(type => (
                                     <label key={type.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-bg-secondary/50 cursor-pointer transition-colors group">
                                         <input
                                             type="checkbox"
-                                            checked={filters.att_id.includes(type.id)}
+                                            checked={filters.att_id.map(String).includes(type.id)}
                                             onChange={() => {
-                                                const current = filters.att_id;
+                                                const current = filters.att_id.map(String);
                                                 const next = current.includes(type.id) ? current.filter(id => id !== type.id) : [...current, type.id];
                                                 setFilters({ ...filters, att_id: next });
                                             }}

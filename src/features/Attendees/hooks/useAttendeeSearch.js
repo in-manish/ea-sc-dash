@@ -9,13 +9,11 @@ export default function useAttendeeSearch(searchParams, setPage) {
     const [isSearchTypeOpen, setIsSearchTypeOpen] = useState(false);
     const searchTypeRef = useRef(null);
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setDebouncedSearch(search);
-            setPage(1);
-        }, 500);
-        return () => clearTimeout(timer);
-    }, [search, setPage]);
+    const submitSearch = (next = search) => {
+        setSearch(next);
+        setDebouncedSearch(next);
+        setPage(1);
+    };
 
     useEffect(() => {
         if (!isSearchTypeOpen) return undefined;
@@ -32,6 +30,7 @@ export default function useAttendeeSearch(searchParams, setPage) {
 
     const clearSearch = () => {
         setSearch('');
+        setDebouncedSearch('');
         setSearchType('local');
     };
 
@@ -44,6 +43,7 @@ export default function useAttendeeSearch(searchParams, setPage) {
     return {
         search,
         setSearch,
+        submitSearch,
         debouncedSearch,
         searchType,
         setSearchType,
