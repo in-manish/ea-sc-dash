@@ -204,12 +204,16 @@ const AttendeesListView = ({
         <ActiveBadgeTransferModal
             isOpen={activeBadge.transferModalOpen}
             sourceAttendee={activeBadge.transferSourceAttendee}
+            sourceActiveBadge={activeBadge.sourceActiveBadge}
             transferring={activeBadge.transferring}
             searching={activeBadge.searching}
+            checkingActiveBadge={activeBadge.checkingActiveBadge}
             searchResults={activeBadge.searchResults}
+            checkedActiveBadges={activeBadge.checkedActiveBadges}
             result={activeBadge.transferResult}
             onSearch={activeBadge.searchForTarget}
             onTransfer={activeBadge.runTransfer}
+            onCheckActiveBadge={activeBadge.checkActiveBadgeForUuid}
             onClose={activeBadge.closeTransferModal}
         />
 

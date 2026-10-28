@@ -1,15 +1,19 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Loader2, ArrowRight, Search, User } from 'lucide-react';
+import { X, Loader2, ArrowRight, Search, User, BadgeCheck, RefreshCw } from 'lucide-react';
 
 const ActiveBadgeTransferModal = ({
   isOpen,
   sourceAttendee,
+  sourceActiveBadge,
   transferring = false,
   searching = false,
+  checkingActiveBadge = false,
   searchResults = [],
+  checkedActiveBadges = {},
   result,
   onSearch,
   onTransfer,
+  onCheckActiveBadge,
   onClose,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -126,11 +130,6 @@ const ActiveBadgeTransferModal = ({
                   <span className="px-2 py-0.5 text-xs font-medium bg-accent/20 text-accent rounded">
                     {sourceAttendee.attendee_type || 'N/A'}
                   </span>
-                  {sourceAttendee.evc_id && (
-                    <span className="px-2 py-0.5 text-xs font-medium bg-green-500/20 text-green-400 rounded">
-                      SC: {sourceAttendee.evc_id}
-                    </span>
-                  )}
                 </div>
                 {/* Info grid - 2 columns */}
                 <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
@@ -148,7 +147,23 @@ const ActiveBadgeTransferModal = ({
                   </div>
                   <div>
                     <span className="text-text-tertiary">UUID</span>
-                    <p className="text-text-primary font-mono">{sourceAttendee.uuid || '—'}</p>
+                    <p className="text-text-primary font-mono text-xs">{sourceAttendee.uuid || '—'}</p>
+                  </div>
+                  <div>
+                    <span className="text-text-tertiary">EVC ID</span>
+                    <p className="text-text-primary font-mono text-green-400">{sourceAttendee.evc_id || '—'}</p>
+                  </div>
+                  <div>
+                    <span className="text-text-tertiary">Active Badge ID</span>
+                    <p className="text-text-primary font-mono">
+                      {sourceActiveBadge ? (
+                        <span className="text-green-400 flex items-center gap-1">
+                          <BadgeCheck size={14} /> {sourceActiveBadge.id}
+                        </span>
+                      ) : (
+                        <span className="text-text-tertiary">—</span>
+                      )}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -188,55 +203,98 @@ const ActiveBadgeTransferModal = ({
 
               {/* Results list */}
               {filteredResults.length > 0 && (
-                <div className="border border-border rounded-lg max-h-80 overflow-auto divide-y divide-border">
+                <div className="border border-border rounded-lg max-h-96 overflow-auto divide-y divide-border">
                   {filteredResults.slice(0, 5).map((attendee) => {
                     const isSelected = selectedTarget?.uuid === attendee.uuid;
                     const hasEvcId = !!attendee.evc_id;
+                    const checkedInfo = checkedActiveBadges[attendee.uuid];
                     return (
-                      <button
+                      <div
                         key={attendee.uuid}
-                        type="button"
-                        className={`w-full p-4 text-left transition-colors ${
+                        className={`p-4 transition-colors ${
                           isSelected 
                             ? 'bg-accent/10 border-l-4 border-l-accent' 
                             : 'hover:bg-bg-secondary'
                         }`}
-                        onClick={() => handleSelectTarget(attendee)}
                       >
-                        {/* Name row with badges */}
-                        <div className="flex items-center gap-2 flex-wrap mb-2">
-                          <span className={`font-semibold ${isSelected ? 'text-accent' : 'text-text-primary'}`}>
-                            {attendee.name || 'No name'}
-                          </span>
-                          <span className="px-2 py-0.5 text-xs font-medium bg-bg-tertiary text-text-secondary rounded">
-                            {attendee.attendee_type || 'N/A'}
-                          </span>
-                          {hasEvcId && (
-                            <span className="px-2 py-0.5 text-xs font-medium bg-yellow-500/20 text-yellow-400 rounded">
-                              ⚠ Has SC
+                        {/* Name row with badges + actions */}
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <button
+                            type="button"
+                            className="flex items-center gap-2 flex-wrap text-left flex-1 min-w-0"
+                            onClick={() => handleSelectTarget(attendee)}
+                          >
+                            <span className={`font-semibold ${isSelected ? 'text-accent' : 'text-text-primary'}`}>
+                              {attendee.name || 'No name'}
                             </span>
-                          )}
+                            <span className="px-2 py-0.5 text-xs font-medium bg-bg-tertiary text-text-secondary rounded">
+                              {attendee.attendee_type || 'N/A'}
+                            </span>
+                            {hasEvcId && (
+                              <span className="px-2 py-0.5 text-xs font-medium bg-yellow-500/20 text-yellow-400 rounded">
+                                ⚠ Has SC
+                              </span>
+                            )}
+                          </button>
+                          {/* Check Active Badge button */}
+                          <button
+                            type="button"
+                            className="text-xs px-2 py-1 rounded border border-border hover:bg-bg-tertiary text-text-secondary flex items-center gap-1 shrink-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onCheckActiveBadge?.(attendee.uuid);
+                            }}
+                            disabled={checkingActiveBadge}
+                            title="Check EventActiveBadge"
+                          >
+                            <RefreshCw size={12} className={checkingActiveBadge ? 'animate-spin' : ''} />
+                            Check
+                          </button>
                         </div>
-                        {/* Info grid - 2x2 */}
-                        <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-text-tertiary text-xs w-12 shrink-0">Email</span>
-                            <span className="text-text-secondary truncate">{attendee.email || '—'}</span>
+                        {/* Info grid - 3 columns */}
+                        <button
+                          type="button"
+                          className="w-full text-left"
+                          onClick={() => handleSelectTarget(attendee)}
+                        >
+                          <div className="grid grid-cols-3 gap-x-4 gap-y-1.5 text-sm">
+                            <div>
+                              <span className="text-text-tertiary text-xs block">Email</span>
+                              <span className="text-text-secondary truncate block">{attendee.email || '—'}</span>
+                            </div>
+                            <div>
+                              <span className="text-text-tertiary text-xs block">Phone</span>
+                              <span className="text-text-secondary">{attendee.phone_number || '—'}</span>
+                            </div>
+                            <div>
+                              <span className="text-text-tertiary text-xs block">Reg ID</span>
+                              <span className="text-text-secondary font-mono">{attendee.reg_id || '—'}</span>
+                            </div>
+                            <div>
+                              <span className="text-text-tertiary text-xs block">UUID</span>
+                              <span className="text-text-secondary font-mono text-xs">{attendee.uuid || '—'}</span>
+                            </div>
+                            <div>
+                              <span className="text-text-tertiary text-xs block">EVC ID</span>
+                              <span className={`font-mono ${attendee.evc_id ? 'text-yellow-400' : 'text-text-tertiary'}`}>
+                                {attendee.evc_id || '—'}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-text-tertiary text-xs block">Active Badge</span>
+                              {checkedInfo === undefined ? (
+                                <span className="text-text-tertiary text-xs">Click Check</span>
+                              ) : checkedInfo === null ? (
+                                <span className="text-text-tertiary">None</span>
+                              ) : (
+                                <span className="text-yellow-400 font-mono flex items-center gap-1">
+                                  <BadgeCheck size={12} /> {checkedInfo.id}
+                                </span>
+                              )}
+                            </div>
                           </div>
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-text-tertiary text-xs w-12 shrink-0">Phone</span>
-                            <span className="text-text-secondary">{attendee.phone_number || '—'}</span>
-                          </div>
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-text-tertiary text-xs w-12 shrink-0">Reg ID</span>
-                            <span className="text-text-secondary font-mono">{attendee.reg_id || '—'}</span>
-                          </div>
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-text-tertiary text-xs w-12 shrink-0">UUID</span>
-                            <span className="text-text-secondary font-mono text-xs">{attendee.uuid || '—'}</span>
-                          </div>
-                        </div>
-                      </button>
+                        </button>
+                      </div>
                     );
                   })}
                 </div>

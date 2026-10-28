@@ -3,6 +3,7 @@ import { useAlert } from '../../../contexts/AlertContext';
 import { eligibleForCreate } from '../domain/summarizeActiveBadge';
 import { createActiveBadgeHandlers } from '../domain/createActiveBadgeHandlers';
 import { transferActiveBadge } from '../domain/activeBadgeFlow';
+import { activeBadgeApi, buildActiveBadgeBody } from '../api/activeBadgeApi';
 import { getApiUrl } from '../../../config';
 
 export default function useActiveBadgeActions({
@@ -18,6 +19,7 @@ export default function useActiveBadgeActions({
   const [creating, setCreating] = useState(false);
   const [transferring, setTransferring] = useState(false);
   const [searching, setSearching] = useState(false);
+  const [checkingActiveBadge, setCheckingActiveBadge] = useState(false);
   const [statusResult, setStatusResult] = useState(null);
   const [createResult, setCreateResult] = useState(null);
   const [transferResult, setTransferResult] = useState(null);
@@ -26,6 +28,8 @@ export default function useActiveBadgeActions({
   const [resultKind, setResultKind] = useState(null);
   const [scope, setScope] = useState(null);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
+  const [sourceActiveBadge, setSourceActiveBadge] = useState(null);
+  const [checkedActiveBadges, setCheckedActiveBadges] = useState({});
   const uuidsKey = selectedAttendeeUuids.join(',');
   const clearRef = useRef(clearSelection);
   clearRef.current = clearSelection;
@@ -119,39 +123,94 @@ export default function useActiveBadgeActions({
     }
     setTransferResult(null);
     setSearchResults([]);
+    setSourceActiveBadge(null);
+    setCheckedActiveBadges({});
     setTransferModalOpen(true);
-    // Fetch initial suggestions (top 5)
-    if (selectedEvent?.id && token) {
-      setSearching(true);
+
+    if (!selectedEvent?.id || !token) return;
+
+    // Fetch source's active badge info
+    const sourceUuid = transferSourceAttendee?.uuid;
+    if (sourceUuid) {
       try {
-        const params = new URLSearchParams({ page_size: '5' });
-        const response = await fetch(
-          `${getApiUrl()}/events/${selectedEvent.id}/attendees/search?${params}`,
-          {
-            method: 'GET',
-            headers: {
-              Accept: 'application/json',
-              Authorization: `Token ${token}`,
-            },
-          },
+        const statusData = await activeBadgeApi.getStatus(
+          selectedEvent.id,
+          token,
+          buildActiveBadgeBody({ uuids: [sourceUuid] })
         );
-        if (response.ok) {
-          const data = await response.json();
-          setSearchResults(data.results || data.users || []);
+        // Find the active badge for source
+        const activeList = statusData?.has_active || [];
+        const sourceActive = activeList.find(item => item.uuid === sourceUuid);
+        if (sourceActive?.active_badge) {
+          setSourceActiveBadge(sourceActive.active_badge);
         }
       } catch (err) {
-        console.error('Initial suggestions error:', err);
-      } finally {
-        setSearching(false);
+        console.error('Failed to fetch source active badge:', err);
       }
     }
-  }, [canTransfer, showAlert, selectedEvent?.id, token]);
+
+    // Fetch initial suggestions (top 5)
+    setSearching(true);
+    try {
+      const params = new URLSearchParams({ page_size: '5' });
+      const response = await fetch(
+        `${getApiUrl()}/events/${selectedEvent.id}/attendees/search?${params}`,
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Token ${token}`,
+          },
+        },
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setSearchResults(data.results || data.users || []);
+      }
+    } catch (err) {
+      console.error('Initial suggestions error:', err);
+    } finally {
+      setSearching(false);
+    }
+  }, [canTransfer, showAlert, selectedEvent?.id, token, transferSourceAttendee?.uuid]);
 
   const closeTransferModal = useCallback(() => {
     setTransferModalOpen(false);
     setTransferResult(null);
     setSearchResults([]);
+    setSourceActiveBadge(null);
+    setCheckedActiveBadges({});
   }, []);
+
+  const checkActiveBadgeForUuid = useCallback(
+    async (uuid) => {
+      if (!selectedEvent?.id || !token || !uuid) return;
+      setCheckingActiveBadge(true);
+      try {
+        const statusData = await activeBadgeApi.getStatus(
+          selectedEvent.id,
+          token,
+          buildActiveBadgeBody({ uuids: [uuid] })
+        );
+        // Find active badge info
+        const activeList = statusData?.has_active || [];
+        const found = activeList.find(item => item.uuid === uuid);
+        setCheckedActiveBadges(prev => ({
+          ...prev,
+          [uuid]: found?.active_badge || null, // null = checked but none found
+        }));
+      } catch (err) {
+        console.error('Failed to check active badge:', err);
+        setCheckedActiveBadges(prev => ({
+          ...prev,
+          [uuid]: null,
+        }));
+      } finally {
+        setCheckingActiveBadge(false);
+      }
+    },
+    [selectedEvent?.id, token]
+  );
 
   const searchForTarget = useCallback(
     async (query) => {
@@ -215,6 +274,7 @@ export default function useActiveBadgeActions({
     creating,
     transferring,
     searching,
+    checkingActiveBadge,
     busy: checking || creating || transferring,
     canUseSelection,
     canSetSelected,
@@ -235,9 +295,12 @@ export default function useActiveBadgeActions({
     // Transfer
     transferModalOpen,
     transferSourceAttendee,
+    sourceActiveBadge,
+    checkedActiveBadges,
     openTransferModal,
     closeTransferModal,
     searchForTarget,
     runTransfer,
+    checkActiveBadgeForUuid,
   };
 }
