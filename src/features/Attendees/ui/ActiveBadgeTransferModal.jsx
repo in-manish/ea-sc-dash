@@ -118,20 +118,29 @@ const ActiveBadgeTransferModal = ({
             {sourceAttendee ? (
               <div className="p-3 bg-bg-secondary rounded-lg border border-border">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center shrink-0">
                     <User size={20} className="text-accent" />
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-text-primary truncate">
-                      {sourceAttendee.name || 'No name'}
-                    </p>
-                    <p className="text-sm text-text-secondary truncate">
-                      {sourceAttendee.email || sourceAttendee.phone_number || 'No contact'}
-                    </p>
-                    <p className="text-xs text-text-tertiary">
-                      Reg ID: {sourceAttendee.reg_id}
-                      {sourceAttendee.evc_id && ` • SC: ${sourceAttendee.evc_id}`}
-                    </p>
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-text-primary truncate">
+                        {sourceAttendee.name || 'No name'}
+                      </p>
+                      {sourceAttendee.attendee_type && (
+                        <span className="px-1.5 py-0.5 text-[10px] font-medium bg-accent/20 text-accent rounded shrink-0">
+                          {sourceAttendee.attendee_type}
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-text-secondary space-y-0.5">
+                      {sourceAttendee.email && <p className="truncate">📧 {sourceAttendee.email}</p>}
+                      {sourceAttendee.phone_number && <p>📱 {sourceAttendee.phone_number}</p>}
+                    </div>
+                    <div className="text-[11px] text-text-tertiary font-mono">
+                      <span>Reg: {sourceAttendee.reg_id}</span>
+                      {sourceAttendee.uuid && <span className="ml-2">UUID: {sourceAttendee.uuid.slice(0, 8)}…</span>}
+                      {sourceAttendee.evc_id && <span className="ml-2 text-green-400">SC: {sourceAttendee.evc_id}</span>}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -171,26 +180,43 @@ const ActiveBadgeTransferModal = ({
 
               {/* Results list */}
               {filteredResults.length > 0 && (
-                <div className="border border-border rounded-lg max-h-48 overflow-auto">
+                <div className="border border-border rounded-lg max-h-56 overflow-auto">
                   {filteredResults.slice(0, 5).map((attendee) => {
                     const isSelected = selectedTarget?.uuid === attendee.uuid;
+                    const hasEvcId = !!attendee.evc_id;
                     return (
                       <button
                         key={attendee.uuid}
                         type="button"
-                        className={`w-full px-3 py-2 text-left transition-colors border-b border-border last:border-b-0 ${
+                        className={`w-full px-3 py-2.5 text-left transition-colors border-b border-border last:border-b-0 ${
                           isSelected 
                             ? 'bg-accent/10 border-l-2 border-l-accent' 
                             : 'hover:bg-bg-secondary'
                         }`}
                         onClick={() => handleSelectTarget(attendee)}
                       >
-                        <p className={`font-medium text-sm truncate ${isSelected ? 'text-accent' : 'text-text-primary'}`}>
-                          {attendee.name || 'No name'}
-                        </p>
-                        <p className="text-xs text-text-secondary truncate">
-                          {attendee.email || attendee.phone_number || 'No contact'}
-                          {attendee.reg_id && ` • Reg: ${attendee.reg_id}`}
+                        <div className="flex items-center gap-2">
+                          <p className={`font-medium text-sm truncate ${isSelected ? 'text-accent' : 'text-text-primary'}`}>
+                            {attendee.name || 'No name'}
+                          </p>
+                          {attendee.attendee_type && (
+                            <span className="px-1.5 py-0.5 text-[10px] font-medium bg-bg-tertiary text-text-secondary rounded shrink-0">
+                              {attendee.attendee_type}
+                            </span>
+                          )}
+                          {hasEvcId && (
+                            <span className="px-1.5 py-0.5 text-[10px] font-medium bg-yellow-500/20 text-yellow-400 rounded shrink-0">
+                              Has SC
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-text-secondary mt-1 space-y-0.5">
+                          {attendee.email && <p className="truncate">📧 {attendee.email}</p>}
+                          {attendee.phone_number && <p>📱 {attendee.phone_number}</p>}
+                        </div>
+                        <p className="text-[10px] text-text-tertiary font-mono mt-1">
+                          Reg: {attendee.reg_id}
+                          {attendee.uuid && <span className="ml-2">UUID: {attendee.uuid.slice(0, 8)}…</span>}
                         </p>
                       </button>
                     );
