@@ -3,21 +3,25 @@ import { useAlert } from '../../../contexts/AlertContext';
 import { eligibleForCreate } from '../domain/summarizeActiveBadge';
 import { createActiveBadgeHandlers } from '../domain/createActiveBadgeHandlers';
 import { transferActiveBadge } from '../domain/activeBadgeFlow';
+import { getApiUrl } from '../../../config';
 
 export default function useActiveBadgeActions({
   selectedEvent,
   token,
   selectionMode,
   selectedAttendeeUuids,
+  selectedAttendees = [],
   clearSelection,
 }) {
   const { showAlert, showConfirm } = useAlert();
   const [checking, setChecking] = useState(false);
   const [creating, setCreating] = useState(false);
   const [transferring, setTransferring] = useState(false);
+  const [searching, setSearching] = useState(false);
   const [statusResult, setStatusResult] = useState(null);
   const [createResult, setCreateResult] = useState(null);
   const [transferResult, setTransferResult] = useState(null);
+  const [searchResults, setSearchResults] = useState([]);
   const [resultOpen, setResultOpen] = useState(false);
   const [resultKind, setResultKind] = useState(null);
   const [scope, setScope] = useState(null);
@@ -52,6 +56,17 @@ export default function useActiveBadgeActions({
   const canSetSelected =
     canUseSelection &&
     (!statusResult || statusResult.allWithoutActive || canCreateFromPreview);
+
+  // Transfer: requires exactly one selected attendee with evc_id
+  const transferSourceAttendee = useMemo(() => {
+    if (selectionMode !== 'selected' || selectedAttendees.length !== 1) return null;
+    const attendee = selectedAttendees[0];
+    // Must have evc_id (linked to SC / has active badge)
+    if (!attendee?.evc_id) return null;
+    return attendee;
+  }, [selectionMode, selectedAttendees]);
+
+  const canTransfer = Boolean(transferSourceAttendee);
 
   const openResult = (kind, payload, nextScope) => {
     setResultKind(kind);
@@ -93,15 +108,57 @@ export default function useActiveBadgeActions({
     [selectedEvent?.id, token, selectionMode, uuidsKey, showAlert, showConfirm],
   );
 
-  const openTransferModal = useCallback(() => {
+  const openTransferModal = useCallback(async () => {
+    if (!canTransfer) {
+      await showAlert(
+        'Select exactly one attendee with an active badge to transfer.',
+        'info',
+        'Transfer Active Badge',
+      );
+      return;
+    }
     setTransferResult(null);
+    setSearchResults([]);
     setTransferModalOpen(true);
-  }, []);
+  }, [canTransfer, showAlert]);
 
   const closeTransferModal = useCallback(() => {
     setTransferModalOpen(false);
     setTransferResult(null);
+    setSearchResults([]);
   }, []);
+
+  const searchForTarget = useCallback(
+    async (query) => {
+      if (!selectedEvent?.id || !token || !query) return;
+      setSearching(true);
+      try {
+        const params = new URLSearchParams({
+          search_query: query,
+          page_size: '10',
+        });
+        const response = await fetch(
+          `${getApiUrl()}/events/${selectedEvent.id}/attendees/search?${params}`,
+          {
+            method: 'GET',
+            headers: {
+              Accept: 'application/json',
+              Authorization: `Token ${token}`,
+            },
+          },
+        );
+        if (!response.ok) throw new Error('Search failed');
+        const data = await response.json();
+        setSearchResults(data.results || data.users || []);
+      } catch (err) {
+        console.error('Transfer search error:', err);
+        setSearchResults([]);
+      } finally {
+        setSearching(false);
+      }
+    },
+    [selectedEvent?.id, token],
+  );
 
   const runTransfer = useCallback(
     async (sourceRegId, targetRegId) => {
@@ -116,6 +173,9 @@ export default function useActiveBadgeActions({
           targetRegId,
         );
         setTransferResult(result);
+        if (result.success) {
+          clearRef.current?.();
+        }
       } catch (err) {
         setTransferResult({ success: false, error: err.message });
       } finally {
@@ -129,13 +189,16 @@ export default function useActiveBadgeActions({
     checking,
     creating,
     transferring,
+    searching,
     busy: checking || creating || transferring,
     canUseSelection,
     canSetSelected,
     canCreateFromPreview,
+    canTransfer,
     statusResult,
     createResult,
     transferResult,
+    searchResults,
     resultOpen,
     resultKind,
     closeResult,
@@ -146,8 +209,10 @@ export default function useActiveBadgeActions({
     setSelected: handlers.setSelected,
     // Transfer
     transferModalOpen,
+    transferSourceAttendee,
     openTransferModal,
     closeTransferModal,
+    searchForTarget,
     runTransfer,
   };
 }

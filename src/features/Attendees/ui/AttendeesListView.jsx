@@ -90,6 +90,7 @@ const AttendeesListView = ({
             <ActiveBadgeToolbar
                 checking={activeBadge.checking}
                 creating={activeBadge.creating}
+                canTransfer={activeBadge.canTransfer}
                 onPreviewAll={activeBadge.previewAllEligible}
                 onCreateAll={activeBadge.createAllEligible}
                 onTransfer={activeBadge.openTransferModal}
@@ -202,8 +203,12 @@ const AttendeesListView = ({
 
         <ActiveBadgeTransferModal
             isOpen={activeBadge.transferModalOpen}
+            sourceAttendee={activeBadge.transferSourceAttendee}
             transferring={activeBadge.transferring}
+            searching={activeBadge.searching}
+            searchResults={activeBadge.searchResults}
             result={activeBadge.transferResult}
+            onSearch={activeBadge.searchForTarget}
             onTransfer={activeBadge.runTransfer}
             onClose={activeBadge.closeTransferModal}
         />

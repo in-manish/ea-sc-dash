@@ -1,31 +1,67 @@
-import { useState } from 'react';
-import { X, Loader2, ArrowRightLeft } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { X, Loader2, ArrowRight, Search, User } from 'lucide-react';
 
 const ActiveBadgeTransferModal = ({
   isOpen,
+  sourceAttendee,
   transferring = false,
+  searching = false,
+  searchResults = [],
   result,
+  onSearch,
   onTransfer,
   onClose,
 }) => {
-  const [sourceRegId, setSourceRegId] = useState('');
-  const [targetRegId, setTargetRegId] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTarget, setSelectedTarget] = useState(null);
+  const searchTimeout = useRef(null);
+
+  // Reset state when modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      setSearchQuery('');
+      setSelectedTarget(null);
+    }
+  }, [isOpen]);
+
+  // Debounced search
+  useEffect(() => {
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    if (!searchQuery.trim() || searchQuery.length < 2) return;
+    
+    searchTimeout.current = setTimeout(() => {
+      onSearch?.(searchQuery.trim());
+    }, 300);
+
+    return () => {
+      if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    };
+  }, [searchQuery, onSearch]);
 
   if (!isOpen) return null;
 
-  const canSubmit = sourceRegId.trim() && targetRegId.trim() && !transferring;
+  const canSubmit = sourceAttendee && selectedTarget && !transferring;
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = () => {
     if (!canSubmit) return;
-    onTransfer(sourceRegId.trim(), targetRegId.trim());
+    onTransfer(sourceAttendee.reg_id, selectedTarget.reg_id);
   };
 
   const handleClose = () => {
-    setSourceRegId('');
-    setTargetRegId('');
+    setSearchQuery('');
+    setSelectedTarget(null);
     onClose?.();
   };
+
+  const handleSelectTarget = (attendee) => {
+    setSelectedTarget(attendee);
+    setSearchQuery('');
+  };
+
+  // Filter out the source from search results
+  const filteredResults = searchResults.filter(
+    (a) => a.uuid !== sourceAttendee?.uuid
+  );
 
   return (
     <div
@@ -36,7 +72,7 @@ const ActiveBadgeTransferModal = ({
       role="presentation"
     >
       <div
-        className="bg-bg-primary border border-border rounded-xl shadow-xl w-full max-w-md flex flex-col"
+        className="bg-bg-primary border border-border rounded-xl shadow-xl w-full max-w-lg flex flex-col max-h-[85vh]"
         role="dialog"
         aria-modal="true"
         aria-labelledby="transfer-modal-title"
@@ -50,7 +86,7 @@ const ActiveBadgeTransferModal = ({
               Transfer Active Badge
             </h2>
             <p className="mt-1 text-sm text-text-secondary">
-              Move an active badge from one attendee to another
+              Move active badge to another attendee
             </p>
           </div>
           <button
@@ -63,58 +99,125 @@ const ActiveBadgeTransferModal = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="px-5 py-4">
-          <div className="space-y-4">
-            <div>
-              <label
-                htmlFor="source-reg-id"
-                className="block text-sm font-medium text-text-primary mb-1"
-              >
-                Source Reg ID
-              </label>
-              <input
-                id="source-reg-id"
-                type="text"
-                className="input w-full"
-                placeholder="e.g. 1001"
-                value={sourceRegId}
-                onChange={(e) => setSourceRegId(e.target.value)}
-                disabled={transferring}
-              />
-              <p className="mt-1 text-xs text-text-tertiary">
-                Badge to transfer FROM (must have active badge)
-              </p>
-            </div>
-
-            <div className="flex justify-center">
-              <ArrowRightLeft size={20} className="text-text-tertiary" />
-            </div>
-
-            <div>
-              <label
-                htmlFor="target-reg-id"
-                className="block text-sm font-medium text-text-primary mb-1"
-              >
-                Target Reg ID
-              </label>
-              <input
-                id="target-reg-id"
-                type="text"
-                className="input w-full"
-                placeholder="e.g. 1002"
-                value={targetRegId}
-                onChange={(e) => setTargetRegId(e.target.value)}
-                disabled={transferring}
-              />
-              <p className="mt-1 text-xs text-text-tertiary">
-                Badge to transfer TO
-              </p>
-            </div>
+        <div className="overflow-auto px-5 py-4 space-y-4">
+          {/* Source Badge */}
+          <div>
+            <label className="block text-xs font-medium text-text-tertiary uppercase tracking-wide mb-2">
+              From (Source)
+            </label>
+            {sourceAttendee ? (
+              <div className="p-3 bg-bg-secondary rounded-lg border border-border">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
+                    <User size={20} className="text-accent" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-text-primary truncate">
+                      {sourceAttendee.name || 'No name'}
+                    </p>
+                    <p className="text-sm text-text-secondary truncate">
+                      {sourceAttendee.email || sourceAttendee.phone_number || 'No contact'}
+                    </p>
+                    <p className="text-xs text-text-tertiary">
+                      Reg ID: {sourceAttendee.reg_id}
+                      {sourceAttendee.evc_id && ` • SC: ${sourceAttendee.evc_id}`}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-text-tertiary">No source selected</p>
+            )}
           </div>
 
+          <div className="flex justify-center">
+            <ArrowRight size={20} className="text-text-tertiary" />
+          </div>
+
+          {/* Target Search/Selection */}
+          <div>
+            <label className="block text-xs font-medium text-text-tertiary uppercase tracking-wide mb-2">
+              To (Target)
+            </label>
+            
+            {selectedTarget ? (
+              <div className="p-3 bg-bg-secondary rounded-lg border border-accent">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
+                    <User size={20} className="text-green-400" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-text-primary truncate">
+                      {selectedTarget.name || 'No name'}
+                    </p>
+                    <p className="text-sm text-text-secondary truncate">
+                      {selectedTarget.email || selectedTarget.phone_number || 'No contact'}
+                    </p>
+                    <p className="text-xs text-text-tertiary">
+                      Reg ID: {selectedTarget.reg_id}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => setSelectedTarget(null)}
+                  >
+                    Change
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="relative">
+                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
+                  <input
+                    type="text"
+                    className="input w-full pl-9"
+                    placeholder="Search by email or phone..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    disabled={transferring}
+                  />
+                  {searching && (
+                    <Loader2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-text-tertiary" />
+                  )}
+                </div>
+
+                {/* Search Results */}
+                {filteredResults.length > 0 && (
+                  <div className="border border-border rounded-lg max-h-48 overflow-auto">
+                    {filteredResults.map((attendee) => (
+                      <button
+                        key={attendee.uuid}
+                        type="button"
+                        className="w-full px-3 py-2 text-left hover:bg-bg-secondary transition-colors border-b border-border last:border-b-0"
+                        onClick={() => handleSelectTarget(attendee)}
+                      >
+                        <p className="font-medium text-sm text-text-primary truncate">
+                          {attendee.name || 'No name'}
+                        </p>
+                        <p className="text-xs text-text-secondary truncate">
+                          {attendee.email || attendee.phone_number || 'No contact'}
+                          {attendee.reg_id && ` • Reg: ${attendee.reg_id}`}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {searchQuery.length >= 2 && !searching && filteredResults.length === 0 && (
+                  <p className="text-sm text-text-tertiary text-center py-2">
+                    No attendees found
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Result message */}
           {result && (
             <div
-              className={`mt-4 p-3 rounded-lg text-sm ${
+              className={`p-3 rounded-lg text-sm ${
                 result.success
                   ? 'bg-green-500/10 text-green-400 border border-green-500/20'
                   : 'bg-red-500/10 text-red-400 border border-red-500/20'
@@ -124,8 +227,7 @@ const ActiveBadgeTransferModal = ({
                 <div>
                   <p className="font-medium">Transfer successful</p>
                   <p className="mt-1 text-xs opacity-80">
-                    Active badge #{result.active_badge_id} moved from{' '}
-                    {result.source_reg_id} to {result.target_reg_id}
+                    Active badge moved to {selectedTarget?.name || result.target_reg_id}
                   </p>
                 </div>
               ) : (
@@ -133,7 +235,7 @@ const ActiveBadgeTransferModal = ({
               )}
             </div>
           )}
-        </form>
+        </div>
 
         <div className="px-5 py-4 border-t border-border flex flex-wrap justify-end gap-2">
           <button
@@ -145,7 +247,7 @@ const ActiveBadgeTransferModal = ({
           </button>
           {!result?.success && (
             <button
-              type="submit"
+              type="button"
               className="btn btn-primary inline-flex items-center"
               onClick={handleSubmit}
               disabled={!canSubmit}

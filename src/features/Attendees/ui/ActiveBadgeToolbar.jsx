@@ -7,6 +7,7 @@ import { BadgeCheck, BadgePlus, Loader2, ArrowRightLeft } from 'lucide-react';
 const ActiveBadgeToolbar = ({
   checking = false,
   creating = false,
+  canTransfer = false,
   onPreviewAll,
   onCreateAll,
   onTransfer,
@@ -56,8 +57,11 @@ const ActiveBadgeToolbar = ({
             type="button"
             className="btn btn-secondary inline-flex items-center"
             onClick={onTransfer}
-            disabled={busy}
-            title="Transfer active badge between attendees"
+            disabled={busy || !canTransfer}
+            title={canTransfer 
+              ? "Transfer active badge to another attendee" 
+              : "Select one attendee with an active badge to transfer"
+            }
           >
             <ArrowRightLeft size={16} className="mr-2" />
             Transfer

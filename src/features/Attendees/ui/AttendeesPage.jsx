@@ -116,6 +116,7 @@ const AttendeesPage = () => {
         token,
         selectionMode: selection.selectionMode,
         selectedAttendeeUuids: selection.selectedAttendeeUuids,
+        selectedAttendees: selection.selectedAttendees,
         clearSelection: selection.clearSelection,
     });
 
