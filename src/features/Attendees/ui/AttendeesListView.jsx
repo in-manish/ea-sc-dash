@@ -10,6 +10,7 @@ import AttendeesReportPanel from './AttendeesReportPanel';
 import AttendeeEmailDraftsModal from './AttendeeEmailDraftsModal';
 import ActiveBadgeToolbar from './ActiveBadgeToolbar';
 import ActiveBadgeResultModal from './ActiveBadgeResultModal';
+import ActiveBadgeTransferModal from './ActiveBadgeTransferModal';
 import DeleteAttendeesModal from './DeleteAttendeesModal';
 
 const AttendeesListView = ({
@@ -91,6 +92,7 @@ const AttendeesListView = ({
                 creating={activeBadge.creating}
                 onPreviewAll={activeBadge.previewAllEligible}
                 onCreateAll={activeBadge.createAllEligible}
+                onTransfer={activeBadge.openTransferModal}
             />
         )}
 
@@ -196,6 +198,14 @@ const AttendeesListView = ({
             creating={activeBadge.creating}
             onCreateFromPreview={activeBadge.createFromPreview}
             onClose={activeBadge.closeResult}
+        />
+
+        <ActiveBadgeTransferModal
+            isOpen={activeBadge.transferModalOpen}
+            transferring={activeBadge.transferring}
+            result={activeBadge.transferResult}
+            onTransfer={activeBadge.runTransfer}
+            onClose={activeBadge.closeTransferModal}
         />
 
         <DeleteAttendeesModal

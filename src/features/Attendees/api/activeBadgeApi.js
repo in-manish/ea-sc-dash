@@ -27,6 +27,10 @@ function createUrl(eventId) {
   return `${getApiUrl()}/events/${eventId}/attendees/active_badge/`;
 }
 
+function transferUrl(eventId) {
+  return `${getApiUrl()}/events/${eventId}/attendees/active_badge/transfer/`;
+}
+
 /** Build POST body: all eligible, or ids/uuids/badges. */
 export function buildActiveBadgeBody({
   allWithoutActive = false,
@@ -60,6 +64,20 @@ export const activeBadgeApi = {
       method: 'POST',
       headers: authHeaders(token),
       body: JSON.stringify(body),
+    });
+    if (!response.ok) await parseError(response);
+    return response.json();
+  },
+
+  /** POST /events/:eventId/attendees/active_badge/transfer/ */
+  async transfer(eventId, token, { sourceRegId, targetRegId }) {
+    const response = await fetch(transferUrl(eventId), {
+      method: 'POST',
+      headers: authHeaders(token),
+      body: JSON.stringify({
+        source_reg_id: sourceRegId,
+        target_reg_id: targetRegId,
+      }),
     });
     if (!response.ok) await parseError(response);
     return response.json();

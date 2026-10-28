@@ -1,4 +1,4 @@
-import { BadgeCheck, BadgePlus, Loader2 } from 'lucide-react';
+import { BadgeCheck, BadgePlus, Loader2, ArrowRightLeft } from 'lucide-react';
 
 /**
  * Always-visible active-badge controls: preview all eligible, then create.
@@ -9,6 +9,7 @@ const ActiveBadgeToolbar = ({
   creating = false,
   onPreviewAll,
   onCreateAll,
+  onTransfer,
 }) => {
   const busy = checking || creating;
 
@@ -50,6 +51,18 @@ const ActiveBadgeToolbar = ({
           )}
           {creating ? 'Active Badge Creating…' : 'Active Badge Create all eligible'}
         </button>
+        {onTransfer && (
+          <button
+            type="button"
+            className="btn btn-secondary inline-flex items-center"
+            onClick={onTransfer}
+            disabled={busy}
+            title="Transfer active badge between attendees"
+          >
+            <ArrowRightLeft size={16} className="mr-2" />
+            Transfer
+          </button>
+        )}
       </div>
     </div>
   );

@@ -1,7 +1,8 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useAlert } from '../../../contexts/AlertContext';
 import { eligibleForCreate } from '../domain/summarizeActiveBadge';
 import { createActiveBadgeHandlers } from '../domain/createActiveBadgeHandlers';
+import { transferActiveBadge } from '../domain/activeBadgeFlow';
 
 export default function useActiveBadgeActions({
   selectedEvent,
@@ -13,11 +14,14 @@ export default function useActiveBadgeActions({
   const { showAlert, showConfirm } = useAlert();
   const [checking, setChecking] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [transferring, setTransferring] = useState(false);
   const [statusResult, setStatusResult] = useState(null);
   const [createResult, setCreateResult] = useState(null);
+  const [transferResult, setTransferResult] = useState(null);
   const [resultOpen, setResultOpen] = useState(false);
   const [resultKind, setResultKind] = useState(null);
   const [scope, setScope] = useState(null);
+  const [transferModalOpen, setTransferModalOpen] = useState(false);
   const uuidsKey = selectedAttendeeUuids.join(',');
   const clearRef = useRef(clearSelection);
   clearRef.current = clearSelection;
@@ -89,15 +93,49 @@ export default function useActiveBadgeActions({
     [selectedEvent?.id, token, selectionMode, uuidsKey, showAlert, showConfirm],
   );
 
+  const openTransferModal = useCallback(() => {
+    setTransferResult(null);
+    setTransferModalOpen(true);
+  }, []);
+
+  const closeTransferModal = useCallback(() => {
+    setTransferModalOpen(false);
+    setTransferResult(null);
+  }, []);
+
+  const runTransfer = useCallback(
+    async (sourceRegId, targetRegId) => {
+      if (!selectedEvent?.id || !token) return;
+      setTransferring(true);
+      setTransferResult(null);
+      try {
+        const result = await transferActiveBadge(
+          selectedEvent.id,
+          token,
+          sourceRegId,
+          targetRegId,
+        );
+        setTransferResult(result);
+      } catch (err) {
+        setTransferResult({ success: false, error: err.message });
+      } finally {
+        setTransferring(false);
+      }
+    },
+    [selectedEvent?.id, token],
+  );
+
   return {
     checking,
     creating,
-    busy: checking || creating,
+    transferring,
+    busy: checking || creating || transferring,
     canUseSelection,
     canSetSelected,
     canCreateFromPreview,
     statusResult,
     createResult,
+    transferResult,
     resultOpen,
     resultKind,
     closeResult,
@@ -106,5 +144,10 @@ export default function useActiveBadgeActions({
     createAllEligible: handlers.createAllEligible,
     createFromPreview: handlers.createFromPreview,
     setSelected: handlers.setSelected,
+    // Transfer
+    transferModalOpen,
+    openTransferModal,
+    closeTransferModal,
+    runTransfer,
   };
 }

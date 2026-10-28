@@ -53,3 +53,7 @@ export function confirmCreateMessage(count, { all = false, selectedTotal } = {})
   }
   return `Create active badges for ${count} eligible attendee${count === 1 ? '' : 's'}?`;
 }
+
+export async function transferActiveBadge(eventId, token, sourceRegId, targetRegId) {
+  return activeBadgeApi.transfer(eventId, token, { sourceRegId, targetRegId });
+}
