@@ -24,6 +24,16 @@ const ActiveBadgeTransferModal = ({
     }
   }, [isOpen]);
 
+  // Auto-select first result when results change (and no target selected)
+  useEffect(() => {
+    if (!selectedTarget && searchResults.length > 0 && sourceAttendee) {
+      const firstValid = searchResults.find((a) => a.uuid !== sourceAttendee.uuid);
+      if (firstValid) {
+        setSelectedTarget(firstValid);
+      }
+    }
+  }, [searchResults, selectedTarget, sourceAttendee]);
+
   // Debounced search
   useEffect(() => {
     if (searchTimeout.current) clearTimeout(searchTimeout.current);
@@ -140,60 +150,42 @@ const ActiveBadgeTransferModal = ({
               To (Target)
             </label>
             
-            {selectedTarget ? (
-              <div className="p-3 bg-bg-secondary rounded-lg border border-accent">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
-                    <User size={20} className="text-green-400" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-text-primary truncate">
-                      {selectedTarget.name || 'No name'}
-                    </p>
-                    <p className="text-sm text-text-secondary truncate">
-                      {selectedTarget.email || selectedTarget.phone_number || 'No contact'}
-                    </p>
-                    <p className="text-xs text-text-tertiary">
-                      Reg ID: {selectedTarget.reg_id}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    className="btn btn-ghost btn-sm"
-                    onClick={() => setSelectedTarget(null)}
-                  >
-                    Change
-                  </button>
-                </div>
+            <div className="space-y-2">
+              <div className="relative">
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
+                <input
+                  type="text"
+                  className="input w-full pl-9"
+                  placeholder="Search by email or phone..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    if (e.target.value) setSelectedTarget(null);
+                  }}
+                  disabled={transferring}
+                />
+                {searching && (
+                  <Loader2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-text-tertiary" />
+                )}
               </div>
-            ) : (
-              <div className="space-y-2">
-                <div className="relative">
-                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
-                  <input
-                    type="text"
-                    className="input w-full pl-9"
-                    placeholder="Search by email or phone..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    disabled={transferring}
-                  />
-                  {searching && (
-                    <Loader2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-text-tertiary" />
-                  )}
-                </div>
 
-                {/* Search Results */}
-                {filteredResults.length > 0 && (
-                  <div className="border border-border rounded-lg max-h-48 overflow-auto">
-                    {filteredResults.map((attendee) => (
+              {/* Results list */}
+              {filteredResults.length > 0 && (
+                <div className="border border-border rounded-lg max-h-48 overflow-auto">
+                  {filteredResults.slice(0, 5).map((attendee) => {
+                    const isSelected = selectedTarget?.uuid === attendee.uuid;
+                    return (
                       <button
                         key={attendee.uuid}
                         type="button"
-                        className="w-full px-3 py-2 text-left hover:bg-bg-secondary transition-colors border-b border-border last:border-b-0"
+                        className={`w-full px-3 py-2 text-left transition-colors border-b border-border last:border-b-0 ${
+                          isSelected 
+                            ? 'bg-accent/10 border-l-2 border-l-accent' 
+                            : 'hover:bg-bg-secondary'
+                        }`}
                         onClick={() => handleSelectTarget(attendee)}
                       >
-                        <p className="font-medium text-sm text-text-primary truncate">
+                        <p className={`font-medium text-sm truncate ${isSelected ? 'text-accent' : 'text-text-primary'}`}>
                           {attendee.name || 'No name'}
                         </p>
                         <p className="text-xs text-text-secondary truncate">
@@ -201,17 +193,17 @@ const ActiveBadgeTransferModal = ({
                           {attendee.reg_id && ` • Reg: ${attendee.reg_id}`}
                         </p>
                       </button>
-                    ))}
-                  </div>
-                )}
+                    );
+                  })}
+                </div>
+              )}
 
-                {searchQuery.length >= 2 && !searching && filteredResults.length === 0 && (
-                  <p className="text-sm text-text-tertiary text-center py-2">
-                    No attendees found
-                  </p>
-                )}
-              </div>
-            )}
+              {searchQuery.length >= 2 && !searching && filteredResults.length === 0 && (
+                <p className="text-sm text-text-tertiary text-center py-2">
+                  No attendees found
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Result message */}

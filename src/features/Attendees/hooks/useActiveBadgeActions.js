@@ -120,7 +120,32 @@ export default function useActiveBadgeActions({
     setTransferResult(null);
     setSearchResults([]);
     setTransferModalOpen(true);
-  }, [canTransfer, showAlert]);
+    // Fetch initial suggestions (top 5)
+    if (selectedEvent?.id && token) {
+      setSearching(true);
+      try {
+        const params = new URLSearchParams({ page_size: '5' });
+        const response = await fetch(
+          `${getApiUrl()}/events/${selectedEvent.id}/attendees/search?${params}`,
+          {
+            method: 'GET',
+            headers: {
+              Accept: 'application/json',
+              Authorization: `Token ${token}`,
+            },
+          },
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setSearchResults(data.results || data.users || []);
+        }
+      } catch (err) {
+        console.error('Initial suggestions error:', err);
+      } finally {
+        setSearching(false);
+      }
+    }
+  }, [canTransfer, showAlert, selectedEvent?.id, token]);
 
   const closeTransferModal = useCallback(() => {
     setTransferModalOpen(false);
