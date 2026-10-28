@@ -82,7 +82,7 @@ const ActiveBadgeTransferModal = ({
       role="presentation"
     >
       <div
-        className="bg-bg-primary border border-border rounded-xl shadow-xl w-full max-w-lg flex flex-col max-h-[85vh]"
+        className="bg-bg-primary border border-border rounded-xl shadow-xl w-full max-w-2xl flex flex-col max-h-[90vh]"
         role="dialog"
         aria-modal="true"
         aria-labelledby="transfer-modal-title"
@@ -116,43 +116,39 @@ const ActiveBadgeTransferModal = ({
               From (Source)
             </label>
             {sourceAttendee ? (
-              <div className="p-3 bg-bg-secondary rounded-lg border border-border">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center shrink-0">
-                    <User size={20} className="text-accent" />
+              <div className="p-4 bg-bg-secondary rounded-lg border border-border">
+                {/* Name row with badges */}
+                <div className="flex items-center gap-2 flex-wrap mb-3">
+                  <User size={18} className="text-accent" />
+                  <span className="font-semibold text-text-primary text-base">
+                    {sourceAttendee.name || 'No name'}
+                  </span>
+                  <span className="px-2 py-0.5 text-xs font-medium bg-accent/20 text-accent rounded">
+                    {sourceAttendee.attendee_type || 'N/A'}
+                  </span>
+                  {sourceAttendee.evc_id && (
+                    <span className="px-2 py-0.5 text-xs font-medium bg-green-500/20 text-green-400 rounded">
+                      SC: {sourceAttendee.evc_id}
+                    </span>
+                  )}
+                </div>
+                {/* Info grid - 2 columns */}
+                <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                  <div>
+                    <span className="text-text-tertiary">Email</span>
+                    <p className="text-text-primary font-medium truncate">{sourceAttendee.email || '—'}</p>
                   </div>
-                  <div className="min-w-0 flex-1 space-y-1.5">
-                    {/* Row 1: Name + badges */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-medium text-text-primary">
-                        {sourceAttendee.name || 'No name'}
-                      </span>
-                      <span className="px-1.5 py-0.5 text-[10px] font-medium bg-accent/20 text-accent rounded">
-                        {sourceAttendee.attendee_type || 'N/A'}
-                      </span>
-                      {sourceAttendee.evc_id && (
-                        <span className="px-1.5 py-0.5 text-[10px] font-medium bg-green-500/20 text-green-400 rounded">
-                          SC: {sourceAttendee.evc_id}
-                        </span>
-                      )}
-                    </div>
-                    {/* Row 2: Email + Phone */}
-                    <div className="grid grid-cols-2 gap-x-3 text-xs">
-                      <span className="text-text-secondary truncate" title={sourceAttendee.email || ''}>
-                        <span className="text-text-tertiary">Email:</span>{' '}
-                        {sourceAttendee.email || <span className="text-text-tertiary">—</span>}
-                      </span>
-                      <span className="text-text-secondary">
-                        <span className="text-text-tertiary">Phone:</span>{' '}
-                        {sourceAttendee.phone_number || <span className="text-text-tertiary">—</span>}
-                      </span>
-                    </div>
-                    {/* Row 3: Reg + UUID */}
-                    <div className="text-[11px] text-text-tertiary font-mono">
-                      <span>Reg: {sourceAttendee.reg_id || '—'}</span>
-                      <span className="mx-2">•</span>
-                      <span>UUID: {sourceAttendee.uuid ? `${sourceAttendee.uuid.slice(0, 8)}…` : '—'}</span>
-                    </div>
+                  <div>
+                    <span className="text-text-tertiary">Phone</span>
+                    <p className="text-text-primary font-medium">{sourceAttendee.phone_number || '—'}</p>
+                  </div>
+                  <div>
+                    <span className="text-text-tertiary">Reg ID</span>
+                    <p className="text-text-primary font-mono">{sourceAttendee.reg_id || '—'}</p>
+                  </div>
+                  <div>
+                    <span className="text-text-tertiary">UUID</span>
+                    <p className="text-text-primary font-mono">{sourceAttendee.uuid || '—'}</p>
                   </div>
                 </div>
               </div>
@@ -192,7 +188,7 @@ const ActiveBadgeTransferModal = ({
 
               {/* Results list */}
               {filteredResults.length > 0 && (
-                <div className="border border-border rounded-lg max-h-64 overflow-auto divide-y divide-border">
+                <div className="border border-border rounded-lg max-h-80 overflow-auto divide-y divide-border">
                   {filteredResults.slice(0, 5).map((attendee) => {
                     const isSelected = selectedTarget?.uuid === attendee.uuid;
                     const hasEvcId = !!attendee.evc_id;
@@ -200,43 +196,45 @@ const ActiveBadgeTransferModal = ({
                       <button
                         key={attendee.uuid}
                         type="button"
-                        className={`w-full px-3 py-3 text-left transition-colors ${
+                        className={`w-full p-4 text-left transition-colors ${
                           isSelected 
-                            ? 'bg-accent/10 border-l-2 border-l-accent' 
+                            ? 'bg-accent/10 border-l-4 border-l-accent' 
                             : 'hover:bg-bg-secondary'
                         }`}
                         onClick={() => handleSelectTarget(attendee)}
                       >
-                        {/* Row 1: Name + badges */}
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className={`font-medium text-sm ${isSelected ? 'text-accent' : 'text-text-primary'}`}>
+                        {/* Name row with badges */}
+                        <div className="flex items-center gap-2 flex-wrap mb-2">
+                          <span className={`font-semibold ${isSelected ? 'text-accent' : 'text-text-primary'}`}>
                             {attendee.name || 'No name'}
                           </span>
-                          <span className="px-1.5 py-0.5 text-[10px] font-medium bg-bg-tertiary text-text-secondary rounded">
+                          <span className="px-2 py-0.5 text-xs font-medium bg-bg-tertiary text-text-secondary rounded">
                             {attendee.attendee_type || 'N/A'}
                           </span>
                           {hasEvcId && (
-                            <span className="px-1.5 py-0.5 text-[10px] font-medium bg-yellow-500/20 text-yellow-400 rounded">
-                              Has SC
+                            <span className="px-2 py-0.5 text-xs font-medium bg-yellow-500/20 text-yellow-400 rounded">
+                              ⚠ Has SC
                             </span>
                           )}
                         </div>
-                        {/* Row 2: Email + Phone */}
-                        <div className="mt-1.5 grid grid-cols-2 gap-x-3 text-xs">
-                          <span className="text-text-secondary truncate" title={attendee.email || ''}>
-                            <span className="text-text-tertiary">Email:</span>{' '}
-                            {attendee.email || <span className="text-text-tertiary">—</span>}
-                          </span>
-                          <span className="text-text-secondary">
-                            <span className="text-text-tertiary">Phone:</span>{' '}
-                            {attendee.phone_number || <span className="text-text-tertiary">—</span>}
-                          </span>
-                        </div>
-                        {/* Row 3: Reg + UUID */}
-                        <div className="mt-1 text-[11px] text-text-tertiary font-mono">
-                          <span>Reg: {attendee.reg_id || '—'}</span>
-                          <span className="mx-2">•</span>
-                          <span>UUID: {attendee.uuid ? `${attendee.uuid.slice(0, 8)}…` : '—'}</span>
+                        {/* Info grid - 2x2 */}
+                        <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-text-tertiary text-xs w-12 shrink-0">Email</span>
+                            <span className="text-text-secondary truncate">{attendee.email || '—'}</span>
+                          </div>
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-text-tertiary text-xs w-12 shrink-0">Phone</span>
+                            <span className="text-text-secondary">{attendee.phone_number || '—'}</span>
+                          </div>
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-text-tertiary text-xs w-12 shrink-0">Reg ID</span>
+                            <span className="text-text-secondary font-mono">{attendee.reg_id || '—'}</span>
+                          </div>
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-text-tertiary text-xs w-12 shrink-0">UUID</span>
+                            <span className="text-text-secondary font-mono text-xs">{attendee.uuid || '—'}</span>
+                          </div>
                         </div>
                       </button>
                     );
