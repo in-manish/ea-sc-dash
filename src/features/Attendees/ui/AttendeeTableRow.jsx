@@ -85,7 +85,7 @@ const AttendeeTableRow = ({
                         {checkedActiveBadge === undefined ? (
                             <button
                                 type="button"
-                                className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium rounded border border-border hover:bg-bg-tertiary text-text-secondary transition-colors"
+                                className="inline-flex items-center justify-center w-5 h-5 rounded hover:bg-bg-tertiary text-text-secondary hover:text-accent transition-colors"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     onCheckActiveBadge?.(attendee.uuid);
@@ -94,13 +94,13 @@ const AttendeeTableRow = ({
                                 title="Check EventActiveBadge"
                             >
                                 {checkingActiveBadge ? (
-                                    <Loader2 size={10} className="animate-spin" />
+                                    <Loader2 size={12} className="animate-spin" />
                                 ) : (
-                                    'Check'
+                                    <BadgeCheck size={14} className="opacity-50 hover:opacity-100" />
                                 )}
                             </button>
                         ) : checkedActiveBadge === null ? (
-                            <span className="text-text-tertiary">None</span>
+                            <span className="text-text-tertiary">—</span>
                         ) : (
                             <span className="inline-flex items-center gap-1 text-green-500 font-mono">
                                 <BadgeCheck size={12} />
