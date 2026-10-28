@@ -146,18 +146,18 @@ const ActiveBadgeTransferModal = ({
                     <p className="text-text-primary font-mono">{sourceAttendee.reg_id || '—'}</p>
                   </div>
                   <div>
-                    <span className="text-text-tertiary">UUID</span>
-                    <p className="text-text-primary font-mono text-xs">{sourceAttendee.uuid || '—'}</p>
-                  </div>
-                  <div>
                     <span className="text-text-tertiary">EVC ID</span>
-                    <p className="text-text-primary font-mono text-green-400">{sourceAttendee.evc_id || '—'}</p>
+                    <p className="text-red-400 font-mono">{sourceAttendee.evc_id || '—'}</p>
                   </div>
-                  <div>
+                  <div className="col-span-2">
+                    <span className="text-text-tertiary">UUID</span>
+                    <p className="text-text-primary font-mono text-xs break-all">{sourceAttendee.uuid || '—'}</p>
+                  </div>
+                  <div className="col-span-2">
                     <span className="text-text-tertiary">Active Badge ID</span>
                     <p className="text-text-primary font-mono">
                       {sourceActiveBadge ? (
-                        <span className="text-green-400 flex items-center gap-1">
+                        <span className="text-red-400 flex items-center gap-1">
                           <BadgeCheck size={14} /> {sourceActiveBadge.id}
                         </span>
                       ) : (
@@ -251,13 +251,13 @@ const ActiveBadgeTransferModal = ({
                             Check
                           </button>
                         </div>
-                        {/* Info grid - 3 columns */}
+                        {/* Info grid - 2 columns */}
                         <button
                           type="button"
                           className="w-full text-left"
                           onClick={() => handleSelectTarget(attendee)}
                         >
-                          <div className="grid grid-cols-3 gap-x-4 gap-y-1.5 text-sm">
+                          <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
                             <div>
                               <span className="text-text-tertiary text-xs block">Email</span>
                               <span className="text-text-secondary truncate block">{attendee.email || '—'}</span>
@@ -271,23 +271,23 @@ const ActiveBadgeTransferModal = ({
                               <span className="text-text-secondary font-mono">{attendee.reg_id || '—'}</span>
                             </div>
                             <div>
-                              <span className="text-text-tertiary text-xs block">UUID</span>
-                              <span className="text-text-secondary font-mono text-xs">{attendee.uuid || '—'}</span>
-                            </div>
-                            <div>
                               <span className="text-text-tertiary text-xs block">EVC ID</span>
-                              <span className={`font-mono ${attendee.evc_id ? 'text-yellow-400' : 'text-text-tertiary'}`}>
+                              <span className={`font-mono ${attendee.evc_id ? 'text-red-400' : 'text-text-tertiary'}`}>
                                 {attendee.evc_id || '—'}
                               </span>
                             </div>
-                            <div>
+                            <div className="col-span-2">
+                              <span className="text-text-tertiary text-xs block">UUID</span>
+                              <span className="text-text-secondary font-mono text-xs break-all">{attendee.uuid || '—'}</span>
+                            </div>
+                            <div className="col-span-2">
                               <span className="text-text-tertiary text-xs block">Active Badge</span>
                               {checkedInfo === undefined ? (
                                 <span className="text-text-tertiary text-xs">Click Check</span>
                               ) : checkedInfo === null ? (
                                 <span className="text-text-tertiary">None</span>
                               ) : (
-                                <span className="text-yellow-400 font-mono flex items-center gap-1">
+                                <span className="text-red-400 font-mono flex items-center gap-1">
                                   <BadgeCheck size={12} /> {checkedInfo.id}
                                 </span>
                               )}
