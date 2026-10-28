@@ -141,11 +141,11 @@ export default function useActiveBadgeActions({
           token,
           buildActiveBadgeBody({ uuids: [sourceUuid] })
         );
-        // Find the active badge for source
-        const activeList = statusData?.has_active || [];
-        const sourceActive = activeList.find(item => item.uuid === sourceUuid);
-        if (sourceActive?.active_badge) {
-          setSourceActiveBadge(sourceActive.active_badge);
+        // Response: { data: [{ uuid, has_active_badge, active_badge_id, ... }] }
+        const items = statusData?.data || [];
+        const found = items.find(item => item.uuid === sourceUuid);
+        if (found?.has_active_badge && found?.active_badge_id) {
+          setSourceActiveBadge({ id: found.active_badge_id });
         }
       } catch (err) {
         console.error('Failed to fetch source active badge:', err);
@@ -195,13 +195,20 @@ export default function useActiveBadgeActions({
           token,
           buildActiveBadgeBody({ uuids: [uuid] })
         );
-        // Find active badge info
-        const activeList = statusData?.has_active || [];
-        const found = activeList.find(item => item.uuid === uuid);
-        setCheckedActiveBadges(prev => ({
-          ...prev,
-          [uuid]: found?.active_badge || null, // null = checked but none found
-        }));
+        // Response: { data: [{ uuid, has_active_badge, active_badge_id, ... }] }
+        const items = statusData?.data || [];
+        const found = items.find(item => item.uuid === uuid);
+        if (found?.has_active_badge && found?.active_badge_id) {
+          setCheckedActiveBadges(prev => ({
+            ...prev,
+            [uuid]: { id: found.active_badge_id },
+          }));
+        } else {
+          setCheckedActiveBadges(prev => ({
+            ...prev,
+            [uuid]: null, // checked but no active badge
+          }));
+        }
       } catch (err) {
         console.error('Failed to check active badge:', err);
         setCheckedActiveBadges(prev => ({
@@ -283,12 +290,20 @@ export default function useActiveBadgeActions({
           token,
           buildActiveBadgeBody({ uuids: [uuid] })
         );
-        const activeList = statusData?.has_active || [];
-        const found = activeList.find(item => item.uuid === uuid);
-        setTableCheckedActiveBadges(prev => ({
-          ...prev,
-          [uuid]: found?.active_badge || null,
-        }));
+        // Response: { data: [{ uuid, has_active_badge, active_badge_id, ... }] }
+        const items = statusData?.data || [];
+        const found = items.find(item => item.uuid === uuid);
+        if (found?.has_active_badge && found?.active_badge_id) {
+          setTableCheckedActiveBadges(prev => ({
+            ...prev,
+            [uuid]: { id: found.active_badge_id },
+          }));
+        } else {
+          setTableCheckedActiveBadges(prev => ({
+            ...prev,
+            [uuid]: null, // checked but no active badge
+          }));
+        }
       } catch (err) {
         console.error('Failed to check active badge:', err);
         setTableCheckedActiveBadges(prev => ({
