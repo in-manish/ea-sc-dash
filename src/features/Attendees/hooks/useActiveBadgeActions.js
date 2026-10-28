@@ -30,6 +30,9 @@ export default function useActiveBadgeActions({
   const [transferModalOpen, setTransferModalOpen] = useState(false);
   const [sourceActiveBadge, setSourceActiveBadge] = useState(null);
   const [checkedActiveBadges, setCheckedActiveBadges] = useState({});
+  // Table-level active badge checks (separate from modal)
+  const [tableCheckedActiveBadges, setTableCheckedActiveBadges] = useState({});
+  const [tableCheckingUuid, setTableCheckingUuid] = useState(null);
   const uuidsKey = selectedAttendeeUuids.join(',');
   const clearRef = useRef(clearSelection);
   clearRef.current = clearSelection;
@@ -269,6 +272,36 @@ export default function useActiveBadgeActions({
     [selectedEvent?.id, token],
   );
 
+  // Table-level active badge check (for attendee rows)
+  const checkActiveBadgeInTable = useCallback(
+    async (uuid) => {
+      if (!selectedEvent?.id || !token || !uuid) return;
+      setTableCheckingUuid(uuid);
+      try {
+        const statusData = await activeBadgeApi.getStatus(
+          selectedEvent.id,
+          token,
+          buildActiveBadgeBody({ uuids: [uuid] })
+        );
+        const activeList = statusData?.has_active || [];
+        const found = activeList.find(item => item.uuid === uuid);
+        setTableCheckedActiveBadges(prev => ({
+          ...prev,
+          [uuid]: found?.active_badge || null,
+        }));
+      } catch (err) {
+        console.error('Failed to check active badge:', err);
+        setTableCheckedActiveBadges(prev => ({
+          ...prev,
+          [uuid]: null,
+        }));
+      } finally {
+        setTableCheckingUuid(null);
+      }
+    },
+    [selectedEvent?.id, token]
+  );
+
   return {
     checking,
     creating,
@@ -292,7 +325,7 @@ export default function useActiveBadgeActions({
     createAllEligible: handlers.createAllEligible,
     createFromPreview: handlers.createFromPreview,
     setSelected: handlers.setSelected,
-    // Transfer
+    // Transfer modal
     transferModalOpen,
     transferSourceAttendee,
     sourceActiveBadge,
@@ -302,5 +335,9 @@ export default function useActiveBadgeActions({
     searchForTarget,
     runTransfer,
     checkActiveBadgeForUuid,
+    // Table-level active badge check
+    tableCheckedActiveBadges,
+    tableCheckingUuid,
+    checkActiveBadgeInTable,
   };
 }

@@ -5,6 +5,8 @@ import {
     Globe,
     Building2,
     ShieldCheck,
+    BadgeCheck,
+    Loader2,
 } from 'lucide-react';
 import CopyableValue from './CopyableValue';
 import ObfCopyChip from './ObfCopyChip';
@@ -29,6 +31,10 @@ const AttendeeTableRow = ({
     extraColumns = [],
     activeColumnKey = null,
     pinIdentity = false,
+    // Active badge check
+    checkedActiveBadge,
+    checkingActiveBadge,
+    onCheckActiveBadge,
 }) => {
     const navigate = useNavigate();
 
@@ -73,6 +79,35 @@ const AttendeeTableRow = ({
                 <div className="mt-0.5 flex flex-col gap-0.5">
                     <CopyableValue value={attendee.reg_id} label="Reg ID" />
                     <CopyableValue value={attendee.evc_id} label="EVC ID" />
+                    {/* Active Badge Check */}
+                    <div className="flex items-center gap-1.5 text-[11px]">
+                        <span className="text-text-tertiary">Active Badge:</span>
+                        {checkedActiveBadge === undefined ? (
+                            <button
+                                type="button"
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium rounded border border-border hover:bg-bg-tertiary text-text-secondary transition-colors"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onCheckActiveBadge?.(attendee.uuid);
+                                }}
+                                disabled={checkingActiveBadge}
+                                title="Check EventActiveBadge"
+                            >
+                                {checkingActiveBadge ? (
+                                    <Loader2 size={10} className="animate-spin" />
+                                ) : (
+                                    'Check'
+                                )}
+                            </button>
+                        ) : checkedActiveBadge === null ? (
+                            <span className="text-text-tertiary">None</span>
+                        ) : (
+                            <span className="inline-flex items-center gap-1 text-green-500 font-mono">
+                                <BadgeCheck size={12} />
+                                <span>{checkedActiveBadge.id}</span>
+                            </span>
+                        )}
+                    </div>
                 </div>
             </td>
             <td className="py-4 px-6 align-top group-last:border-b-0">

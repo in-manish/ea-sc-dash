@@ -44,6 +44,10 @@ const AttendeeTable = ({
     onMatchmaking,
     onCreateEBadge,
     token,
+    // Active badge check
+    checkedActiveBadges = {},
+    checkingActiveBadgeUuid,
+    onCheckActiveBadge,
 }) => {
     const attendeeTypeOptions = attendeeTypes.map((t) => ({ value: t.name, label: t.name }));
     const permissionCodes = usePermissionCodes(selectedEvent?.id, token);
@@ -258,6 +262,9 @@ const AttendeeTable = ({
                             extraColumns={extraColumns}
                             activeColumnKey={activeKey}
                             pinIdentity={pinIdentity}
+                            checkedActiveBadge={checkedActiveBadges[attendee.uuid]}
+                            checkingActiveBadge={checkingActiveBadgeUuid === attendee.uuid}
+                            onCheckActiveBadge={onCheckActiveBadge}
                         />
                     ))
                 )}

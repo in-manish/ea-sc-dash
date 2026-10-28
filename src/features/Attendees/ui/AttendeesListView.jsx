@@ -159,6 +159,9 @@ const AttendeesListView = ({
             onSyncSc={scSync.handleSyncWithSC}
             onMatchmaking={list.setMatchmakingAttendee}
             onCreateEBadge={eBadge.handleCreateEBadge}
+            checkedActiveBadges={activeBadge.tableCheckedActiveBadges}
+            checkingActiveBadgeUuid={activeBadge.tableCheckingUuid}
+            onCheckActiveBadge={activeBadge.checkActiveBadgeInTable}
         />
 
         <ListPagination
