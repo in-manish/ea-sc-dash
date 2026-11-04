@@ -2,6 +2,7 @@ import React from 'react';
 import FormSelect from '../../../components/common/FormSelect';
 import StandardOptionsSection from './StandardOptionsSection';
 import GroupedOptionsSection from './GroupedOptionsSection';
+import QuestionTitleFields from './QuestionTitleFields';
 import { ATTENDEE_QUESTION_TYPE_OPTIONS, EXHIBITOR_QUESTION_TYPE_OPTIONS, questionTypesMatch } from '../constants/questionTypes';
 
 const FIELD_TYPE_OPTIONS = [
@@ -41,10 +42,7 @@ const MatchmakingQuestionFormFields = ({ formData, setFormData, attendeeTypes, e
         <section className="space-y-12">
             <h3 className="text-xs uppercase tracking-wider text-text-tertiary font-bold border-b border-border/60 pb-2">1. Core Identity</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                <div className="md:col-span-2 flex flex-col gap-2">
-                    <label className="text-[10px] font-medium text-text-tertiary uppercase tracking-wider ml-1">Question Title</label>
-                    <input required type="text" className="input-field py-3 px-5 text-lg font-semibold bg-white border border-border/60 rounded-xl" placeholder="e.g. Which regions do you serve?" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
-                </div>
+                <QuestionTitleFields formData={formData} setFormData={setFormData} />
                 <div className="flex flex-col gap-2">
                     <label className="text-[10px] font-medium text-text-tertiary uppercase tracking-wider ml-1">Field Type</label>
                     <FormSelect value={formData.type} onChange={(val) => setFormData({ ...formData, type: val })} options={FIELD_TYPE_OPTIONS} />

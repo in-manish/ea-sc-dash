@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Hash, Trash2, Layout, Layers, ChevronDown, ChevronUp, MoreHorizontal, Building2, Loader2, GripVertical } from 'lucide-react';
 import OptionList from './OptionList';
+import QuestionLabelsSummary from './QuestionLabelsSummary';
+import MatchSideBadge from './MatchSideBadge';
 import { getQuestionTypeLabel } from '../constants/questionTypes';
 
 const QuestionCard = ({ question, attendeeTypes, onEdit, onRemove, onToggleExhibitorPortal, togglingPortal = false, defaultExpanded, readOnly = false, draggable = false }) => {
@@ -70,9 +72,11 @@ const QuestionCard = ({ question, attendeeTypes, onEdit, onRemove, onToggleExhib
                 <div className="flex flex-col gap-3">
                     <div className="flex flex-wrap items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
+                            <div className="mb-1.5"><MatchSideBadge side="offering" /></div>
                             <h3 className={`text-base font-semibold text-text-primary leading-snug transition-colors duration-300 break-words ${isExpanded ? 'text-accent' : 'group-hover:text-accent'}`}>
                                 {question.title}
                             </h3>
+                            <QuestionLabelsSummary question={question} />
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0 pt-0.5">
                             {!isExpanded && (

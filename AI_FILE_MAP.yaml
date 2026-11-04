@@ -962,6 +962,9 @@ tasks:
       - src/features/Matchmaking/ui/MatchmakingQuestions.jsx
       - src/features/Matchmaking/ui/MatchmakingEmptySetup.jsx
       - src/features/Matchmaking/ui/CopyMatchmakingModal.jsx
+      - src/features/Matchmaking/ui/QuestionTitleFields.jsx
+      - src/features/Matchmaking/ui/QuestionLabelsSummary.jsx
+      - src/features/Matchmaking/ui/MatchSideBadge.jsx
       - src/features/Matchmaking/domain/buildCopyMatchmakingPayload.js
       - src/features/Matchmaking/domain/buildSaveMatchmakingPayload.js
     routes:
@@ -971,6 +974,9 @@ tasks:
       GET /events/:id/questions/matchmaking/ — 404 empty (create or copy),
       200 editor only. Copy POST /evc/matchmaking/make_copy/ only on 404.
       Create omits form_id. Never copy into an event that already has a form.
+      Questions carry raw title_seeking / short_title_seeking / title_filter /
+      short_title_offering (raw short_title; payload builder sends it as short_title)
+      (null = default); the editor sends blank as null to clear.
   matchmaking_survey_mapping:
     files:
       - src/features/Matchmaking/api/matchmakingSurveyApi.js

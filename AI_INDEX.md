@@ -113,6 +113,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Event settings / chat reminder | `src/features/ChatReminder/ui/ChatReminderSettings.jsx` + `api/unreadReminderApi.js` (`/event/:id/settings?tab=meeting_diary`) |
 | Event settings / complimentary invitee links | `src/pages/event-settings/ComplimentaryInviteeLinkItem.jsx` (`is_active` enable/disable, `is_complementary`) |
 | Matchmaking questions / copy | `src/features/Matchmaking/ui/MatchmakingQuestions.jsx` + `api/matchmakingFormApi.js` (`/event/:id/matchmaking?tab=questions`) |
+| Matchmaking titles (offering/seeking/short/filter) | `ui/QuestionTitleFields.jsx` (editor) + `ui/QuestionLabelsSummary.jsx` (card) + `ui/MatchSideBadge.jsx` (Offering/Seeking tag); keys `title`, `title_seeking`, `short_title_offering` (raw short_title, sent as `short_title`), `short_title_seeking`, `title_filter` |
 | Attendee matchmaking answers | `src/features/Matchmaking/ui/AttendeeMatchmakingAnswers.jsx` (Seeking/Offering each send `answer_for`) |
 | SurveyJS mapping / OTM form JSON | `src/features/Matchmaking/api/matchmakingSurveyApi.js` + `ui/SurveyMapping/` (`/event/:id/matchmaking?tab=mapping`) |
 | SurveyJS mapping CSV & backfill | `ui/SurveyBackfill/` + `api/matchmakingSurveyBackfillApi.js` + `api/matchmakingSurveyBackfillUploadsApi.js` (`?tab=backfill`; mapping list + upload history) |

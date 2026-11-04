@@ -6,10 +6,18 @@ import { eventService } from '../../../services/eventService';
 import { normalizeQuestionType } from '../constants/questionTypes';
 import MatchmakingQuestionFormFields from './MatchmakingQuestionFormFields';
 
+const SEEKING_LABEL_KEYS = ['short_title_offering', 'title_seeking', 'short_title_seeking', 'title_filter'];
+
+/** Trim organizer labels; blank → null so the backend falls back to the default title. */
+const normalizeSeekingLabels = (data) => Object.fromEntries(
+    SEEKING_LABEL_KEYS.map((key) => [key, (data[key] ?? '').trim() || null]),
+);
+
 const EMPTY_QUESTION_FORM = {
     title: '', type: 'radio', question_type: '', is_mandatory: false, is_filter: false,
     can_support_exhibitor_portal: false, design_type: 'vertical', row_no: 1, sort_key: 1,
     attendee_types: [], options: [{ name: '' }],
+    short_title_offering: '', title_seeking: '', short_title_seeking: '', title_filter: '',
 };
 
 const MatchmakingQuestionModal = ({
@@ -65,6 +73,7 @@ const MatchmakingQuestionModal = ({
                 id: question?.id,
                 options: formattedOptions,
                 question_type: formData.question_type || null,
+                ...normalizeSeekingLabels(formData),
             };
             if (!question?.id) delete payload.id;
             await matchmakingFormApi.saveMatchmakingQuestions(

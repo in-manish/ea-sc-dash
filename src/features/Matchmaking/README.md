@@ -19,6 +19,9 @@ ui/SurveyMapping/                      interactive SurveyJS ↔ EA choice mappin
 ui/SurveyBackfill/                     CSV + upload history + mappings + run + logs
 ui/Matchmaking.jsx                     tabs via ?tab=questions|exhibitor|mapping|backfill
 ui/MatchmakingQuestions.jsx            questions tab orchestrator
+ui/QuestionTitleFields.jsx            editor top: title, seeking, short offering, short seeking, filter
+ui/QuestionLabelsSummary.jsx          card: shows those labels (unset = Default)
+ui/MatchSideBadge.jsx                 Offering (title) / Seeking (title_seeking) badge
 ui/MatchmakingEmptySetup.jsx           404: create new form + copy from another event
 ui/CopyMatchmakingModal.jsx            copy wizard (empty state only)
 ```
@@ -35,6 +38,11 @@ ui/CopyMatchmakingModal.jsx            copy wizard (empty state only)
    - Copy all omits `question_ids`. Selected sends checked source IDs (≥1).
    - Dest-already-exists → reload GET, open editor. Do not retry as create/edit.
 5. After copy: GET current event and edit with dest IDs only.
+
+Each question in GET/POST carries raw `title_seeking`, `short_title_seeking`, `title_filter` and
+`short_title_offering` (null = backend default). GET `short_title` is a display value (falls back to the title), so
+`buildSaveMatchmakingPayload` sends `short_title_offering` as `short_title` and never echoes the display value.
+The editor sends titles trimmed; blank → `null`.
 
 Do not use `/registration/forms/` for create/copy/edit.
 
