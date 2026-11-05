@@ -6,6 +6,8 @@ import { useAlert } from '../../../contexts/AlertContext';
 import { agendaService } from '../../../services/agendaService';
 import AgendaCard from './AgendaCard';
 import AgendaHeader from './AgendaHeader';
+import AgendaListEmptyState from './AgendaListEmptyState';
+import AgendaListErrorBanner from './AgendaListErrorBanner';
 import AgendaRow from './AgendaRow';
 import AgendaViewModal from './AgendaViewModal';
 
@@ -17,6 +19,8 @@ const AgendaListPage = () => {
 
   const [agendas, setAgendas] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(20);
@@ -27,12 +31,18 @@ const AgendaListPage = () => {
 
   const fetchAgendas = async () => {
     setLoading(true);
+    setError(null);
     try {
       const data = await agendaService.getAgendas(eventId, token, page, pageSize, search);
       setAgendas(data.results || []);
       setTotal(data.count || 0);
+      setHasLoaded(true);
     } catch (err) {
       console.error('Fetch Agendas Error:', err);
+      setAgendas([]);
+      setTotal(0);
+      setHasLoaded(false);
+      setError(err.message || 'Failed to load agenda sessions.');
     } finally {
       setLoading(false);
     }
@@ -66,32 +76,66 @@ const AgendaListPage = () => {
     }
   };
 
+  const showInitialLoading = loading && !hasLoaded && !error;
+  const showEmpty = !loading && !error && hasLoaded && agendas.length === 0;
+
   return (
     <div className="p-6 md:p-10 max-w-[1500px] mx-auto min-h-screen animate-fade-in space-y-10">
       <AgendaHeader
         viewMode={viewMode}
         setViewMode={setViewMode}
         search={search}
-        setSearch={setSearch}
+        setSearch={(value) => {
+          setPage(1);
+          setSearch(value);
+        }}
         onAddSession={() => openEdit(null)}
       />
 
-      {loading && agendas.length === 0 ? (
+      {error && (
+        <AgendaListErrorBanner
+          message={error}
+          onRetry={fetchAgendas}
+          onDismiss={() => setError(null)}
+        />
+      )}
+
+      {showInitialLoading ? (
         <div className="bg-bg-primary border border-border rounded-[2.5rem] shadow-premium p-20 flex flex-col items-center justify-center space-y-6">
           <Loader2 className="animate-spin text-accent" size={48} />
-          <p className="text-text-tertiary font-black text-xs uppercase tracking-[0.25em]">Synchronizing Schedule...</p>
+          <p className="text-text-tertiary font-black text-xs uppercase tracking-[0.25em]">
+            Synchronizing Schedule...
+          </p>
         </div>
-      ) : (
+      ) : showEmpty ? (
+        <AgendaListEmptyState
+          hasSearch={Boolean(search.trim())}
+          onAddSession={() => openEdit(null)}
+          onClearSearch={() => {
+            setPage(1);
+            setSearch('');
+          }}
+        />
+      ) : !error ? (
         <>
-          <div className={viewMode === 'card' ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 mb-12' : 'flex flex-col gap-4 mb-12'}>
-            {agendas.map((item) => (
+          <div
+            className={
+              viewMode === 'card'
+                ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 mb-12'
+                : 'flex flex-col gap-4 mb-12'
+            }
+          >
+            {agendas.map((item) =>
               viewMode === 'card' ? (
                 <AgendaCard
                   key={item.id}
                   item={item}
                   onEdit={openEdit}
                   onDelete={handleDelete}
-                  onView={(a) => { setSelectedAgenda(a); setIsViewModalOpen(true); }}
+                  onView={(a) => {
+                    setSelectedAgenda(a);
+                    setIsViewModalOpen(true);
+                  }}
                 />
               ) : (
                 <AgendaRow
@@ -99,10 +143,13 @@ const AgendaListPage = () => {
                   item={item}
                   onEdit={openEdit}
                   onDelete={handleDelete}
-                  onView={(a) => { setSelectedAgenda(a); setIsViewModalOpen(true); }}
+                  onView={(a) => {
+                    setSelectedAgenda(a);
+                    setIsViewModalOpen(true);
+                  }}
                 />
               )
-            ))}
+            )}
           </div>
 
           {total > pageSize && (
@@ -127,7 +174,7 @@ const AgendaListPage = () => {
             </div>
           )}
         </>
-      )}
+      ) : null}
 
       <AgendaViewModal
         isOpen={isViewModalOpen}
