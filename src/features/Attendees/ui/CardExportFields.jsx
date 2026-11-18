@@ -1,8 +1,8 @@
-import { CARD_FORMATS, MAX_CUSTOM_EMAILS } from '../domain/cardExportRequest';
+import { CARD_FORMATS } from '../domain/cardExportRequest';
 
 const MODES = [
-    { value: 'download', title: 'Download', text: 'Save the files on this computer. Nobody is emailed.' },
-    { value: 'email', title: 'Email', text: 'Send the files by email in the background.' },
+    { value: 'download', title: 'Download', text: 'Save to this computer now. No email is sent.' },
+    { value: 'email', title: 'Send by email', text: 'Email it to the people you choose below.' },
 ];
 
 const Section = ({ title, children }) => (
@@ -67,33 +67,6 @@ export const DateRangePicker = ({ form, update, dateWindow }) => (
             {dateWindow.min && dateWindow.max
                 ? `Event dates ${dateWindow.min} to ${dateWindow.max} (venue time, both days included). Leave a date empty to use the event date.`
                 : 'This event has no dates set; leave empty for all cards.'}
-        </p>
-    </Section>
-);
-
-export const RecipientFields = ({ form, update }) => (
-    <Section title="Send to">
-        <label className="flex items-start gap-2 text-sm text-text-primary cursor-pointer">
-            <input
-                type="checkbox"
-                className="mt-1"
-                checked={form.sendToAttendee}
-                onChange={(e) => update({ sendToAttendee: e.target.checked })}
-            />
-            <span>
-                Each attendee
-                <span className="block text-text-secondary">Every attendee gets only their own cards.</span>
-            </span>
-        </label>
-        <textarea
-            className="input-field min-h-[64px]"
-            placeholder="Other emails, comma separated (e.g. sales@company.com)"
-            value={form.emailsText}
-            onChange={(e) => update({ emailsText: e.target.value })}
-        />
-        <p className="text-xs text-text-tertiary">
-            These addresses get every selected attendee's cards (one file per attendee, zipped). Up to {MAX_CUSTOM_EMAILS}.
-            {!form.sendToAttendee && ' Leave empty to send to your login email.'}
         </p>
     </Section>
 );

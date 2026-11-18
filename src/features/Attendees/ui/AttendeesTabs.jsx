@@ -1,7 +1,7 @@
 const TABS = [
     { value: 'list', label: 'Attendee List' },
     { value: 'tasks', label: 'E-badge Tasks' },
-    { value: 'card-emails', label: 'Card email log' },
+    { value: 'card-emails', label: 'Email log' },
 ];
 
 /** Tab values that may come from `?tab=` (anything else falls back to the list). */

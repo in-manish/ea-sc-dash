@@ -40,6 +40,39 @@ export const meetingReportApi = {
    * and emailed to the logged-in organizer. regIds = ['*'] for every active badge in the event.
    * cumulative = one combined PDF; otherwise one PDF per attendee. Over 20 attendees EA sends S3 links.
    */
+  /**
+   * Same endpoint + download=true → the file now (PDF for one attendee or cumulative, else a .zip). No email.
+   * EA allows up to 50 attendees per download.
+   */
+  async download(eventId, token, { regIds, cumulative }) {
+    const response = await fetch(`${getApiUrl()}/events/${eventId}/attendees/meetings/report/export/`, {
+      method: 'POST',
+      headers: { ...authHeaders(token), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reg_ids: regIds, cumulative: Boolean(cumulative), download: true }),
+    });
+    if (!response.ok) throw new Error(await readMeetingReportError(response));
+    const blob = await response.blob();
+    const filename = filenameFromContentDisposition(response.headers.get('Content-Disposition'), 'meeting_reports.zip');
+    return { blob, filename };
+  },
+
+  /**
+   * Same endpoint + send_to_attendee / emails → logged email in the background (email log, meeting reports):
+   * each attendee gets only their own PDF; `emails` get everyone's (cumulative: one PDF, else a zip).
+   * No emails and not to attendees → the organizer's login email. Returns { batch_id, attendees, emails, ... }.
+   */
+  async email(eventId, token, { regIds, cumulative, sendToAttendee, emails }) {
+    const response = await fetch(`${getApiUrl()}/events/${eventId}/attendees/meetings/report/export/`, {
+      method: 'POST',
+      headers: { ...authHeaders(token), 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        reg_ids: regIds, cumulative: Boolean(cumulative), send_to_attendee: Boolean(sendToAttendee), emails,
+      }),
+    });
+    if (!response.ok) throw new Error(await readMeetingReportError(response));
+    return response.json().catch(() => ({}));
+  },
+
   async emailMultiple(eventId, token, { regIds, cumulative }) {
     const response = await fetch(`${getApiUrl()}/events/${eventId}/attendees/meetings/report/export/`, {
       method: 'POST',

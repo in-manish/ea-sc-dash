@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useAuth } from '../../../contexts/AuthContext';
 import { cardExportApi } from '../api/cardExportApi';
+import { DEFAULT_RECIPIENTS, myAddress, recipientFields, validateRecipients } from '../domain/reportRecipients';
 import {
     buildCardExportBody,
     eventDateWindow,
@@ -17,17 +19,25 @@ function initialForm(dateWindow) {
         formats: loadCardFormats(),
         start: dateWindow.min,
         end: dateWindow.max,
-        sendToAttendee: false,
-        emailsText: '',
+        ...DEFAULT_RECIPIENTS,
     };
+}
+
+/** What still blocks the action ('' = ready): formats / dates, then who gets the email. */
+function cardExportProblem(form, dateWindow, me) {
+    const fileProblem = validateCardExportForm({ ...form, dateWindow });
+    if (fileProblem) return fileProblem;
+    return form.mode === 'email' ? validateRecipients(form, me) : '';
 }
 
 /**
  * "Business cards" for the selection: download the cards each attendee exchanged (CSV / XLSX),
- * or email them to each attendee and/or custom addresses (default: your login email).
+ * or email them: each attendee their own cards, and/or you and other people everyone's.
  * Uses reg ids like the meeting report: selected rows, or every attendee ('*').
  */
 export default function useCardExport({ eventId, token, selection, event }) {
+    const { user } = useAuth();
+    const me = myAddress(user);
     const dateWindow = eventDateWindow(event);
     const [isOpen, setIsOpen] = useState(false);
     const [form, setForm] = useState(() => initialForm(dateWindow));
@@ -57,7 +67,7 @@ export default function useCardExport({ eventId, token, selection, event }) {
     };
 
     const run = async () => {
-        const problem = validateCardExportForm({ ...form, dateWindow });
+        const problem = cardExportProblem(form, dateWindow, me);
         if (problem) return setError(problem);
         if (!eventId || !token || !target.regIds.length) return;
         setBusy(true);
@@ -69,7 +79,8 @@ export default function useCardExport({ eventId, token, selection, event }) {
                 downloadBlob(blob, filename);
                 setResult({ downloaded: true, filename });
             } else {
-                setResult({ emailed: true, ...(await cardExportApi.email(eventId, token, body)) });
+                const emailBody = { ...body, ...recipientFields(form, me) };
+                setResult({ emailed: true, ...(await cardExportApi.email(eventId, token, emailBody)) });
             }
         } catch (err) {
             setError(err.message || 'Failed to export the business cards.');
@@ -78,17 +89,23 @@ export default function useCardExport({ eventId, token, selection, event }) {
         }
     };
 
-    /** Close and show this send on the Attendees "Card email log" tab (?tab=card-emails&send=<batch_id>). */
+    /** Close and show this send on the Attendees "Email log" tab, business cards (?tab=card-emails&send=<batch_id>). */
     const viewLog = () => {
         setIsOpen(false);
         setSearchParams((params) => {
             const next = new URLSearchParams(params);
             next.set('tab', 'card-emails');
             if (result?.batch_id) next.set('send', String(result.batch_id));
-            next.delete('status');
+            ['status', 'log_type', 'log_search'].forEach((key) => next.delete(key));
             return next;
         });
     };
 
-    return { isOpen, open, close, run, busy, error, result, form, update, toggleFormat, target, dateWindow, viewLog };
+    const selectedAttendees = selection.selectionMode === 'selected' ? selection.selectedAttendees || [] : null;
+    const problem = cardExportProblem(form, dateWindow, me);
+
+    return {
+        isOpen, open, close, run, busy, error, result, form, update, toggleFormat, target, dateWindow, viewLog,
+        me, selectedAttendees, problem,
+    };
 }

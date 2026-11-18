@@ -35,7 +35,7 @@ const AttendeesPage = () => {
             const next = new URLSearchParams(params);
             if (tab === 'list') next.delete('tab');
             else next.set('tab', tab);
-            if (tab !== 'card-emails') ['send', 'status', 'log_search'].forEach((key) => next.delete(key));
+            if (tab !== 'card-emails') ['send', 'status', 'log_search', 'log_type'].forEach((key) => next.delete(key));
             return next;
         }, { replace: true });
     };

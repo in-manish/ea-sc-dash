@@ -77,7 +77,7 @@ export default function CardEmailDeliveries({ deliveries, status, onStatus, sear
                         <thead className="text-left text-[11px] uppercase tracking-wide text-text-tertiary bg-bg-secondary">
                             <tr>
                                 <th className="px-3 py-2 font-semibold">Recipient</th>
-                                <th className="px-3 py-2 font-semibold">Cards of</th>
+                                <th className="px-3 py-2 font-semibold">Report of</th>
                                 <th className="px-3 py-2 font-semibold">Files</th>
                                 <th className="px-3 py-2 font-semibold">Status</th>
                                 <th className="px-3 py-2 font-semibold">Updated</th>
