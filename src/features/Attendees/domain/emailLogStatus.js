@@ -1,6 +1,21 @@
 /** Labels, colors and summaries for the email delivery log (EA common_services MessageBatch / MessageDelivery). */
 
 export const CARD_EXPORT_PURPOSE = 'attendee_card_export';
+export const MEETING_REPORT_PURPOSE = 'attendee_meeting_report';
+
+/** Email log types (URL ?log_type=) → EA MessageBatch purpose + labels. */
+export const LOG_TYPES = {
+  cards: { purpose: CARD_EXPORT_PURPOSE, label: 'Business cards', source: 'Business cards → Email' },
+  meetings: { purpose: MEETING_REPORT_PURPOSE, label: 'Meeting reports', source: 'Meeting report → Email' },
+};
+export const logTypeOf = (value) => (LOG_TYPES[value] ? value : 'cards');
+
+/** "CSV + XLSX" for card sends; "PDF · combined" / "PDF · zip" for meeting reports. */
+export function describeFiles(batch) {
+  const options = batch.options || {};
+  if (batch.purpose === MEETING_REPORT_PURPOSE) return `PDF · ${options.cumulative ? 'combined' : 'one per attendee'}`;
+  return (options.formats || []).join(' + ').toUpperCase() || '—';
+}
 
 /** Delivery status → chip text + Tailwind classes. Order = how filters are listed. */
 export const DELIVERY_STATUS = {

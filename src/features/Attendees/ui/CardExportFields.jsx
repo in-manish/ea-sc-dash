@@ -71,7 +71,10 @@ export const DateRangePicker = ({ form, update, dateWindow }) => (
     </Section>
 );
 
-export const RecipientFields = ({ form, update }) => (
+const CARD_RECIPIENT_HINT = "These addresses get every selected attendee's cards (one file per attendee, zipped).";
+
+/** `customHint` says what the custom addresses receive (default: the business cards wording). */
+export const RecipientFields = ({ form, update, customHint = CARD_RECIPIENT_HINT, ownLabel = 'cards' }) => (
     <Section title="Send to">
         <label className="flex items-start gap-2 text-sm text-text-primary cursor-pointer">
             <input
@@ -82,7 +85,7 @@ export const RecipientFields = ({ form, update }) => (
             />
             <span>
                 Each attendee
-                <span className="block text-text-secondary">Every attendee gets only their own cards.</span>
+                <span className="block text-text-secondary">Every attendee gets only their own {ownLabel}.</span>
             </span>
         </label>
         <textarea
@@ -92,7 +95,7 @@ export const RecipientFields = ({ form, update }) => (
             onChange={(e) => update({ emailsText: e.target.value })}
         />
         <p className="text-xs text-text-tertiary">
-            These addresses get every selected attendee's cards (one file per attendee, zipped). Up to {MAX_CUSTOM_EMAILS}.
+            {customHint} Up to {MAX_CUSTOM_EMAILS}.
             {!form.sendToAttendee && ' Leave empty to send to your login email.'}
         </p>
     </Section>

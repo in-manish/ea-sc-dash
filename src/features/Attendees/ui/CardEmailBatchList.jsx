@@ -1,6 +1,7 @@
 import { ChevronDown, ChevronRight, Loader2, Mail, Users } from 'lucide-react';
 import {
     BATCH_STATUS,
+    describeFiles,
     describeRange,
     formatLogTime,
     summarizeCounts,
@@ -35,12 +36,14 @@ const Recipients = ({ options = {} }) => (
 const Counts = ({ batch }) => {
     const { ok, failed, waiting } = summarizeCounts(batch.status_counts);
     const noCards = batch.counts?.no_cards || 0;
+    const noMeetings = batch.counts?.without_meetings || 0;
     return (
         <>
             <Chip meta={{ className: 'bg-green-100 text-green-800' }}>{ok} sent</Chip>
             {failed > 0 && <Chip meta={{ className: 'bg-red-100 text-red-800' }}>{failed} failed</Chip>}
             {waiting > 0 && <Chip meta={{ className: 'bg-amber-100 text-amber-800' }}>{waiting} waiting</Chip>}
             {noCards > 0 && <Chip title="Attendees with no cards in the date range get no email">{noCards} without cards</Chip>}
+            {noMeetings > 0 && <Chip title="Still sent: their report says they have no meetings">{noMeetings} with no meetings</Chip>}
         </>
     );
 };
@@ -64,8 +67,8 @@ const BatchCard = ({ batch, open, onToggle, children }) => {
                 <div className="grid gap-4 pl-6 sm:grid-cols-2 lg:grid-cols-[2fr_1.4fr_0.6fr_2fr]">
                     <Field label="Sent to"><Recipients options={batch.options} /></Field>
                     <Field label="Files">
-                        <Chip>{(batch.options?.formats || []).join(' + ').toUpperCase() || '—'}</Chip>
-                        <span className="text-text-secondary">{describeRange(batch.options)}</span>
+                        <Chip>{describeFiles(batch)}</Chip>
+                        {batch.options?.formats && <span className="text-text-secondary">{describeRange(batch.options)}</span>}
                     </Field>
                     <Field label="Attendees">
                         <Users size={14} className="text-text-tertiary" />{batch.attendee_count}
@@ -80,23 +83,23 @@ const BatchCard = ({ batch, open, onToggle, children }) => {
     );
 };
 
-const Empty = ({ search }) => (
+const Empty = ({ search, source }) => (
     <div className="flex flex-col items-center gap-2 text-sm text-text-secondary py-12 text-center">
         <Mail size={28} className="text-text-tertiary" />
         {search
-            ? <>No business card email matches <b className="text-text-primary">“{search}”</b>.</>
-            : <>No business card emails sent for this event yet.<br />Use <b>Business cards → Email</b> on the Attendee List.</>}
+            ? <>No email matches <b className="text-text-primary">“{search}”</b>.</>
+            : <>Nothing sent for this event yet.<br />Use <b>{source}</b> on the Attendee List.</>}
     </div>
 );
 
 /** Business card email sends (newest first). Click a send to open its emails right below it. */
-export default function CardEmailBatchList({ batches, selectedId, onOpen, search, renderDetails }) {
+export default function CardEmailBatchList({ batches, selectedId, onOpen, search, source, renderDetails }) {
     const { rows, loading, error, count, page, setPage, pageSize } = batches;
     if (loading && !rows.length) {
         return <div className="flex items-center gap-2 text-sm text-text-secondary py-10 justify-center"><Loader2 size={16} className="animate-spin" />Loading sends…</div>;
     }
     if (error) return <div className="text-sm text-red-700 p-4">{error}</div>;
-    if (!rows.length) return <Empty search={search} />;
+    if (!rows.length) return <Empty search={search} source={source} />;
     const pages = Math.max(1, Math.ceil(count / pageSize));
     return (
         <div className="flex flex-col gap-3">

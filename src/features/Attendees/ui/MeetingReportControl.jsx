@@ -20,7 +20,7 @@ export default function MeetingReportControl({ eventId, token, selection }) {
                         ? 'Meeting reports work on rows selected on this page, or all attendees without a search'
                         : count === 0
                           ? 'Selected attendees have no Reg ID'
-                          : 'Download the meeting report PDF'
+                          : 'Download or email the meeting report PDFs'
                 }
             >
                 <FileText size={16} />
