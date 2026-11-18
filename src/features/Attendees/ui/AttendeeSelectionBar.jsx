@@ -9,6 +9,7 @@ import ChangeExhibitorPocControl from './ChangeExhibitorPocControl';
 import ScInviteControl from './ScInviteControl';
 import AttendeeExportControl from './AttendeeExportControl';
 import MeetingReportControl from './MeetingReportControl';
+import CardExportControl from './CardExportControl';
 import AttendeeSelectionSummary from './AttendeeSelectionSummary';
 import AttendeeSelectionMoreMenu from './AttendeeSelectionMoreMenu';
 
@@ -86,6 +87,13 @@ const AttendeeSelectionBar = ({
                     )}
                     {hasSession && (
                         <MeetingReportControl
+                            eventId={eventId}
+                            token={token}
+                            selection={{ selectionMode, selectedAttendees, total }}
+                        />
+                    )}
+                    {hasSession && (
+                        <CardExportControl
                             eventId={eventId}
                             token={token}
                             selection={{ selectionMode, selectedAttendees, total }}

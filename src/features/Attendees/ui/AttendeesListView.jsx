@@ -10,6 +10,7 @@ import AttendeesReportPanel from './AttendeesReportPanel';
 import AttendeeEmailDraftsModal from './AttendeeEmailDraftsModal';
 import ActiveBadgeToolbar from './ActiveBadgeToolbar';
 import ActiveBadgeResultModal from './ActiveBadgeResultModal';
+import ActiveBadgeTransferModal from './ActiveBadgeTransferModal';
 import DeleteAttendeesModal from './DeleteAttendeesModal';
 
 const AttendeesListView = ({
@@ -89,8 +90,10 @@ const AttendeesListView = ({
             <ActiveBadgeToolbar
                 checking={activeBadge.checking}
                 creating={activeBadge.creating}
+                canTransfer={activeBadge.canTransfer}
                 onPreviewAll={activeBadge.previewAllEligible}
                 onCreateAll={activeBadge.createAllEligible}
+                onTransfer={activeBadge.openTransferModal}
             />
         )}
 
@@ -156,6 +159,9 @@ const AttendeesListView = ({
             onSyncSc={scSync.handleSyncWithSC}
             onMatchmaking={list.setMatchmakingAttendee}
             onCreateEBadge={eBadge.handleCreateEBadge}
+            checkedActiveBadges={activeBadge.tableCheckedActiveBadges}
+            checkingActiveBadgeUuid={activeBadge.tableCheckingUuid}
+            onCheckActiveBadge={activeBadge.checkActiveBadgeInTable}
         />
 
         <ListPagination
@@ -196,6 +202,22 @@ const AttendeesListView = ({
             creating={activeBadge.creating}
             onCreateFromPreview={activeBadge.createFromPreview}
             onClose={activeBadge.closeResult}
+        />
+
+        <ActiveBadgeTransferModal
+            isOpen={activeBadge.transferModalOpen}
+            sourceAttendee={activeBadge.transferSourceAttendee}
+            sourceActiveBadge={activeBadge.sourceActiveBadge}
+            transferring={activeBadge.transferring}
+            searching={activeBadge.searching}
+            checkingActiveBadge={activeBadge.checkingActiveBadge}
+            searchResults={activeBadge.searchResults}
+            checkedActiveBadges={activeBadge.checkedActiveBadges}
+            result={activeBadge.transferResult}
+            onSearch={activeBadge.searchForTarget}
+            onTransfer={activeBadge.runTransfer}
+            onCheckActiveBadge={activeBadge.checkActiveBadgeForUuid}
+            onClose={activeBadge.closeTransferModal}
         />
 
         <DeleteAttendeesModal

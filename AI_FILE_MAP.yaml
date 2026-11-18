@@ -194,6 +194,26 @@ tasks:
       - src/features/Attendees/ui/MeetingReportControl.jsx
       - src/features/Attendees/ui/MeetingReportModal.jsx
       - src/features/Attendees/ui/AttendeeSelectionBar.jsx
+  attendee_card_export:
+    files:
+      - src/features/Attendees/api/cardExportApi.js
+      - src/features/Attendees/domain/cardExportRequest.js
+      - src/features/Attendees/hooks/useCardExport.js
+      - src/features/Attendees/ui/CardExportControl.jsx
+      - src/features/Attendees/ui/CardExportModal.jsx
+      - src/features/Attendees/ui/CardExportFields.jsx
+      - src/features/Attendees/ui/AttendeeSelectionBar.jsx
+  attendee_card_email_log:
+    files:
+      - src/features/Attendees/api/emailLogApi.js
+      - src/features/Attendees/domain/emailLogStatus.js
+      - src/features/Attendees/hooks/useCardEmailLog.js
+      - src/features/Attendees/ui/CardEmailLogPanel.jsx
+      - src/features/Attendees/ui/CardEmailBatchList.jsx
+      - src/features/Attendees/ui/CardEmailDeliveries.jsx
+      - src/features/Attendees/ui/CardEmailLogSearch.jsx
+      - src/features/Attendees/ui/AttendeesTabs.jsx
+      - src/features/Attendees/ui/AttendeesPage.jsx
   attendee_sc_invite:
     files:
       - src/features/Attendees/api/scInviteApi.js
