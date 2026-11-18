@@ -14,7 +14,8 @@ import useEBadgeJobs from '../hooks/useEBadgeJobs';
 import useAttendeeTypes from '../hooks/useAttendeeTypes';
 import AttendeesPageHeader from './AttendeesPageHeader';
 import AttendeeExportControl from './AttendeeExportControl';
-import AttendeesTabs from './AttendeesTabs';
+import AttendeesTabs, { ATTENDEE_TABS } from './AttendeesTabs';
+import CardEmailLogPanel from './CardEmailLogPanel';
 import AttendeesListView from './AttendeesListView';
 import EBadgeTasksPanel from './EBadgeTasksPanel';
 import AttendeesModals from './AttendeesModals';
@@ -26,8 +27,18 @@ const AttendeesPage = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const [page, setPage] = useState(parseInt(searchParams.get('page')) || 1);
-    const [activeTab, setActiveTab] = useState('list');
+    const urlTab = searchParams.get('tab');
+    const activeTab = ATTENDEE_TABS.includes(urlTab) ? urlTab : 'list'; // tab lives in the URL (?tab=)
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+    const changeTab = (tab) => {
+        setSearchParams((params) => {
+            const next = new URLSearchParams(params);
+            if (tab === 'list') next.delete('tab');
+            else next.set('tab', tab);
+            if (tab !== 'card-emails') ['send', 'status', 'log_search'].forEach((key) => next.delete(key));
+            return next;
+        }, { replace: true });
+    };
     const clearSelectionRef = useRef(() => {});
     const getSelectionRef = useRef(() => ({
         selectionMode: 'none',
@@ -92,7 +103,7 @@ const AttendeesPage = () => {
         filters: filtersApi.filters,
         total: list.total,
         clearSelection,
-        setActiveTab,
+        setActiveTab: changeTab,
     });
 
     const selection = useAttendeeSelection({
@@ -178,7 +189,7 @@ const AttendeesPage = () => {
                     />
                 }
             />
-            <AttendeesTabs activeTab={activeTab} onTabChange={setActiveTab} />
+            <AttendeesTabs activeTab={activeTab} onTabChange={changeTab} />
 
             {activeTab === 'list' && (
                 <AttendeesListView
@@ -197,6 +208,15 @@ const AttendeesPage = () => {
                     hasActiveSearchOrFilters={hasActiveSearchOrFilters}
                     attendeeTypes={attendeeTypes}
                     attendeeTypesLoading={attendeeTypesLoading}
+                />
+            )}
+
+            {activeTab === 'card-emails' && (
+                <CardEmailLogPanel
+                    eventId={selectedEvent?.id}
+                    token={token}
+                    searchParams={searchParams}
+                    setSearchParams={setSearchParams}
                 />
             )}
 
