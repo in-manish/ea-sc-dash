@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useAuth } from '../../../contexts/AuthContext';
 import { meetingReportApi } from '../api/meetingReportApi';
-import { MAX_CUSTOM_EMAILS, parseEmailList } from '../domain/cardExportRequest';
+import { DEFAULT_RECIPIENTS, myAddress, recipientFields, validateRecipients } from '../domain/reportRecipients';
 import { downloadBlob } from '../../../utils/downloadBlob';
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const MAX_DOWNLOAD_ATTENDEES = 50; // same limit as EA; bigger selections go by email
 
 /**
@@ -23,21 +22,15 @@ export function meetingReportTarget({ selectionMode, selectedAttendees = [], tot
 const initialForm = (count) => ({
     mode: count > MAX_DOWNLOAD_ATTENDEES ? 'email' : 'download',
     cumulative: true,
-    sendToAttendee: false,
-    emailsText: '',
+    ...DEFAULT_RECIPIENTS,
 });
 
-function validate(form, count) {
+/** What still blocks the action ('' = ready). Shown in the dialog before clicking. */
+export function meetingReportProblem(form, count, me) {
     if (form.mode === 'download' && count > MAX_DOWNLOAD_ATTENDEES) {
-        return `Download works for up to ${MAX_DOWNLOAD_ATTENDEES} attendees. Use Email for ${count}.`;
+        return `Download works for up to ${MAX_DOWNLOAD_ATTENDEES} attendees at a time. Choose "Send by email" for these ${count}.`;
     }
-    if (form.mode === 'email') {
-        const emails = parseEmailList(form.emailsText);
-        const bad = emails.find((email) => !EMAIL_RE.test(email));
-        if (bad) return `Not a valid email: ${bad}`;
-        if (emails.length > MAX_CUSTOM_EMAILS) return `Add at most ${MAX_CUSTOM_EMAILS} email addresses.`;
-    }
-    return '';
+    return form.mode === 'email' ? validateRecipients(form, me) : '';
 }
 
 /**
@@ -46,6 +39,8 @@ function validate(form, count) {
  * Includes confirmed meetings, agenda and pending requests; attendees with no meetings get a PDF saying so.
  */
 export default function useMeetingReport({ eventId, token, selection }) {
+    const { user } = useAuth();
+    const me = myAddress(user);
     const [, setSearchParams] = useSearchParams();
     const [isOpen, setIsOpen] = useState(false);
     const target = meetingReportTarget(selection);
@@ -76,15 +71,16 @@ export default function useMeetingReport({ eventId, token, selection }) {
     };
 
     const email = async () => {
-        const emails = parseEmailList(form.emailsText);
+        const fields = recipientFields(form, me);
         const data = await meetingReportApi.email(eventId, token, {
-            regIds: target.regIds, cumulative: form.cumulative, sendToAttendee: form.sendToAttendee, emails,
+            regIds: target.regIds, cumulative: form.cumulative,
+            sendToAttendee: fields.send_to_attendee, emails: fields.emails || [],
         });
         setResult({ emailed: true, ...data });
     };
 
     const run = async () => {
-        const problem = validate(form, target.count);
+        const problem = meetingReportProblem(form, target.count, me);
         if (problem) return setError(problem);
         if (!eventId || !token || !target.regIds.length) return;
         setBusy(true);
@@ -111,5 +107,11 @@ export default function useMeetingReport({ eventId, token, selection }) {
         });
     };
 
-    return { isOpen, open, close, run, busy, error, result, form, update, target, isSingle, viewLog };
+    const selectedAttendees = selection.selectionMode === 'selected' ? selection.selectedAttendees || [] : null;
+    const problem = meetingReportProblem(form, target.count, me);
+
+    return {
+        isOpen, open, close, run, busy, error, result, form, update, target, isSingle, viewLog, me, selectedAttendees,
+        problem,
+    };
 }
