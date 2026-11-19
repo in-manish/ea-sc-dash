@@ -42,9 +42,21 @@ export async function downloadCompanyExport(eventId, token) {
   return { blob, filename };
 }
 
-/** GET /events/:id/invitee-report/?send_to_emails=a,b — email only; queued in the background. */
-export function emailInviteeReport(eventId, token, { emails }) {
+/**
+ * GET /events/:id/invitee-report/?list_columns=true → { columns: [{ key, label, group, description }], default_columns }.
+ * One `invites_<form>` column per invite form set up on the event. No email is sent.
+ */
+export function getInviteeReportColumns(eventId, token) {
+  return getJson(`${getApiUrl()}/events/${eventId}/invitee-report/?list_columns=true`, token);
+}
+
+/**
+ * GET /events/:id/invitee-report/?send_to_emails=a,b[&columns=k1,k2] — email only; queued.
+ * `columns` = ticked column keys (EA outputs them in its own fixed order); omit → every column.
+ */
+export function emailInviteeReport(eventId, token, { emails, columns }) {
   const params = new URLSearchParams({ send_to_emails: joinSendToEmails(emails) });
+  if (Array.isArray(columns)) params.set('columns', columns.join(','));
   return getJson(`${getApiUrl()}/events/${eventId}/invitee-report/?${params}`, token);
 }
 
@@ -64,6 +76,7 @@ export function emailOrdersReport(eventId, token, { emails, statuses }) {
 
 export const companyReportsApi = {
   downloadCompanyExport,
+  getInviteeReportColumns,
   emailInviteeReport,
   emailOrdersReport,
 };

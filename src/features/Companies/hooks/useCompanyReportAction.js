@@ -1,5 +1,6 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { saveExhibitorReportBlob } from '../domain/exhibitorReportDownload';
+import { companyReportsApi } from '../api/companyReportsApi';
 
 const EMAIL_SUCCESS = 'Report will be emailed shortly';
 
@@ -56,5 +57,76 @@ export function useCompanyReportAction({ onUnauthorized }) {
     success,
     download,
     email,
+  };
+}
+
+const untickedKey = (eventId) => `invitee_report_unticked:${eventId}`;
+
+function loadUnticked(eventId) {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(untickedKey(eventId)) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveUnticked(eventId, keys) {
+  try {
+    localStorage.setItem(untickedKey(eventId), JSON.stringify(keys));
+  } catch {
+    /* storage blocked: the choice just isn't remembered */
+  }
+}
+
+/**
+ * Invitee report column checkboxes. Loads ?list_columns=true when `enabled`; every column starts ticked.
+ * The browser remembers the *unticked* keys per event, so columns added later (new invite forms) start ticked.
+ * If the server can't list columns (older EA), `supported` is false and the report is sent without `columns`.
+ */
+export function useInviteeReportColumns({ eventId, token, enabled, onUnauthorized }) {
+  const [columns, setColumns] = useState([]);
+  const [unticked, setUnticked] = useState(() => loadUnticked(eventId));
+  const [loadedFor, setLoadedFor] = useState(null);
+  const [supported, setSupported] = useState(true);
+
+  useEffect(() => {
+    if (!enabled || !eventId || !token) return undefined;
+    let cancelled = false;
+    companyReportsApi
+      .getInviteeReportColumns(eventId, token)
+      .then((data) => {
+        if (cancelled) return;
+        const list = Array.isArray(data?.columns) ? data.columns : [];
+        setColumns(list);
+        setSupported(list.length > 0);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        if (err.status === 401) onUnauthorized?.();
+        setSupported(false);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadedFor(eventId);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [enabled, eventId, token, onUnauthorized]);
+
+  const update = (keys) => {
+    setUnticked(keys);
+    saveUnticked(eventId, keys);
+  };
+  const selected = columns.map((c) => c.key).filter((key) => !unticked.includes(key));
+
+  return {
+    columns,
+    selected,
+    supported,
+    loading: Boolean(enabled && eventId && token) && loadedFor !== eventId,
+    toggle: (key) => update(unticked.includes(key) ? unticked.filter((k) => k !== key) : [...unticked, key]),
+    selectAll: () => update([]),
+    clear: () => update(columns.map((c) => c.key)),
   };
 }

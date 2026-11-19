@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Download, Loader2, X } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
-import { useCompanyReportAction } from '../hooks/useCompanyReportAction';
+import { useCompanyReportAction, useInviteeReportColumns } from '../hooks/useCompanyReportAction';
 import { loadPersistedEmails, persistEmails } from '../domain/exhibitorReportQuery';
 import { companyReportsApi } from '../api/companyReportsApi';
 import { EmailPane, FeedbackMessages } from './ExhibitorReportModalPanes';
 import { DEFAULT_ORDER_STATUSES } from '../domain/orderStatusOptions';
-import OrderStatusPicker from './OrderStatusPicker';
+import OrderStatusPicker, { InviteeColumnPicker } from './OrderStatusPicker';
 
 /**
  * Run dialog for the reports wired in the Companies → Reports tab:
@@ -30,6 +30,9 @@ export default function CompanyQuickReportModal({ report, eventId, token, onClos
 
   const isExport = report.id === 'company_export';
   const isOrders = report.id === 'ar_orders';
+  const isInvitee = report.id === 'invitee_report';
+  const picker = useInviteeReportColumns({ eventId, token, enabled: isInvitee, onUnauthorized: logout });
+  const noColumns = isInvitee && picker.supported && (picker.loading || picker.selected.length === 0);
 
   const handleDownload = () =>
     action.download(() => companyReportsApi.downloadCompanyExport(eventId, token));
@@ -37,7 +40,10 @@ export default function CompanyQuickReportModal({ report, eventId, token, onClos
   const handleSend = () =>
     action.email(() => (isOrders
       ? companyReportsApi.emailOrdersReport(eventId, token, { emails, statuses })
-      : companyReportsApi.emailInviteeReport(eventId, token, { emails })));
+      : companyReportsApi.emailInviteeReport(eventId, token, {
+        emails,
+        columns: picker.supported ? picker.selected : undefined,
+      })));
 
   return (
     <div
@@ -49,7 +55,7 @@ export default function CompanyQuickReportModal({ report, eventId, token, onClos
         role="dialog"
         aria-modal="true"
         aria-labelledby="quick-report-title"
-        className="bg-bg-primary border border-border rounded-lg shadow-xl w-full max-w-lg overflow-hidden animate-fade-in"
+        className="bg-bg-primary border border-border rounded-lg shadow-xl w-full max-w-xl overflow-hidden animate-fade-in"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-4 border-b border-border flex justify-between items-center">
@@ -67,12 +73,14 @@ export default function CompanyQuickReportModal({ report, eventId, token, onClos
           </button>
         </div>
 
-        <div className="px-5 py-4 space-y-4">
+        <div className="px-5 py-4 space-y-4 max-h-[70vh] overflow-y-auto">
           <p className="text-sm text-text-secondary m-0">{report.summary}</p>
 
           {isOrders && (
             <OrderStatusPicker value={statuses} onChange={setStatuses} disabled={action.busy} />
           )}
+
+          {isInvitee && <InviteeColumnPicker picker={picker} disabled={action.busy} />}
 
           {isExport ? (
             <button
@@ -88,7 +96,7 @@ export default function CompanyQuickReportModal({ report, eventId, token, onClos
             <EmailPane
               emails={emails}
               setEmails={setEmails}
-              busy={action.busy || (isOrders && statuses.length === 0)}
+              busy={action.busy || (isOrders && statuses.length === 0) || noColumns}
               sending={action.sending}
               hasSelected={false}
               onSend={handleSend}

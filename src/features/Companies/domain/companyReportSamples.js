@@ -46,10 +46,14 @@ export const COMPANY_REPORT_SAMPLES = {
     ],
   },
   invitee_report: {
-    columns: ['Company ID', 'Company Name', 'POC Added', 'POC Logged In', 'POC First Login', 'Team Members Count', 'Invitee Count'],
+    columns: [
+      'Company ID', 'Company Name', 'POC Added', 'POC Logged In', 'POC First Login', 'Team Members Count',
+      'Invitee Count', 'Hosted Buyer Invites', 'Total Invites', 'Parent Exhibitor ID',
+    ],
     rows: [
-      ['10122', 'Bluewave Holidays', 'true', 'true', '12/10/26 14:05', '6', '40'],
-      ['10187', 'Sunpath Tours', 'true', 'false', '', '3', '0'],
+      ['10122', 'Bluewave Holidays', 'true', 'true', '14:05-12/10/2026', '6', '40', '12', '52', ''],
+      ['10187', 'Sunpath Tours', 'true', 'false', '', '3', '0', '0', '0', ''],
+      ['10203', 'Coral Stays', 'true', 'true', '09:40-15/10/2026', '1', '5', '0', '5', '10122'],
     ],
   },
   ar_orders: {

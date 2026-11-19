@@ -227,7 +227,14 @@ Organizer company create/edit/detail helpers for the EA dashboard.
   `engagement_csv`, `invitee_report`, `ar_orders`. `CompanyReportRunner` opens the existing modal for the first, second and
   fourth; `CompanyQuickReportModal` handles the rest.
 - `GET /events/:id/company/export/` — CSV of every company (parents + co-exhibitors); filename from Content-Disposition.
-- `GET /events/:id/invitee-report/?send_to_emails=` — email only (400 without emails); JSON message, queued.
+- `GET /events/:id/invitee-report/?list_columns=true` → `{ columns: [{ key, label, group, description }], default_columns }`
+  (no email). `useInviteeReportColumns` (in `hooks/useCompanyReportAction.js`) loads it; every column starts ticked and the
+  browser remembers the **unticked** keys per event (`localStorage` `invitee_report_unticked:<eventId>`), so new invite
+  forms start ticked. `InviteeColumnPicker` (in `ui/OrderStatusPicker.jsx`) shows them grouped.
+- `GET /events/:id/invitee-report/?send_to_emails=&columns=k1,k2` — email only (400 without emails or with unknown /
+  empty columns); JSON message, queued. EA outputs ticked columns in its own fixed order. If `list_columns` isn't
+  supported (older EA) the report is sent without `columns` (every column). `Invitee Count` = Trade Visitor; other form
+  counts live on the parent exhibitor, so co-exhibitor rows show 0 there.
 - `GET /admin/events/:id/additional-requirements/orders/report/?status=&send_to_emails=` — always send emails: without them
   EA mails the signed-in user. Status chips default to paid + pay_later.
 
