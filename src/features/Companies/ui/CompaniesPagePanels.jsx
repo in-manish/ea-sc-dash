@@ -6,6 +6,7 @@ import ProductMatchmakingPanel from './ProductMatchmakingPanel';
 import ChecklistReminderTab from './ChecklistReminderTab';
 import ExhibitorsListPanel from './ExhibitorsListPanel';
 import ExhibitorEngagementTab from './ExhibitorEngagementTab';
+import CompanyReportsTab from './CompanyReportsTab';
 
 export default function CompaniesPagePanels({
   activeTab,
@@ -89,6 +90,8 @@ export default function CompaniesPagePanels({
       {activeTab === 'exhibitor_engagement' && eventId && (
         <ExhibitorEngagementTab eventId={eventId} token={token} />
       )}
+
+      {activeTab === 'reports' && <CompanyReportsTab eventId={eventId} token={token} />}
     </>
   );
 }

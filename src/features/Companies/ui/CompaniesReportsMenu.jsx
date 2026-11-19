@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { ChevronDown, FileSpreadsheet, BarChart3 } from 'lucide-react';
+import { ChevronDown, FileSpreadsheet, BarChart3, LayoutList } from 'lucide-react';
 import { useAuth } from '../../../contexts/AuthContext';
 import ExhibitorReportModal from './ExhibitorReportModal';
 import CompanyReportModal from './CompanyReportModal';
@@ -98,7 +98,7 @@ export default function CompaniesReportsMenu({
           >
             <BarChart3 size={14} className="mt-0.5 shrink-0 text-text-secondary" />
             <span>
-              <span className="block font-medium">Company Report</span>
+              <span className="block font-medium">Exhibitor totals</span>
               <span className="block mt-0.5 text-[11px] text-text-tertiary">
                 Totals, handover, water coupons, print badges
               </span>
@@ -112,11 +112,27 @@ export default function CompaniesReportsMenu({
           >
             <FileSpreadsheet size={14} className="mt-0.5 shrink-0 text-text-secondary" />
             <span>
-              <span className="block font-medium">Email / download CSV</span>
+              <span className="block font-medium">Exhibitor setup &amp; badge usage CSV</span>
               <span className="block mt-0.5 text-[11px] text-text-tertiary">
                 Parent exhibitor spreadsheet
               </span>
             </span>
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            className="w-full flex items-start gap-2.5 px-3 py-2 mt-1 text-left text-sm rounded-md hover:bg-bg-secondary text-accent border-t border-border"
+            onClick={() => {
+              setMenuOpen(false);
+              updateParams((p) => {
+                p.set('tab', 'reports');
+                p.delete('exh_view');
+                p.delete('cr_view');
+              });
+            }}
+          >
+            <LayoutList size={14} className="mt-0.5 shrink-0" />
+            <span className="block font-medium">All company reports</span>
           </button>
         </div>
       )}

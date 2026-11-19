@@ -23,7 +23,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 |---------|------|-------|
 | Agenda | `src/features/Agenda/` | List + flat edit for speakers/moderators |
 | Attendees | `src/features/Attendees/` | List, create, edit badge, WhatsApp, email drafts, e-badge, report, bulk CSV upload + dry-run validator, event upload history (Attendees tab) |
-| Companies | `src/features/Companies/` | EA list (sort) + create/edit/detail + portal checklist + reminder tab + exhibitor CSV report + engagement funnel + engagement report CSV + company CSV upload history (Uploads page Companies tab) |
+| Companies | `src/features/Companies/` | EA list (sort) + create/edit/detail + portal checklist + reminder tab + exhibitor CSV report + engagement funnel + engagement report CSV + company CSV upload history (Uploads page Companies tab) + Reports tab (catalog of all company reports) |
 | ManageUsers | `src/features/ManageUsers/` | Staff users / permissions |
 | ScManageUsers | `src/features/ScManageUsers/` | SC admin users + saved cards |
 | ScAuth / Profile | `src/features/ScAuth/`, `src/features/ScProfile/` | SC ADMIN login gate + profile |
@@ -75,6 +75,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | Edit EA company | `src/features/Companies/ui/EditCompanyPage.jsx` + `domain/buildCompanyPatchFormData.js` (`sponsor_rank`; list rows with a positive rank are yellow) |
 | Company Detail + Setup Progress | `src/features/Companies/ui/CompanyDetailsPage.jsx` + `SetupProgressSection.jsx` |
 | Exhibitor overview / checklist | `api/companyApi.js` (`getExhibitorOverview`) + `hooks/useExhibitorOverview.js` |
+| Company Reports tab (all company reports + samples) | `src/features/Companies/ui/CompanyReportsTab.jsx` + `domain/companyReportCatalog.js` (+ `companyReportSamples.js`) + `api/companyReportsApi.js` (company export, invitee, AR orders) |
 | Checklist Reminder tab | `src/features/Companies/ui/ChecklistReminderTab.jsx` + `api/checklistReminderApi.js` |
 | Checklist remind + progress poll | `hooks/useSetupChecklistRemind.js` + `ui/RemindSendProgress.jsx` |
 | Reset exhibitor POC password | `src/features/Companies/ui/ExhibitorPasswordResetControl.jsx` + attendee bar: `ui/AttendeeSelectionBar.jsx` (single POC) |

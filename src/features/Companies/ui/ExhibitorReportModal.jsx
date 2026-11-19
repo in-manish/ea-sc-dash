@@ -69,7 +69,7 @@ export default function ExhibitorReportModal({
       >
         <div className="px-5 py-4 border-b border-border flex justify-between items-center">
           <h3 id="exh-report-title" className="text-base font-semibold text-text-primary m-0">
-            Exhibitor Report
+            Exhibitor Setup & Badge Usage
           </h3>
           <button
             type="button"

@@ -111,7 +111,7 @@ function ModalHeader({ busy, onClose }) {
         </span>
         <div>
           <h3 id="eng-report-title" className="text-base font-semibold text-text-primary m-0">
-            Engagement Report
+            Exhibitor Portal Activity & Matchmaking Completion
           </h3>
           <p className="m-0 mt-0.5 text-xs text-text-tertiary">
             Download or email CSV for all exhibitors on this event.

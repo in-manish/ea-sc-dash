@@ -53,6 +53,9 @@ export default function CompaniesPageTabs({
         >
           Exhibitor Engagement
         </button>
+        <button type="button" className={tabClass(activeTab === 'reports')} onClick={() => onTabChange('reports')}>
+          Reports
+        </button>
       </div>
 
       {activeTab === 'exhibitors' && (

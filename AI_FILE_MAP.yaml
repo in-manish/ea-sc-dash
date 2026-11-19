@@ -705,6 +705,27 @@ tasks:
       Selected lock/unlock and feature/rank are disabled if any co-exhibitor is selected.
       Multiple or all lock/unlock requires typing lock/unlock (AWS confirm);
       single parent is a click confirm.
+  company_reports_tab:
+    files:
+      - src/features/Companies/ui/CompanyReportsTab.jsx
+      - src/features/Companies/ui/CompanyReportList.jsx
+      - src/features/Companies/ui/CompanyReportDetail.jsx
+      - src/features/Companies/ui/CompanyReportSampleTable.jsx
+      - src/features/Companies/ui/CompanyReportBadges.jsx
+      - src/features/Companies/ui/CompanyReportRunner.jsx
+      - src/features/Companies/ui/CompanyQuickReportModal.jsx
+      - src/features/Companies/ui/OrderStatusPicker.jsx
+      - src/features/Companies/domain/companyReportCatalog.js
+      - src/features/Companies/domain/companyReportSamples.js
+      - src/features/Companies/domain/orderStatusOptions.js
+      - src/features/Companies/api/companyReportsApi.js
+      - src/features/Companies/hooks/useCompanyReportAction.js
+    routes:
+      - /event/:id/companies?tab=reports&report_id=<id>[&run=1]
+    notes: >
+      Catalog of every company report (summary, row unit, delivery, made-up sample rows).
+      Add a report = one entry in companyReportCatalog.js + companyReportSamples.js + a case in
+      CompanyReportRunner. company/export and invitee-report are only wired here.
   exhibitor_csv_report:
     files:
       - src/features/Companies/api/exhibitorReportApi.js

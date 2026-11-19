@@ -50,6 +50,10 @@ export default function CompaniesPage() {
         params.delete('exh_view');
         params.delete('cr_view');
       }
+      if (tabName !== 'reports') {
+        params.delete('report_id');
+        params.delete('run');
+      }
     });
   };
 

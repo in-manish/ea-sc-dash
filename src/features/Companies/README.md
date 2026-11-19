@@ -31,7 +31,13 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 | `ui/ExhibitorEngagementReportModal.jsx` | Email / download CSV + completion filter + questions + login-info toggles |
 | `ui/ExhibitorEngagementReportPanes.jsx` | Always-included summary, questions/login toggles (On/Off), completion filter, download pane |
 | `ui/DownloadExhibitorReportButton.jsx` | Standalone CSV report button + modal |
-| `ui/CompaniesReportsMenu.jsx` | Header Reports: Company Report metrics + email/download CSV |
+| `ui/CompaniesReportsMenu.jsx` | Header Reports: Company Report metrics + email/download CSV + link to the Reports tab |
+| `ui/CompanyReportsTab.jsx` | Reports tab: summary strip, list + detail, URL `report_id` / `run` |
+| `ui/CompanyReportList.jsx` / `CompanyReportDetail.jsx` / `CompanyReportSampleTable.jsx` / `CompanyReportBadges.jsx` | Catalog list, detail facts, sample table, delivery chips |
+| `ui/CompanyReportRunner.jsx` | Opens the right dialog per report id |
+| `ui/CompanyQuickReportModal.jsx` + `OrderStatusPicker.jsx` | Company export download; invitee / AR orders email (+ status chips) |
+| `domain/companyReportCatalog.js` + `companyReportSamples.js` + `orderStatusOptions.js` | Report definitions, sample rows, AR statuses |
+| `api/companyReportsApi.js` + `hooks/useCompanyReportAction.js` | Company export / invitee / AR orders calls; busy, success, error, 401 logout |
 | `ui/CompanyReportModal.jsx` | Modal shell for company totals / handover / coupons / badges (title is the only heading) |
 | `src/components/companies/CompanyComprehensiveReportPanel.jsx` | Report body: parent ID filter + metrics fetch |
 | `src/components/companies/CompanyReportMetricRow.jsx` | Metric row copy (`396 coupons`, progress caption) |
@@ -212,12 +218,25 @@ Organizer company create/edit/detail helpers for the EA dashboard.
 - Completed is Yes only when every portal question is answered; no portal questions → every row No
 - Reuses exhibitor-report email chips + blob save helpers
 
+## Reports tab (`?tab=reports`)
+
+- Last Companies tab (sidebar Companies → Reports). Lists every company report grouped by category with a summary,
+  "use it when", row unit, scope, delivery chips and **made-up sample rows** (`domain/companyReportSamples.js`, never event data).
+- URL: `report_id=<id>` selects a report, `run=1` opens its dialog (both survive refresh; cleared when leaving the tab).
+- Catalog (`domain/companyReportCatalog.js`): `company_metrics` (on screen), `exhibitor_csv`, `company_export`,
+  `engagement_csv`, `invitee_report`, `ar_orders`. `CompanyReportRunner` opens the existing modal for the first, second and
+  fourth; `CompanyQuickReportModal` handles the rest.
+- `GET /events/:id/company/export/` — CSV of every company (parents + co-exhibitors); filename from Content-Disposition.
+- `GET /events/:id/invitee-report/?send_to_emails=` — email only (400 without emails); JSON message, queued.
+- `GET /admin/events/:id/additional-requirements/orders/report/?status=&send_to_emails=` — always send emails: without them
+  EA mails the signed-in user. Status chips default to paid + pay_later.
+
 ## Exhibitor CSV report
 
 - `GET /events/:id/exhibitor/report/` — **parent exhibitors only** (co-exhibitors are counts on the parent row)
 - Download: no `send_to_emails`; optional `company_ids` (comma-separated); `Accept: text/csv`; save `Event-{eventId}-ExhibitorReport.csv`
 - Email: `send_to_emails` (required, not `emails` / `sent_to_emails`) + optional `company_ids`; `Accept: application/json`; toast “Report will be emailed shortly”
-- Header **Reports** opens a menu: **Company Report** (totals, handover, water coupons, print badges) and **Email / download CSV**
+- Header **Reports** opens a menu: **Exhibitor totals** (handover, water coupons, print badges), **Exhibitor setup & badge usage CSV** and a link to the Reports tab
 - If table rows are selected, modal shows "Download/Email selected" alongside "Download/Email all"
 - Selection is lifted to CompaniesPage so header + list both have access
 - 400 → payload message; 401 login; 403 organizer; 404 event not found; 500 retry

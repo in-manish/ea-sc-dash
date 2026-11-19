@@ -35,6 +35,7 @@ export const EVENT_MAIN_NAV = [
       },
       { title: 'Additional Requirements', tab: 'additional_requirements' },
       { title: 'Exhibitor Engagement', tab: 'exhibitor_engagement' },
+      { title: 'Reports', tab: 'reports' },
     ],
   },
   {

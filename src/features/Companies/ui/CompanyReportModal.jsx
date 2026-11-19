@@ -43,7 +43,7 @@ export default function CompanyReportModal({
       >
         <div className="px-5 py-4 border-b border-border flex justify-between items-center sticky top-0 bg-bg-primary z-10">
           <h3 id="company-report-title" className="text-base font-semibold text-text-primary m-0">
-            Company Report
+            Exhibitor Totals: Handover, Water Coupons & Printed Badges
           </h3>
           <div className="flex items-center gap-1">
           <button
