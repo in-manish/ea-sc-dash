@@ -3,6 +3,7 @@ import FormSelect from '../../../components/common/FormSelect';
 import StandardOptionsSection from './StandardOptionsSection';
 import GroupedOptionsSection from './GroupedOptionsSection';
 import QuestionTitleFields from './QuestionTitleFields';
+import { removeOptionItem } from '../domain/removeOptionItem';
 import { ATTENDEE_QUESTION_TYPE_OPTIONS, EXHIBITOR_QUESTION_TYPE_OPTIONS, questionTypesMatch } from '../constants/questionTypes';
 
 const FIELD_TYPE_OPTIONS = [
@@ -88,16 +89,16 @@ const MatchmakingQuestionFormFields = ({ formData, setFormData, attendeeTypes, e
                 <h3 className="text-xs uppercase tracking-wider text-text-tertiary font-bold border-b border-border/60 pb-2">3. Available Options</h3>
                 <div className="bg-white p-8 rounded-xl border border-border/50">
                     {['radio', 'array'].includes(formData.type) && (
-                        <StandardOptionsSection options={formData.options} onAdd={() => setFormData((p) => ({ ...p, options: [...p.options, { name: '' }] }))} onRemove={(i) => setFormData((p) => ({ ...p, options: p.options.filter((_, idx) => idx !== i) }))} onUpdate={editOpt} />
+                        <StandardOptionsSection options={formData.options} onAdd={() => setFormData((p) => ({ ...p, options: [...p.options, { name: '' }] }))} onRemove={(i) => setFormData((p) => ({ ...p, options: removeOptionItem(p.options, i) }))} onUpdate={editOpt} />
                     )}
                     {formData.type === 'grouped_array' && (
                         <GroupedOptionsSection
                             options={formData.options}
                             onAddGroup={() => setFormData((p) => ({ ...p, options: [...p.options, { name: '', values: [{ name: '' }] }] }))}
-                            onRemoveGroup={(i) => setFormData((p) => ({ ...p, options: p.options.filter((_, idx) => idx !== i) }))}
+                            onRemoveGroup={(i) => setFormData((p) => ({ ...p, options: removeOptionItem(p.options, i) }))}
                             onUpdateGroup={editOpt}
                             onAddValue={(gi) => { const n = [...formData.options]; n[gi].values.push({ name: '' }); setFormData({ ...formData, options: n }); }}
-                            onRemoveValue={(gi, vi) => { const n = [...formData.options]; n[gi].values.splice(vi, 1); setFormData({ ...formData, options: n }); }}
+                            onRemoveValue={(gi, vi) => setFormData((p) => ({ ...p, options: p.options.map((g, i) => (i === gi ? { ...g, values: removeOptionItem(g.values || [], vi) } : g)) }))}
                             onUpdateValue={editGValue}
                         />
                     )}

@@ -44,6 +44,9 @@ Each question in GET/POST carries raw `title_seeking`, `short_title_seeking`, `t
 `buildSaveMatchmakingPayload` sends `short_title_offering` as `short_title` and never echoes the display value.
 The editor sends titles trimmed; blank → `null`.
 
+Deleting an option/group/value: EA only deletes a saved one when the POST carries it with `is_deleted: true`
+(omitting it keeps it). `removeOptionItem` flags saved items and drops unsaved ones; the option sections hide flagged items.
+
 Do not use `/registration/forms/` for create/copy/edit.
 
 Tabs (URL, required):

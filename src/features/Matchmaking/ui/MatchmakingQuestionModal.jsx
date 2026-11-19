@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Loader2, ChevronLeft } from 'lucide-react';
 import { matchmakingFormApi } from '../api/matchmakingFormApi';
 import { buildSaveMatchmakingPayload } from '../domain/buildSaveMatchmakingPayload';
+import { shouldSendOptionItem } from '../domain/removeOptionItem';
 import { eventService } from '../../../services/eventService';
 import { normalizeQuestionType } from '../constants/questionTypes';
 import MatchmakingQuestionFormFields from './MatchmakingQuestionFormFields';
@@ -66,8 +67,8 @@ const MatchmakingQuestionModal = ({
         setLoading(true);
         try {
             const formattedOptions = formData.options
-                .map((opt) => ({ ...opt, values: opt.values?.filter((v) => v.name) }))
-                .filter((opt) => opt.name || opt.values?.length > 0);
+                .map((opt) => ({ ...opt, values: opt.values?.filter(shouldSendOptionItem) }))
+                .filter((opt) => shouldSendOptionItem(opt) || opt.values?.length > 0);
             const payload = {
                 ...formData,
                 id: question?.id,

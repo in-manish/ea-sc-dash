@@ -987,6 +987,7 @@ tasks:
       - src/features/Matchmaking/ui/MatchSideBadge.jsx
       - src/features/Matchmaking/domain/buildCopyMatchmakingPayload.js
       - src/features/Matchmaking/domain/buildSaveMatchmakingPayload.js
+      - src/features/Matchmaking/domain/removeOptionItem.js
     routes:
       - /event/:id/matchmaking
       - /event/:id/matchmaking?tab=questions
