@@ -19,10 +19,20 @@ const ScanReports = () => {
 
     // Parse filters from URL
     const filters = React.useMemo(() => ({
+        // Existing multi-select filters
         location_id: searchParams.get('loc')?.split(',').filter(Boolean).map(Number) || [],
         date: searchParams.get('date')?.split(',').filter(Boolean) || [],
         att_id: searchParams.get('att')?.split(',').filter(Boolean) || [],
-        reg_type: searchParams.get('reg')?.split(',').filter(Boolean) || []
+        reg_type: searchParams.get('reg')?.split(',').filter(Boolean) || [],
+        // New text filters
+        name: searchParams.get('name') || '',
+        email: searchParams.get('email') || '',
+        phone: searchParams.get('phone') || '',
+        company: searchParams.get('company') || '',
+        designation: searchParams.get('designation') || '',
+        reg_id: searchParams.get('reg_id') || '',
+        device_id: searchParams.get('device_id') || '',
+        location_name: searchParams.get('location_name') || '',
     }), [searchParams]);
 
     const setPage = (newPage) => {
@@ -58,6 +68,7 @@ const ScanReports = () => {
     const setFilters = (updateFn) => {
         const newFilters = typeof updateFn === 'function' ? updateFn(filters) : updateFn;
         setSearchParams(params => {
+            // Multi-select filters
             if (newFilters.location_id.length > 0) params.set('loc', newFilters.location_id.join(','));
             else params.delete('loc');
 
@@ -70,15 +81,29 @@ const ScanReports = () => {
             if (newFilters.reg_type.length > 0) params.set('reg', newFilters.reg_type.join(','));
             else params.delete('reg');
 
+            // Text filters
+            const textFilters = ['name', 'email', 'phone', 'company', 'designation', 'reg_id', 'device_id', 'location_name'];
+            textFilters.forEach(key => {
+                if (newFilters[key]?.trim()) params.set(key, newFilters[key].trim());
+                else params.delete(key);
+            });
+
             params.set('p', '1'); // Reset page
             return params;
         });
     };
 
+    // Array filters count each value; text filters count once when non-empty.
+    const activeFilterCount = Object.values(filters).reduce(
+        (acc, value) => acc + (Array.isArray(value) ? value.length : (value?.trim() ? 1 : 0)),
+        0
+    );
+
     const [data, setData] = useState([]);
     const [statistics, setStatistics] = useState({
         total: 0,
-        location_statistics: {}
+        location_statistics: {},
+        attendee_type_statistics: []
     });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -151,7 +176,8 @@ const ScanReports = () => {
                 setData(reports);
                 setStatistics({
                     total: response.total || 0,
-                    location_statistics: response.statistics?.location_statistics || {}
+                    location_statistics: response.statistics?.location_statistics || {},
+                    attendee_type_statistics: response.statistics?.attendee_type_statistics || []
                 });
             } else if (response.success && response.data) {
                 // Fallback for wrapped responses just in case the backend format behaves differently
@@ -159,7 +185,8 @@ const ScanReports = () => {
                 setData(reports);
                 setStatistics({
                     total: response.data.total || 0,
-                    location_statistics: response.data.statistics?.location_statistics || {}
+                    location_statistics: response.data.statistics?.location_statistics || {},
+                    attendee_type_statistics: response.data.statistics?.attendee_type_statistics || []
                 });
             } else {
                 // Determine error state
@@ -170,7 +197,7 @@ const ScanReports = () => {
             setError(err.message || 'An error occurred while fetching reports.');
             // Clear on error
             setData([]);
-            setStatistics({ total: 0, location_statistics: {} });
+            setStatistics({ total: 0, location_statistics: {}, attendee_type_statistics: [] });
         } finally {
             setLoading(false);
         }
@@ -265,8 +292,29 @@ const ScanReports = () => {
                                     : 'bg-bg-secondary border-border text-text-secondary hover:bg-bg-tertiary'}`}
                         >
                             <Filter size={16} />
-                            Filters {Object.values(filters).some(f => f.length > 0) && `(${Object.values(filters).reduce((acc, curr) => acc + curr.length, 0)})`}
+                            Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
                         </button>
+
+                        {/* Sort dropdown for additional fields */}
+                        <select
+                            value={sortBy}
+                            onChange={(e) => {
+                                setSortBy(e.target.value);
+                                setPage(1);
+                            }}
+                            className="bg-bg-secondary border border-border rounded-lg px-3 py-1.5 text-sm font-medium text-text-secondary hover:bg-bg-tertiary transition-colors focus:outline-none focus:border-accent cursor-pointer"
+                        >
+                            <option value="scanned_at">Sort: Time</option>
+                            <option value="name">Sort: Name</option>
+                            <option value="email">Sort: Email</option>
+                            <option value="phone">Sort: Phone</option>
+                            <option value="company">Sort: Company</option>
+                            <option value="designation">Sort: Designation</option>
+                            <option value="reg_id">Sort: Reg ID</option>
+                            <option value="attendee_type">Sort: Attendee Type</option>
+                            <option value="device_id">Sort: Device ID</option>
+                            <option value="location_name">Sort: Location</option>
+                        </select>
 
                         <label className="flex items-center gap-2 text-sm text-text-secondary cursor-pointer bg-bg-secondary px-3 py-1.5 rounded-lg border border-border hover:bg-bg-tertiary transition-colors">
                             <input
@@ -297,42 +345,66 @@ const ScanReports = () => {
                 </div>
 
                 {/* Active Filter Pills */}
-                {Object.values(filters).some(f => f.length > 0) && (
+                {activeFilterCount > 0 && (
                     <div className="flex flex-wrap gap-2 py-1 animate-fade-in">
-                        {Object.entries(filters).map(([key, value]) => (
-                            value.map(val => {
-                                // For location_id, try to show the name if we have it in our map
-                                let displayVal = val;
-                                if (key === 'location_id' && locationMap[val]) {
-                                    displayVal = locationMap[val];
-                                }
-                                if (key === 'att_id') {
-                                    displayVal = attendeeTypes.find((type) => type.id === String(val))?.name || val;
-                                }
+                        {Object.entries(filters).map(([key, value]) => {
+                            // Handle array filters (multi-select)
+                            if (Array.isArray(value)) {
+                                return value.map(val => {
+                                    let displayVal = val;
+                                    if (key === 'location_id' && locationMap[val]) {
+                                        displayVal = locationMap[val];
+                                    }
+                                    if (key === 'att_id') {
+                                        displayVal = attendeeTypes.find((type) => type.id === String(val))?.name || val;
+                                    }
 
+                                    return (
+                                        <div key={`${key}-${val}`} className="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-xs font-semibold bg-accent/10 text-accent border border-accent/20 transition-all hover:bg-accent/15">
+                                            <span className="opacity-70 uppercase text-[10px] font-bold tracking-wider">{key.replace('_', ' ')}:</span>
+                                            <span>{displayVal}</span>
+                                            <button
+                                                className="p-0.5 rounded-full hover:bg-accent/20 transition-colors"
+                                                onClick={() => {
+                                                    setFilters(prev => ({
+                                                        ...prev,
+                                                        [key]: prev[key].filter(v => v !== val)
+                                                    }));
+                                                }}
+                                            >
+                                                <X size={12} />
+                                            </button>
+                                        </div>
+                                    );
+                                });
+                            }
+                            // Handle string filters (text inputs)
+                            if (value?.trim()) {
                                 return (
-                                    <div key={`${key}-${val}`} className="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-xs font-semibold bg-accent/10 text-accent border border-accent/20 transition-all hover:bg-accent/15">
+                                    <div key={key} className="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-xs font-semibold bg-accent/10 text-accent border border-accent/20 transition-all hover:bg-accent/15">
                                         <span className="opacity-70 uppercase text-[10px] font-bold tracking-wider">{key.replace('_', ' ')}:</span>
-                                        <span>{displayVal}</span>
+                                        <span>{value}</span>
                                         <button
                                             className="p-0.5 rounded-full hover:bg-accent/20 transition-colors"
                                             onClick={() => {
-                                                setFilters(prev => ({
-                                                    ...prev,
-                                                    [key]: prev[key].filter(v => v !== val)
-                                                }));
+                                                setFilters(prev => ({ ...prev, [key]: '' }));
                                             }}
                                         >
                                             <X size={12} />
                                         </button>
                                     </div>
                                 );
-                            })
-                        ))}
+                            }
+                            return null;
+                        })}
                         <button
                             className="text-xs font-bold text-text-tertiary hover:text-accent transition-colors px-2"
                             onClick={() => {
-                                setFilters({ location_id: [], date: [], att_id: [], reg_type: [] });
+                                setFilters({
+                                    location_id: [], date: [], att_id: [], reg_type: [],
+                                    name: '', email: '', phone: '', company: '',
+                                    designation: '', reg_id: '', device_id: '', location_name: ''
+                                });
                             }}
                         >
                             Clear All
@@ -343,6 +415,29 @@ const ScanReports = () => {
                 {Object.keys(statistics.location_statistics || {}).length > 0 && (
                     <div className="bg-bg-primary border border-border rounded-xl p-5 shadow-sm">
                         <GateScanPieChart counts={statistics.location_statistics} />
+                    </div>
+                )}
+
+                {/* Attendee Type Statistics */}
+                {statistics.attendee_type_statistics?.length > 0 && (
+                    <div className="bg-bg-primary border border-border rounded-xl p-5 shadow-sm">
+                        <h3 className="text-sm font-bold text-text-primary mb-3 flex items-center gap-2">
+                            <User size={16} className="text-accent" /> Attendee Type Breakdown
+                        </h3>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                            {statistics.attendee_type_statistics.map((type) => (
+                                <div
+                                    key={type.id}
+                                    className="flex flex-col p-3 bg-bg-secondary/50 rounded-lg border border-border/50 hover:border-accent/30 transition-colors"
+                                >
+                                    <span className="text-sm font-semibold text-text-primary truncate" title={type.name}>
+                                        {type.name}
+                                    </span>
+                                    <span className="text-[10px] text-text-tertiary mt-0.5">ID: {type.id}</span>
+                                    <span className="text-lg font-bold text-accent mt-1">{type.count.toLocaleString()}</span>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 )}
             </div>
@@ -650,12 +745,105 @@ const ScanReports = () => {
                                 )}
                             </div>
                         </div>
+
+                        {/* Text Search Filters */}
+                        <div className="flex flex-col gap-3">
+                            <h4 className="text-[0.7rem] font-bold text-text-tertiary uppercase tracking-[0.15em] flex items-center gap-2">
+                                <Search size={14} className="text-accent" /> Search Filters
+                            </h4>
+                            <div className="grid grid-cols-1 gap-3">
+                                <div>
+                                    <label className="text-xs text-text-secondary mb-1 block">Name</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Search by name..."
+                                        value={filters.name}
+                                        onChange={(e) => setFilters({ ...filters, name: e.target.value })}
+                                        className="w-full bg-bg-secondary border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent transition-colors"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs text-text-secondary mb-1 block">Email</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Search by email..."
+                                        value={filters.email}
+                                        onChange={(e) => setFilters({ ...filters, email: e.target.value })}
+                                        className="w-full bg-bg-secondary border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent transition-colors"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs text-text-secondary mb-1 block">Phone</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Search by phone..."
+                                        value={filters.phone}
+                                        onChange={(e) => setFilters({ ...filters, phone: e.target.value })}
+                                        className="w-full bg-bg-secondary border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent transition-colors"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs text-text-secondary mb-1 block">Company</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Search by company..."
+                                        value={filters.company}
+                                        onChange={(e) => setFilters({ ...filters, company: e.target.value })}
+                                        className="w-full bg-bg-secondary border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent transition-colors"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs text-text-secondary mb-1 block">Designation</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Search by designation..."
+                                        value={filters.designation}
+                                        onChange={(e) => setFilters({ ...filters, designation: e.target.value })}
+                                        className="w-full bg-bg-secondary border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent transition-colors"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs text-text-secondary mb-1 block">Registration ID</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Search by reg ID..."
+                                        value={filters.reg_id}
+                                        onChange={(e) => setFilters({ ...filters, reg_id: e.target.value })}
+                                        className="w-full bg-bg-secondary border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent transition-colors"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs text-text-secondary mb-1 block">Device ID</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Search by device ID..."
+                                        value={filters.device_id}
+                                        onChange={(e) => setFilters({ ...filters, device_id: e.target.value })}
+                                        className="w-full bg-bg-secondary border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent transition-colors"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs text-text-secondary mb-1 block">Location Name</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Search by location name..."
+                                        value={filters.location_name}
+                                        onChange={(e) => setFilters({ ...filters, location_name: e.target.value })}
+                                        className="w-full bg-bg-secondary border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent transition-colors"
+                                    />
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div className="p-6 border-t border-border bg-bg-secondary/30 flex gap-3">
                         <button
                             onClick={() => {
-                                setFilters({ location_id: [], date: [], att_id: [], reg_type: [] });
+                                setFilters({
+                                    location_id: [], date: [], att_id: [], reg_type: [],
+                                    name: '', email: '', phone: '', company: '',
+                                    designation: '', reg_id: '', device_id: '', location_name: ''
+                                });
                                 setIsFilterDrawerOpen(false);
                             }}
                             className="flex-1 py-2.5 rounded-xl text-sm font-bold text-text-secondary bg-bg-primary border border-border hover:bg-bg-secondary transition-all"
