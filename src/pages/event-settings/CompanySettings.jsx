@@ -5,6 +5,7 @@ import ScriptEmbedEditor from '../../components/common/ScriptEmbedEditor';
 import ComplimentarySection from './ComplimentarySection';
 import ExhibitorPreviewModeSection from './ExhibitorPreviewModeSection';
 import CompanyAccessControlsSection from './CompanyAccessControlsSection';
+import ContractorRegistrationInfoSection from './ContractorRegistrationInfoSection';
 
 export const STALL_SCHEMA_TYPES = [
     { value: 'BRSP', label: 'Bare space' },
@@ -37,6 +38,8 @@ const CompanySettings = ({
     isStallSchemaTypesModified,
     handleMeetingOptionActiveChange,
     isMeetingOptionActiveModified,
+    handleContractorRegistrationInfoChange,
+    isContractorRegistrationInfoModified,
 }) => {
     const selectedStallTypes = Array.isArray(eventData.stall_schem_types) ? eventData.stall_schem_types : [];
 
@@ -172,6 +175,12 @@ const CompanySettings = ({
                 handleInviteeLinkChange={handleInviteeLinkChange}
                 moveInviteeLink={moveInviteeLink}
                 isInviteeLinkModified={isInviteeLinkModified}
+            />
+
+            <ContractorRegistrationInfoSection
+                eventData={eventData}
+                onChange={handleContractorRegistrationInfoChange}
+                isModified={isContractorRegistrationInfoModified}
             />
         </div>
     );

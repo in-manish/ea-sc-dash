@@ -28,6 +28,7 @@ import {
 } from './exhibitorPortalDefaults';
 import { useAdditionalRequirement } from './useAdditionalRequirement';
 import { useExhibitorPortalMeetingDiary } from './useExhibitorPortalMeetingDiary';
+import { useContractorRegistrationInfo } from './useContractorRegistrationInfo';
 import { EVENT_MEDIA_FIELD_NAMES } from './domain/eventImageFields';
 
 const EventSettings = () => {
@@ -367,6 +368,11 @@ const EventSettings = () => {
         handleMeetingOptionActiveChange,
         isMeetingOptionActiveModified,
     } = useExhibitorPortalMeetingDiary(eventData, originalEventData, setEventData);
+
+    const {
+        handleContractorRegistrationInfoChange,
+        isContractorRegistrationInfoModified,
+    } = useContractorRegistrationInfo(eventData, originalEventData, setEventData);
 
     const handleMeetingDiaryChange = (field, value) => {
         setEventData(prev => ({
@@ -712,6 +718,8 @@ const EventSettings = () => {
                         isStallSchemaTypesModified={isStallSchemaTypesModified}
                         handleMeetingOptionActiveChange={handleMeetingOptionActiveChange}
                         isMeetingOptionActiveModified={isMeetingOptionActiveModified}
+                        handleContractorRegistrationInfoChange={handleContractorRegistrationInfoChange}
+                        isContractorRegistrationInfoModified={isContractorRegistrationInfoModified}
                     />
                 )}
                 {activeTab === 'attendees' && (

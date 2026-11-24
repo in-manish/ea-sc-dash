@@ -118,11 +118,27 @@ export function buildMeetingDiaryPayload(raw) {
     return normalizeMeetingDiary(raw);
 }
 
+export const CONTRACTOR_REGISTRATION_INFO_KEY = 'contractor_registration_information';
+
+/** Free-form HTML string; '' when unset. */
+export function normalizeContractorRegistrationInfo(raw) {
+    return typeof raw === 'string' ? raw : '';
+}
+
+export function getContractorRegistrationInfo(eventData) {
+    return normalizeContractorRegistrationInfo(
+        eventData?.exhibitor_portal_data?.[CONTRACTOR_REGISTRATION_INFO_KEY]
+    );
+}
+
 export function normalizeExhibitorPortalData(portalData) {
     return {
         ...(portalData && typeof portalData === 'object' ? portalData : {}),
         additional_requirement: normalizeAdditionalRequirement(portalData?.additional_requirement),
         meeting_diary: normalizeMeetingDiary(portalData?.meeting_diary),
+        [CONTRACTOR_REGISTRATION_INFO_KEY]: normalizeContractorRegistrationInfo(
+            portalData?.[CONTRACTOR_REGISTRATION_INFO_KEY]
+        ),
     };
 }
 
@@ -132,6 +148,9 @@ export function buildExhibitorPortalPayload(portalData) {
             portalData?.additional_requirement
         ),
         meeting_diary: buildMeetingDiaryPayload(portalData?.meeting_diary),
+        [CONTRACTOR_REGISTRATION_INFO_KEY]: normalizeContractorRegistrationInfo(
+            portalData?.[CONTRACTOR_REGISTRATION_INFO_KEY]
+        ),
     };
 }
 

@@ -638,7 +638,7 @@ tasks:
       additional_requirement.tax is [{name, rate}, ...]; PATCH replaces the whole
       list; [] = no tax; omitted/never-set defaults to GST 18; old object payload
       is wrapped as one item; type is ignored; rate is percentage 0-100.
-      Save sends exhibitor_portal_data via buildExhibitorPortalPayload (AR + meeting_diary).
+      Save sends exhibitor_portal_data via buildExhibitorPortalPayload (AR + meeting_diary + contractor_registration_information).
   event_settings_exhibitor_meeting_diary:
     files:
       - src/pages/event-settings/CompanyAccessControlsSection.jsx
@@ -653,6 +653,20 @@ tasks:
       (default false). GET needs exhibitor_portal=true. PATCH sends
       exhibitor_portal_data { additional_requirement, meeting_diary }.
       Distinct from top-level meeting_diary / meeting_diary_enabled.
+  event_settings_contractor_registration_info:
+    files:
+      - src/pages/event-settings/ContractorRegistrationInfoSection.jsx
+      - src/pages/event-settings/useContractorRegistrationInfo.js
+      - src/pages/event-settings/CompanySettings.jsx
+      - src/pages/event-settings/exhibitorPortalDefaults.js
+      - src/pages/event-settings/index.jsx
+    routes:
+      - /event/:id/settings?tab=companies
+    notes: >
+      exhibitor_portal_data.contractor_registration_information is a free-form
+      HTML string ('' when unset), edited with Edit HTML / Preview in the
+      Companies tab. Saved with the rest of exhibitor_portal_data via
+      buildExhibitorPortalPayload on PATCH /events/<id>/ (EA merges per key).
   event_settings_complimentary_invitee_links:
     files:
       - src/pages/event-settings/ComplimentaryInviteeLinkItem.jsx
