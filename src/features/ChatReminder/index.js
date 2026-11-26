@@ -1,3 +1,2 @@
-export { default as ChatReminderSettings } from './ui/ChatReminderSettings';
-export { unreadReminderApi } from './api/unreadReminderApi';
-export { saveChatReminderIfNeeded } from './domain/chatReminderSaveBridge';
+export { default as ChatReminderPage } from './ui/ChatReminderPage';
+export { CHAT_REMINDER_TAB } from './domain/chatReminderTab';

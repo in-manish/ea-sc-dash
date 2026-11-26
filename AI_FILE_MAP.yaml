@@ -30,21 +30,28 @@ tasks:
       avatar (click to enlarge). Copyable + editable; PATCH with event save.
   event_settings_chat_reminder:
     files:
-      - src/features/ChatReminder/ui/ChatReminderSettings.jsx
-      - src/features/ChatReminder/hooks/useUnreadReminderConfig.js
-      - src/features/ChatReminder/api/unreadReminderApi.js
-      - src/features/ChatReminder/domain/unreadReminderConfig.js
-      - src/features/ChatReminder/domain/parseUnreadReminderError.js
-      - src/features/ChatReminder/domain/chatReminderSaveBridge.js
-      - src/pages/event-settings/MeetingDiarySettings.jsx
+      - src/features/ChatReminder/ui/ChatReminderPage.jsx
+      - src/features/ChatReminder/ui/ChatReminderStatusCard.jsx
+      - src/features/ChatReminder/ui/ChatReminderSettingsCard.jsx
+      - src/features/ChatReminder/ui/ChatReminderControlsCard.jsx
+      - src/features/ChatReminder/ui/ChatReminderRunCard.jsx
+      - src/features/ChatReminder/ui/ChatReminderActivityCard.jsx
+      - src/features/ChatReminder/hooks/useChatReminderConfig.js
+      - src/features/ChatReminder/hooks/useChatReminderOverview.js
+      - src/features/ChatReminder/hooks/useChatReminderRun.js
+      - src/features/ChatReminder/api/chatReminderApi.js
+      - src/features/ChatReminder/domain/chatReminderConfig.js
+      - src/features/ChatReminder/domain/chatReminderStatus.js
+      - src/features/ChatReminder/domain/parseChatReminderError.js
       - src/pages/event-settings/index.jsx
     routes:
-      - /event/:id/settings?tab=meeting_diary
+      - /event/:id/settings?tab=chat-reminder
     notes: >
-      Tenant GET|POST /meeting/unread-reminder/config/ with organizer token.
-      Fields: activate, cooldown_minutes, cutoff_minutes, days_window.
-      Defaults (never saved): false / 20 / 90 / 200. Saves via the card button
-      or page Save Changes (Meeting Diary tab must be open).
+      Tenant-wide unread chat reminder control (off by default). EA
+      GET|PATCH /meeting/chat-reminder/config/, GET status/, POST preview/,
+      POST send/ (confirm: true), GET activity/. Emergency stop uses
+      /common-services/emailing/kill-switches/; schedule uses /celery-beat/tasks/
+      (shared by all tenants). Own save buttons; page Save Changes hidden.
   scan_location_permissions:
     files:
       - src/features/ScanLocations/ui/ScanLocationsPage.jsx
@@ -1320,12 +1327,12 @@ features:
     service_api: GET|POST /events/:eventId/permission-sources/options/, PUT .../mapping/, POST .../backfill/, GET .../ledger/
   ChatReminder:
     root: src/features/ChatReminder/
-    entry: src/pages/event-settings/MeetingDiarySettings.jsx
+    entry: src/features/ChatReminder/ui/ChatReminderPage.jsx
     routes:
-      - /event/:id/settings?tab=meeting_diary
+      - /event/:id/settings?tab=chat-reminder
     config_api: >
-      GET|POST /meeting/unread-reminder/config/ (organizer token; tenant-wide;
-      activate, cooldown_minutes, cutoff_minutes, days_window)
+      GET|PATCH /meeting/chat-reminder/config/, GET .../status/, POST .../preview/,
+      POST .../send/, GET .../activity/ (organizer token; tenant-wide)
   SponsorPromo:
     root: src/features/SponsorPromo/
     entry: src/pages/Communication.jsx

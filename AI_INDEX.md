@@ -38,7 +38,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | SponsorPromo | `src/features/SponsorPromo/` | Communication → Promo Codes tab (`?tab=promo`): sponsor pools, CSV code import, `{{slug.promotional_code}}` email token |
 | Visiq | `src/features/Visiq/` | Tenant subscriber CRM: list/detail + CSV/Excel import jobs |
 | AiPresets | `src/features/AiPresets/` | Organizer AI system prompt presets; matchmaking `mm_seeking_mapper` catalog preview at `/event/:id/ai/preview` |
-| ChatReminder | `src/features/ChatReminder/` | Tenant unread meeting-chat reminder config on Settings → Meeting Diary |
+| ChatReminder | `src/features/ChatReminder/` | Unread meeting-chat reminder control panel: settings, status, schedule, emergency stop, dry run/send, activity (Settings → Chat Reminder) |
 | ScanLocations | `src/features/ScanLocations/` | Event Settings tab: scan locations, permission codes, a SurveyJS mapping sub-tab (SurveyJS options to permissions, backfill, ledger) and a Metrics sub-tab (holders per permission, scans per location, 10 min server cache + Refresh data); list chips open `?permission=` |
 
 ## Common tasks → files
@@ -113,7 +113,7 @@ React organizer dashboard for event operations (attendees, companies, agenda, et
 | EA invitee type placeholders | `InviteeTypePlaceholderForm.jsx` + `inviteeLinkPlaceholder.js` + `useInviteeLinkPlaceholders.js` |
 | Event settings AR tax list | `src/pages/event-settings/exhibitorPortalDefaults.js` + `ArTaxList.jsx` + `useAdditionalRequirement.js` |
 | Event settings / exhibitor meeting diary | `src/pages/event-settings/CompanyAccessControlsSection.jsx` + `exhibitorPortalDefaults.js` (`exhibitor_portal_data.meeting_diary.is_meeting_option_active`) |
-| Event settings / chat reminder | `src/features/ChatReminder/ui/ChatReminderSettings.jsx` + `api/unreadReminderApi.js` (`/event/:id/settings?tab=meeting_diary`) |
+| Event settings / chat reminder | `src/features/ChatReminder/ui/ChatReminderPage.jsx` + `api/chatReminderApi.js` (`/event/:id/settings?tab=chat-reminder`) |
 | Event settings / complimentary invitee links | `src/pages/event-settings/ComplimentaryInviteeLinkItem.jsx` (`is_active` enable/disable, `is_complementary`) |
 | Matchmaking questions / copy | `src/features/Matchmaking/ui/MatchmakingQuestions.jsx` + `api/matchmakingFormApi.js` (`/event/:id/matchmaking?tab=questions`) |
 | Matchmaking titles (offering/seeking/short/filter) | `ui/QuestionTitleFields.jsx` (editor) + `ui/QuestionLabelsSummary.jsx` (card) + `ui/MatchSideBadge.jsx` (Offering/Seeking tag); keys `title`, `title_seeking`, `short_title_offering` (raw short_title, sent as `short_title`), `short_title_seeking`, `title_filter` |

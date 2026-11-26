@@ -14,7 +14,8 @@ import CommunicationSettings from './CommunicationSettings';
 import IntegrationSettings from './IntegrationSettings';
 import LocalizationSettings from './LocalizationSettings';
 import MeetingDiarySettings from './MeetingDiarySettings';
-import { saveChatReminderIfNeeded } from '../../features/ChatReminder';
+import { CHAT_REMINDER_TAB, ChatReminderPage } from '../../features/ChatReminder';
+import SettingsTabBar from './components/SettingsTabBar';
 import AgendaSettings from './AgendaSettings';
 import ScanLocationsPage from '../../features/ScanLocations/ui/ScanLocationsPage';
 import { SCAN_LOCATION_TAB } from '../../features/ScanLocations/domain/scanLocationTab';
@@ -605,7 +606,6 @@ const EventSettings = () => {
 
             // console.log('Final Payload:', Object.fromEntries(formData.entries()));
 
-            await saveChatReminderIfNeeded();
             await eventService.updateEvent(id, token, formData);
             setMessage({ type: 'success', text: 'Settings updated successfully!' });
             setOriginalEventData(JSON.parse(JSON.stringify(eventData)));
@@ -639,6 +639,7 @@ const EventSettings = () => {
         { id: 'payments', label: 'Payments' },
         { id: 'localization', label: 'Localization' },
         { id: 'meeting_diary', label: 'Meeting Diary' },
+        { id: CHAT_REMINDER_TAB, label: 'Chat Reminder' },
         { id: 'agenda', label: 'Agenda' },
         { id: SCAN_LOCATION_TAB, label: 'Scan Location Permission' },
         { id: 'payload', label: 'Payload' },
@@ -651,7 +652,7 @@ const EventSettings = () => {
                     <h1 className="text-2xl font-bold text-text-primary mb-1">Event Settings</h1>
                     <p className="text-sm text-text-secondary">Manage configuration for {eventData.name}</p>
                 </div>
-                {activeTab !== SCAN_LOCATION_TAB && (
+                {activeTab !== SCAN_LOCATION_TAB && activeTab !== CHAT_REMINDER_TAB && (
                     <button className="btn btn-primary" onClick={handleSubmit} disabled={isSaving}>
                         {isSaving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} className="mr-2" />}
                         {isSaving ? 'Saving...' : 'Save Changes'}
@@ -665,25 +666,10 @@ const EventSettings = () => {
                 </div>
             )}
 
-            <div className="relative mb-6 border-b border-border w-full max-w-full overflow-hidden">
-                <div className="flex items-center gap-1 overflow-x-auto whitespace-nowrap scrollbar-none pb-[1.5px] -mb-[1px] w-full">
-                    {tabs.map(tab => (
-                        <button
-                            key={tab.id}
-                            className={`bg-transparent border-none py-3 px-5 text-[13px] font-medium cursor-pointer border-b-2 transition-all duration-200 shrink-0 ${
-                                activeTab === tab.id 
-                                    ? 'text-accent border-accent font-semibold' 
-                                    : 'text-text-secondary border-transparent hover:text-text-primary hover:border-border-hover'
-                            }`}
-                            onClick={() => handleTabChange(tab.id)}
-                        >
-                            {tab.label}
-                        </button>
-                    ))}
-                </div>
-            </div>
+            <SettingsTabBar tabs={tabs} activeTab={activeTab} onChange={handleTabChange} />
 
             {activeTab === SCAN_LOCATION_TAB && <ScanLocationsPage />}
+            {activeTab === CHAT_REMINDER_TAB && <ChatReminderPage />}
 
             <div className="max-w-[800px]">
                 {activeTab === 'general' && (
